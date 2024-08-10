@@ -1,0 +1,73 @@
+[project]
+authors = [{name = "jakepenzak", email = "jakepzak@gmail.com"}]
+dependencies = []
+description = "Extensions & abstractions of advanced econometric techniques leveraging machine learning."
+name = "caml"
+requires-python = ">= 3.11"
+version = "0.0.0.dev0"
+license = {file = "LICENSE"}
+classifiers = [
+  "Development Status :: 1 - Planning",
+  "Programming Language :: Python"
+]
+
+[project.optional-dependencies]
+dev = ["pre-commit>=3.7.0", "ruff>=0.3.7", "quartodoc>=0.7.2", "coverage>=7.4.4", "coverage-badge>=1.1.0", "pytest", "pytest-mock", "pytest-cov", "hatch>=1.12.0,<2", "twine>=5.1.1,<6"]
+pyspark = ["pyspark", "ibis-framework[pyspark]>=8.0.0"]
+pandas = ["pandas", "ibis-framework[pandas]>=8.0.0"]
+polars = ["polars", "ibis-framework[polars]>=8.0.0"]
+
+[build-system]
+build-backend = "hatchling.build"
+requires = ["hatchling"]
+
+[tool.pixi.project]
+channels = ["conda-forge"]
+platforms = ["linux-64"]
+
+[tool.pixi.pypi-dependencies]
+caml = { path = ".", editable = true }
+
+[tool.pixi.tasks]
+
+[tool.pixi.feature.dev.dependencies]
+quarto = ">=1.4"
+hatchling = ">=1.25.0,<2"
+
+[tool.pixi.environments]
+default = { features = ["pyspark", "pandas", "polars"], solve-group = "default" }
+dev = { features = ["dev","pyspark", "pandas", "polars"], solve-group = "default" }
+dev-polars = { features = ["dev", "polars"], solve-group = "dev" }
+dev-pandas = { features = ["dev", "pandas"], solve-group = "dev" }
+dev-pyspark = { features = ["dev", "pyspark"], solve-group = "dev" }
+
+[tool.ruff]
+exclude = ["scripts/notebooks/",
+            ".git",
+            ".pytest_cache",
+            ".ruff_cache",
+            "jobs/"]
+
+extend-include = ["*.ipynb"]
+
+# Same as Black.
+line-length = 88
+indent-width = 4
+
+target-version = "py39"
+
+[tool.ruff.lint.per-file-ignores]
+"__init__.py" = ["E402","F401"] # Import violations
+"**/{tests,docs,tools}/*" = ["E402"] # Import violations
+
+[tool.ruff.lint]
+select = ["E4", "E7", "E9", "F", "I"]
+
+[tool.ruff.format]
+quote-style = "double" # Use double quotes for non-triple-quoted strings.
+
+[tool.ruff.lint.flake8-quotes]
+docstring-quotes = "single" # Use single quotes for docstrings
+
+[tool.pytest.ini_options]
+filterwarnings = "ignore::DeprecationWarning"
