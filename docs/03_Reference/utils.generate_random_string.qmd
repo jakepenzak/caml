@@ -1,0 +1,17 @@
+# utils.generate_random_string { #caml.utils.generate_random_string }
+
+`utils.generate_random_string(N)`
+
+Function to generate a random string of ascii lowercase letters and digits of length N.
+
+## Parameters
+
+| Name   | Type   | Description                              | Default    |
+|--------|--------|------------------------------------------|------------|
+| `N`    | int    | The length of random string to generate. | _required_ |
+
+## Returns
+
+| Type                                | Description   |
+|-------------------------------------|---------------|
+| str: The random string of length N. |               |

@@ -1,0 +1,131 @@
+.cell {
+    margin-bottom: 1rem;
+  }
+  
+.cell > .sourceCode {
+  margin-bottom: 0;
+}
+
+.cell-output > pre {
+  margin-bottom: 0;
+}
+
+.cell-output > pre, .cell-output > .sourceCode > pre, .cell-output-stdout > pre {
+  margin-left: 0.8rem;
+  margin-top: 0;
+  background: none;
+  border-left: 2px solid lightsalmon;
+  border-top-left-radius: 0;
+  border-top-right-radius: 0;
+}
+
+.cell-output > .sourceCode {
+  border: none;
+}
+
+.cell-output > .sourceCode {
+  background: none;
+  margin-top: 0;
+}
+
+div.description {
+  padding-left: 2px;
+  padding-top: 5px;
+  font-style: italic;
+  font-size: 135%;
+  opacity: 70%;
+}
+
+.navbar-logo {
+  max-height: 60px; 
+}
+
+.breadcrumb {
+  display: none;
+} 
+
+#site-navigation {
+  display: none;
+}
+
+.responsive {
+  width: 100%;
+  max-width: 75%;
+  height: auto;
+}
+
+.navbar{
+  text-transform: none;
+  font-size: 1.1rem;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  text-transform: none;
+}
+
+td:first-child {
+  text-wrap: nowrap;
+  text-size-adjust: 100%;
+}
+  
+/* Increase the padding inside table cells */
+table th, table td {
+  padding: 10px 20px; /* Adjust the values as needed */
+}
+
+/* Optional: Add more space between columns */
+table {
+  border-spacing: 20px; /* Adjust this value as needed */
+}
+
+
+/***************************/
+/* Modifying Accent Colors */
+/***************************/
+
+code {
+  color: #005f08; /* Replace with your desired color */
+  background-color: #f5f5f5e5; /* Optional: Change the background color */
+  padding: 2px 4px; /* Optional: Add some padding */
+  border-radius: 4px; /* Optional: Add rounded corners */
+}
+
+
+a {
+  color: #006d09; /* Replace with your desired accent color */
+}
+
+a:hover {
+  color: #00b80f !important; /* Optional: Darker shade on hover */
+}
+
+/* Change the color of navbar titles */
+.navbar-brand,
+.navbar-nav .nav-link {
+    color: #000000; /* Replace with your desired color */
+}
+
+.navbar-brand:hover,
+.navbar-nav .nav-link:hover {
+    color: #006d09; /* Optional: Darker shade on hover */
+}
+
+.navbar-nav .nav-link.active {
+  color: #006d09 !important; /* Replace with your desired color */
+}
+
+.sidebar-link.active {
+  color: #006d09 !important; /* Replace with your desired color */
+}
+
+/* Change the background and text color of dropdown menu items */
+.dropdown-menu {
+  background-color: #ffffff !important; /* Replace with your desired background color */
+  color: #006d09 !important; /* Replace with your desired text color */
+}
+
+/* Change the background and text color of dropdown menu items on hover */
+.dropdown-menu .dropdown-item:hover {
+  background-color: #ffffff !important; /* Replace with your desired hover background color */
+  color: #006d09 !important; /* Replace with your desired hover text color */
+}

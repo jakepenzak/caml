@@ -1,0 +1,17 @@
+# utils.descriptors.ValidBoolean { #caml.utils.descriptors.ValidBoolean }
+
+`utils.descriptors.ValidBoolean(self, strict=False)`
+
+Descriptor class for a valid boolean value.
+
+## Parameters
+
+| Name     | Type   | Description                                                                                                  | Default   |
+|----------|--------|--------------------------------------------------------------------------------------------------------------|-----------|
+| `strict` |        | If True, only a non-None boolean is considered valid. If False, None or a valid boolean is considered valid. | `False`   |
+
+## Raises
+
+| Type       | Description                                     |
+|------------|-------------------------------------------------|
+| ValueError | If the assigned value is not a valid data type. |

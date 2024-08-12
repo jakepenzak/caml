@@ -1,0 +1,17 @@
+# utils.descriptors.ValidString { #caml.utils.descriptors.ValidString }
+
+`utils.descriptors.ValidString(self, strict=False)`
+
+Descriptor class for a valid string value.
+
+## Parameters
+
+| Name     | Type   | Description                                                                                                | Default   |
+|----------|--------|------------------------------------------------------------------------------------------------------------|-----------|
+| `strict` |        | If True, only a non-None string is considered valid. If False, None or a valid string is considered valid. | `False`   |
+
+## Raises
+
+| Type       | Description                                     |
+|------------|-------------------------------------------------|
+| ValueError | If the assigned value is not a valid data type. |

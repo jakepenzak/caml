@@ -1,0 +1,17 @@
+# utils.descriptors.ValidSparkSession { #caml.utils.descriptors.ValidSparkSession }
+
+`utils.descriptors.ValidSparkSession(self, strict=False)`
+
+Descriptor class for a valid SparkSession object.
+
+## Parameters
+
+| Name     | Type   | Description                                                                                                                          | Default   |
+|----------|--------|--------------------------------------------------------------------------------------------------------------------------------------|-----------|
+| `strict` |        | If True, only a non-None SparkSession object is considered valid. If False, None or a valid SparkSession object is considered valid. | `False`   |
+
+## Raises
+
+| Type       | Description                                     |
+|------------|-------------------------------------------------|
+| ValueError | If the assigned value is not a valid data type. |

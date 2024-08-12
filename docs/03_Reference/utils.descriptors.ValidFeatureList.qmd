@@ -1,0 +1,17 @@
+# utils.descriptors.ValidFeatureList { #caml.utils.descriptors.ValidFeatureList }
+
+`utils.descriptors.ValidFeatureList(self, strict=False)`
+
+Descriptor class for a valid str, list, or tuple feature names.
+
+## Parameters
+
+| Name     | Type   | Description                                                                                                                                                      | Default   |
+|----------|--------|------------------------------------------------------------------------------------------------------------------------------------------------------------------|-----------|
+| `strict` |        | If True, only a non-None string, list, or tuple of strings is considered valid. If False, None or a valid string, list, or tuple of strings is considered valid. | `False`   |
+
+## Raises
+
+| Type       | Description                                     |
+|------------|-------------------------------------------------|
+| ValueError | If the assigned value is not a valid data type. |

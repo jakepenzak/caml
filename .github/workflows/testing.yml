@@ -1,0 +1,44 @@
+python
+name: Run Tests & Update Badge
+
+on:
+  pull_request:
+    types: [opened, reopened, synchronize]
+
+jobs:
+  run_tests:
+    runs-on: ubuntu-latest
+
+    steps:
+
+      - name: Checkout code
+        uses: actions/checkout@v2
+        with:
+          ref: ${{ github.head_ref }}
+
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: "3.10"
+      
+      - name: Set up Pixi Environment
+        uses: prefix-dev/setup-pixi@v0.8.0
+        with:
+          auth-host: prefix.dev
+          auth-token: ${{ secrets.PREFIX_DEV_TOKEN }}
+
+      - name: Run tests & update badge
+        run: pixi run --environment dev test
+
+      - name: Check for changes & Push if exist
+        id: git_check
+        run: |
+          if git diff --quiet; then
+            echo "No changes to commit"
+          else
+            git config --global user.name 'GitHub Action'
+            git config --global user.email 'action@github.com'
+            git add .
+            git commit -m "Update Test Badge"
+            git push origin ${{ github.head_ref }}
+          fi

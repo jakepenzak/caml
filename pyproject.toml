@@ -1,9 +1,9 @@
 [project]
 authors = [{name = "jakepenzak", email = "jakepzak@gmail.com"}]
-dependencies = []
+dependencies = ["scikit-learn>=1.5.1,<2", "econml>=0.15.1,<0.16"]
 description = "Extensions & abstractions of advanced econometric techniques leveraging machine learning."
 name = "caml"
-requires-python = ">= 3.11"
+requires-python = ">= 3.10"
 version = "0.0.0.dev0"
 license = {file = "LICENSE"}
 classifiers = [
@@ -12,7 +12,7 @@ classifiers = [
 ]
 
 [project.optional-dependencies]
-dev = ["pre-commit>=3.7.0", "ruff>=0.3.7", "quartodoc>=0.7.2", "coverage>=7.4.4", "coverage-badge>=1.1.0", "pytest", "pytest-mock", "pytest-cov", "hatch>=1.12.0,<2", "twine>=5.1.1,<6"]
+dev = ["pre-commit>=3.7.0", "ruff>=0.3.7", "quartodoc>=0.7.2", "coverage>=7.4.4", "pytest", "pytest-mock", "pytest-cov", "hatch>=1.12.0,<2", "twine>=5.1.1,<6", "ipykernel>=6.29.5,<7", "setuptools", "pytest-html>=4.1.1,<5", "genbadge>=1.1.1,<2", "defusedxml>=0.7.1,<0.8"]
 pyspark = ["pyspark", "ibis-framework[pyspark]>=8.0.0"]
 pandas = ["pandas", "ibis-framework[pandas]>=8.0.0"]
 polars = ["polars", "ibis-framework[polars]>=8.0.0"]
@@ -29,14 +29,19 @@ platforms = ["linux-64"]
 caml = { path = ".", editable = true }
 
 [tool.pixi.tasks]
+test = "bash tests/run_tests.sh"
 
 [tool.pixi.feature.dev.dependencies]
 quarto = ">=1.4"
 hatchling = ">=1.25.0,<2"
+pip = ">=24.2,<25"
+ptyprocess = ">=0.7.0,<0.8"
+pyzmq = ">=26.1.0,<27"
+python = "==3.10"
 
 [tool.pixi.environments]
 default = { features = ["pyspark", "pandas", "polars"], solve-group = "default" }
-dev = { features = ["dev","pyspark", "pandas", "polars"], solve-group = "default" }
+dev = { features = ["dev", "polars", "pandas", "pyspark"], solve-group = "default" }
 dev-polars = { features = ["dev", "polars"], solve-group = "dev" }
 dev-pandas = { features = ["dev", "pandas"], solve-group = "dev" }
 dev-pyspark = { features = ["dev", "pyspark"], solve-group = "dev" }

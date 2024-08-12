@@ -1,0 +1,28 @@
+---
+title: "Documentation"
+---
+
+*Note: Windows users must create [environment](environment.qmd#prerequisites) using WSL as Quarto requires MacOS or LinuxOS*
+
+This repository uses [![](../assets/external_logos/quarto.png){width=85px}](https://quarto.org/) & [quartodoc]()
+for documentation. All files relating to the documentation are under the `docs/` directory. 
+Quarto & quartodoc provide very detailed documentation on usage so I will refer the reader to these 
+resources for more details.
+
+To build the documentation, run the following command from the projects root directory:
+
+```bash
+quartodoc build --config docs/_quarto.yml
+```
+
+And to preview the documentation, run the following command:
+
+```bash
+quarto preview docs/
+```
+
+The documentation preview will be hosted on [http://localhost:8000/](http://localhost:8000/). 
+Note that the quarto preview will be checking for live updates & applying them in real-time. 
+In some cases, the changes will not manifest until you rerun `quartodoc build --config docs/_quarto.yml`. 
+In general, this will occur when you make changes to the "quartodoc:" section of the `docs/_quarto.yml` file or 
+any corresponding API changes, but it has been observed to occur (for undetermined reasons on our end) at other times as well.

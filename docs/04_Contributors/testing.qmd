@@ -1,0 +1,22 @@
+---
+title: "Testing"
+---
+
+## Unit Testing
+Unit tests are under the `tests/echo/` directory following the same structure of the `echo/` prefixed by "test_". 
+For example, if we wanted to write tests for `echo.py`, we would create a new file to build these tests
+`tests/echo/test_echo.py`. 
+
+To run unit tests, we have configured a Pixi job so you can run the command: 
+```bash
+pixi run --environment dev test
+```
+
+This will run your unit tests (with respective output printed in terminal) and update the coverage badge 
+![](/assets/coverage.svg)
+
+Additionally, an html report of the coverage will be exported to `tests/reports/htmlcov`, 
+which can be a useful tool for interactively evaluating the coverage of your unit tests.
+
+## Advanced Testing
+Unit tests are automatically run during PR process via GitHub Actions.

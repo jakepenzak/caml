@@ -1,0 +1,48 @@
+---
+title: "Environment & Development"
+---
+
+## Prerequisites
+- [pixi](https://pixi.sh/latest/)
+- [WSL](https://learn.microsoft.com/en-us/windows/wsl/install) (required for Windows users to utilize Quarto) 
+
+## Environment Setup
+
+### Local Environment
+
+1. Clone repository
+
+```bash
+git clone https://github.com/jakepenzak/caml
+```
+
+2. Change directory (cd) into project root then create your pixi environments:
+
+```bash
+pixi install
+pixi install --environment dev
+pixi install --environment dev-polars
+pixi install --environment dev-pandas
+pixi install --environment dev-pyspark
+```
+
+3. Activate you pixi shell for dev environment
+
+```bash
+pixi shell --environment dev
+```
+
+4. Initialize pre-commit hooks via `pre-commit install`
+
+5. Edit & test code locally (as applicable)
+
+Please refer to the [pixi](https://pixi.sh/latest/) documentation for modifying dependencies and any other pixi related questions.
+
+## Committing & Pull Requests
+
+- Try best to follow commit message conventions outlined [here](https://gist.github.com/qoomon/5dfcdf8eec66a051ecd85625518cfd13)
+- On PRs, please fill out the generated PR template. As of now, there are two github actions that will be triggered on pull request 
+& will be required to run successfully in order to merge:
+  1. CI/CD pipeline (`.github/workflows/ci.yml`) through dev & tst environments (see [Running bundle job via Github Actions](### Running bundle job via Github Actions)
+  for more details)
+  2. Testing & updating coverage badge (`.github/workflows/testing.yml`)

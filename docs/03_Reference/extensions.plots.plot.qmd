@@ -1,0 +1,17 @@
+# extensions.plots.plot { #caml.extensions.plots.plot }
+
+`extensions.plots.plot(x)`
+
+A plot.
+
+## Parameters
+
+| Name   | Type   | Description   | Default    |
+|--------|--------|---------------|------------|
+| `x`    | int    | Integer       | _required_ |
+
+## Returns
+
+| Type         | Description   |
+|--------------|---------------|
+| int: Integer |               |

@@ -1,0 +1,17 @@
+# utils.descriptors.ValidSklearnModel { #caml.utils.descriptors.ValidSklearnModel }
+
+`utils.descriptors.ValidSklearnModel(self, strict=False)`
+
+Descriptor class for a valid nuissance Sklearn model object.
+
+## Parameters
+
+| Name     | Type   | Description                                                                                                                            | Default   |
+|----------|--------|----------------------------------------------------------------------------------------------------------------------------------------|-----------|
+| `strict` |        | If True, only a non-None Sklearn model object is considered valid. If False, None or a valid Sklearn model object is considered valid. | `False`   |
+
+## Raises
+
+| Type       | Description                                     |
+|------------|-------------------------------------------------|
+| ValueError | If the assigned value is not a valid data type. |

@@ -1,0 +1,5 @@
+# ensemble.CamlEnsemble { #caml.core.ensemble.CamlEnsemble }
+
+`core.ensemble.CamlEnsemble()`
+
+The CamlEnsemble class represents a Ensemble Learning implementation for estimating...

@@ -1,0 +1,127 @@
+# dml.CamlDML { #caml.core.dml.CamlDML }
+
+`core.dml.CamlDML(self, df, uuid, y, t, X=None, model_y=HistGradientBoostingRegressor(max_depth=3, max_iter=500), model_t=HistGradientBoostingClassifier(max_depth=3, max_iter=500), discrete_treatment=True, discrete_outcome=False, spark=None)`
+
+The CamlDML class represents a Double Machine Learning (DML) implementation for estimating...
+average treatment effects (ATE), conditional average treatment effects (CATE), group average treatment effects (GATE),
+etc.
+
+This class... TODO
+
+## Parameters
+
+| Name                 | Type                                                                   | Description                                                                                                 | Default                                                     |
+|----------------------|------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------|-------------------------------------------------------------|
+| `df`                 | pandas.DataFrame \| polars.DataFrame \| pyspark.sql.DataFrame \| Table | The input DataFrame representing the data for the EchoCATE instance.                                        | _required_                                                  |
+| `uuid`               | str                                                                    | The str representing the column name for the universal identifier code (eg, ehhn)                           | _required_                                                  |
+| `y`                  | str                                                                    | The str representing the column name for the outcome variable.                                              | _required_                                                  |
+| `t`                  | str                                                                    | The str representing the column name(s) for the treatment variable(s).                                      | _required_                                                  |
+| `X`                  | str \| List\[str\] \| None                                             | The str (if unity) or list of feature names representing the custom feature set. Defaults to None.          | `None`                                                      |
+| `model_y`            | RegressorMixin \| ClassifierMixin                                      | The nuissance model to be used for predicting the outcome. Defaults to HistGradientBoostingRegressor.       | `HistGradientBoostingRegressor(max_depth=3, max_iter=500)`  |
+| `model_t`            | RegressorMixin \| ClassifierMixin                                      | The nuissance model to be used for predicting the treatment. Defaults to HistGradientBoostingClassifier.    | `HistGradientBoostingClassifier(max_depth=3, max_iter=500)` |
+| `discrete_treatment` | bool                                                                   | A boolean indicating whether the treatment is discrete or continuous. Defaults to True.                     | `True`                                                      |
+| `spark`              | SparkSession \| None                                                   | The SparkSession object used for connecting to Ibis when `df` is a pyspark.sql.DataFrame. Defaults to None. | `None`                                                      |
+
+## Attributes
+
+| Name               | Type                                                                   | Description                                                                               |
+|--------------------|------------------------------------------------------------------------|-------------------------------------------------------------------------------------------|
+| df                 | pandas.DataFrame \| polars.DataFrame \| pyspark.sql.DataFrame \| Table | The input DataFrame representing the data for the EchoCATE instance.                      |
+| uuid               | str                                                                    | The str representing the column name for the universal identifier code (eg, ehhn)         |
+| y                  | str                                                                    | The str representing the column name for the outcome variable.                            |
+| t                  | str                                                                    | The str representing the column name(s) for the treatment variable(s).                    |
+| X                  | List\[str\] \| str \| None                                             | The str (if unity) or list/tuple of feature names representing the custom feature set.    |
+| model_y            | RegressorMixin \| ClassifierMixin                                      | The nuissance model to be used for predicting the outcome.                                |
+| model_t            | RegressorMixin \| ClassifierMixin                                      | The nuissance model to be used for predicting the treatment.                              |
+| discrete_treatment | bool                                                                   | A boolean indicating whether the treatment is discrete or continuous.                     |
+| spark              | SparkSession                                                           | The SparkSession object used for connecting to Ibis when `df` is a pyspark.sql.DataFrame. |
+| _ibis_connection   | ibis.client.Client                                                     | The Ibis client object representing the backend connection to Ibis.                       |
+| _ibis_df           | Table                                                                  | The Ibis table expression representing the DataFrame connected to Ibis.                   |
+| _table_name        | str                                                                    | The name of the temporary table/view created for the DataFrame in Ibis.                   |
+| _Y                 | Table                                                                  | The outcome variable data as ibis table.                                                  |
+| _T                 | Table                                                                  | The treatment variable data as ibis table.                                                |
+| _X                 | Table                                                                  | The feature set data as ibis table.                                                       |
+| _estimator         | CausalForestDML                                                        | The fitted EconML estimator object.                                                       |
+
+## Methods
+
+| Name | Description |
+| --- | --- |
+| [fit](#caml.core.dml.CamlDML.fit) | Fits the econometric model to learn the CATE function. |
+| [optimize](#caml.core.dml.CamlDML.optimize) | Optimizes a households treatment based on CATE predictions. Only applicable when |
+| [predict](#caml.core.dml.CamlDML.predict) | Predicts the CATE given feature set. |
+| [rank](#caml.core.dml.CamlDML.rank) | Ranks households based on the those with the highest estimated CATE. |
+| [summarize](#caml.core.dml.CamlDML.summarize) | Provides population summary of treatment effects, including Average Treatment Effects (ATEs) |
+
+### fit { #caml.core.dml.CamlDML.fit }
+
+`core.dml.CamlDML.fit(estimator='CausalForestDML', return_estimator=False, **kwargs)`
+
+Fits the econometric model to learn the CATE function.
+
+Sets the _Y, _T, and _X internal attributes to the data of the outcome, treatment, and feature set,
+respectively. Additionally, sets the _estimator internal attribute to the fitted EconML estimator object.
+
+#### Parameters
+
+| Name               | Type   | Description                                                                                                                  | Default             |
+|--------------------|--------|------------------------------------------------------------------------------------------------------------------------------|---------------------|
+| `estimator`        | str    | The estimator to use for fitting the CATE function. Defaults to 'CausalForestDML'. Currently, only this option is available. | `'CausalForestDML'` |
+| `return_estimator` | bool   | Set to True to recieve the estimator object back after fitting. Defaults to False.                                           | `False`             |
+| `**kwargs`         |        | Additional keyword arguments to pass to the EconML estimator.                                                                | `{}`                |
+
+#### Returns
+
+| Type                                      | Description                                                                       |
+|-------------------------------------------|-----------------------------------------------------------------------------------|
+| econml.dml.causal_forest.CausalForestDML: | The fitted EconML CausalForestDML estimator object if `return_estimator` is True. |
+
+### optimize { #caml.core.dml.CamlDML.optimize }
+
+`core.dml.CamlDML.optimize()`
+
+Optimizes a households treatment based on CATE predictions. Only applicable when
+vector of treatments includes more than 1 mutually exlusive treatment.
+
+#### Returns
+
+| Type   | Description   |
+|--------|---------------|
+| None   |               |
+
+### predict { #caml.core.dml.CamlDML.predict }
+
+`core.dml.CamlDML.predict(out_of_sample_df=None, ci=90, return_predictions=False, append_predictions=False)`
+
+Predicts the CATE given feature set.
+
+#### Returns
+
+| Type   | Description                                                                                                           |
+|--------|-----------------------------------------------------------------------------------------------------------------------|
+|        | A tuple containing the predicted CATE, standard errors, lower bound, and upper bound if `return_predictions` is True. |
+
+### rank { #caml.core.dml.CamlDML.rank }
+
+`core.dml.CamlDML.rank()`
+
+Ranks households based on the those with the highest estimated CATE.
+
+#### Returns
+
+| Type   | Description   |
+|--------|---------------|
+| None   |               |
+
+### summarize { #caml.core.dml.CamlDML.summarize }
+
+`core.dml.CamlDML.summarize()`
+
+Provides population summary of treatment effects, including Average Treatment Effects (ATEs)
+and Conditional Average Treatement Effects (CATEs).
+
+#### Returns
+
+| Type                      | Description                        |
+|---------------------------|------------------------------------|
+| econml.utilities.Summary: | Population summary of the results. |

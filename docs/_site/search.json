@@ -1,0 +1,323 @@
+[
+  {
+    "objectID": "04_Contributors/documentation.html",
+    "href": "04_Contributors/documentation.html",
+    "title": "Documentation",
+    "section": "",
+    "text": "Note: Windows users must create environment using WSL as Quarto requires MacOS or LinuxOS\nThis repository uses  & quartodoc for documentation. All files relating to the documentation are under the docs/ directory. Quarto & quartodoc provide very detailed documentation on usage so I will refer the reader to these resources for more details.\nTo build the documentation, run the following command from the projects root directory:\nquartodoc build --config docs/_quarto.yml\nAnd to preview the documentation, run the following command:\nquarto preview docs/\nThe documentation preview will be hosted on http://localhost:8000/. Note that the quarto preview will be checking for live updates & applying them in real-time. In some cases, the changes will not manifest until you rerun quartodoc build --config docs/_quarto.yml. In general, this will occur when you make changes to the “quartodoc:” section of the docs/_quarto.yml file or any corresponding API changes, but it has been observed to occur (for undetermined reasons on our end) at other times as well.\n\n\n\n Back to top",
+    "crumbs": [
+      "Documentation"
+    ]
+  },
+  {
+    "objectID": "04_Contributors/testing.html",
+    "href": "04_Contributors/testing.html",
+    "title": "Testing",
+    "section": "",
+    "text": "Unit tests are under the tests/echo/ directory following the same structure of the echo/ prefixed by “test_”. For example, if we wanted to write tests for echo.py, we would create a new file to build these tests tests/echo/test_echo.py.\nTo run unit tests, we have configured a Pixi job so you can run the command:\npixi run --environment dev test\nThis will run your unit tests (with respective output printed in terminal) and update the coverage badge \nAdditionally, an html report of the coverage will be exported to tests/reports/htmlcov, which can be a useful tool for interactively evaluating the coverage of your unit tests.",
+    "crumbs": [
+      "Testing"
+    ]
+  },
+  {
+    "objectID": "04_Contributors/testing.html#unit-testing",
+    "href": "04_Contributors/testing.html#unit-testing",
+    "title": "Testing",
+    "section": "",
+    "text": "Unit tests are under the tests/echo/ directory following the same structure of the echo/ prefixed by “test_”. For example, if we wanted to write tests for echo.py, we would create a new file to build these tests tests/echo/test_echo.py.\nTo run unit tests, we have configured a Pixi job so you can run the command:\npixi run --environment dev test\nThis will run your unit tests (with respective output printed in terminal) and update the coverage badge \nAdditionally, an html report of the coverage will be exported to tests/reports/htmlcov, which can be a useful tool for interactively evaluating the coverage of your unit tests.",
+    "crumbs": [
+      "Testing"
+    ]
+  },
+  {
+    "objectID": "04_Contributors/testing.html#advanced-testing",
+    "href": "04_Contributors/testing.html#advanced-testing",
+    "title": "Testing",
+    "section": "Advanced Testing",
+    "text": "Advanced Testing\nUnit tests are automatically run during PR process via GitHub Actions.",
+    "crumbs": [
+      "Testing"
+    ]
+  },
+  {
+    "objectID": "02_Concepts/motivation.html",
+    "href": "02_Concepts/motivation.html",
+    "title": "Motivation",
+    "section": "",
+    "text": "Forthcoming\n\n\n\n Back to top",
+    "crumbs": [
+      "Motivation"
+    ]
+  },
+  {
+    "objectID": "01_Home/installation.html",
+    "href": "01_Home/installation.html",
+    "title": "Installation",
+    "section": "",
+    "text": "Forthcoming\n\n\n\n Back to top",
+    "crumbs": [
+      "Installation"
+    ]
+  },
+  {
+    "objectID": "01_Home/quickstart.html",
+    "href": "01_Home/quickstart.html",
+    "title": "Tutorial: Quick Start",
+    "section": "",
+    "text": "Forthcoming\n\n\n\n Back to top",
+    "crumbs": [
+      "Tutorial: Quick Start"
+    ]
+  },
+  {
+    "objectID": "02_Concepts/theory.html",
+    "href": "02_Concepts/theory.html",
+    "title": "Econometric Theory",
+    "section": "",
+    "text": "Forthcoming\n\n\n\n Back to top",
+    "crumbs": [
+      "Econometric Theory"
+    ]
+  },
+  {
+    "objectID": "04_Contributors/environment.html",
+    "href": "04_Contributors/environment.html",
+    "title": "Environment & Development",
+    "section": "",
+    "text": "pixi\nWSL (required for Windows users to utilize Quarto)",
+    "crumbs": [
+      "Environment & Development"
+    ]
+  },
+  {
+    "objectID": "04_Contributors/environment.html#prerequisites",
+    "href": "04_Contributors/environment.html#prerequisites",
+    "title": "Environment & Development",
+    "section": "",
+    "text": "pixi\nWSL (required for Windows users to utilize Quarto)",
+    "crumbs": [
+      "Environment & Development"
+    ]
+  },
+  {
+    "objectID": "04_Contributors/environment.html#environment-setup",
+    "href": "04_Contributors/environment.html#environment-setup",
+    "title": "Environment & Development",
+    "section": "Environment Setup",
+    "text": "Environment Setup\n\nLocal Environment\n\nClone repository\n\ngit clone https://github.com/jakepenzak/caml\n\nChange directory (cd) into project root then create your pixi environments:\n\npixi install\npixi install --environment dev\npixi install --environment dev-polars\npixi install --environment dev-pandas\npixi install --environment dev-pyspark\n\nActivate you pixi shell for dev environment\n\npixi shell --environment dev\n\nInitialize pre-commit hooks via pre-commit install\nEdit & test code locally (as applicable)\n\nPlease refer to the pixi documentation for modifying dependencies and any other pixi related questions.",
+    "crumbs": [
+      "Environment & Development"
+    ]
+  },
+  {
+    "objectID": "04_Contributors/environment.html#github-actions",
+    "href": "04_Contributors/environment.html#github-actions",
+    "title": "Environment & Development",
+    "section": "GitHub Actions",
+    "text": "GitHub Actions",
+    "crumbs": [
+      "Environment & Development"
+    ]
+  },
+  {
+    "objectID": "04_Contributors/environment.html#committing-pull-requests",
+    "href": "04_Contributors/environment.html#committing-pull-requests",
+    "title": "Environment & Development",
+    "section": "Committing & Pull Requests",
+    "text": "Committing & Pull Requests\n\nTry best to follow commit message conventions outlined here\nOn PRs, please fill out the generated PR template. As of now, there are two github actions that will be triggered on pull request & will be required to run successfully in order to merge:\n\nCI/CD pipeline (.github/workflows/ci.yml) through dev & tst environments (see Running bundle job via Github Actions for more details)\nTesting & updating coverage badge (.github/workflows/testing.yml)",
+    "crumbs": [
+      "Environment & Development"
+    ]
+  },
+  {
+    "objectID": "index.html",
+    "href": "index.html",
+    "title": "\n  CaML:\n",
+    "section": "",
+    "text": "CaML:",
+    "crumbs": [
+      "Welcome"
+    ]
+  },
+  {
+    "objectID": "index.html#welcome",
+    "href": "index.html#welcome",
+    "title": "\n\n",
+    "section": "Welcome!",
+    "text": "Welcome!\n\nCaML = Causal Machine Learning\nExtensions & abstractions on top of EconML with techniques motivated by Causal ML Book.",
+    "crumbs": [
+      "Welcome!"
+    ]
+  },
+  {
+    "objectID": "03_Reference/index.html",
+    "href": "03_Reference/index.html",
+    "title": "API Reference",
+    "section": "",
+    "text": "Core Classes\n\n\n\nCamlDML\nThe CamlDML class represents a Double Machine Learning (DML) implementation for estimating…\n\n\nCamlPolicy\nThe CamlPolicy class represents a Policy Learning implementation for estimating…\n\n\nCamlEnsemble\nThe CamlEnsemble class represents a Ensemble Learning implementation for estimating…\n\n\nCamlDRL\nThe CamlDRL class represents a Doubly Robust Learning (DRL) implementation for estimating…\n\n\nCamlDynamic\nThe CamlDynamic class represents a dynamic (time) implementation for estimating…\n\n\n\n\n\n\nPlotting\n\n\n\nextensions.plots.plot\nA plot.\n\n\n\n\n\n\nUtilities, Descriptors, & Validators\n\n\n\nutils.generate_random_string\nFunction to generate a random string of ascii lowercase letters and digits of length N.\n\n\nutils.descriptors.ValidDataFrame\nDescriptor class that allows setting and getting a value that must be a valid DataFrame\n\n\nutils.descriptors.ValidSparkSession\nDescriptor class for a valid SparkSession object.\n\n\nutils.descriptors.ValidSklearnModel\nDescriptor class for a valid nuissance Sklearn model object.\n\n\nutils.descriptors.ValidBoolean\nDescriptor class for a valid boolean value.\n\n\nutils.descriptors.ValidString\nDescriptor class for a valid string value.\n\n\nutils.descriptors.ValidFeatureList\nDescriptor class for a valid str, list, or tuple feature names."
+  },
+  {
+    "objectID": "03_Reference/index.html#caml-core",
+    "href": "03_Reference/index.html#caml-core",
+    "title": "API Reference",
+    "section": "",
+    "text": "Core Classes\n\n\n\nCamlDML\nThe CamlDML class represents a Double Machine Learning (DML) implementation for estimating…\n\n\nCamlPolicy\nThe CamlPolicy class represents a Policy Learning implementation for estimating…\n\n\nCamlEnsemble\nThe CamlEnsemble class represents a Ensemble Learning implementation for estimating…\n\n\nCamlDRL\nThe CamlDRL class represents a Doubly Robust Learning (DRL) implementation for estimating…\n\n\nCamlDynamic\nThe CamlDynamic class represents a dynamic (time) implementation for estimating…"
+  },
+  {
+    "objectID": "03_Reference/index.html#core-extensions",
+    "href": "03_Reference/index.html#core-extensions",
+    "title": "API Reference",
+    "section": "",
+    "text": "Plotting\n\n\n\nextensions.plots.plot\nA plot."
+  },
+  {
+    "objectID": "03_Reference/index.html#developer-tools",
+    "href": "03_Reference/index.html#developer-tools",
+    "title": "API Reference",
+    "section": "",
+    "text": "Utilities, Descriptors, & Validators\n\n\n\nutils.generate_random_string\nFunction to generate a random string of ascii lowercase letters and digits of length N.\n\n\nutils.descriptors.ValidDataFrame\nDescriptor class that allows setting and getting a value that must be a valid DataFrame\n\n\nutils.descriptors.ValidSparkSession\nDescriptor class for a valid SparkSession object.\n\n\nutils.descriptors.ValidSklearnModel\nDescriptor class for a valid nuissance Sklearn model object.\n\n\nutils.descriptors.ValidBoolean\nDescriptor class for a valid boolean value.\n\n\nutils.descriptors.ValidString\nDescriptor class for a valid string value.\n\n\nutils.descriptors.ValidFeatureList\nDescriptor class for a valid str, list, or tuple feature names."
+  },
+  {
+    "objectID": "03_Reference/CamlDML.html",
+    "href": "03_Reference/CamlDML.html",
+    "title": "CamlDML",
+    "section": "",
+    "text": "CamlDML(self, df, uuid, y, t, X=None, model_y=HistGradientBoostingRegressor(max_depth=3, max_iter=500), model_t=HistGradientBoostingClassifier(max_depth=3, max_iter=500), discrete_treatment=True, discrete_outcome=False, spark=None)\nThe CamlDML class represents a Double Machine Learning (DML) implementation for estimating… average treatment effects (ATE), conditional average treatment effects (CATE), group average treatment effects (GATE), etc.\nThis class… TODO\n\n\n\n\n\n\n\n\n\n\n\nName\nType\nDescription\nDefault\n\n\n\n\ndf\npandas.DataFrame | polars.DataFrame | pyspark.sql.DataFrame | Table\nThe input DataFrame representing the data for the EchoCATE instance.\nrequired\n\n\nuuid\nstr\nThe str representing the column name for the universal identifier code (eg, ehhn)\nrequired\n\n\ny\nstr\nThe str representing the column name for the outcome variable.\nrequired\n\n\nt\nstr\nThe str representing the column name(s) for the treatment variable(s).\nrequired\n\n\nX\nstr | List[str] | None\nThe str (if unity) or list of feature names representing the custom feature set. Defaults to None.\nNone\n\n\nmodel_y\nRegressorMixin | ClassifierMixin\nThe nuissance model to be used for predicting the outcome. Defaults to HistGradientBoostingRegressor.\nHistGradientBoostingRegressor(max_depth=3, max_iter=500)\n\n\nmodel_t\nRegressorMixin | ClassifierMixin\nThe nuissance model to be used for predicting the treatment. Defaults to HistGradientBoostingClassifier.\nHistGradientBoostingClassifier(max_depth=3, max_iter=500)\n\n\ndiscrete_treatment\nbool\nA boolean indicating whether the treatment is discrete or continuous. Defaults to True.\nTrue\n\n\nspark\nSparkSession | None\nThe SparkSession object used for connecting to Ibis when df is a pyspark.sql.DataFrame. Defaults to None.\nNone\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nName\nType\nDescription\n\n\n\n\ndf\npandas.DataFrame | polars.DataFrame | pyspark.sql.DataFrame | Table\nThe input DataFrame representing the data for the EchoCATE instance.\n\n\nuuid\nstr\nThe str representing the column name for the universal identifier code (eg, ehhn)\n\n\ny\nstr\nThe str representing the column name for the outcome variable.\n\n\nt\nstr\nThe str representing the column name(s) for the treatment variable(s).\n\n\nX\nList[str] | str | None\nThe str (if unity) or list/tuple of feature names representing the custom feature set.\n\n\nmodel_y\nRegressorMixin | ClassifierMixin\nThe nuissance model to be used for predicting the outcome.\n\n\nmodel_t\nRegressorMixin | ClassifierMixin\nThe nuissance model to be used for predicting the treatment.\n\n\ndiscrete_treatment\nbool\nA boolean indicating whether the treatment is discrete or continuous.\n\n\nspark\nSparkSession\nThe SparkSession object used for connecting to Ibis when df is a pyspark.sql.DataFrame.\n\n\n_ibis_connection\nibis.client.Client\nThe Ibis client object representing the backend connection to Ibis.\n\n\n_ibis_df\nTable\nThe Ibis table expression representing the DataFrame connected to Ibis.\n\n\n_table_name\nstr\nThe name of the temporary table/view created for the DataFrame in Ibis.\n\n\n_Y\nTable\nThe outcome variable data as ibis table.\n\n\n_T\nTable\nThe treatment variable data as ibis table.\n\n\n_X\nTable\nThe feature set data as ibis table.\n\n\n_estimator\nCausalForestDML\nThe fitted EconML estimator object.\n\n\n\n\n\n\n\n\n\nName\nDescription\n\n\n\n\nfit\nFits the econometric model to learn the CATE function.\n\n\noptimize\nOptimizes a households treatment based on CATE predictions. Only applicable when\n\n\npredict\nPredicts the CATE given feature set.\n\n\nrank\nRanks households based on the those with the highest estimated CATE.\n\n\nsummarize\nProvides population summary of treatment effects, including Average Treatment Effects (ATEs)\n\n\n\n\n\nCamlDML.fit(estimator='CausalForestDML', return_estimator=False, **kwargs)\nFits the econometric model to learn the CATE function.\nSets the _Y, _T, and _X internal attributes to the data of the outcome, treatment, and feature set, respectively. Additionally, sets the _estimator internal attribute to the fitted EconML estimator object.\n\n\n\n\n\n\n\n\n\n\n\nName\nType\nDescription\nDefault\n\n\n\n\nestimator\nstr\nThe estimator to use for fitting the CATE function. Defaults to ‘CausalForestDML’. Currently, only this option is available.\n'CausalForestDML'\n\n\nreturn_estimator\nbool\nSet to True to recieve the estimator object back after fitting. Defaults to False.\nFalse\n\n\n**kwargs\n\nAdditional keyword arguments to pass to the EconML estimator.\n{}\n\n\n\n\n\n\n\n\n\n\n\n\n\nType\nDescription\n\n\n\n\neconml.dml.causal_forest.CausalForestDML:\nThe fitted EconML CausalForestDML estimator object if return_estimator is True.\n\n\n\n\n\n\n\nCamlDML.optimize()\nOptimizes a households treatment based on CATE predictions. Only applicable when vector of treatments includes more than 1 mutually exlusive treatment.\n\n\n\n\n\nType\nDescription\n\n\n\n\nNone\n\n\n\n\n\n\n\n\nCamlDML.predict(out_of_sample_df=None, ci=90, return_predictions=False, append_predictions=False)\nPredicts the CATE given feature set.\n\n\n\n\n\n\n\n\n\nType\nDescription\n\n\n\n\n\nA tuple containing the predicted CATE, standard errors, lower bound, and upper bound if return_predictions is True.\n\n\n\n\n\n\n\nCamlDML.rank()\nRanks households based on the those with the highest estimated CATE.\n\n\n\n\n\nType\nDescription\n\n\n\n\nNone\n\n\n\n\n\n\n\n\nCamlDML.summarize()\nProvides population summary of treatment effects, including Average Treatment Effects (ATEs) and Conditional Average Treatement Effects (CATEs).\n\n\n\n\n\nType\nDescription\n\n\n\n\neconml.utilities.Summary:\nPopulation summary of the results."
+  },
+  {
+    "objectID": "03_Reference/CamlDML.html#parameters",
+    "href": "03_Reference/CamlDML.html#parameters",
+    "title": "CamlDML",
+    "section": "",
+    "text": "Name\nType\nDescription\nDefault\n\n\n\n\ndf\npandas.DataFrame | polars.DataFrame | pyspark.sql.DataFrame | Table\nThe input DataFrame representing the data for the EchoCATE instance.\nrequired\n\n\nuuid\nstr\nThe str representing the column name for the universal identifier code (eg, ehhn)\nrequired\n\n\ny\nstr\nThe str representing the column name for the outcome variable.\nrequired\n\n\nt\nstr\nThe str representing the column name(s) for the treatment variable(s).\nrequired\n\n\nX\nstr | List[str] | None\nThe str (if unity) or list of feature names representing the custom feature set. Defaults to None.\nNone\n\n\nmodel_y\nRegressorMixin | ClassifierMixin\nThe nuissance model to be used for predicting the outcome. Defaults to HistGradientBoostingRegressor.\nHistGradientBoostingRegressor(max_depth=3, max_iter=500)\n\n\nmodel_t\nRegressorMixin | ClassifierMixin\nThe nuissance model to be used for predicting the treatment. Defaults to HistGradientBoostingClassifier.\nHistGradientBoostingClassifier(max_depth=3, max_iter=500)\n\n\ndiscrete_treatment\nbool\nA boolean indicating whether the treatment is discrete or continuous. Defaults to True.\nTrue\n\n\nspark\nSparkSession | None\nThe SparkSession object used for connecting to Ibis when df is a pyspark.sql.DataFrame. Defaults to None.\nNone"
+  },
+  {
+    "objectID": "03_Reference/CamlDML.html#attributes",
+    "href": "03_Reference/CamlDML.html#attributes",
+    "title": "CamlDML",
+    "section": "",
+    "text": "Name\nType\nDescription\n\n\n\n\ndf\npandas.DataFrame | polars.DataFrame | pyspark.sql.DataFrame | Table\nThe input DataFrame representing the data for the EchoCATE instance.\n\n\nuuid\nstr\nThe str representing the column name for the universal identifier code (eg, ehhn)\n\n\ny\nstr\nThe str representing the column name for the outcome variable.\n\n\nt\nstr\nThe str representing the column name(s) for the treatment variable(s).\n\n\nX\nList[str] | str | None\nThe str (if unity) or list/tuple of feature names representing the custom feature set.\n\n\nmodel_y\nRegressorMixin | ClassifierMixin\nThe nuissance model to be used for predicting the outcome.\n\n\nmodel_t\nRegressorMixin | ClassifierMixin\nThe nuissance model to be used for predicting the treatment.\n\n\ndiscrete_treatment\nbool\nA boolean indicating whether the treatment is discrete or continuous.\n\n\nspark\nSparkSession\nThe SparkSession object used for connecting to Ibis when df is a pyspark.sql.DataFrame.\n\n\n_ibis_connection\nibis.client.Client\nThe Ibis client object representing the backend connection to Ibis.\n\n\n_ibis_df\nTable\nThe Ibis table expression representing the DataFrame connected to Ibis.\n\n\n_table_name\nstr\nThe name of the temporary table/view created for the DataFrame in Ibis.\n\n\n_Y\nTable\nThe outcome variable data as ibis table.\n\n\n_T\nTable\nThe treatment variable data as ibis table.\n\n\n_X\nTable\nThe feature set data as ibis table.\n\n\n_estimator\nCausalForestDML\nThe fitted EconML estimator object."
+  },
+  {
+    "objectID": "03_Reference/CamlDML.html#methods",
+    "href": "03_Reference/CamlDML.html#methods",
+    "title": "CamlDML",
+    "section": "",
+    "text": "Name\nDescription\n\n\n\n\nfit\nFits the econometric model to learn the CATE function.\n\n\noptimize\nOptimizes a households treatment based on CATE predictions. Only applicable when\n\n\npredict\nPredicts the CATE given feature set.\n\n\nrank\nRanks households based on the those with the highest estimated CATE.\n\n\nsummarize\nProvides population summary of treatment effects, including Average Treatment Effects (ATEs)\n\n\n\n\n\nCamlDML.fit(estimator='CausalForestDML', return_estimator=False, **kwargs)\nFits the econometric model to learn the CATE function.\nSets the _Y, _T, and _X internal attributes to the data of the outcome, treatment, and feature set, respectively. Additionally, sets the _estimator internal attribute to the fitted EconML estimator object.\n\n\n\n\n\n\n\n\n\n\n\nName\nType\nDescription\nDefault\n\n\n\n\nestimator\nstr\nThe estimator to use for fitting the CATE function. Defaults to ‘CausalForestDML’. Currently, only this option is available.\n'CausalForestDML'\n\n\nreturn_estimator\nbool\nSet to True to recieve the estimator object back after fitting. Defaults to False.\nFalse\n\n\n**kwargs\n\nAdditional keyword arguments to pass to the EconML estimator.\n{}\n\n\n\n\n\n\n\n\n\n\n\n\n\nType\nDescription\n\n\n\n\neconml.dml.causal_forest.CausalForestDML:\nThe fitted EconML CausalForestDML estimator object if return_estimator is True.\n\n\n\n\n\n\n\nCamlDML.optimize()\nOptimizes a households treatment based on CATE predictions. Only applicable when vector of treatments includes more than 1 mutually exlusive treatment.\n\n\n\n\n\nType\nDescription\n\n\n\n\nNone\n\n\n\n\n\n\n\n\nCamlDML.predict(out_of_sample_df=None, ci=90, return_predictions=False, append_predictions=False)\nPredicts the CATE given feature set.\n\n\n\n\n\n\n\n\n\nType\nDescription\n\n\n\n\n\nA tuple containing the predicted CATE, standard errors, lower bound, and upper bound if return_predictions is True.\n\n\n\n\n\n\n\nCamlDML.rank()\nRanks households based on the those with the highest estimated CATE.\n\n\n\n\n\nType\nDescription\n\n\n\n\nNone\n\n\n\n\n\n\n\n\nCamlDML.summarize()\nProvides population summary of treatment effects, including Average Treatment Effects (ATEs) and Conditional Average Treatement Effects (CATEs).\n\n\n\n\n\nType\nDescription\n\n\n\n\neconml.utilities.Summary:\nPopulation summary of the results."
+  },
+  {
+    "objectID": "index.html#welcome-1",
+    "href": "index.html#welcome-1",
+    "title": "\n\n",
+    "section": "Welcome!",
+    "text": "Welcome!\n\nCaML = Causal Machine Learning\nExtensions & abstractions on top of EconML with techniques motivated by Causal ML Book.",
+    "crumbs": [
+      "Welcome"
+    ]
+  },
+  {
+    "objectID": "03_Reference/extensions.plots.plot.html",
+    "href": "03_Reference/extensions.plots.plot.html",
+    "title": "extensions.plots.plot",
+    "section": "",
+    "text": "extensions.plots.plot(x)\nA plot.\n\n\n\n\n\nName\nType\nDescription\nDefault\n\n\n\n\nx\nint\nInteger\nrequired\n\n\n\n\n\n\n\n\n\nType\nDescription\n\n\n\n\nint: Integer"
+  },
+  {
+    "objectID": "03_Reference/extensions.plots.plot.html#parameters",
+    "href": "03_Reference/extensions.plots.plot.html#parameters",
+    "title": "extensions.plots.plot",
+    "section": "",
+    "text": "Name\nType\nDescription\nDefault\n\n\n\n\nx\nint\nInteger\nrequired"
+  },
+  {
+    "objectID": "03_Reference/extensions.plots.plot.html#returns",
+    "href": "03_Reference/extensions.plots.plot.html#returns",
+    "title": "extensions.plots.plot",
+    "section": "",
+    "text": "Type\nDescription\n\n\n\n\nint: Integer"
+  },
+  {
+    "objectID": "03_Reference/CamlDRL.html",
+    "href": "03_Reference/CamlDRL.html",
+    "title": "CamlDRL",
+    "section": "",
+    "text": "CamlDRL\nCamlDRL()\nThe CamlDRL class represents a Doubly Robust Learning (DRL) implementation for estimating…\n\n\n\n\n Back to top"
+  },
+  {
+    "objectID": "03_Reference/CamlEnsemble.html",
+    "href": "03_Reference/CamlEnsemble.html",
+    "title": "CamlEnsemble",
+    "section": "",
+    "text": "CamlEnsemble\nCamlEnsemble()\nThe CamlEnsemble class represents a Ensemble Learning implementation for estimating…\n\n\n\n\n Back to top"
+  },
+  {
+    "objectID": "03_Reference/CamlPolicy.html",
+    "href": "03_Reference/CamlPolicy.html",
+    "title": "CamlPolicy",
+    "section": "",
+    "text": "CamlPolicy\nCamlPolicy()\nThe CamlPolicy class represents a Policy Learning implementation for estimating…\n\n\n\n\n Back to top"
+  },
+  {
+    "objectID": "03_Reference/CamlDynamic.html",
+    "href": "03_Reference/CamlDynamic.html",
+    "title": "CamlDynamic",
+    "section": "",
+    "text": "CamlDynamic\nCamlDynamic()\nThe CamlDynamic class represents a dynamic (time) implementation for estimating…\n\n\n\n\n Back to top"
+  },
+  {
+    "objectID": "03_Reference/policy.CamlPolicy.html",
+    "href": "03_Reference/policy.CamlPolicy.html",
+    "title": "policy.CamlPolicy",
+    "section": "",
+    "text": "policy.CamlPolicy\ncore.policy.CamlPolicy()\nThe CamlPolicy class represents a Policy Learning implementation for estimating…\n\n\n\n\n Back to top"
+  },
+  {
+    "objectID": "03_Reference/dml.CamlDML.html",
+    "href": "03_Reference/dml.CamlDML.html",
+    "title": "dml.CamlDML",
+    "section": "",
+    "text": "core.dml.CamlDML(self, df, uuid, y, t, X=None, model_y=HistGradientBoostingRegressor(max_depth=3, max_iter=500), model_t=HistGradientBoostingClassifier(max_depth=3, max_iter=500), discrete_treatment=True, discrete_outcome=False, spark=None)\nThe CamlDML class represents a Double Machine Learning (DML) implementation for estimating… average treatment effects (ATE), conditional average treatment effects (CATE), group average treatment effects (GATE), etc.\nThis class… TODO\n\n\n\n\n\n\n\n\n\n\n\nName\nType\nDescription\nDefault\n\n\n\n\ndf\npandas.DataFrame | polars.DataFrame | pyspark.sql.DataFrame | Table\nThe input DataFrame representing the data for the EchoCATE instance.\nrequired\n\n\nuuid\nstr\nThe str representing the column name for the universal identifier code (eg, ehhn)\nrequired\n\n\ny\nstr\nThe str representing the column name for the outcome variable.\nrequired\n\n\nt\nstr\nThe str representing the column name(s) for the treatment variable(s).\nrequired\n\n\nX\nstr | List[str] | None\nThe str (if unity) or list of feature names representing the custom feature set. Defaults to None.\nNone\n\n\nmodel_y\nRegressorMixin | ClassifierMixin\nThe nuissance model to be used for predicting the outcome. Defaults to HistGradientBoostingRegressor.\nHistGradientBoostingRegressor(max_depth=3, max_iter=500)\n\n\nmodel_t\nRegressorMixin | ClassifierMixin\nThe nuissance model to be used for predicting the treatment. Defaults to HistGradientBoostingClassifier.\nHistGradientBoostingClassifier(max_depth=3, max_iter=500)\n\n\ndiscrete_treatment\nbool\nA boolean indicating whether the treatment is discrete or continuous. Defaults to True.\nTrue\n\n\nspark\nSparkSession | None\nThe SparkSession object used for connecting to Ibis when df is a pyspark.sql.DataFrame. Defaults to None.\nNone\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nName\nType\nDescription\n\n\n\n\ndf\npandas.DataFrame | polars.DataFrame | pyspark.sql.DataFrame | Table\nThe input DataFrame representing the data for the EchoCATE instance.\n\n\nuuid\nstr\nThe str representing the column name for the universal identifier code (eg, ehhn)\n\n\ny\nstr\nThe str representing the column name for the outcome variable.\n\n\nt\nstr\nThe str representing the column name(s) for the treatment variable(s).\n\n\nX\nList[str] | str | None\nThe str (if unity) or list/tuple of feature names representing the custom feature set.\n\n\nmodel_y\nRegressorMixin | ClassifierMixin\nThe nuissance model to be used for predicting the outcome.\n\n\nmodel_t\nRegressorMixin | ClassifierMixin\nThe nuissance model to be used for predicting the treatment.\n\n\ndiscrete_treatment\nbool\nA boolean indicating whether the treatment is discrete or continuous.\n\n\nspark\nSparkSession\nThe SparkSession object used for connecting to Ibis when df is a pyspark.sql.DataFrame.\n\n\n_ibis_connection\nibis.client.Client\nThe Ibis client object representing the backend connection to Ibis.\n\n\n_ibis_df\nTable\nThe Ibis table expression representing the DataFrame connected to Ibis.\n\n\n_table_name\nstr\nThe name of the temporary table/view created for the DataFrame in Ibis.\n\n\n_Y\nTable\nThe outcome variable data as ibis table.\n\n\n_T\nTable\nThe treatment variable data as ibis table.\n\n\n_X\nTable\nThe feature set data as ibis table.\n\n\n_estimator\nCausalForestDML\nThe fitted EconML estimator object.\n\n\n\n\n\n\n\n\n\nName\nDescription\n\n\n\n\nfit\nFits the econometric model to learn the CATE function.\n\n\noptimize\nOptimizes a households treatment based on CATE predictions. Only applicable when\n\n\npredict\nPredicts the CATE given feature set.\n\n\nrank\nRanks households based on the those with the highest estimated CATE.\n\n\nsummarize\nProvides population summary of treatment effects, including Average Treatment Effects (ATEs)\n\n\n\n\n\ncore.dml.CamlDML.fit(estimator='CausalForestDML', return_estimator=False, **kwargs)\nFits the econometric model to learn the CATE function.\nSets the _Y, _T, and _X internal attributes to the data of the outcome, treatment, and feature set, respectively. Additionally, sets the _estimator internal attribute to the fitted EconML estimator object.\n\n\n\n\n\n\n\n\n\n\n\nName\nType\nDescription\nDefault\n\n\n\n\nestimator\nstr\nThe estimator to use for fitting the CATE function. Defaults to ‘CausalForestDML’. Currently, only this option is available.\n'CausalForestDML'\n\n\nreturn_estimator\nbool\nSet to True to recieve the estimator object back after fitting. Defaults to False.\nFalse\n\n\n**kwargs\n\nAdditional keyword arguments to pass to the EconML estimator.\n{}\n\n\n\n\n\n\n\n\n\n\n\n\n\nType\nDescription\n\n\n\n\neconml.dml.causal_forest.CausalForestDML:\nThe fitted EconML CausalForestDML estimator object if return_estimator is True.\n\n\n\n\n\n\n\ncore.dml.CamlDML.optimize()\nOptimizes a households treatment based on CATE predictions. Only applicable when vector of treatments includes more than 1 mutually exlusive treatment.\n\n\n\n\n\nType\nDescription\n\n\n\n\nNone\n\n\n\n\n\n\n\n\ncore.dml.CamlDML.predict(out_of_sample_df=None, ci=90, return_predictions=False, append_predictions=False)\nPredicts the CATE given feature set.\n\n\n\n\n\n\n\n\n\nType\nDescription\n\n\n\n\n\nA tuple containing the predicted CATE, standard errors, lower bound, and upper bound if return_predictions is True.\n\n\n\n\n\n\n\ncore.dml.CamlDML.rank()\nRanks households based on the those with the highest estimated CATE.\n\n\n\n\n\nType\nDescription\n\n\n\n\nNone\n\n\n\n\n\n\n\n\ncore.dml.CamlDML.summarize()\nProvides population summary of treatment effects, including Average Treatment Effects (ATEs) and Conditional Average Treatement Effects (CATEs).\n\n\n\n\n\nType\nDescription\n\n\n\n\neconml.utilities.Summary:\nPopulation summary of the results."
+  },
+  {
+    "objectID": "03_Reference/dml.CamlDML.html#parameters",
+    "href": "03_Reference/dml.CamlDML.html#parameters",
+    "title": "dml.CamlDML",
+    "section": "",
+    "text": "Name\nType\nDescription\nDefault\n\n\n\n\ndf\npandas.DataFrame | polars.DataFrame | pyspark.sql.DataFrame | Table\nThe input DataFrame representing the data for the EchoCATE instance.\nrequired\n\n\nuuid\nstr\nThe str representing the column name for the universal identifier code (eg, ehhn)\nrequired\n\n\ny\nstr\nThe str representing the column name for the outcome variable.\nrequired\n\n\nt\nstr\nThe str representing the column name(s) for the treatment variable(s).\nrequired\n\n\nX\nstr | List[str] | None\nThe str (if unity) or list of feature names representing the custom feature set. Defaults to None.\nNone\n\n\nmodel_y\nRegressorMixin | ClassifierMixin\nThe nuissance model to be used for predicting the outcome. Defaults to HistGradientBoostingRegressor.\nHistGradientBoostingRegressor(max_depth=3, max_iter=500)\n\n\nmodel_t\nRegressorMixin | ClassifierMixin\nThe nuissance model to be used for predicting the treatment. Defaults to HistGradientBoostingClassifier.\nHistGradientBoostingClassifier(max_depth=3, max_iter=500)\n\n\ndiscrete_treatment\nbool\nA boolean indicating whether the treatment is discrete or continuous. Defaults to True.\nTrue\n\n\nspark\nSparkSession | None\nThe SparkSession object used for connecting to Ibis when df is a pyspark.sql.DataFrame. Defaults to None.\nNone"
+  },
+  {
+    "objectID": "03_Reference/dml.CamlDML.html#attributes",
+    "href": "03_Reference/dml.CamlDML.html#attributes",
+    "title": "dml.CamlDML",
+    "section": "",
+    "text": "Name\nType\nDescription\n\n\n\n\ndf\npandas.DataFrame | polars.DataFrame | pyspark.sql.DataFrame | Table\nThe input DataFrame representing the data for the EchoCATE instance.\n\n\nuuid\nstr\nThe str representing the column name for the universal identifier code (eg, ehhn)\n\n\ny\nstr\nThe str representing the column name for the outcome variable.\n\n\nt\nstr\nThe str representing the column name(s) for the treatment variable(s).\n\n\nX\nList[str] | str | None\nThe str (if unity) or list/tuple of feature names representing the custom feature set.\n\n\nmodel_y\nRegressorMixin | ClassifierMixin\nThe nuissance model to be used for predicting the outcome.\n\n\nmodel_t\nRegressorMixin | ClassifierMixin\nThe nuissance model to be used for predicting the treatment.\n\n\ndiscrete_treatment\nbool\nA boolean indicating whether the treatment is discrete or continuous.\n\n\nspark\nSparkSession\nThe SparkSession object used for connecting to Ibis when df is a pyspark.sql.DataFrame.\n\n\n_ibis_connection\nibis.client.Client\nThe Ibis client object representing the backend connection to Ibis.\n\n\n_ibis_df\nTable\nThe Ibis table expression representing the DataFrame connected to Ibis.\n\n\n_table_name\nstr\nThe name of the temporary table/view created for the DataFrame in Ibis.\n\n\n_Y\nTable\nThe outcome variable data as ibis table.\n\n\n_T\nTable\nThe treatment variable data as ibis table.\n\n\n_X\nTable\nThe feature set data as ibis table.\n\n\n_estimator\nCausalForestDML\nThe fitted EconML estimator object."
+  },
+  {
+    "objectID": "03_Reference/dml.CamlDML.html#methods",
+    "href": "03_Reference/dml.CamlDML.html#methods",
+    "title": "dml.CamlDML",
+    "section": "",
+    "text": "Name\nDescription\n\n\n\n\nfit\nFits the econometric model to learn the CATE function.\n\n\noptimize\nOptimizes a households treatment based on CATE predictions. Only applicable when\n\n\npredict\nPredicts the CATE given feature set.\n\n\nrank\nRanks households based on the those with the highest estimated CATE.\n\n\nsummarize\nProvides population summary of treatment effects, including Average Treatment Effects (ATEs)\n\n\n\n\n\ncore.dml.CamlDML.fit(estimator='CausalForestDML', return_estimator=False, **kwargs)\nFits the econometric model to learn the CATE function.\nSets the _Y, _T, and _X internal attributes to the data of the outcome, treatment, and feature set, respectively. Additionally, sets the _estimator internal attribute to the fitted EconML estimator object.\n\n\n\n\n\n\n\n\n\n\n\nName\nType\nDescription\nDefault\n\n\n\n\nestimator\nstr\nThe estimator to use for fitting the CATE function. Defaults to ‘CausalForestDML’. Currently, only this option is available.\n'CausalForestDML'\n\n\nreturn_estimator\nbool\nSet to True to recieve the estimator object back after fitting. Defaults to False.\nFalse\n\n\n**kwargs\n\nAdditional keyword arguments to pass to the EconML estimator.\n{}\n\n\n\n\n\n\n\n\n\n\n\n\n\nType\nDescription\n\n\n\n\neconml.dml.causal_forest.CausalForestDML:\nThe fitted EconML CausalForestDML estimator object if return_estimator is True.\n\n\n\n\n\n\n\ncore.dml.CamlDML.optimize()\nOptimizes a households treatment based on CATE predictions. Only applicable when vector of treatments includes more than 1 mutually exlusive treatment.\n\n\n\n\n\nType\nDescription\n\n\n\n\nNone\n\n\n\n\n\n\n\n\ncore.dml.CamlDML.predict(out_of_sample_df=None, ci=90, return_predictions=False, append_predictions=False)\nPredicts the CATE given feature set.\n\n\n\n\n\n\n\n\n\nType\nDescription\n\n\n\n\n\nA tuple containing the predicted CATE, standard errors, lower bound, and upper bound if return_predictions is True.\n\n\n\n\n\n\n\ncore.dml.CamlDML.rank()\nRanks households based on the those with the highest estimated CATE.\n\n\n\n\n\nType\nDescription\n\n\n\n\nNone\n\n\n\n\n\n\n\n\ncore.dml.CamlDML.summarize()\nProvides population summary of treatment effects, including Average Treatment Effects (ATEs) and Conditional Average Treatement Effects (CATEs).\n\n\n\n\n\nType\nDescription\n\n\n\n\neconml.utilities.Summary:\nPopulation summary of the results."
+  },
+  {
+    "objectID": "03_Reference/ensemble.CamlEnsemble.html",
+    "href": "03_Reference/ensemble.CamlEnsemble.html",
+    "title": "ensemble.CamlEnsemble",
+    "section": "",
+    "text": "ensemble.CamlEnsemble\ncore.ensemble.CamlEnsemble()\nThe CamlEnsemble class represents a Ensemble Learning implementation for estimating…\n\n\n\n\n Back to top"
+  },
+  {
+    "objectID": "03_Reference/drl.CamlDRL.html",
+    "href": "03_Reference/drl.CamlDRL.html",
+    "title": "drl.CamlDRL",
+    "section": "",
+    "text": "drl.CamlDRL\ncore.drl.CamlDRL()\nThe CamlDRL class represents a Doubly Robust Learning (DRL) implementation for estimating…\n\n\n\n\n Back to top"
+  },
+  {
+    "objectID": "03_Reference/dynamic.CamlDynamic.html",
+    "href": "03_Reference/dynamic.CamlDynamic.html",
+    "title": "dynamic.CamlDynamic",
+    "section": "",
+    "text": "dynamic.CamlDynamic\ncore.dynamic.CamlDynamic()\nThe CamlDynamic class represents a dynamic (time) implementation for estimating…\n\n\n\n\n Back to top"
+  }
+]

@@ -1,0 +1,18 @@
+# utils.descriptors.ValidDataFrame { #caml.utils.descriptors.ValidDataFrame }
+
+`utils.descriptors.ValidDataFrame(self, strict=False)`
+
+Descriptor class that allows setting and getting a value that must be a valid DataFrame
+of type pandas.DataFrame, polars.DataFrame, pyspark.sql.DataFrame, or ibis.expr.types.relations.TableExpr.
+
+## Parameters
+
+| Name     | Type   | Description                                                                                                                                                            | Default   |
+|----------|--------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-----------|
+| `strict` |        | If True, the value must be a pandas.DataFrame, polars.DataFrame, pyspark.sql.DataFrame, or ibis.expr.types.relations.TableExpr. If False, None is an acceptable value. | `False`   |
+
+## Raises
+
+| Type       | Description                                     |
+|------------|-------------------------------------------------|
+| ValueError | If the assigned value is not a valid data type. |
