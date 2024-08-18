@@ -1,7 +1,11 @@
 import ibis
 import pandas
 import polars
-import pyspark
+
+try:
+    import pyspark
+except ImportError:
+    pyspark = None
 import sklearn
 
 

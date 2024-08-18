@@ -1,11 +1,28 @@
 import abc
 
 import ibis
-import pandas
-import polars
-import pyspark
+
+try:
+    import pandas
+except ImportError:
+    pandas = None
+
+try:
+    import polars
+except ImportError:
+    polars = None
+
+try:
+    import pyspark
+    from pyspark.sql import SparkSession
+except ImportError:
+    pyspark = None
+
+import logging
 
 from ..utils import generate_random_string
+
+logger = logging.getLogger(__name__)
 
 
 class CamlBase(metaclass=abc.ABCMeta):
@@ -13,12 +30,33 @@ class CamlBase(metaclass=abc.ABCMeta):
     Base ABC class for core classes.
     """
 
-    @abc.abstractmethod
-    def get_features(self):
-        pass
+    @property
+    def dataframe(self):
+        return self._return_ibis_dataframe_to_original_backend(ibis_df=self._ibis_df)
+
+    @property
+    def final_estimator(self):
+        if self._final_estimator is not None:
+            logger.info(
+                "The best estimator has been fit on the entire dataset and will be returned."
+            )
+            return self._final_estimator
+        elif self._best_estimator is not None:
+            logger.info(
+                "The best estimator has NOT been fit on the entire dataset. This is returning the estimator fit on the training dataset. Please run fit() method with final_estimator=True to fit the best estimator on the entire dataset, once validated."
+            )
+            return self._best_estimator
+        else:
+            raise ValueError(
+                "No estimator has been fit yet. Please run fit() method first."
+            )
 
     @abc.abstractmethod
     def fit(self):
+        pass
+
+    @abc.abstractmethod
+    def validate(self):
         pass
 
     @abc.abstractmethod
@@ -26,15 +64,11 @@ class CamlBase(metaclass=abc.ABCMeta):
         pass
 
     @abc.abstractmethod
-    def optimize(self):
+    def rank_order(self):
         pass
 
     @abc.abstractmethod
     def summarize(self):
-        pass
-
-    @abc.abstractmethod
-    def rank(self):
         pass
 
     def _ibis_connector(
@@ -70,14 +104,15 @@ class CamlBase(metaclass=abc.ABCMeta):
         else:
             table_name = custom_table_name
 
-        if isinstance(self.df, pyspark.sql.DataFrame):
+        if pyspark and isinstance(self.df, pyspark.sql.DataFrame):
+            self._spark = SparkSession.builder.getOrCreate()
             self.df.createOrReplaceTempView(table_name)
-            ibis_connection = ibis.pyspark.connect(session=self.spark)
+            ibis_connection = ibis.pyspark.connect(session=self._spark)
             ibis_df = ibis_connection.table(table_name)
-        elif isinstance(self.df, pandas.DataFrame):
+        elif pandas and isinstance(self.df, pandas.DataFrame):
             ibis_connection = ibis.pandas.connect({table_name: self.df})
             ibis_df = ibis_connection.table(table_name)
-        elif isinstance(self.df, polars.DataFrame):
+        elif polars and isinstance(self.df, polars.DataFrame):
             ibis_connection = ibis.polars.connect({table_name: self.df})
             ibis_df = ibis_connection.table(table_name)
         elif isinstance(self.df, ibis.expr.types.Table):
@@ -92,7 +127,15 @@ class CamlBase(metaclass=abc.ABCMeta):
         self._ibis_df = ibis_df
         self._ibis_connection = ibis_connection
 
-    def _create_internal_ibis_table(self, data_dict: dict):
+    def _create_internal_ibis_table(
+        self,
+        data_dict: dict | None = None,
+        df: ibis.expr.types.Table
+        | pyspark.sql.DataFrame
+        | pandas.DataFrame
+        | polars.DataFrame
+        | None = None,
+    ):
         """
         Create an internal Ibis DataFrame based on the provided data dictionary.
 
@@ -108,18 +151,46 @@ class CamlBase(metaclass=abc.ABCMeta):
         backend = self._ibis_connection.name
 
         if backend == "pandas":
-            results_df = pandas.DataFrame(data_dict)
-            ibis_results_df = self._ibis_connection.create_table(
-                name=table_name, obj=results_df
-            )
-        elif backend == "polars":
-            results_df = polars.from_dict(data_dict)
-            ibis_results_df = self._ibis_connection.create_table(
-                name=table_name, obj=results_df
-            )
-        elif backend == "pyspark":
-            results_df = self.spark.createDataFrame(pandas.DataFrame(data_dict))
-            results_df.createOrReplaceTempView(table_name)
-            ibis_results_df = self._ibis_connection.table(table_name)
+            if data_dict is not None:
+                df = pandas.DataFrame(data_dict)
+            ibis_df = self._ibis_connection.create_table(name=table_name, obj=df)
 
-        return ibis_results_df
+        elif backend == "polars":
+            if data_dict is not None:
+                df = polars.from_dict(data_dict)
+            ibis_df = self._ibis_connection.create_table(name=table_name, obj=df)
+        elif backend == "pyspark":
+            if data_dict is not None:
+                df = self._spark.createDataFrame(pandas.DataFrame(data_dict))
+
+            df.createOrReplaceTempView(table_name)
+            ibis_df = self._ibis_connection.table(table_name)
+
+        return ibis_df
+
+    @staticmethod
+    def _return_ibis_dataframe_to_original_backend(
+        *, ibis_df: ibis.expr.types.Table, backend: str | None = None
+    ):
+        """
+        Return the Ibis DataFrame to the original backend.
+
+        Args:
+            ibis_df: The Ibis DataFrame to return to the original backend.
+
+        Returns:
+            df: The DataFrame in the original backend.
+        """
+
+        if backend is None:
+            backend = ibis_df._find_backend().name
+
+        if backend == "pandas":
+            df = ibis_df.to_pandas()
+        elif backend == "polars":
+            df = ibis_df.to_polars()
+        elif backend == "pyspark":
+            spark = SparkSession.builder.getOrCreate()
+            df = spark.sql(ibis_df.compile())
+
+        return df

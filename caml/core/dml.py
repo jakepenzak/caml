@@ -85,10 +85,10 @@ class CamlDML(CamlBase):
     """
 
     df = descriptors.ValidDataFrame(strict=True)
-    uuid = descriptors.ValidString(strict=True)
-    y = descriptors.ValidString(strict=True)
-    t = descriptors.ValidString(strict=True)
+    Y = descriptors.ValidString(strict=True)
+    T = descriptors.ValidString(strict=True)
     X = descriptors.ValidFeatureList(strict=False)
+    uuid = descriptors.ValidString(strict=False)
     model_y = descriptors.ValidSklearnModel(strict=True)
     model_t = descriptors.ValidSklearnModel(strict=True)
     discrete_treatment = descriptors.ValidBoolean(strict=True)
@@ -108,10 +108,11 @@ class CamlDML(CamlBase):
     def __init__(
         self,
         df: pandas.DataFrame | polars.DataFrame | pyspark.sql.DataFrame | Table,
-        uuid: str,
-        y: str,
-        t: str,
+        Y: str,
+        T: str,
         X: str | List[str] | None = None,
+        W: str | List[str] | None = None,
+        uuid: str | None = None,
         model_y: RegressorMixin | ClassifierMixin = HistGradientBoostingRegressor(
             max_depth=3,
             max_iter=500,
@@ -126,9 +127,10 @@ class CamlDML(CamlBase):
     ):
         self.df = df
         self.uuid = uuid
-        self.y = y
-        self.t = t
+        self.Y = Y
+        self.T = T
         self.X = X
+        self.W = W
         self.model_y = model_y
         self.model_t = model_t
         self.discrete_treatment = discrete_treatment
@@ -165,8 +167,8 @@ class CamlDML(CamlBase):
             The fitted EconML CausalForestDML estimator object if `return_estimator` is True.
         """
 
-        self._Y = self._ibis_df.select(self.y)
-        self._T = self._ibis_df.select(self.t)
+        self._Y = self._ibis_df.select(self.Y)
+        self._T = self._ibis_df.select(self.T)
         if self.X is None:
             self._X = None
         else:

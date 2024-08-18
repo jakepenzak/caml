@@ -1,4 +1,3 @@
-python
 name: Run Tests & Update Badge
 
 on:

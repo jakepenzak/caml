@@ -87,8 +87,7 @@ quartodoc:
       contents:
         - CamlDML
         - CamlPolicy
-        - CamlEnsemble
-        - CamlDRL
+        - CamlCATE
         - CamlDynamic
     -  title: Core Extensions
        desc: Plotting 
