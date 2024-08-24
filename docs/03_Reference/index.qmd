@@ -2,19 +2,28 @@
 
 ## CaML Core
 
-Core Classes
+`from caml import *`
 
 | | |
 | --- | --- |
-| [CamlDML](CamlDML.qmd#caml.CamlDML) | The CamlDML class represents a Double Machine Learning (DML) implementation for estimating... |
+| [CamlCATE](CamlCATE.qmd#caml.CamlCATE) | The CamlCATE class represents an opinionated implementation of Causal Machine Learning techniques for estimating |
 | [CamlPolicy](CamlPolicy.qmd#caml.CamlPolicy) | The CamlPolicy class represents a Policy Learning implementation for estimating... |
-| [CamlEnsemble](CamlEnsemble.qmd#caml.CamlEnsemble) | The CamlEnsemble class represents a Ensemble Learning implementation for estimating... |
-| [CamlDRL](CamlDRL.qmd#caml.CamlDRL) | The CamlDRL class represents a Doubly Robust Learning (DRL) implementation for estimating... |
+| [CamlDML](CamlDML.qmd#caml.CamlDML) |  |
 | [CamlDynamic](CamlDynamic.qmd#caml.CamlDynamic) | The CamlDynamic class represents a dynamic (time) implementation for estimating... |
 
-## Core Extensions
+## Sythetic Data Generation
 
-Plotting
+`from caml.extensions.synthetic_data import *`
+
+| | |
+| --- | --- |
+| [make_partially_linear_dataset_simple](make_partially_linear_dataset_simple.qmd#caml.extensions.synthetic_data.make_partially_linear_dataset_simple) | Generate a partially linear data generating process with simple 1 or 2 dimensional CATE function. The outcome is continuous and the treatment can be binary or continuous. |
+| [make_partially_linear_dataset_constant](make_partially_linear_dataset_constant.qmd#caml.extensions.synthetic_data.make_partially_linear_dataset_constant) | Generate a partially linear model data generating process with a constant treatment effect (ATE only). The outcome and treatment are both continuous. |
+| [make_fully_hetereogenous_dataset](make_fully_hetereogenous_dataset.qmd#caml.extensions.synthetic_data.make_fully_hetereogenous_dataset) | Generate an "interactive regression" model data generating process with fully heterogenous treatment effects. The outcome is continuous and the treatment is binary. |
+
+## Plots
+
+`from caml.extensions.plots import *`
 
 | | |
 | --- | --- |
@@ -22,14 +31,7 @@ Plotting
 
 ## Developer Tools
 
-Utilities, Descriptors, & Validators
-
 | | |
 | --- | --- |
 | [utils.generate_random_string](utils.generate_random_string.qmd#caml.utils.generate_random_string) | Function to generate a random string of ascii lowercase letters and digits of length N. |
-| [utils.descriptors.ValidDataFrame](utils.descriptors.ValidDataFrame.qmd#caml.utils.descriptors.ValidDataFrame) | Descriptor class that allows setting and getting a value that must be a valid DataFrame |
-| [utils.descriptors.ValidSparkSession](utils.descriptors.ValidSparkSession.qmd#caml.utils.descriptors.ValidSparkSession) | Descriptor class for a valid SparkSession object. |
-| [utils.descriptors.ValidSklearnModel](utils.descriptors.ValidSklearnModel.qmd#caml.utils.descriptors.ValidSklearnModel) | Descriptor class for a valid nuissance Sklearn model object. |
-| [utils.descriptors.ValidBoolean](utils.descriptors.ValidBoolean.qmd#caml.utils.descriptors.ValidBoolean) | Descriptor class for a valid boolean value. |
-| [utils.descriptors.ValidString](utils.descriptors.ValidString.qmd#caml.utils.descriptors.ValidString) | Descriptor class for a valid string value. |
-| [utils.descriptors.ValidFeatureList](utils.descriptors.ValidFeatureList.qmd#caml.utils.descriptors.ValidFeatureList) | Descriptor class for a valid str, list, or tuple feature names. |
+| [logging.setup_logging](logging.setup_logging.qmd#caml.logging.setup_logging) | Set up logging configuration. |

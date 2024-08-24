@@ -1,0 +1,25 @@
+# extensions.synthetic_data.make_fully_hetereogenous_dataset { #caml.extensions.synthetic_data.make_fully_hetereogenous_dataset }
+
+`extensions.synthetic_data.make_fully_hetereogenous_dataset(n_obs=1000, n_confounders=5, ate=4.0, seed=None, **doubleml_kwargs)`
+
+Generate a interactive model data generating process with fully heterogenous treatment effects. The outcome is continuous and the treatment is binary.
+The dataset is generated using the `make_confounded_irm_data` function from the `doubleml` [package](https://docs.doubleml.org/stable/index.html).
+We enforce the additional "unobserved" confounder A to be zero for all observations, since confounding is captured in X. 
+
+## Parameters
+
+| Name                | Type        | Description                                                          | Default   |
+|---------------------|-------------|----------------------------------------------------------------------|-----------|
+| `n_obs`             | int         | The number of observations to generate. Default is 1000.             | `1000`    |
+| `n_confounders`     | int         | The number of confounders to generate. Default is 5.                 | `5`       |
+| `ate`               | float       | The average treatment effect. Default is 4.0.                        | `4.0`     |
+| `seed`              | int \| None | The seed to use for the random number generator. Default is None.    | `None`    |
+| `**doubleml_kwargs` |             | Additional keyword arguments to pass to the data generating process. | `{}`      |
+
+## Returns
+
+| Type         | Description                                                                                 |
+|--------------|---------------------------------------------------------------------------------------------|
+| pd.DataFrame | The generated dataset where y is the outcome, d is the treatment, and X are the covariates. |
+| pd.DataFrame | The true conditional average treatment effects.                                             |
+| float        | The true average treatment effect.                                                          |

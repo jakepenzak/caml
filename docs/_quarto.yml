@@ -82,27 +82,28 @@ quartodoc:
 
   sections:
     - title: CaML Core
-      desc: Core Classes
+      desc: "`from caml import *`"
       package: caml
       contents:
-        - CamlDML
-        - CamlPolicy
         - CamlCATE
+        - CamlPolicy
+        - CamlDML
         - CamlDynamic
-    -  title: Core Extensions
-       desc: Plotting 
-       contents:
+    - title: Synthetic Data Generation
+      desc: "`from caml.extensions.synthetic_data import *`"
+      package: caml.extensions.synthetic_data
+      contents:
+        - make_partially_linear_dataset_simple
+        - make_partially_linear_dataset_constant
+        - make_fully_hetereogenous_dataset
+    - title: Plots
+      desc: "`from caml.extensions.plots import *`"
+      contents:
         - extensions.plots.plot
     -  title: Developer Tools
-       desc: Utilities, Descriptors, & Validators
        contents:
         - utils.generate_random_string
-        - utils.descriptors.ValidDataFrame
-        - utils.descriptors.ValidSparkSession
-        - utils.descriptors.ValidSklearnModel
-        - utils.descriptors.ValidBoolean
-        - utils.descriptors.ValidString
-        - utils.descriptors.ValidFeatureList
+        - logging.setup_logging
 
 metadata-files:
   - _sidebar.yml

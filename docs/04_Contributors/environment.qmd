@@ -21,8 +21,7 @@ git clone https://github.com/jakepenzak/caml
 ```bash
 pixi install
 pixi install --environment dev
-pixi install --environment dev-polars
-pixi install --environment dev-pandas
+pixi install --environment dev-ray
 pixi install --environment dev-pyspark
 ```
 
@@ -43,6 +42,4 @@ Please refer to the [pixi](https://pixi.sh/latest/) documentation for modifying 
 - Try best to follow commit message conventions outlined [here](https://gist.github.com/qoomon/5dfcdf8eec66a051ecd85625518cfd13)
 - On PRs, please fill out the generated PR template. As of now, there are two github actions that will be triggered on pull request 
 & will be required to run successfully in order to merge:
-  1. CI/CD pipeline (`.github/workflows/ci.yml`) through dev & tst environments (see [Running bundle job via Github Actions](### Running bundle job via Github Actions)
-  for more details)
-  2. Testing & updating coverage badge (`.github/workflows/testing.yml`)
+  1. 

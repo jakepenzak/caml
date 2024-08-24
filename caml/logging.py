@@ -26,6 +26,14 @@ rich_handler = RichHandler(
 
 
 def setup_logging():
+    """
+    Set up logging configuration.
+
+    This function configures the logging module with a basic configuration.
+    It sets the logging level to INFO and the log message format to only include the message itself.
+    The logging handler used is `rich_handler`.
+    """
+
     logging.basicConfig(
         level=logging.INFO, format="%(message)s", handlers=[rich_handler]
     )

@@ -1,3 +1,4 @@
+from .core._base import CamlBase
 from .core.cate import CamlCATE
 from .core.dml import CamlDML
 from .core.dynamic import CamlDynamic

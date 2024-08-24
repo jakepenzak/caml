@@ -1,0 +1,5 @@
+# CamlBase { #caml.CamlBase }
+
+`CamlBase()`
+
+Base ABC class for core classes.

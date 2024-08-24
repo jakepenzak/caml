@@ -1,0 +1,24 @@
+# extensions.synthetic_data.make_partially_linear_constant_dataset { #caml.extensions.synthetic_data.make_partially_linear_constant_dataset }
+
+`extensions.synthetic_data.make_partially_linear_constant_dataset(n_obs=1000, ate=4.0, n_confounders=10, dgp='make_plr_CCDDHNR2018', seed=None, **doubleml_kwargs)`
+
+Generate a partially linear model data generating process with a constant treatment effect (ATE only). The outcome and treatment are both continuous.
+The dataset is generated using the `make_plr_CCDDHNR2018` or `make_plr_turrell2018` function from the `doubleml` [package](https://docs.doubleml.org/stable/index.html).
+
+## Parameters
+
+| Name                | Type        | Description                                                                                                                 | Default                  |
+|---------------------|-------------|-----------------------------------------------------------------------------------------------------------------------------|--------------------------|
+| `n_obs`             | int         | The number of observations to generate. Default is 1000.                                                                    | `1000`                   |
+| `ate`               | float       | The average treatment effect. Default is 4.0.                                                                               | `4.0`                    |
+| `n_confounders`     | int         | The number of confounders to generate. Default is 10.                                                                       | `10`                     |
+| `dgp`               | str         | The data generating process to use. Default is "make_plr_CCDDHNR20". Can be "make_plr_CCDDHNR20" or "make_plr_turrell2018". | `'make_plr_CCDDHNR2018'` |
+| `seed`              | int \| None | The seed to use for the random number generator. Default is None.                                                           | `None`                   |
+| `**doubleml_kwargs` |             | Additional keyword arguments to pass to the data generating process.                                                        | `{}`                     |
+
+## Returns
+
+| Type         | Description                                                                                 |
+|--------------|---------------------------------------------------------------------------------------------|
+| pd.DataFrame | The generated dataset where y is the outcome, d is the treatment, and X are the covariates. |
+| float        | The true average treatment effect.                                                          |

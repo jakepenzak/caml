@@ -1,10 +1,10 @@
 [project]
 authors = [{name = "jakepenzak", email = "jakepzak@gmail.com"}]
-dependencies = ["scikit-learn>=1.5.1,<2", "econml>=0.15.1,<0.16", "dowhy>=0.11.1,<0.12", "flaml>=2.2.0,<3", "xgboost>=2.1.1,<3", "rich>=13.7.1,<14", "ibis-framework[pandas]>=8.0.0", "pandas>=2.2.2,<3"]
+dependencies = ["scikit-learn>=1.5.1,<2", "econml>=0.15.1,<0.16", "flaml>=2.2.0,<3", "xgboost>=2.1.1,<3", "rich>=13.7.1,<14", "ibis-framework[pandas]>=8.0.0", "pandas>=2.2.2,<3", "typeguard>=4.3.0,<5", "doubleml>=0.8.2,<0.9", "matplotlib>=3.9.2,<4"]
 description = "Extensions & abstractions of advanced econometric techniques leveraging machine learning."
 name = "caml"
 requires-python = ">= 3.10"
-version = "0.0.0.dev0"
+version = "0.0.0.dev1"
 license = {file = "LICENSE"}
 classifiers = [
   "Development Status :: 1 - Planning",

@@ -1,37 +1,27 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, List
-
-if TYPE_CHECKING:
-    from econml._cate_estimator import BaseCateEstimator
-
-import numpy as np
-import pandas
-import polars
-
-try:
-    import pyspark
-except ImportError:
-    pass
+import copy
 import logging
 
 import ibis
+import numpy as np
+import pandas
+import polars
+import pyspark
 import ray
+from econml._cate_estimator import BaseCateEstimator
 from econml._ortho_learner import _OrthoLearner
 from econml.dml import DML, CausalForestDML, LinearDML, NonParamDML
 from econml.dr import DRLearner
 from econml.metalearners import DomainAdaptationLearner, SLearner, TLearner, XLearner
 from econml.score import EnsembleCateEstimator, RScorer
 from econml.validate.drtester import DRTester
-from flaml import AutoML
 from ibis.common.exceptions import IbisTypeError
-from ibis.expr.types.relations import Table
 from joblib import Parallel, delayed
 from sklearn.linear_model import LassoCV
-from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import PolynomialFeatures
+from typeguard import typechecked
 
-from ..utils import descriptors
 from ._base import CamlBase
 
 logger = logging.getLogger(__name__)
@@ -39,101 +29,154 @@ logger = logging.getLogger(__name__)
 
 class CamlCATE(CamlBase):
     """
-    The CamlCATE class represents an optimized implementation of Causal Machine Learning techniques for estimating
-    highly accurate conditional average treatment effects (CATEs) and constucting CATE ensemble models.
+    The CamlCATE class represents an opinionated implementation of Causal Machine Learning techniques for estimating
+    highly accurate conditional average treatment effects (CATEs).
 
-    This class... TODO
+    This class is built on top of the EconML library and provides a high-level API for fitting, validating, and making inference with CATE models,
+    with best practices built directly into the API. The class is designed to be easy to use and understand, while still providing
+    flexibility for advanced users. The class is designed to be used with the `pandas`, `polars`, `pyspark`, and `ibis` backends to
+    provide a level of extensibility & interoperability across different data processing frameworks.
+
+    The primary workflow for the CamlCATE class is as follows:
+
+    1. Initialize the class with the input DataFrame and the necessary columns.
+    2. Utilize AutoML to find the optimal nuisance functions to be utilized in the EconML estimators.
+    3. Fit the CATE models on the training set and evaluate based on the validation set, then select the top performer/ensemble.
+    4. Validate the fitted CATE model on the test set to check for generalization performance.
+    5. Fit the final estimator on the entire dataset, after validation and testing.
+    6. Predict the CATE based on the fitted final estimator for either the internal dataframe or an out-of-sample dataframe.
+    7. Rank orders households based on the predicted CATE values for either the internal dataframe or an out-of-sample dataframe.
+    8. Summarize population summary statistics for the CATE predictions for either the internal dataframe or an out-of-sample dataframe.
+
+
+    For technical details on conditional average treatment effects, see:
+
+     - CaML Documentation
+     - [EconML documentation](https://econml.azurewebsites.net/)
+
+     **Note**: All the standard assumptions of Causal Inference apply to this class (e.g., exogeneity/unconfoundedness, overlap, positivity, etc.).
+        The class does not check for these assumptions and assumes that the user has already thought through these assumptions before using the class.
 
     Parameters
     ----------
-    df:
+    df : pandas.DataFrame | polars.DataFrame | pyspark.sql.DataFrame | ibis.expr.types.Table
         The input DataFrame representing the data for the EchoCATE instance.
-    Y:
+    Y : str
         The str representing the column name for the outcome variable.
-    T:
+    T : str
         The str representing the column name(s) for the treatment variable(s).
-    X:
+    X : list[str] | str | None
         The str (if unity) or list of feature names representing the heterogeneity feature set. Defaults to None.
-    W:
+    W : list[str] | str | None
         The str (if unity) or list of feature names representing the confounder feature set. Defaults to None.
-    uuid:
+    uuid : str | None
         The str representing the column name for the universal identifier code (eg, ehhn). Defaults to None, which implies index for joins.
-    discrete_treatment:
+    discrete_treatment : bool
         A boolean indicating whether the treatment is discrete or continuous. Defaults to True.
+    discrete_outcome : bool
+        A boolean indicating whether the outcome is discrete or continuous. Defaults to False.
+    seed : int | None
+        The seed to use for the random number generator. Defaults to None.
 
     Attributes
     ----------
-    df : pandas.DataFrame | polars.DataFrame | pyspark.sql.DataFrame | Table
-        The input DataFrame representing the data for the EchoCATE instance.=
-    Y: str
+    df : pandas.DataFrame | polars.DataFrame | pyspark.sql.DataFrame | ibis.expr.types.Table
+        The input DataFrame representing the data for the CamlCATE instance.
+    Y : str
         The str representing the column name for the outcome variable.
-    T: str
+    T : str
         The str representing the column name(s) for the treatment variable(s).
-    X: List[str] | str | None
+    X : list[str] | str | None
         The str (if unity) or list/tuple of feature names representing the heterogeneity feature set.
-    W: List[str] | str | None
-        The str (if unity) or list/tuple of feature names representing the confounder feature set.
-    uuid: str
+    W : list[str] | str | None
+        The str (if unity) or list/tuple of feature names representing the confounder feature set. Only used for fitting nuisance functions.
+    uuid : str
         The str representing the column name for the universal identifier code (eg, ehhn)
-    discrete_treatment: bool
+    discrete_treatment : bool
         A boolean indicating whether the treatment is discrete or continuous.
+    validation_estimator : econml._cate_estimator.BaseCateEstimator | econml.score.EnsembleCateEstimator
+        The fitted EconML estimator object for validation.
+    final_estimator : econml._cate_estimator.BaseCateEstimator | econml.score.EnsembleCateEstimator
+        The fitted EconML estimator object on the entire dataset after validation.
+    dataframe : pandas.DataFrame | polars.DataFrame | pyspark.sql.DataFrame | ibis.expr.types.Table
+        The input DataFrame with any modifications (e.g., predictions or rank orderings) made by the class returned to the original backend.
     _ibis_connection: ibis.client.Client
         The Ibis client object representing the backend connection to Ibis.
-    _ibis_df: Table
+    _ibis_df: ibis.expr.types.Table
         The Ibis table expression representing the DataFrame connected to Ibis.
     _table_name: str
-        The name of the temporary table/view created for the DataFrame in Ibis.
-    _Y: Table
+        The name of the temporary table/view created for the DataFrame in the backend.
+    _spark: pyspark.sql.SparkSession
+        The Spark session object if the DataFrame is a Spark DataFrame.
+    _Y: ibis.expr.types.Table
         The outcome variable data as ibis table.
-    _T: Table
+    _T: ibis.expr.types.Table
         The treatment variable data as ibis table.
-    _X: Table
+    _X: ibis.expr.types.Table
         The feature set data as ibis table.
-    _estimator: CausalForestDML
-        The fitted EconML estimator object.
+    _W: ibis.expr.types.Table
+        The confounder feature set data as ibis table.
+    _X_W: ibis.expr.types.Table
+        The feature set and confounder feature set data as ibis table.
+    _X_W_T: ibis.expr.types.Table
+        The feature set, confounder feature set, and treatment variable data as ibis table.
+    _nuisances_fitted: bool
+        A boolean indicating whether the nuisance functions have been fitted.
+    _validation_estimator: econml._cate_estimator.BaseCateEstimator | econml.score.EnsembleCateEstimator
+        The fitted EconML estimator object for validation.
+    _final_estimator: econml._cate_estimator.BaseCateEstimator | econml.score.EnsembleCateEstimator
+        The fitted EconML estimator object for final predictions.
+    _validator_results: econml.validate.EvaluationResults
+        The results of the validation tests from DRTester.
+    _cate_models: list[tuple[str, econml._cate_estimator.BaseCateEstimator]]
+        The list of CATE models to fit and ensemble.
+    _model_Y_X_W: sklearn.base.BaseEstimator
+        The fitted nuisance function for the outcome variable.
+    _model_Y_X_W_T: sklearn.base.BaseEstimator
+        The fitted nuisance function for the outcome variable with treatment variable.
+    _model_T_X_W: sklearn.base.BaseEstimator
+        The fitted nuisance function for the treatment variable.
+    _data_splits: dict[str, np.ndarray]
+        The dictionary containing the training, validation, and test data splits.
+    _rscorer: econml.score.RScorer
+        The RScorer object for the validation estimator.
+
+    Examples
+    --------
+    >>> from caml.core.cate import CamlCATE
+    >>> from caml.extensions.synthetic_data import make_fully_heterogeneous_dataset
+    >>> df, true_cates, true_ate = make_fully_heterogeneous_dataset(n_obs=1000, n_confounders=10, ate=10, seed=1)
+    >>> df['uuid'] = df.index
+    >>>  caml_obj= CamlCATE(df=df, Y="y", T="d", X=[c for c in df.columns if "X" in c], W=[c for c in df.columns if "W" in c], uuid="uuid", discrete_treatment=True, discrete_outcome=False, seed=1)
+    >>>
+    >>> # Standard pipeline
+    >>> caml_obj.auto_nuisance_functions()
+    >>> caml_obj.fit_validator()
+    >>> caml_obj.validate(print_full_report=True)
+    >>> caml_obj.fit_final()
+    >>> caml_obj.predict(join_predictions=True)
+    >>> caml_obj.rank_order(join_rank_order=True)
+    >>> caml_obj.summarize()
+    >>>
+    >>> end_of_pipeline_results = caml_obj.dataframe
     """
 
-    df = descriptors.ValidDataFrame(strict=True)
-    Y = descriptors.ValidString(strict=True)
-    T = descriptors.ValidString(strict=True)
-    X = descriptors.ValidFeatureList(strict=False)
-    W = descriptors.ValidFeatureList(strict=False)
-    uuid = descriptors.ValidString(strict=False)
-    discrete_treatment = descriptors.ValidBoolean(strict=True)
-    discrete_target = descriptors.ValidBoolean(strict=True)
-
-    __slots__ = [
-        "_spark",
-        "_ibis_connection",
-        "_ibis_df",
-        "_table_name",
-        "_Y",
-        "_T",
-        "_X",
-        "_W",
-        "_estimator",
-        "_model_Y_X",
-        "_model_T_X",
-        "_model_Y_X_T",
-        "_cate_models",
-        "_best_estimator",
-        "_rscorer",
-        "_data_partitions",
-        "_nuisances_fitted",
-        "_validator_results",
-        "_final_estimator",
-    ]
-
+    @typechecked
     def __init__(
         self,
-        df: pandas.DataFrame | polars.DataFrame | pyspark.sql.DataFrame | Table,
+        df: pandas.DataFrame
+        | polars.DataFrame
+        | pyspark.sql.DataFrame
+        | ibis.expr.types.Table,
         Y: str,
         T: str,
-        X: str | List[str] | None = None,
-        W: str | List[str] | None = None,
+        X: str | list[str] = [],
+        W: str | list[str] = [],
+        *,
         uuid: str | None = None,
         discrete_treatment: bool = True,
         discrete_outcome: bool = False,
+        seed: int | None = None,
     ):
         self.df = df
         self.uuid = uuid
@@ -143,45 +186,98 @@ class CamlCATE(CamlBase):
         self.W = W
         self.discrete_treatment = discrete_treatment
         self.discrete_outcome = discrete_outcome
+        self.seed = seed
         self._spark = None
 
         self._ibis_connector()
 
+        if self.uuid is None:
+            self._ibis_df = self._ibis_df.mutate(
+                uuid=ibis.row_number().over(ibis.window())
+            )
+            self.uuid = "uuid"
+
+        self._Y = self._ibis_df.select(self.Y)
+        self._T = self._ibis_df.select(self.T)
+        self._X = self._ibis_df.select(self.X)
+        self._W = self._ibis_df.select(self.W) if self.W else None
+        self._X_W = self._ibis_df.select(self.X + self.W)
+        self._X_W_T = self._ibis_df.select(self.X + self.W + [self.T])
+
         self._nuisances_fitted = False
-        self._best_estimator = None
+        self._validation_estimator = None
         self._final_estimator = None
 
-    def find_nuisance_functions(
+    @typechecked
+    def auto_nuisance_functions(
         self,
         *,
-        automl_Y_kwargs: dict | None = None,
-        automl_T_kwargs: dict | None = None,
+        flaml_Y_kwargs: dict | None = None,
+        flaml_T_kwargs: dict | None = None,
         use_ray: bool = False,
         use_spark: bool = False,
     ):
         """
-        TODO
-        """
-        self._Y = self._ibis_df.select(self.Y)
-        self._T = self._ibis_df.select(self.T)
-        self._X = self._ibis_df.select(self.X) if self.X is not None else None
-        self._W = self._ibis_df.select(self.W) if self.W is not None else None
+        Automatically finds the optimal nuisance functions for estimating EconML estimators.
 
-        self._model_Y_X, self._model_Y_X_T, self._model_T_X = (
-            self._automl_nuisance_functions(
-                automl_Y_kwargs=automl_Y_kwargs,
-                automl_T_kwargs=automl_T_kwargs,
-                use_ray=use_ray,
-                use_spark=use_spark,
-            )
+        Sets the `_model_Y_X_W`, `_model_Y_X_W_T`, and `_model_T_X_W` internal attributes to the fitted nuisance functions.
+
+        Parameters
+        ----------
+        flaml_Y_kwargs: dict
+            The keyword arguments for the FLAML AutoML search for the outcome model. Defaults to None, which implies the base parameters.
+        flaml_T_kwargs: dict
+            The keyword arguments for the FLAML AutoML search for the treatment model. Defaults to None, which implies the base parameters.
+        use_ray: bool
+            A boolean indicating whether to use Ray for parallel processing. Defaults to False.
+        use_spark: bool
+            A boolean indicating whether to use Spark for parallel processing. Defaults to False.
+
+        Examples
+        --------
+        >>> flaml_Y_kwargs = {
+        ...     "n_jobs": -1,
+        ...     "time_budget": 300, # in seconds
+        ...     }
+        >>> flaml_T_kwargs = {
+        ...     "n_jobs": -1,
+        ...     "time_budget": 300,
+        ...     }
+        >>> caml_obj.auto_nuisance_functions(flaml_Y_kwargs=flaml_Y_kwargs, flaml_T_kwargs=flaml_T_kwargs)
+        """
+
+        self._model_Y_X_W = self._run_auto_nuisance_functions(
+            outcome=self._Y,
+            features=self._X_W,
+            discrete_outcome=self.discrete_outcome,
+            flaml_kwargs=flaml_Y_kwargs,
+            use_ray=use_ray,
+            use_spark=use_spark,
+        )
+        self._model_Y_X_W_T = self._run_auto_nuisance_functions(
+            outcome=self._Y,
+            features=self._X_W_T,
+            discrete_outcome=self.discrete_outcome,
+            flaml_kwargs=flaml_Y_kwargs,
+            use_ray=use_ray,
+            use_spark=use_spark,
+        )
+        self._model_T_X_W = self._run_auto_nuisance_functions(
+            outcome=self._T,
+            features=self._X_W,
+            discrete_outcome=self.discrete_treatment,
+            flaml_kwargs=flaml_T_kwargs,
+            use_ray=use_ray,
+            use_spark=use_spark,
         )
 
         self._nuisances_fitted = True
 
-    def fit(
+    @typechecked
+    def fit_validator(
         self,
         *,
-        subset_cate_models: List[str] = [
+        subset_cate_models: list[str] = [
             "LinearDML",
             "NonParamDML",
             "DML-Lasso3d",
@@ -192,97 +288,97 @@ class CamlCATE(CamlBase):
             "TLearner",
             "DRLearner",
         ],
-        custom_cate_models: dict | None = None,
-        rscorer_kwargs: dict | None = None,
-        use_ray: bool = True,
+        rscorer_kwargs: dict = {},
+        use_ray: bool = False,
         ray_remote_func_options_kwargs: dict = {},
-        final_estimator: bool = False,
     ):
         """
-        Fits the econometric model to learn the CATE function.
+        Fits the CATE models on the training set and evaluates them & ensembles based on the validation set.
 
-        Sets the _Y, _T, and _X internal attributes to the data of the outcome, treatment, and feature set,
-        respectively. Additionally, sets the _estimator internal attribute to the fitted EconML estimator object.
+        Sets the `_validation_estimator` and `_rscorer` internal attributes to the fitted EconML estimator and RScorer object.
 
         Parameters
         ----------
-        estimator:
-            The estimator to use for fitting the CATE function. Defaults to 'CausalForestDML'. Currently,
-            only this option is available.
-        automl_Y_kwargs:
-            The settings to use for the AutoML model for the outcome. Defaults to None.
-        automl_T_kwargs:
-            The settings to use for the AutoML model for the treatment. Defaults to None.
-        **kwargs:
-            Additional keyword arguments to pass to the EconML estimator.
+        subset_cate_models: list[str]
+            The list of CATE models to fit and ensemble. Defaults to all available models.
+        rscorer_kwargs: dict
+            The keyword arguments for the econml.score.RScorer object. Defaults to an empty dictionary.
+        use_ray: bool
+            A boolean indicating whether to use Ray for parallel processing. Defaults to False.
+        ray_remote_func_options_kwargs: dict
+            The keyword arguments for the Ray remote function options. Defaults to an empty dictionary.
 
-        Returns
-        -------
-        econml.dml.causal_forest.CausalForestDML:
-            The fitted EconML CausalForestDML estimator object if `return_estimator` is True.
+        Examples
+        --------
+        >>> rscorer_kwargs = {
+        ...     "cv": 3,
+        ...     "mc_iters": 3,
+        ...     }
+        >>> caml_obj.fit_validator(rscorer_kwargs=rscorer_kwargs)
         """
 
         assert self._nuisances_fitted, "find_nuissance_functions() method must be called first to find optimal nussiance functions for estimating CATE models."
 
-        if final_estimator:
-            assert (
-                self._best_estimator is not None
-            ), "The best estimator must be fitted first before fitting the final estimator."
-
-            if isinstance(self._best_estimator, EnsembleCateEstimator):
-                for estimator in self._best_estimator._cate_models:
-                    estimator.fit(
-                        Y=self._Y.execute().to_numpy().ravel(),
-                        T=self._T.execute().to_numpy().ravel(),
-                        X=self._X.execute().to_numpy(),
-                    )
-                self._final_estimator = self._best_estimator
-            else:
-                self._best_estimator.fit(
-                    Y=self._Y.execute().to_numpy().ravel(),
-                    T=self._T.execute().to_numpy().ravel(),
-                    X=self._X.execute().to_numpy(),
-                )
-                self._final_estimator = self._best_estimator
-        else:
-            if custom_cate_models is None:
-                self._get_cate_models(subset_cate_models=subset_cate_models)
-            else:
-                self._cate_models = custom_cate_models
-            (
-                self._best_estimator,
-                self._rscorer,
-                self._data_partitions,
-            ) = self._fit_and_ensemble_cate_models(
+        self._split_data(validation_size=0.2, test_size=0.2)
+        self._get_cate_models(subset_cate_models=subset_cate_models)
+        (self._validation_estimator, self._rscorer) = (
+            self._fit_and_ensemble_cate_models(
                 rscorer_settings=rscorer_kwargs,
                 use_ray=use_ray,
                 ray_remote_func_options_kwargs=ray_remote_func_options_kwargs,
             )
+        )
 
+    @typechecked
     def validate(
         self,
         *,
-        estimator: BaseCateEstimator | None = None,
+        estimator: BaseCateEstimator | EnsembleCateEstimator | None = None,
+        print_full_report: bool = True,
     ):
         """
-        Validates the CATE model.
+        Validates the fitted CATE models on the test set to check for generalization performance. Uses the DRTester class from EconML to obtain the Best
+        Linear Predictor (BLP), Calibration, AUTOC, and QINI. See [EconML documentation](https://econml.azurewebsites.net/_autosummary/econml.validate.DRTester.html) for more details.
+        In short, we are checking for the ability of the model to find statistically significant heterogeneity in a "well-calibrated" fashion.
+
+        Sets the `_validator_results` internal attribute to the results of the DRTester class.
+
+        Parameters
+        ----------
+        estimator: econml._cate_estimator.BaseCateEstimator | econml.score.EnsembleCateEstimator
+            The estimator to validate. Defaults to None, which implies the best estimator from the validation set.
+        print_full_report: bool
+            A boolean indicating whether to print the full validation report. Defaults to True.
 
         Returns
         -------
-            None
+        econml.validate.EvaluationResults
+            The evaluation results from the DRTester class.
+
+        Examples
+        --------
+        >>> caml_obj.validate(print_full_report=True) # Prints the full validation report.
         """
 
         if estimator is None:
-            estimator = self._best_estimator
+            estimator = self._validation_estimator
 
         validator = DRTester(
-            model_regression=self._model_Y_X_T,
-            model_propensity=self._model_T_X,
+            model_regression=self._model_Y_X_W_T,
+            model_propensity=self._model_T_X_W,
             cate=estimator,
         )
 
-        X_train, _, X_test, T_train, _, T_test, Y_train, _, Y_test = (
-            self._data_partitions.values()
+        X_test, T_test, Y_test = (
+            self._data_splits["X_test"],
+            self._data_splits["T_test"],
+            self._data_splits["Y_test"],
+        )
+
+        X_train, T_train, Y_train = (
+            self._data_splits["X_train"],
+            self._data_splits["T_train"],
+            self._data_splits["Y_train"],
         )
 
         validator.fit_nuisance(
@@ -297,39 +393,98 @@ class CamlCATE(CamlBase):
             logger.warn(
                 "Some of the validation results suggest that the model has not found statistically significant heterogeneity. Please closely look at the validation results and consider retraining with new configurations."
             )
+        else:
+            logger.info(
+                "All validation results suggest that the model has found statistically significant heterogeneity."
+            )
+
+        if print_full_report:
+            print(summary.to_string())
+            for i in res.blp.treatments:
+                if i > 0:
+                    res.plot_cal(i)
+                    res.plot_qini(i)
+                    res.plot_toc(i)
 
         self._validator_results = res
 
         return res
 
+    @typechecked
+    def fit_final(self):
+        """
+        Fits the final estimator on the entire dataset, after validation and testing.
+
+        Sets the `_final_estimator` internal attribute to the fitted EconML estimator.
+
+        Examples
+        --------
+        >>> caml_obj.fit_final() # Fits the final estimator on the entire dataset.
+        """
+
+        assert (
+            self._validation_estimator
+        ), "The best estimator must be fitted first before fitting the final estimator."
+
+        self._final_estimator = copy.deepcopy(self._validation_estimator)
+
+        if isinstance(self._final_estimator, EnsembleCateEstimator):
+            for estimator in self._final_estimator._cate_models:
+                estimator.fit(
+                    Y=self._Y.execute().to_numpy().ravel(),
+                    T=self._T.execute().to_numpy().ravel(),
+                    X=self._X.execute().to_numpy(),
+                )
+        else:
+            self._final_estimator.fit(
+                Y=self._Y.execute().to_numpy().ravel(),
+                T=self._T.execute().to_numpy().ravel(),
+                X=self._X.execute().to_numpy(),
+            )
+
+    @typechecked
     def predict(
         self,
         *,
         out_of_sample_df: pandas.DataFrame
         | polars.DataFrame
         | pyspark.sql.DataFrame
-        | Table
+        | ibis.expr.types.Table
         | None = None,
         out_of_sample_uuid: str | None = None,
         return_predictions: bool = False,
-        append_predictions: bool = False,
+        join_predictions: bool = True,
     ):
         """
-        Predicts the CATE given feature set.
+        Predicts the CATE based on the fitted final estimator for either the internal dataframe or an out-of-sample dataframe.
+
+        Parameters
+        ----------
+        out_of_sample_df: pandas.DataFrame | polars.DataFrame | pyspark.sql.DataFrame | ibis.expr.types.Table | None
+            The out-of-sample DataFrame to make predictions on. Defaults to None.
+        out_of_sample_uuid: str | None
+            The column name for the universal identifier code (eg, ehhn) in the out-of-sample DataFrame. Defaults to None.
+        return_predictions: bool
+            A boolean indicating whether to return the predicted CATE. Defaults to False.
+        join_predictions: bool
+            A boolean indicating whether to join the predicted CATE to the original DataFrame within the class. Defaults to True.
 
         Returns
         -------
-        tuple:
-            A tuple containing the predicted CATE, standard errors, lower bound, and upper bound if `return_predictions` is True.
+        np.ndarray
+            The predicted CATE values if return_predictions is set to True.
+
+        Examples
+        --------
+        >>> caml.predict(join_predictions=True) # Joins the predicted CATE values to the original DataFrame.
+        >>> caml.dataframe # Returns the DataFrame to original backend with the predicted CATE values joined.
         """
 
         assert (
-            return_predictions or append_predictions
-        ), "Either return_predictions or append_predictions must be set to True."
+            return_predictions or join_predictions
+        ), "Either return_predictions or join_predictions must be set to True."
 
-        assert (
-            self._final_estimator is not None
-        ), "The final estimator must be fitted first before making predictions. Please run the fit() method with final_estimator=True."
+        assert self._final_estimator, "The final estimator must be fitted first before making predictions. Please run the fit() method with final_estimator=True."
 
         if out_of_sample_df is None:
             X = self._X.execute().to_numpy()
@@ -337,23 +492,23 @@ class CamlCATE(CamlBase):
             uuid_col = self.uuid
         else:
             input_df = self._create_internal_ibis_table(df=out_of_sample_df)
-            if append_predictions is True:
+            if join_predictions:
                 if out_of_sample_uuid is None:
                     try:
                         uuids = input_df[self.uuid].execute().to_numpy()
                         uuid_col = self.uuid
                     except IbisTypeError:
                         raise ValueError(
-                            "The `uuid` column must be provided in the out-of-sample DataFrame and the `out_of_sample_uuid` argument must be set to the string name of the column."
+                            "The `uuid` column must be provided in the out-of-sample DataFrame to join predictions and the `out_of_sample_uuid` argument must be set to the string name of the column."
                         )
                 else:
                     uuids = input_df[out_of_sample_uuid].execute().to_numpy()
                     uuid_col = out_of_sample_uuid
             X = input_df.select(self.X).execute().to_numpy()
 
-        cate_predictions = self._best_estimator.effect(X)
+        cate_predictions = self._validation_estimator.effect(X)
 
-        if append_predictions:
+        if join_predictions:
             data_dict = {
                 uuid_col: uuids,
                 "cate_predictions": cate_predictions,
@@ -363,7 +518,6 @@ class CamlCATE(CamlBase):
                 self._ibis_df = self._ibis_df.join(
                     results_df, predicates=uuid_col, how="inner"
                 )
-                return
             else:
                 final_df = input_df.join(results_df, predicates=uuid_col, how="inner")
                 return self._return_ibis_dataframe_to_original_backend(
@@ -373,28 +527,44 @@ class CamlCATE(CamlBase):
         if return_predictions:
             return cate_predictions
 
+    @typechecked
     def rank_order(
         self,
         *,
         out_of_sample_df: pandas.DataFrame
         | polars.DataFrame
         | pyspark.sql.DataFrame
-        | Table
+        | ibis.expr.types.Table
         | None = None,
         return_rank_order: bool = False,
-        append_rank_order: bool = False,
+        join_rank_order: bool = True,
     ):
         """
-        Ranks households based on the those with the highest estimated CATE.
+        Ranks orders households based on the predicted CATE values for either the internal dataframe or an out-of-sample dataframe.
+
+        Parameters
+        ----------
+        out_of_sample_df: pandas.DataFrame | polars.DataFrame | pyspark.sql.DataFrame | ibis.expr.types.Table | None
+            The out-of-sample DataFrame to rank order. Defaults to None.
+        return_rank_order: bool
+            A boolean indicating whether to return the rank ordering. Defaults to False.
+        join_rank_order: bool
+            A boolean indicating whether to join the rank ordering to the original DataFrame within the class. Defaults to True.
 
         Returns
         -------
-            None
+        np.ndarray
+            The rank ordering values if return_rank_order is set to True.
+
+        Examples
+        --------
+        >>> caml.rank_order(join_rank_order=True) # Joins the rank ordering to the original DataFrame.
+        >>> caml.dataframe # Returns the DataFrame to original backend with the rank ordering values joined.
         """
 
         assert (
-            return_rank_order or append_rank_order
-        ), "Either return_rank_order or append_rank_order must be set to True."
+            return_rank_order or join_rank_order
+        ), "Either return_rank_order or join_rank_order must be set to True."
         assert (
             self._ibis_connection.name != "polars"
         ), "Rank ordering is not supported for polars DataFrames."
@@ -402,7 +572,7 @@ class CamlCATE(CamlBase):
         if out_of_sample_df is None:
             assert (
                 "cate_predictions" in self._ibis_df.columns
-            ), "CATE predictions must be present in the DataFrame to rank order. Please call the predict() method first with append_predictions=True."
+            ), "CATE predictions must be present in the DataFrame to rank order. Please call the predict() method first with join_predictions=True."
 
             window = ibis.window(order_by=ibis.desc(self._ibis_df["cate_predictions"]))
             self._ibis_df = self._ibis_df.mutate(
@@ -412,44 +582,66 @@ class CamlCATE(CamlBase):
             if return_rank_order:
                 return self._ibis_df.select("cate_ranking").execute().to_numpy()
 
-            elif append_rank_order:
+            elif join_rank_order:
                 self._ibis_df = self._ibis_df.order_by("cate_ranking")
 
         else:
             input_df = self._create_internal_ibis_table(df=out_of_sample_df)
             assert (
                 "cate_predictions" in input_df.columns
-            ), "CATE predictions must be present in the DataFrame to rank order. Please call the predict() method first with append_predictions=True, passing the out_of_sample_dataframe."
+            ), "CATE predictions must be present in the DataFrame to rank order. Please call the predict() method first with join_predictions=True, passing the out_of_sample_dataframe."
 
             window = ibis.window(order_by=ibis.desc(input_df["cate_predictions"]))
             final_df = input_df.mutate(cate_ranking=ibis.row_number().over(window))
 
             if return_rank_order:
                 return final_df.select("cate_ranking").execute().to_numpy()
-            elif append_rank_order:
+            elif join_rank_order:
                 return self._return_ibis_dataframe_to_original_backend(
                     ibis_df=final_df.order_by("cate_ranking"),
                     backend=input_df._find_backend().name,
                 )
 
-    def summarize(self):
+    @typechecked
+    def summarize(
+        self,
+        *,
+        out_of_sample_df: pandas.DataFrame
+        | polars.DataFrame
+        | pyspark.sql.DataFrame
+        | ibis.expr.types.Table
+        | None = None,
+    ):
         """
-        Provides population summary of treatment effects, including Average Treatment Effects (ATEs)
-        and Conditional Average Treatement Effects (CATEs).
+        Provides population summary statistics for the CATE predictions for either the internal dataframe or an out-of-sample dataframe.
+
+        Parameters
+        ----------
+        out_of_sample_df: pandas.DataFrame | polars.DataFrame | pyspark.sql.DataFrame | ibis.expr.types.Table | None
+            The out-of-sample DataFrame to summarize. Defaults to None.
 
         Returns
         -------
-        econml.utilities.Summary:
-            Population summary of the results.
+        pandas.DataFrame | polars.DataFrame | pyspark.sql.DataFrame | ibis.expr.types.Table
+            The summary statistics for the CATE predictions.
+
+        Examples
+        --------
+        >>> caml.summarize() # Summarizes the CATE predictions for the internal DataFrame.
         """
 
+        if out_of_sample_df is None:
+            df = self._ibis_df
+        else:
+            df = self._create_internal_ibis_table(df=out_of_sample_df)
+
         assert (
-            "cate_predictions" in self._ibis_df.columns
-        ), "CATE predictions must be present in the DataFrame to summarize. Please call the predict() method first with append_predictions=True."
+            "cate_predictions" in df.columns
+        ), "CATE predictions must be present in the DataFrame to summarize. Please call the predict() method first with join_predictions=True."
 
-        column = self._ibis_df["cate_predictions"]
+        column = df["cate_predictions"]
 
-        cate_summary_statistics = self._ibis_df.aggregate(
+        cate_summary_statistics = df.aggregate(
             [
                 column.mean().name("cate_mean"),
                 column.sum().name("cate_sum"),
@@ -464,95 +656,17 @@ class CamlCATE(CamlBase):
             ibis_df=cate_summary_statistics
         )
 
-    def _automl_nuisance_functions(
-        self,
-        *,
-        automl_Y_kwargs: dict | None,
-        automl_T_kwargs: dict | None,
-        use_ray: bool,
-        use_spark: bool,
-    ):
-        """
-        Automatically selects the best nuisance models for the outcome and treatment.
-
-        """
-
-        automl_Y_X = AutoML()
-        automl_Y_X_T = AutoML()
-        automl_T_X = AutoML()
-
-        base_settings = {
-            "n_jobs": -1,
-            "log_file_name": "",
-            "seed": 123,
-            "time_budget": 300,
-            "early_stop": "True",
-            "starting_points": "data",
-            "estimator_list": ["lgbm", "rf", "xgboost", "extra_tree", "xgb_limitdepth"],
-        }
-
-        # Set default settings for AutoML Outcome model
-        _automl_Y_kwargs = base_settings.copy()
-        if self.discrete_outcome:
-            _automl_Y_kwargs["task"] = "classification"
-            _automl_Y_kwargs["metric"] = "log_loss"
-        else:
-            _automl_Y_kwargs["task"] = "regression"
-            _automl_Y_kwargs["metric"] = "mse"
-
-        # Set default settings for AutoML Treatment model
-        _automl_T_kwargs = base_settings.copy()
-        if self.discrete_treatment:
-            _automl_T_kwargs["task"] = "classification"
-            _automl_T_kwargs["metric"] = "log_loss"
-        else:
-            _automl_T_kwargs["task"] = "regression"
-            _automl_T_kwargs["metric"] = "mse"
-
-        if self._spark is not None or use_spark:
-            _automl_Y_kwargs["use_spark"], _automl_T_kwargs["use_spark"] = True, True
-            (
-                _automl_Y_kwargs["n_concurrent_trials"],
-                _automl_T_kwargs["n_concurrent_trials"],
-            ) = 4, 4
-
-        elif use_ray:
-            _automl_Y_kwargs["use_ray"], _automl_T_kwargs["use_ray"] = True, True
-            (
-                _automl_Y_kwargs["n_concurrent_trials"],
-                _automl_T_kwargs["n_concurrent_trials"],
-            ) = 4, 4
-
-        if automl_T_kwargs is not None:
-            _automl_T_kwargs.update(automl_T_kwargs)
-
-        if automl_Y_kwargs is not None:
-            _automl_Y_kwargs.update(automl_Y_kwargs)
-
-        # Fit the AutoML models
-        X = self._X.execute().to_numpy()
-        Y = self._Y.execute().to_numpy().ravel()
-        T = self._T.execute().to_numpy().ravel()
-        XT = np.concatenate((X, T.reshape(-1, 1)), axis=1)
-
-        automl_Y_X.fit(X, Y, **_automl_Y_kwargs)
-        automl_Y_X_T.fit(XT, Y, **_automl_Y_kwargs)
-        automl_T_X.fit(X, T, **_automl_T_kwargs)
-
-        model_Y_X = automl_Y_X.model.estimator
-        model_Y_X_T = automl_Y_X_T.model.estimator
-        model_T_X = automl_T_X.model.estimator
-
-        return model_Y_X, model_Y_X_T, model_T_X
-
-    def _get_cate_models(self, *, subset_cate_models: List[str]):
+    @typechecked
+    def _get_cate_models(self, *, subset_cate_models: list[str]):
         """
         Create model grid for CATE models to be fitted and ensembled.
+
+        Sets the `_cate_models` internal attribute to the list of CATE models to fit and ensemble.
         """
 
-        mod_Y_X = self._model_Y_X
-        mod_T_X = self._model_T_X
-        mod_Y_X_T = self._model_Y_X_T
+        mod_Y_X = self._model_Y_X_W
+        mod_T_X = self._model_T_X_W
+        mod_Y_X_T = self._model_Y_X_W_T
 
         self._cate_models = [
             (
@@ -563,6 +677,7 @@ class CamlCATE(CamlBase):
                     discrete_treatment=self.discrete_treatment,
                     discrete_outcome=self.discrete_outcome,
                     cv=3,
+                    random_state=self.seed,
                 ),
             ),
             (
@@ -574,6 +689,7 @@ class CamlCATE(CamlBase):
                     discrete_treatment=self.discrete_treatment,
                     discrete_outcome=self.discrete_outcome,
                     cv=3,
+                    random_state=self.seed,
                 ),
             ),
             (
@@ -586,6 +702,7 @@ class CamlCATE(CamlBase):
                     discrete_outcome=self.discrete_outcome,
                     featurizer=PolynomialFeatures(degree=3),
                     cv=3,
+                    random_state=self.seed,
                 ),
             ),
             (
@@ -596,6 +713,7 @@ class CamlCATE(CamlBase):
                     discrete_treatment=self.discrete_treatment,
                     discrete_outcome=self.discrete_outcome,
                     cv=3,
+                    random_state=self.seed,
                 ),
             ),
         ]
@@ -614,7 +732,9 @@ class CamlCATE(CamlBase):
                 (
                     "DomainAdaptationLearner",
                     DomainAdaptationLearner(
-                        models=mod_Y_X, final_models=mod_Y_X_T, propensity_model=mod_T_X
+                        models=mod_Y_X,
+                        final_models=mod_Y_X_T,
+                        propensity_model=mod_T_X,
                     ),
                 )
             )
@@ -628,39 +748,54 @@ class CamlCATE(CamlBase):
                         model_regression=mod_Y_X_T,
                         model_final=mod_Y_X_T,
                         cv=3,
+                        random_state=self.seed,
                     ),
                 )
             )
 
         self._cate_models = [m for m in self._cate_models if m[0] in subset_cate_models]
 
+    @typechecked
     def _fit_and_ensemble_cate_models(
         self,
         *,
-        rscorer_settings: dict | None,
+        rscorer_settings: dict,
         use_ray: bool,
         ray_remote_func_options_kwargs: dict,
     ):
         """
         Fits the CATE models and ensembles them.
 
+        Parameters
+        ----------
+        rscorer_settings: dict
+            The keyword arguments for the econml.score.RScorer object. Defaults to an empty dictionary.
+        use_ray: bool
+            A boolean indicating whether to use Ray for parallel processing. Defaults to False.
+        ray_remote_func_options_kwargs: dict
+            The keyword arguments for the Ray remote function options. Defaults to an empty dictionary.
+
         Returns
         -------
+        econml._cate_estimator.BaseCateEstimator | econml.score.EnsembleCateEstimator
+            The best fitted EconML estimator.
+        econml.score.RScorer
+            The fitted RScorer object.
         """
 
-        X = self._X.execute().to_numpy()
-        Y = self._Y.execute().to_numpy().ravel()
-        T = self._T.execute().to_numpy().ravel()
-
-        X_int, X_test, T_int, T_test, Y_int, Y_test = train_test_split(
-            X, T, Y, test_size=0.2
+        Y_train, T_train, X_train = (
+            self._data_splits["Y_train"],
+            self._data_splits["T_train"],
+            self._data_splits["X_train"],
         )
 
-        X_train, X_val, T_train, T_val, Y_train, Y_val = train_test_split(
-            X_int, T_int, Y_int, test_size=0.2
+        Y_val, T_val, X_val = (
+            self._data_splits["Y_val"],
+            self._data_splits["T_val"],
+            self._data_splits["X_val"],
         )
 
-        def fit_model(name, model, use_ray=False, ray_remote_func_options_kwargs=None):
+        def fit_model(name, model, use_ray, ray_remote_func_options_kwargs):
             if isinstance(model, _OrthoLearner):
                 model.use_ray = use_ray
                 model.ray_remote_func_options_kwargs = ray_remote_func_options_kwargs
@@ -686,21 +821,22 @@ class CamlCATE(CamlBase):
             models = ray.get(futures)
         else:
             models = Parallel(n_jobs=-1)(
-                delayed(fit_model)(name, mdl) for name, mdl in self._cate_models
+                delayed(fit_model)(name, model) for name, model in self._cate_models
             )
 
         base_rscorer_settings = {
             "cv": 3,
             "mc_iters": 3,
             "mc_agg": "median",
+            "random_state": self.seed,
         }
 
         if rscorer_settings is not None:
             base_rscorer_settings.update(rscorer_settings)
 
         rscorer = RScorer(
-            model_y=self._model_Y_X,
-            model_t=self._model_T_X,
+            model_y=self._model_Y_X_W,
+            model_t=self._model_T_X_W,
             discrete_treatment=self.discrete_treatment,
             **base_rscorer_settings,
         )
@@ -717,7 +853,9 @@ class CamlCATE(CamlBase):
         )
 
         # Choose best estimator
-        def get_best_estimator(ensemble_estimator, ensemble_score, estimator_scores):
+        def get_validation_estimator(
+            ensemble_estimator, ensemble_score, estimator_scores
+        ):
             if np.max(estimator_scores) >= ensemble_score:
                 logger.info(
                     "The best estimator is greater than the ensemble estimator. Returning that individual estimator."
@@ -742,20 +880,8 @@ class CamlCATE(CamlBase):
 
             return best_estimator
 
-        best_estimator = get_best_estimator(
+        best_estimator = get_validation_estimator(
             ensemble_estimator, ensemble_score, estimator_scores
         )
 
-        data_partitions = {
-            "X_train": X_train,
-            "X_val": X_val,
-            "X_test": X_test,
-            "T_train": T_train,
-            "T_val": T_val,
-            "T_test": T_test,
-            "Y_train": Y_train,
-            "Y_val": Y_val,
-            "Y_test": Y_test,
-        }
-
-        return best_estimator, rscorer, data_partitions
+        return best_estimator, rscorer

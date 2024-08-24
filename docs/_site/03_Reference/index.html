@@ -184,7 +184,8 @@ ul.task-list li input[type="checkbox"] {
   <li><a href="#api-reference" id="toc-api-reference" class="nav-link active" data-scroll-target="#api-reference">API Reference</a>
   <ul class="collapse">
   <li><a href="#caml-core" id="toc-caml-core" class="nav-link" data-scroll-target="#caml-core">CaML Core</a></li>
-  <li><a href="#core-extensions" id="toc-core-extensions" class="nav-link" data-scroll-target="#core-extensions">Core Extensions</a></li>
+  <li><a href="#sythetic-data-generation" id="toc-sythetic-data-generation" class="nav-link" data-scroll-target="#sythetic-data-generation">Sythetic Data Generation</a></li>
+  <li><a href="#plots" id="toc-plots" class="nav-link" data-scroll-target="#plots">Plots</a></li>
   <li><a href="#developer-tools" id="toc-developer-tools" class="nav-link" data-scroll-target="#developer-tools">Developer Tools</a></li>
   </ul></li>
   </ul>
@@ -200,35 +201,51 @@ ul.task-list li input[type="checkbox"] {
 <h1 class="doc doc-index">API Reference</h1>
 <section id="caml-core" class="level2">
 <h2 class="anchored" data-anchor-id="caml-core">CaML Core</h2>
-<p>Core Classes</p>
+<p><code>from caml import *</code></p>
 <table class="caption-top table">
 <tbody>
 <tr class="odd">
-<td><a href="../03_Reference/CamlDML.html#caml.CamlDML">CamlDML</a></td>
-<td>The CamlDML class represents a Double Machine Learning (DML) implementation for estimating…</td>
+<td><a href="../03_Reference/CamlCATE.html#caml.CamlCATE">CamlCATE</a></td>
+<td>The CamlCATE class represents an opinionated implementation of Causal Machine Learning techniques for estimating</td>
 </tr>
 <tr class="even">
 <td><a href="../03_Reference/CamlPolicy.html#caml.CamlPolicy">CamlPolicy</a></td>
 <td>The CamlPolicy class represents a Policy Learning implementation for estimating…</td>
 </tr>
 <tr class="odd">
-<td><a href="../03_Reference/CamlEnsemble.html#caml.CamlEnsemble">CamlEnsemble</a></td>
-<td>The CamlEnsemble class represents a Ensemble Learning implementation for estimating…</td>
+<td><a href="../03_Reference/CamlDML.html#caml.CamlDML">CamlDML</a></td>
+<td></td>
 </tr>
 <tr class="even">
-<td><a href="../03_Reference/CamlDRL.html#caml.CamlDRL">CamlDRL</a></td>
-<td>The CamlDRL class represents a Doubly Robust Learning (DRL) implementation for estimating…</td>
-</tr>
-<tr class="odd">
 <td><a href="../03_Reference/CamlDynamic.html#caml.CamlDynamic">CamlDynamic</a></td>
 <td>The CamlDynamic class represents a dynamic (time) implementation for estimating…</td>
 </tr>
 </tbody>
 </table>
 </section>
-<section id="core-extensions" class="level2">
-<h2 class="anchored" data-anchor-id="core-extensions">Core Extensions</h2>
-<p>Plotting</p>
+<section id="sythetic-data-generation" class="level2">
+<h2 class="anchored" data-anchor-id="sythetic-data-generation">Sythetic Data Generation</h2>
+<p><code>from caml.extensions.synthetic_data import *</code></p>
+<table class="caption-top table">
+<tbody>
+<tr class="odd">
+<td><a href="../03_Reference/make_partially_linear_dataset_simple.html#caml.extensions.synthetic_data.make_partially_linear_dataset_simple">make_partially_linear_dataset_simple</a></td>
+<td>Generate a partially linear data generating process with simple 1 or 2 dimensional CATE function. The outcome is continuous and the treatment can be binary or continuous.</td>
+</tr>
+<tr class="even">
+<td><a href="../03_Reference/make_partially_linear_dataset_constant.html#caml.extensions.synthetic_data.make_partially_linear_dataset_constant">make_partially_linear_dataset_constant</a></td>
+<td>Generate a partially linear model data generating process with a constant treatment effect (ATE only). The outcome and treatment are both continuous.</td>
+</tr>
+<tr class="odd">
+<td><a href="../03_Reference/make_fully_hetereogenous_dataset.html#caml.extensions.synthetic_data.make_fully_hetereogenous_dataset">make_fully_hetereogenous_dataset</a></td>
+<td>Generate an “interactive regression” model data generating process with fully heterogenous treatment effects. The outcome is continuous and the treatment is binary.</td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="plots" class="level2">
+<h2 class="anchored" data-anchor-id="plots">Plots</h2>
+<p><code>from caml.extensions.plots import *</code></p>
 <table class="caption-top table">
 <tbody>
 <tr class="odd">
@@ -240,7 +257,6 @@ ul.task-list li input[type="checkbox"] {
 </section>
 <section id="developer-tools" class="level2">
 <h2 class="anchored" data-anchor-id="developer-tools">Developer Tools</h2>
-<p>Utilities, Descriptors, &amp; Validators</p>
 <table class="caption-top table">
 <tbody>
 <tr class="odd">
@@ -248,28 +264,8 @@ ul.task-list li input[type="checkbox"] {
 <td>Function to generate a random string of ascii lowercase letters and digits of length N.</td>
 </tr>
 <tr class="even">
-<td><a href="../03_Reference/utils.descriptors.ValidDataFrame.html#caml.utils.descriptors.ValidDataFrame">utils.descriptors.ValidDataFrame</a></td>
-<td>Descriptor class that allows setting and getting a value that must be a valid DataFrame</td>
-</tr>
-<tr class="odd">
-<td><a href="../03_Reference/utils.descriptors.ValidSparkSession.html#caml.utils.descriptors.ValidSparkSession">utils.descriptors.ValidSparkSession</a></td>
-<td>Descriptor class for a valid SparkSession object.</td>
-</tr>
-<tr class="even">
-<td><a href="../03_Reference/utils.descriptors.ValidSklearnModel.html#caml.utils.descriptors.ValidSklearnModel">utils.descriptors.ValidSklearnModel</a></td>
-<td>Descriptor class for a valid nuissance Sklearn model object.</td>
-</tr>
-<tr class="odd">
-<td><a href="../03_Reference/utils.descriptors.ValidBoolean.html#caml.utils.descriptors.ValidBoolean">utils.descriptors.ValidBoolean</a></td>
-<td>Descriptor class for a valid boolean value.</td>
-</tr>
-<tr class="even">
-<td><a href="../03_Reference/utils.descriptors.ValidString.html#caml.utils.descriptors.ValidString">utils.descriptors.ValidString</a></td>
-<td>Descriptor class for a valid string value.</td>
-</tr>
-<tr class="odd">
-<td><a href="../03_Reference/utils.descriptors.ValidFeatureList.html#caml.utils.descriptors.ValidFeatureList">utils.descriptors.ValidFeatureList</a></td>
-<td>Descriptor class for a valid str, list, or tuple feature names.</td>
+<td><a href="../03_Reference/logging.setup_logging.html#caml.logging.setup_logging">logging.setup_logging</a></td>
+<td>Set up logging configuration.</td>
 </tr>
 </tbody>
 </table>

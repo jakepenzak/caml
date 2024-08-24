@@ -15,3 +15,6 @@ __pycache__/
 
 # Ruff
 .ruff_cache/
+
+# Backup
+.backup/
