@@ -1395,7 +1395,7 @@ packages:
   name: caml
   version: 0.0.0.dev1
   path: .
-  sha256: d8dbe5757e65193649cb8cb3bbc7c435e323efc5aea5a673dd135187816137d9
+  sha256: 18687096478e8fa260e5da289fd53ec6de54d3114033f2c82ab4d8bf5d65bd8a
   requires_dist:
   - scikit-learn>=1.5.1,<2
   - econml>=0.15.1,<0.16
@@ -1407,6 +1407,7 @@ packages:
   - typeguard>=4.3.0,<5
   - doubleml>=0.8.2,<0.9
   - matplotlib>=3.9.2,<4
+  - numpy>=1.26.4,<2
   - pre-commit>=3.7.0 ; extra == 'dev'
   - ruff>=0.3.7 ; extra == 'dev'
   - quartodoc>=0.7.2 ; extra == 'dev'
