@@ -66,9 +66,9 @@ class CamlCATE(CamlBase):
     T : str
         The str representing the column name(s) for the treatment variable(s).
     X : list[str] | str | None
-        The str (if unity) or list of feature names representing the heterogeneity feature set. Defaults to None.
+        The str (if unity) or list of feature names representing the confounder/control feature set to be utilized for estimating heterogeneity/CATE. Defaults to None.
     W : list[str] | str | None
-        The str (if unity) or list of feature names representing the confounder feature set. Defaults to None.
+        The str (if unity) or list of feature names representing the additional confounder/control feature se not to be utilized in CATE model. Only used for fitting nuisance functions. Defaults to None.
     uuid : str | None
         The str representing the column name for the universal identifier code (eg, ehhn). Defaults to None, which implies index for joins.
     discrete_treatment : bool
@@ -87,9 +87,9 @@ class CamlCATE(CamlBase):
     T : str
         The str representing the column name(s) for the treatment variable(s).
     X : list[str] | str | None
-        The str (if unity) or list/tuple of feature names representing the heterogeneity feature set.
+        The str (if unity) or list/tuple of feature names representing the confounder/control feature set to be utilized for estimating heterogeneity/CATE.
     W : list[str] | str | None
-        The str (if unity) or list/tuple of feature names representing the confounder feature set. Only used for fitting nuisance functions.
+        The str (if unity) or list/tuple of feature names additional confounder/control feature se not to be utilized in CATE model. Only used for fitting nuisance functions.
     uuid : str
         The str representing the column name for the universal identifier code (eg, ehhn)
     discrete_treatment : bool
