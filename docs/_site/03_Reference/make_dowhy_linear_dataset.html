@@ -20,6 +20,40 @@ ul.task-list li input[type="checkbox"] {
   margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
   vertical-align: middle;
 }
+/* CSS for syntax highlighting */
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { display: inline-block; text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
 </style>
 
 
@@ -67,10 +101,43 @@ ul.task-list li input[type="checkbox"] {
     "search-label": "Search"
   }
 }</script>
+<script src="../site_libs/quarto-diagram/mermaid.min.js"></script>
+<script src="../site_libs/quarto-diagram/mermaid-init.js"></script>
+<link href="../site_libs/quarto-diagram/mermaid.css" rel="stylesheet">
 
+  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN") {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
 
 <link rel="stylesheet" href="../styles/styles.css">
 <meta property="og:title" content="CaML - Causal ML">
+<meta property="og:description" content="">
 <meta property="og:site_name" content="CaML - Causal ML">
 </head>
 
@@ -126,7 +193,7 @@ ul.task-list li input[type="checkbox"] {
     </ul>
   </li>
   <li class="nav-item">
-    <a class="nav-link active" href="../03_Reference/index.html" aria-current="page"> 
+    <a class="nav-link" href="../03_Reference/index.html"> 
 <span class="menu-text">API Reference</span></a>
   </li>  
 </ul>
@@ -181,15 +248,14 @@ ul.task-list li input[type="checkbox"] {
     <h2 id="toc-title">On this page</h2>
    
   <ul>
-  <li><a href="#api-reference" id="toc-api-reference" class="nav-link active" data-scroll-target="#api-reference">API Reference</a>
+  <li><a href="#caml.extensions.synthetic_data.make_dowhy_linear_dataset" id="toc-caml.extensions.synthetic_data.make_dowhy_linear_dataset" class="nav-link active" data-scroll-target="#caml.extensions.synthetic_data.make_dowhy_linear_dataset">make_dowhy_linear_dataset</a>
   <ul class="collapse">
-  <li><a href="#caml-core" id="toc-caml-core" class="nav-link" data-scroll-target="#caml-core">CaML Core</a></li>
-  <li><a href="#synthetic-data-generation" id="toc-synthetic-data-generation" class="nav-link" data-scroll-target="#synthetic-data-generation">Synthetic Data Generation</a></li>
-  <li><a href="#plots" id="toc-plots" class="nav-link" data-scroll-target="#plots">Plots</a></li>
-  <li><a href="#developer-tools" id="toc-developer-tools" class="nav-link" data-scroll-target="#developer-tools">Developer Tools</a></li>
+  <li><a href="#parameters" id="toc-parameters" class="nav-link" data-scroll-target="#parameters">Parameters</a></li>
+  <li><a href="#returns" id="toc-returns" class="nav-link" data-scroll-target="#returns">Returns</a></li>
+  <li><a href="#examples" id="toc-examples" class="nav-link" data-scroll-target="#examples">Examples</a></li>
   </ul></li>
   </ul>
-<div class="toc-actions"><ul><li><a href="https://github.com/jakepenzak/caml/edit/main/docs/03_Reference/index.qmd" class="toc-action"><i class="bi bi-github"></i>Edit this page</a></li><li><a href="https://github.com/jakepenzak/caml/issues/new" class="toc-action"><i class="bi empty"></i>Report an issue</a></li></ul></div></nav>
+<div class="toc-actions"><ul><li><a href="https://github.com/jakepenzak/caml/edit/main/docs/03_Reference/make_dowhy_linear_dataset.qmd" class="toc-action"><i class="bi bi-github"></i>Edit this page</a></li><li><a href="https://github.com/jakepenzak/caml/issues/new" class="toc-action"><i class="bi empty"></i>Report an issue</a></li></ul></div></nav>
     </div>
 <!-- main -->
 <main class="content" id="quarto-document-content">
@@ -197,70 +263,158 @@ ul.task-list li input[type="checkbox"] {
 
 
 
-<section id="api-reference" class="level1 doc doc-index">
-<h1 class="doc doc-index">API Reference</h1>
-<section id="caml-core" class="level2">
-<h2 class="anchored" data-anchor-id="caml-core">CaML Core</h2>
-<p><code>from caml import *</code></p>
+<section id="caml.extensions.synthetic_data.make_dowhy_linear_dataset" class="level1">
+<h1>make_dowhy_linear_dataset</h1>
+<p><code>extensions.synthetic_data.make_dowhy_linear_dataset(beta=2.0, n_obs=1000, n_confounders=10, n_discrete_confounders=0, n_effect_modifiers=5, n_discrete_effect_modifiers=0, n_treatments=1, binary_treatment=False, categorical_treatment=False, binary_outcome=False, seed=None)</code></p>
+<p>Simulate a linear data generating process with flexible configurations. The outcome and treatment can take on different data types. The dataset is generated using a modified version of the <code>make_linear_data</code> function from the <a href="https://www.pywhy.org/dowhy/v0.11.1/index.html"><code>dowhy</code> package</a>.</p>
+<p>The general form of the data generating process is:</p>
+<p><span class="math display">\[
+y_i = \tau (\mathbf{X_i}) \mathbf{D_i} + g(\mathbf{W_i}) + \epsilon_i
+\]</span> <span class="math display">\[
+\mathbf{D_i}=f(\mathbf{W_i})+\eta_i
+\]</span></p>
+<p>where <span class="math inline">\(y_i\)</span> is the outcome, <span class="math inline">\(\mathbf{D_i}\)</span> are the treatment(s), <span class="math inline">\(\mathbf{X_i}\)</span> are the effect modifiers (utilized for effect heterogeneity only), <span class="math inline">\(\mathbf{W_i}\)</span> are the confounders, <span class="math inline">\(\epsilon_i\)</span> and <span class="math inline">\(\eta_i\)</span> are the error terms, <span class="math inline">\(\tau\)</span> is the linear CATE function, <span class="math inline">\(g\)</span> is the linear outcome function, and <span class="math inline">\(f\)</span> is the linear treatment function.</p>
+<p>As a DAG, the data generating process can be roughly represented as:</p>
+<div style="text-align: center;">
+<div class="cell" data-layout-align="default">
+<div class="cell-output-display">
+<div>
+<p></p><figure class="figure"><p></p>
+<div>
+<pre class="mermaid mermaid-js">flowchart TD;
+    X((X))--&gt;Y((Y));
+    W((W))--&gt;Y((Y));
+    W((W))--&gt;D((D));
+    D((D))--&gt;|"τ(X)"|Y((Y));
+    linkStyle 0,1 stroke:black,stroke-width:2px
+    linkStyle 1,2 stroke:black,stroke-width:2px
+</pre>
+</div>
+<p></p></figure><p></p>
+</div>
+</div>
+</div>
+</div>
+<section id="parameters" class="level2">
+<h2 class="anchored" data-anchor-id="parameters">Parameters</h2>
 <table class="caption-top table">
+<colgroup>
+<col style="width: 20%">
+<col style="width: 8%">
+<col style="width: 63%">
+<col style="width: 7%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+<th>Default</th>
+</tr>
+</thead>
 <tbody>
 <tr class="odd">
-<td><a href="../03_Reference/CamlCATE.html#caml.CamlCATE">CamlCATE</a></td>
-<td>The CamlCATE class represents an opinionated implementation of Causal Machine Learning techniques for estimating</td>
+<td><code>beta</code></td>
+<td>float</td>
+<td>The base effect size of the treatment. Note, this differs from the ATE with effect modifiers.</td>
+<td><code>2.0</code></td>
+</tr>
+<tr class="even">
+<td><code>n_obs</code></td>
+<td>int</td>
+<td>The number of observations to generate.</td>
+<td><code>1000</code></td>
+</tr>
+<tr class="odd">
+<td><code>n_confounders</code></td>
+<td>int</td>
+<td>The number of confounders <span class="math inline">\(\mathbf{W_i}\)</span> to generate.</td>
+<td><code>10</code></td>
+</tr>
+<tr class="even">
+<td><code>n_discrete_confounders</code></td>
+<td>int</td>
+<td>The number of discrete confounders to generate.</td>
+<td><code>0</code></td>
+</tr>
+<tr class="odd">
+<td><code>n_effect_modifiers</code></td>
+<td>int</td>
+<td>The number of effect modifiers <span class="math inline">\(\mathbf{X_i}\)</span> to generate.</td>
+<td><code>5</code></td>
+</tr>
+<tr class="even">
+<td><code>n_discrete_effect_modifiers</code></td>
+<td>int</td>
+<td>The number of discrete effect modifiers to generate.</td>
+<td><code>0</code></td>
+</tr>
+<tr class="odd">
+<td><code>n_treatments</code></td>
+<td>int</td>
+<td>The number of treatments <span class="math inline">\(\mathbf{D_i}\)</span> to generate.</td>
+<td><code>1</code></td>
+</tr>
+<tr class="even">
+<td><code>binary_treatment</code></td>
+<td>bool</td>
+<td>Whether the treatment is binary or continuous.</td>
+<td><code>False</code></td>
+</tr>
+<tr class="odd">
+<td><code>categorical_treatment</code></td>
+<td>bool</td>
+<td>Whether the treatment is categorical or continuous.</td>
+<td><code>False</code></td>
+</tr>
+<tr class="even">
+<td><code>binary_outcome</code></td>
+<td>bool</td>
+<td>Whether the outcome is binary or continuous.</td>
+<td><code>False</code></td>
+</tr>
+<tr class="odd">
+<td><code>seed</code></td>
+<td>int | None</td>
+<td>The seed to use for the random number generator.</td>
+<td><code>None</code></td>
 </tr>
 </tbody>
 </table>
 </section>
-<section id="synthetic-data-generation" class="level2">
-<h2 class="anchored" data-anchor-id="synthetic-data-generation">Synthetic Data Generation</h2>
-<p><code>from caml.extensions.synthetic_data import *</code></p>
+<section id="returns" class="level2">
+<h2 class="anchored" data-anchor-id="returns">Returns</h2>
 <table class="caption-top table">
+<colgroup>
+<col style="width: 13%">
+<col style="width: 86%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Type</th>
+<th>Description</th>
+</tr>
+</thead>
 <tbody>
 <tr class="odd">
-<td><a href="../03_Reference/make_partially_linear_dataset_simple.html#caml.extensions.synthetic_data.make_partially_linear_dataset_simple">make_partially_linear_dataset_simple</a></td>
-<td>Simulate data generating process from a partially linear model with a simple 1 or 2 dimensional CATE function. The outcome is continuous and the treatment can be binary or continuous.</td>
+<td>pandas.DataFrame</td>
+<td>The generated dataset where y is the outcome, d are the treatment(s), X are the covariates that are utilized for heterogeneity only, and W are the confounders.</td>
 </tr>
 <tr class="even">
-<td><a href="../03_Reference/make_partially_linear_dataset_constant.html#caml.extensions.synthetic_data.make_partially_linear_dataset_constant">make_partially_linear_dataset_constant</a></td>
-<td>Simulate a data generating process from a partially linear model with a constant treatment effect (ATE only). The outcome and treatment are both continuous.</td>
+<td>dict[str, np.ndarray]</td>
+<td>The true conditional average treatment effects for each treatment.</td>
 </tr>
 <tr class="odd">
-<td><a href="../03_Reference/make_fully_heterogeneous_dataset.html#caml.extensions.synthetic_data.make_fully_heterogeneous_dataset">make_fully_heterogeneous_dataset</a></td>
-<td>Simulate data generating process from an interactive regression model with fully heterogenous treatment effects. The outcome is continuous and the treatment is binary.</td>
-</tr>
-<tr class="even">
-<td><a href="../03_Reference/make_dowhy_linear_dataset.html#caml.extensions.synthetic_data.make_dowhy_linear_dataset">make_dowhy_linear_dataset</a></td>
-<td>Simulate a linear data generating process with flexible configurations. The outcome and treatment can take on different data types.</td>
+<td>dict[str, float]</td>
+<td>The true average treatment effect for each treatment.</td>
 </tr>
 </tbody>
 </table>
 </section>
-<section id="plots" class="level2">
-<h2 class="anchored" data-anchor-id="plots">Plots</h2>
-<p><code>from caml.extensions.plots import *</code></p>
-<table class="caption-top table">
-<tbody>
-<tr class="odd">
-<td><a href="../03_Reference/extensions.plots.plot.html#caml.extensions.plots.plot">extensions.plots.plot</a></td>
-<td>A plot.</td>
-</tr>
-</tbody>
-</table>
-</section>
-<section id="developer-tools" class="level2">
-<h2 class="anchored" data-anchor-id="developer-tools">Developer Tools</h2>
-<table class="caption-top table">
-<tbody>
-<tr class="odd">
-<td><a href="../03_Reference/utils.generate_random_string.html#caml.utils.generate_random_string">utils.generate_random_string</a></td>
-<td>Function to generate a random string of ascii lowercase letters and digits of length N.</td>
-</tr>
-<tr class="even">
-<td><a href="../03_Reference/logging.setup_logging.html#caml.logging.setup_logging">logging.setup_logging</a></td>
-<td>Set up logging configuration.</td>
-</tr>
-</tbody>
-</table>
+<section id="examples" class="level2">
+<h2 class="anchored" data-anchor-id="examples">Examples</h2>
+<div class="sourceCode" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="op">&gt;&gt;&gt;</span> <span class="im">from</span> caml.extensions.synthetic_data <span class="im">import</span> make_dowhy_linear_dataset</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="op">&gt;&gt;&gt;</span> df, true_cates, true_ate <span class="op">=</span> make_dowhy_linear_dataset(beta<span class="op">=</span><span class="fl">2.0</span>, n_obs<span class="op">=</span><span class="dv">1000</span>, n_confounders<span class="op">=</span><span class="dv">10</span>, n_discrete_confounders<span class="op">=</span><span class="dv">0</span>, n_effect_modifiers<span class="op">=</span><span class="dv">5</span>, n_discrete_effect_modifiers<span class="op">=</span><span class="dv">0</span>, n_treatments<span class="op">=</span><span class="dv">1</span>, binary_treatment<span class="op">=</span><span class="va">False</span>, categorical_treatment<span class="op">=</span><span class="va">False</span>, binary_outcome<span class="op">=</span><span class="va">False</span>, seed<span class="op">=</span><span class="dv">1</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 
 
 </section>
@@ -684,7 +838,7 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
 </div>   
     <div class="nav-footer-center">
       &nbsp;
-    <div class="toc-actions d-sm-block d-md-none"><ul><li><a href="https://github.com/jakepenzak/caml/edit/main/docs/03_Reference/index.qmd" class="toc-action"><i class="bi bi-github"></i>Edit this page</a></li><li><a href="https://github.com/jakepenzak/caml/issues/new" class="toc-action"><i class="bi empty"></i>Report an issue</a></li></ul></div></div>
+    <div class="toc-actions d-sm-block d-md-none"><ul><li><a href="https://github.com/jakepenzak/caml/edit/main/docs/03_Reference/make_dowhy_linear_dataset.qmd" class="toc-action"><i class="bi bi-github"></i>Edit this page</a></li><li><a href="https://github.com/jakepenzak/caml/issues/new" class="toc-action"><i class="bi empty"></i>Report an issue</a></li></ul></div></div>
     <div class="nav-footer-right">
 <p>Powered by: <a href="https://quarto.org/"><img src="../assets/external_logos/quarto.png" class="img-fluid" width="85"></a></p>
 </div>

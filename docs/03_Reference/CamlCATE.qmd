@@ -3,7 +3,7 @@
 `CamlCATE(self, df, Y, T, X=[], W=[], *, uuid=None, discrete_treatment=True, discrete_outcome=False, seed=None)`
 
 The CamlCATE class represents an opinionated implementation of Causal Machine Learning techniques for estimating
-highly accurate conditional average treatment effects (CATEs). 
+highly accurate conditional average treatment effects (CATEs).
 
 This class is built on top of the EconML library and provides a high-level API for fitting, validating, and making inference with CATE models,
 with best practices built directly into the API. The class is designed to be easy to use and understand, while still providing
@@ -27,67 +27,84 @@ For technical details on conditional average treatment effects, see:
  - CaML Documentation
  - [EconML documentation](https://econml.azurewebsites.net/)
 
- **Note**: All the standard assumptions of Causal Inference apply to this class (e.g., exogeneity/unconfoundedness, overlap, positivity, etc.). 
+ **Note**: All the standard assumptions of Causal Inference apply to this class (e.g., exogeneity/unconfoundedness, overlap, positivity, etc.).
     The class does not check for these assumptions and assumes that the user has already thought through these assumptions before using the class.
+
+**Outcome & Treatment Data Type Support Matrix**
+
+| Outcome     | Treatment   | Supported   | Missing    |
+| ----------- | ----------- | ----------- | ---------- |
+| Continuous  | Binary      | ✅Full      | None       |
+| Continuous  | Continuous  | 🟡Partially | Validation |
+| Continuous  | Categorical | ✅Full      | None       |
+| Binary      | Binary      | ❌Not yet   |            |
+| Binary      | Continuous  | ❌Not yet   |            |
+| Binary      | Categorical | ❌Not yet   |            |
+| Categorical | Binary      | ❌Not yet   |            |
+| Categorical | Continuous  | ❌Not yet   |            |
+| Categorical | Categorical | ❌Not yet   |            |
+
+Multi-dimensional outcomes and treatments are not on the roadmap yet.
 
 ## Parameters
 
-| Name                 | Type                                                                                   | Description                                                                                                                         | Default    |
-|----------------------|----------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------|------------|
-| `df`                 | pandas.DataFrame \| polars.DataFrame \| pyspark.sql.DataFrame \| ibis.expr.types.Table | The input DataFrame representing the data for the EchoCATE instance.                                                                | _required_ |
-| `Y`                  | str                                                                                    | The str representing the column name for the outcome variable.                                                                      | _required_ |
-| `T`                  | str                                                                                    | The str representing the column name(s) for the treatment variable(s).                                                              | _required_ |
-| `X`                  | list\[str\] \| str \| None                                                             | The str (if unity) or list of feature names representing the heterogeneity feature set. Defaults to None.                           | `[]`       |
-| `W`                  | list\[str\] \| str \| None                                                             | The str (if unity) or list of feature names representing the confounder feature set. Defaults to None.                              | `[]`       |
-| `uuid`               | str \| None                                                                            | The str representing the column name for the universal identifier code (eg, ehhn). Defaults to None, which implies index for joins. | `None`     |
-| `discrete_treatment` | bool                                                                                   | A boolean indicating whether the treatment is discrete or continuous. Defaults to True.                                             | `True`     |
-| `discrete_outcome`   | bool                                                                                   | A boolean indicating whether the outcome is discrete or continuous. Defaults to False.                                              | `False`    |
-| `seed`               | int \| None                                                                            | The seed to use for the random number generator. Defaults to None.                                                                  | `None`     |
+| Name                 | Type                                                                                   | Description                                                                                                                                                                                       | Default    |
+|----------------------|----------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|------------|
+| `df`                 | pandas.DataFrame \| polars.DataFrame \| pyspark.sql.DataFrame \| ibis.expr.types.Table | The input DataFrame representing the data for the CamlCATE instance.                                                                                                                              | _required_ |
+| `Y`                  | str                                                                                    | The str representing the column name for the outcome variable.                                                                                                                                    | _required_ |
+| `T`                  | str                                                                                    | The str representing the column name(s) for the treatment variable(s).                                                                                                                            | _required_ |
+| `X`                  | list\[str\] \| str \| None                                                             | The str (if unity) or list of feature names representing the confounder/control feature set to be utilized for estimating heterogeneity/CATE.                                                     | `[]`       |
+| `W`                  | list\[str\] \| str \| None                                                             | The str (if unity) or list of feature names representing the additional confounder/control features not to be utilized in CATE model for heterogeneity. Only used for fitting nuisance functions. | `[]`       |
+| `uuid`               | str \| None                                                                            | The str representing the column name for the universal identifier code (eg, ehhn). Default implies index for joins.                                                                               | `None`     |
+| `discrete_treatment` | bool                                                                                   | A boolean indicating whether the treatment is discrete/categorical or continuous.                                                                                                                 | `True`     |
+| `discrete_outcome`   | bool                                                                                   | A boolean indicating whether the outcome is binary or continuous.                                                                                                                                 | `False`    |
+| `seed`               | int \| None                                                                            | The seed to use for the random number generator.                                                                                                                                                  | `None`     |
 
 ## Attributes
 
-| Name                  | Type                                                                                   | Description                                                                                                                          |
-|-----------------------|----------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------|
-| df                    | pandas.DataFrame \| polars.DataFrame \| pyspark.sql.DataFrame \| ibis.expr.types.Table | The input DataFrame representing the data for the CamlCATE instance.                                                                 |
-| Y                     | str                                                                                    | The str representing the column name for the outcome variable.                                                                       |
-| T                     | str                                                                                    | The str representing the column name(s) for the treatment variable(s).                                                               |
-| X                     | list\[str\] \| str \| None                                                             | The str (if unity) or list/tuple of feature names representing the heterogeneity feature set.                                        |
-| W                     | list\[str\] \| str \| None                                                             | The str (if unity) or list/tuple of feature names representing the confounder feature set. Only used for fitting nuisance functions. |
-| uuid                  | str                                                                                    | The str representing the column name for the universal identifier code (eg, ehhn)                                                    |
-| discrete_treatment    | bool                                                                                   | A boolean indicating whether the treatment is discrete or continuous.                                                                |
-| validation_estimator  | econml._cate_estimator.BaseCateEstimator \| econml.score.EnsembleCateEstimator         | The fitted EconML estimator object for validation.                                                                                   |
-| final_estimator       | econml._cate_estimator.BaseCateEstimator \| econml.score.EnsembleCateEstimator         | The fitted EconML estimator object on the entire dataset after validation.                                                           |
-| dataframe             | pandas.DataFrame \| polars.DataFrame \| pyspark.sql.DataFrame \| ibis.expr.types.Table | The input DataFrame with any modifications (e.g., predictions or rank orderings) made by the class returned to the original backend. |
-| _ibis_connection      | ibis.client.Client                                                                     | The Ibis client object representing the backend connection to Ibis.                                                                  |
-| _ibis_df              | ibis.expr.types.Table                                                                  | The Ibis table expression representing the DataFrame connected to Ibis.                                                              |
-| _table_name           | str                                                                                    | The name of the temporary table/view created for the DataFrame in the backend.                                                       |
-| _spark                | pyspark.sql.SparkSession                                                               | The Spark session object if the DataFrame is a Spark DataFrame.                                                                      |
-| _Y                    | ibis.expr.types.Table                                                                  | The outcome variable data as ibis table.                                                                                             |
-| _T                    | ibis.expr.types.Table                                                                  | The treatment variable data as ibis table.                                                                                           |
-| _X                    | ibis.expr.types.Table                                                                  | The feature set data as ibis table.                                                                                                  |
-| _W                    | ibis.expr.types.Table                                                                  | The confounder feature set data as ibis table.                                                                                       |
-| _X_W                  | ibis.expr.types.Table                                                                  | The feature set and confounder feature set data as ibis table.                                                                       |
-| _X_W_T                | ibis.expr.types.Table                                                                  | The feature set, confounder feature set, and treatment variable data as ibis table.                                                  |
-| _nuisances_fitted     | bool                                                                                   | A boolean indicating whether the nuisance functions have been fitted.                                                                |
-| _validation_estimator | econml._cate_estimator.BaseCateEstimator \| econml.score.EnsembleCateEstimator         | The fitted EconML estimator object for validation.                                                                                   |
-| _final_estimator      | econml._cate_estimator.BaseCateEstimator \| econml.score.EnsembleCateEstimator         | The fitted EconML estimator object for final predictions.                                                                            |
-| _validator_results    | econml.validate.EvaluationResults                                                      | The results of the validation tests from DRTester.                                                                                   |
-| _cate_models          | list\[tuple\[str, econml._cate_estimator.BaseCateEstimator\]\]                         | The list of CATE models to fit and ensemble.                                                                                         |
-| _model_Y_X_W          | sklearn.base.BaseEstimator                                                             | The fitted nuisance function for the outcome variable.                                                                               |
-| _model_Y_X_W_T        | sklearn.base.BaseEstimator                                                             | The fitted nuisance function for the outcome variable with treatment variable.                                                       |
-| _model_T_X_W          | sklearn.base.BaseEstimator                                                             | The fitted nuisance function for the treatment variable.                                                                             |
-| _data_splits          | dict\[str, np.ndarray\]                                                                | The dictionary containing the training, validation, and test data splits.                                                            |
-| _rscorer              | econml.score.RScorer                                                                   | The RScorer object for the validation estimator.                                                                                     |
+| Name                  | Type                                                                                   | Description                                                                                                                                                            |
+|-----------------------|----------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| df                    | pandas.DataFrame \| polars.DataFrame \| pyspark.sql.DataFrame \| ibis.expr.types.Table | The input DataFrame representing the data for the CamlCATE instance.                                                                                                   |
+| Y                     | str                                                                                    | The str representing the column name for the outcome variable.                                                                                                         |
+| T                     | str                                                                                    | The str representing the column name(s) for the treatment variable(s).                                                                                                 |
+| X                     | list\[str\] \| str \| None                                                             | The str (if unity) or list/tuple of feature names representing the confounder/control feature set to be utilized for estimating heterogeneity/CATE.                    |
+| W                     | list\[str\] \| str \| None                                                             | The str (if unity) or list/tuple of feature names additional confounder/control feature se not to be utilized in CATE model. Only used for fitting nuisance functions. |
+| uuid                  | str                                                                                    | The str representing the column name for the universal identifier code (eg, ehhn)                                                                                      |
+| discrete_treatment    | bool                                                                                   | A boolean indicating whether the treatment is discrete/categorical or continuous.                                                                                      |
+| discrete_outcome      | bool                                                                                   | A boolean indicating whether the outcome is binary or continuous.                                                                                                      |
+| validation_estimator  | econml._cate_estimator.BaseCateEstimator \| econml.score.EnsembleCateEstimator         | The fitted EconML estimator object for validation.                                                                                                                     |
+| final_estimator       | econml._cate_estimator.BaseCateEstimator \| econml.score.EnsembleCateEstimator         | The fitted EconML estimator object on the entire dataset after validation.                                                                                             |
+| dataframe             | pandas.DataFrame \| polars.DataFrame \| pyspark.sql.DataFrame \| ibis.expr.types.Table | The input DataFrame with any modifications (e.g., predictions or rank orderings) made by the class returned to the original backend.                                   |
+| _ibis_connection      | ibis.client.Client                                                                     | The Ibis client object representing the backend connection to Ibis.                                                                                                    |
+| _ibis_df              | ibis.expr.types.Table                                                                  | The Ibis table expression representing the DataFrame connected to Ibis.                                                                                                |
+| _table_name           | str                                                                                    | The name of the temporary table/view created for the DataFrame in the backend.                                                                                         |
+| _spark                | pyspark.sql.SparkSession                                                               | The Spark session object if the DataFrame is a Spark DataFrame.                                                                                                        |
+| _Y                    | ibis.expr.types.Table                                                                  | The outcome variable data as ibis table.                                                                                                                               |
+| _T                    | ibis.expr.types.Table                                                                  | The treatment variable data as ibis table.                                                                                                                             |
+| _X                    | ibis.expr.types.Table                                                                  | The feature set data as ibis table.                                                                                                                                    |
+| _W                    | ibis.expr.types.Table                                                                  | The confounder feature set data as ibis table.                                                                                                                         |
+| _X_W                  | ibis.expr.types.Table                                                                  | The feature set and confounder feature set data as ibis table.                                                                                                         |
+| _X_W_T                | ibis.expr.types.Table                                                                  | The feature set, confounder feature set, and treatment variable data as ibis table.                                                                                    |
+| _nuisances_fitted     | bool                                                                                   | A boolean indicating whether the nuisance functions have been fitted.                                                                                                  |
+| _validation_estimator | econml._cate_estimator.BaseCateEstimator \| econml.score.EnsembleCateEstimator         | The fitted EconML estimator object for validation.                                                                                                                     |
+| _final_estimator      | econml._cate_estimator.BaseCateEstimator \| econml.score.EnsembleCateEstimator         | The fitted EconML estimator object for final predictions.                                                                                                              |
+| _validator_results    | econml.validate.EvaluationResults                                                      | The results of the validation tests from DRTester.                                                                                                                     |
+| _cate_models          | list\[tuple\[str, econml._cate_estimator.BaseCateEstimator\]\]                         | The list of CATE models to fit and ensemble.                                                                                                                           |
+| _model_Y_X_W          | sklearn.base.BaseEstimator                                                             | The fitted nuisance function for the outcome variable.                                                                                                                 |
+| _model_Y_X_W_T        | sklearn.base.BaseEstimator                                                             | The fitted nuisance function for the outcome variable with treatment variable.                                                                                         |
+| _model_T_X_W          | sklearn.base.BaseEstimator                                                             | The fitted nuisance function for the treatment variable.                                                                                                               |
+| _data_splits          | dict\[str, np.ndarray\]                                                                | The dictionary containing the training, validation, and test data splits.                                                                                              |
+| _rscorer              | econml.score.RScorer                                                                   | The RScorer object for the validation estimator.                                                                                                                       |
 
 ## Examples
 
 ```python
 >>> from caml.core.cate import CamlCATE
 >>> from caml.extensions.synthetic_data import make_fully_heterogeneous_dataset
->>> df, true_cates, true_ate = make_fully_heterogeneous_dataset(n_obs=1000, n_confounders=10, ate=10, seed=1)
+>>> df, true_cates, true_ate = make_fully_heterogeneous_dataset(n_obs=1000, n_confounders=10, theta=10, seed=1)
 >>> df['uuid'] = df.index
 >>>  caml_obj= CamlCATE(df=df, Y="y", T="d", X=[c for c in df.columns if "X" in c], W=[c for c in df.columns if "W" in c], uuid="uuid", discrete_treatment=True, discrete_outcome=False, seed=1)
->>> 
+>>>
 >>> # Standard pipeline
 >>> caml_obj.auto_nuisance_functions()
 >>> caml_obj.fit_validator()
@@ -96,8 +113,9 @@ For technical details on conditional average treatment effects, see:
 >>> caml_obj.predict(join_predictions=True)
 >>> caml_obj.rank_order(join_rank_order=True)
 >>> caml_obj.summarize()
->>> 
+>>>
 >>> end_of_pipeline_results = caml_obj.dataframe
+>>> final_estimator = caml_obj.final_estimator # Can be saved for future inference.
 ```
 
 ## Methods
@@ -110,7 +128,7 @@ For technical details on conditional average treatment effects, see:
 | [predict](#caml.CamlCATE.predict) | Predicts the CATE based on the fitted final estimator for either the internal dataframe or an out-of-sample dataframe. |
 | [rank_order](#caml.CamlCATE.rank_order) | Ranks orders households based on the predicted CATE values for either the internal dataframe or an out-of-sample dataframe. |
 | [summarize](#caml.CamlCATE.summarize) | Provides population summary statistics for the CATE predictions for either the internal dataframe or an out-of-sample dataframe. |
-| [validate](#caml.CamlCATE.validate) | Validates the fitted CATE models on the test set to check for generalization performance. Uses the DRTester class from EconML to obtain the Best  |
+| [validate](#caml.CamlCATE.validate) | Validates the fitted CATE models on the test set to check for generalization performance. Uses the DRTester class from EconML to obtain the Best |
 
 ### auto_nuisance_functions { #caml.CamlCATE.auto_nuisance_functions }
 
@@ -122,12 +140,12 @@ Sets the `_model_Y_X_W`, `_model_Y_X_W_T`, and `_model_T_X_W` internal attribute
 
 #### Parameters
 
-| Name             | Type         | Description                                                                                                                     | Default   |
-|------------------|--------------|---------------------------------------------------------------------------------------------------------------------------------|-----------|
-| `flaml_Y_kwargs` | dict \| None | The keyword arguments for the FLAML AutoML search for the outcome model. Defaults to None, which implies the base parameters.   | `None`    |
-| `flaml_T_kwargs` | dict \| None | The keyword arguments for the FLAML AutoML search for the treatment model. Defaults to None, which implies the base parameters. | `None`    |
-| `use_ray`        | bool         | A boolean indicating whether to use Ray for parallel processing. Defaults to False.                                             | `False`   |
-| `use_spark`      | bool         | A boolean indicating whether to use Spark for parallel processing. Defaults to False.                                           | `False`   |
+| Name             | Type         | Description                                                                                                                 | Default   |
+|------------------|--------------|-----------------------------------------------------------------------------------------------------------------------------|-----------|
+| `flaml_Y_kwargs` | dict \| None | The keyword arguments for the FLAML AutoML search for the outcome model. Default implies the base parameters in CamlBase.   | `None`    |
+| `flaml_T_kwargs` | dict \| None | The keyword arguments for the FLAML AutoML search for the treatment model. Default implies the base parameters in CamlBase. | `None`    |
+| `use_ray`        | bool         | A boolean indicating whether to use Ray for parallel processing.                                                            | `False`   |
+| `use_spark`      | bool         | A boolean indicating whether to use Spark for parallel processing.                                                          | `False`   |
 
 #### Examples
 
@@ -159,7 +177,7 @@ Sets the `_final_estimator` internal attribute to the fitted EconML estimator.
 
 ### fit_validator { #caml.CamlCATE.fit_validator }
 
-`CamlCATE.fit_validator(subset_cate_models=['LinearDML', 'NonParamDML', 'DML-Lasso3d', 'CausalForestDML', 'XLearner', 'DomainAdaptationLearner', 'SLearner', 'TLearner', 'DRLearner'], rscorer_kwargs={}, use_ray=False, ray_remote_func_options_kwargs={})`
+`CamlCATE.fit_validator(subset_cate_models=['LinearDML', 'NonParamDML', 'DML-Lasso3d', 'CausalForestDML', 'XLearner', 'DomainAdaptationLearner', 'SLearner', 'TLearner', 'DRLearner'], additional_cate_models=[], rscorer_kwargs={}, use_ray=False, ray_remote_func_options_kwargs={})`
 
 Fits the CATE models on the training set and evaluates them & ensembles based on the validation set.
 
@@ -167,12 +185,13 @@ Sets the `_validation_estimator` and `_rscorer` internal attributes to the fitte
 
 #### Parameters
 
-| Name                             | Type        | Description                                                                                 | Default                                                                                                                                      |
-|----------------------------------|-------------|---------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------|
-| `subset_cate_models`             | list\[str\] | The list of CATE models to fit and ensemble. Defaults to all available models.              | `['LinearDML', 'NonParamDML', 'DML-Lasso3d', 'CausalForestDML', 'XLearner', 'DomainAdaptationLearner', 'SLearner', 'TLearner', 'DRLearner']` |
-| `rscorer_kwargs`                 | dict        | The keyword arguments for the econml.score.RScorer object. Defaults to an empty dictionary. | `{}`                                                                                                                                         |
-| `use_ray`                        | bool        | A boolean indicating whether to use Ray for parallel processing. Defaults to False.         | `False`                                                                                                                                      |
-| `ray_remote_func_options_kwargs` | dict        | The keyword arguments for the Ray remote function options. Defaults to an empty dictionary. | `{}`                                                                                                                                         |
+| Name                             | Type                                    | Description                                                                                            | Default                                                                                                                                      |
+|----------------------------------|-----------------------------------------|--------------------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------|
+| `subset_cate_models`             | list\[str\]                             | The list of CATE models to fit and ensemble. Default implies all available models as defined by class. | `['LinearDML', 'NonParamDML', 'DML-Lasso3d', 'CausalForestDML', 'XLearner', 'DomainAdaptationLearner', 'SLearner', 'TLearner', 'DRLearner']` |
+| `additional_cate_models`         | list\[tuple\[str, BaseCateEstimator\]\] | The list of additional CATE models to fit and ensemble                                                 | `[]`                                                                                                                                         |
+| `rscorer_kwargs`                 | dict                                    | The keyword arguments for the econml.score.RScorer object.                                             | `{}`                                                                                                                                         |
+| `use_ray`                        | bool                                    | A boolean indicating whether to use Ray for parallel processing.                                       | `False`                                                                                                                                      |
+| `ray_remote_func_options_kwargs` | dict                                    | The keyword arguments for the Ray remote function options.                                             | `{}`                                                                                                                                         |
 
 #### Examples
 
@@ -181,23 +200,30 @@ Sets the `_validation_estimator` and `_rscorer` internal attributes to the fitte
 ...     "cv": 3,
 ...     "mc_iters": 3,
 ...     }
->>> caml_obj.fit_validator(rscorer_kwargs=rscorer_kwargs)
+>>> subset_cate_models = ["LinearDML", "NonParamDML", "DML-Lasso3d", "CausalForestDML"]
+>>> additional_cate_models = [("XLearner", XLearner(models=caml_obj._model_Y_X_T, cate_models=caml_obj._model_Y_X_T, propensity_model=caml._model_T_X))]
+>>> caml_obj.fit_validator(subset_cate_models=subset_cate_models, additional_cate_models=additional_cate_models, rscorer_kwargs=rscorer_kwargs)
 ```
 
 ### predict { #caml.CamlCATE.predict }
 
-`CamlCATE.predict(out_of_sample_df=None, out_of_sample_uuid=None, return_predictions=False, join_predictions=True)`
+`CamlCATE.predict(out_of_sample_df=None, out_of_sample_uuid=None, return_predictions=False, join_predictions=True, T0=0, T1=1)`
 
 Predicts the CATE based on the fitted final estimator for either the internal dataframe or an out-of-sample dataframe.
 
+For binary treatments, the CATE is the estimated effect of the treatment and for a continuous treatment, the CATE is the estimated effect of a one-unit increase in the treatment. 
+This can be modified by setting the T0 and T1 parameters to the desired treatment levels.
+
 #### Parameters
 
-| Name                 | Type                                                                                           | Description                                                                                                           | Default   |
-|----------------------|------------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------|-----------|
-| `out_of_sample_df`   | pandas.DataFrame \| polars.DataFrame \| pyspark.sql.DataFrame \| ibis.expr.types.Table \| None | The out-of-sample DataFrame to make predictions on. Defaults to None.                                                 | `None`    |
-| `out_of_sample_uuid` | str \| None                                                                                    | The column name for the universal identifier code (eg, ehhn) in the out-of-sample DataFrame. Defaults to None.        | `None`    |
-| `return_predictions` | bool                                                                                           | A boolean indicating whether to return the predicted CATE. Defaults to False.                                         | `False`   |
-| `join_predictions`   | bool                                                                                           | A boolean indicating whether to join the predicted CATE to the original DataFrame within the class. Defaults to True. | `True`    |
+| Name                 | Type                                                                                           | Description                                                                                         | Default   |
+|----------------------|------------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------|-----------|
+| `out_of_sample_df`   | pandas.DataFrame \| polars.DataFrame \| pyspark.sql.DataFrame \| ibis.expr.types.Table \| None | The out-of-sample DataFrame to make predictions on.                                                 | `None`    |
+| `out_of_sample_uuid` | str \| None                                                                                    | The column name for the universal identifier code (eg, ehhn) in the out-of-sample DataFrame.        | `None`    |
+| `return_predictions` | bool                                                                                           | A boolean indicating whether to return the predicted CATE.                                          | `False`   |
+| `join_predictions`   | bool                                                                                           | A boolean indicating whether to join the predicted CATE to the original DataFrame within the class. | `True`    |
+| `T0`                 | int                                                                                            | Base treatment for each sample.                                                                     | `0`       |
+| `T1`                 | int                                                                                            | Target treatment for each sample.                                                                   | `1`       |
 
 #### Returns
 
@@ -214,17 +240,18 @@ Predicts the CATE based on the fitted final estimator for either the internal da
 
 ### rank_order { #caml.CamlCATE.rank_order }
 
-`CamlCATE.rank_order(out_of_sample_df=None, return_rank_order=False, join_rank_order=True)`
+`CamlCATE.rank_order(out_of_sample_df=None, return_rank_order=False, join_rank_order=True, treatment_category=1)`
 
 Ranks orders households based on the predicted CATE values for either the internal dataframe or an out-of-sample dataframe.
 
 #### Parameters
 
-| Name                | Type                                                                                           | Description                                                                                                          | Default   |
-|---------------------|------------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------|-----------|
-| `out_of_sample_df`  | pandas.DataFrame \| polars.DataFrame \| pyspark.sql.DataFrame \| ibis.expr.types.Table \| None | The out-of-sample DataFrame to rank order. Defaults to None.                                                         | `None`    |
-| `return_rank_order` | bool                                                                                           | A boolean indicating whether to return the rank ordering. Defaults to False.                                         | `False`   |
-| `join_rank_order`   | bool                                                                                           | A boolean indicating whether to join the rank ordering to the original DataFrame within the class. Defaults to True. | `True`    |
+| Name                 | Type                                                                                           | Description                                                                                                                               | Default   |
+|----------------------|------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------|-----------|
+| `out_of_sample_df`   | pandas.DataFrame \| polars.DataFrame \| pyspark.sql.DataFrame \| ibis.expr.types.Table \| None | The out-of-sample DataFrame to rank order.                                                                                                | `None`    |
+| `return_rank_order`  | bool                                                                                           | A boolean indicating whether to return the rank ordering.                                                                                 | `False`   |
+| `join_rank_order`    | bool                                                                                           | A boolean indicating whether to join the rank ordering to the original DataFrame within the class.                                        | `True`    |
+| `treatment_category` | int                                                                                            | The treatment category, in the case of categorical treatments, to rank order the households based on. Default implies the first category. | `1`       |
 
 #### Returns
 
@@ -241,15 +268,16 @@ Ranks orders households based on the predicted CATE values for either the intern
 
 ### summarize { #caml.CamlCATE.summarize }
 
-`CamlCATE.summarize(out_of_sample_df=None)`
+`CamlCATE.summarize(out_of_sample_df=None, treatment_category=1)`
 
 Provides population summary statistics for the CATE predictions for either the internal dataframe or an out-of-sample dataframe.
 
 #### Parameters
 
-| Name               | Type                                                                                           | Description                                                 | Default   |
-|--------------------|------------------------------------------------------------------------------------------------|-------------------------------------------------------------|-----------|
-| `out_of_sample_df` | pandas.DataFrame \| polars.DataFrame \| pyspark.sql.DataFrame \| ibis.expr.types.Table \| None | The out-of-sample DataFrame to summarize. Defaults to None. | `None`    |
+| Name                 | Type                                                                                           | Description                                                                                                                            | Default   |
+|----------------------|------------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------|-----------|
+| `out_of_sample_df`   | pandas.DataFrame \| polars.DataFrame \| pyspark.sql.DataFrame \| ibis.expr.types.Table \| None | The out-of-sample DataFrame to summarize.                                                                                              | `None`    |
+| `treatment_category` | int                                                                                            | The treatment level, in the case of categorical treatments, to summarize the CATE predictions for. Default implies the first category. | `1`       |
 
 #### Returns
 
@@ -267,7 +295,7 @@ Provides population summary statistics for the CATE predictions for either the i
 
 `CamlCATE.validate(estimator=None, print_full_report=True)`
 
-Validates the fitted CATE models on the test set to check for generalization performance. Uses the DRTester class from EconML to obtain the Best 
+Validates the fitted CATE models on the test set to check for generalization performance. Uses the DRTester class from EconML to obtain the Best
 Linear Predictor (BLP), Calibration, AUTOC, and QINI. See [EconML documentation](https://econml.azurewebsites.net/_autosummary/econml.validate.DRTester.html) for more details.
 In short, we are checking for the ability of the model to find statistically significant heterogeneity in a "well-calibrated" fashion.
 
@@ -275,10 +303,10 @@ Sets the `_validator_results` internal attribute to the results of the DRTester 
 
 #### Parameters
 
-| Name                | Type                                               | Description                                                                                            | Default   |
-|---------------------|----------------------------------------------------|--------------------------------------------------------------------------------------------------------|-----------|
-| `estimator`         | BaseCateEstimator \| EnsembleCateEstimator \| None | The estimator to validate. Defaults to None, which implies the best estimator from the validation set. | `None`    |
-| `print_full_report` | bool                                               | A boolean indicating whether to print the full validation report. Defaults to True.                    | `True`    |
+| Name                | Type                                               | Description                                                                            | Default   |
+|---------------------|----------------------------------------------------|----------------------------------------------------------------------------------------|-----------|
+| `estimator`         | BaseCateEstimator \| EnsembleCateEstimator \| None | The estimator to validate. Default implies the best estimator from the validation set. | `None`    |
+| `print_full_report` | bool                                               | A boolean indicating whether to print the full validation report.                      | `True`    |
 
 #### Returns
 

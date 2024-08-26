@@ -4,15 +4,13 @@ website:
     - 03_Reference/index.qmd
     - contents:
       - 03_Reference/CamlCATE.qmd
-      - 03_Reference/CamlPolicy.qmd
-      - 03_Reference/CamlDML.qmd
-      - 03_Reference/CamlDynamic.qmd
       section: CaML Core
     - contents:
       - 03_Reference/make_partially_linear_dataset_simple.qmd
       - 03_Reference/make_partially_linear_dataset_constant.qmd
-      - 03_Reference/make_fully_hetereogenous_dataset.qmd
-      section: Sythetic Data Generation
+      - 03_Reference/make_fully_heterogeneous_dataset.qmd
+      - 03_Reference/make_dowhy_linear_dataset.qmd
+      section: Synthetic Data Generation
     - contents:
       - 03_Reference/extensions.plots.plot.qmd
       section: Plots

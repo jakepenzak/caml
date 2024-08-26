@@ -86,16 +86,14 @@ quartodoc:
       package: caml
       contents:
         - CamlCATE
-        - CamlPolicy
-        - CamlDML
-        - CamlDynamic
     - title: Synthetic Data Generation
       desc: "`from caml.extensions.synthetic_data import *`"
       package: caml.extensions.synthetic_data
       contents:
         - make_partially_linear_dataset_simple
         - make_partially_linear_dataset_constant
-        - make_fully_hetereogenous_dataset
+        - make_fully_heterogeneous_dataset
+        - make_dowhy_linear_dataset
     - title: Plots
       desc: "`from caml.extensions.plots import *`"
       contents:

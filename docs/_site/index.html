@@ -72,6 +72,7 @@ ul.task-list li input[type="checkbox"] {
 
 <link rel="stylesheet" href="styles/styles.css">
 <meta property="og:title" content="CaML - Causal ML">
+<meta property="og:description" content="">
 <meta property="og:site_name" content="CaML - Causal ML">
 </head>
 
@@ -218,6 +219,7 @@ ul.task-list li input[type="checkbox"] {
    
   <ul>
   <li><a href="#welcome" id="toc-welcome" class="nav-link active" data-scroll-target="#welcome">Welcome!</a></li>
+  <li><a href="#background" id="toc-background" class="nav-link" data-scroll-target="#background">Background</a></li>
   </ul>
 <div class="toc-actions"><ul><li><a href="https://github.com/jakepenzak/caml/edit/main/docs/index.qmd" class="toc-action"><i class="bi bi-github"></i>Edit this page</a></li><li><a href="https://github.com/jakepenzak/caml/issues/new" class="toc-action"><i class="bi empty"></i>Report an issue</a></li></ul></div></nav>
     </div>
@@ -238,16 +240,18 @@ ul.task-list li input[type="checkbox"] {
 <p><br></p>
 <section id="welcome" class="level2">
 <h2 class="anchored" data-anchor-id="welcome">Welcome!</h2>
-<section id="caml-causal-machine-learning" class="level4">
-<h4 class="anchored" data-anchor-id="caml-causal-machine-learning">CaML = <strong>Ca</strong>usal <strong>M</strong>achine <strong>L</strong>earning</h4>
+<p>CaML = <strong>Ca</strong>usal <strong>M</strong>achine <strong>L</strong>earning</p>
+<p>CaML provides a high-level API for an <em>opinionated</em> framework in performing Causal ML to estimate Average Treatment Effects (ATEs), Group Average Treatment Effects (GATEs), and Conditional Average Treatment Effects (CATEs), and to provide mechanisms to utilize these models for out of sample prediction &amp; policy prescription.</p>
+<p>The codebase is comprised primarily of extensions &amp; abstractions over top of <a href="https://github.com/py-why/EconML">EconML</a> &amp; <a href="https://docs.doubleml.org/stable/api/generated/doubleml.datasets.make_confounded_irm_data.html#doubleml.datasets.make_confounded_irm_data">DoubleML</a> with techniques motivated heavily by <a href="https://causalml-book.org/">Causal ML Book</a> and additional research.</p>
+</section>
+<section id="background" class="level2">
+<h2 class="anchored" data-anchor-id="background">Background</h2>
 <p>The origins of CaML are rooted in a desire to develop a set of helper tools to abstract and streamline techniques &amp; best pratices in Causal ML/Econometrics for estimating ATEs, GATEs, and CATEs, along with policy prescription.</p>
 <p>As we began working on these helper tools, we begun to see the value in reformulating this framework into a reusable package for wider use amongst the community and to provide an opinionated framework that can be integrated into productionalized systems, particularly experimentation platforms, for efficient estimation of causal parameters for reporting &amp; decision-making purposes.</p>
-<p>Admittedly, we were half tempted to include the term “Auto” in the name of this package (e.g., AutoCATE, AutoCausal, etc.), but we quickly realized the potential for misapplication &amp; naive usage that could arise from that type of “branding.” Indeed, the misapplication of many Causal AI/ML techniques is all too commonplace in the data science community. <strong>All of the standard assumptions for causal inference still apply in order for these tools &amp; techniques to provide unbiased inference.</strong></p>
-<p>At its core, CaML is an <em>opinionated</em> framework for performing Causal ML to estimate ATEs, GATEs, and CATEs, and to provide mechanisms to utilize these models for out of sample prediction &amp; policy prescription. Given the initial intent is to provide a tool for productionalized systems, we are building this package with interoperability and extensibility as core values - a key motivation for using <a href="https://ibis-project.org/">Ibis</a> to ensure we are backend agnostic for end users.</p>
-<p>The codebase is comprised primarily of extensions &amp; abstractions over top of <a href="https://github.com/py-why/EconML">EconML</a> &amp; <a href="https://docs.doubleml.org/stable/api/generated/doubleml.datasets.make_confounded_irm_data.html#doubleml.datasets.make_confounded_irm_data">DoubelML</a> with techniques motivated heavily by <a href="https://causalml-book.org/">Causal ML Book</a> and additional research.</p>
+<p>Admittedly, we were tempted to include the term “Auto” in the name of this package (e.g., AutoCATE, AutoCausal, etc.), but we quickly realized the potential for misapplication &amp; naive usage that could arise from that type of “branding.” Indeed, the misapplication of many Causal AI/ML techniques is all too commonplace in the data science community. <strong>All of the standard assumptions for causal inference still apply in order for these tools &amp; techniques to provide unbiased inference.</strong></p>
+<p>Given a key motivation is to provide a tool for productionalized systems, we are building this package with interoperability and extensibility as core values - a key motivation for using <a href="https://ibis-project.org/">Ibis</a> to ensure we are backend agnostic for end users (e.g., instantiate with a pyspark dataframe and get a pyspark dataframe back). The degree of interoperability will be limited in scope at first, but we hope to expand this as the code base develops. As of now, the tools utilized still rely on in-memory datasets for estimation (via <a href="https://github.com/py-why/EconML">EconML</a> for causal models &amp; <a href="https://microsoft.github.io/FLAML/">flaml</a> for AutoML of nuissance functions), but we leverage Ray &amp; Spark for distributing certain processes where appropriate.</p>
 
 
-</section>
 </section>
 
 <a onclick="window.scrollTo(0, 0); return false;" role="button" id="quarto-back-to-top"><i class="bi bi-arrow-up"></i> Back to top</a></main> <!-- /main -->

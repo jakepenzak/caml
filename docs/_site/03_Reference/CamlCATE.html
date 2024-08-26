@@ -263,14 +263,82 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <li><a href="https://econml.azurewebsites.net/">EconML documentation</a></li>
 </ul>
 <p><strong>Note</strong>: All the standard assumptions of Causal Inference apply to this class (e.g., exogeneity/unconfoundedness, overlap, positivity, etc.). The class does not check for these assumptions and assumes that the user has already thought through these assumptions before using the class.</p>
+<p><strong>Outcome &amp; Treatment Data Type Support Matrix</strong></p>
+<table class="caption-top table">
+<thead>
+<tr class="header">
+<th>Outcome</th>
+<th>Treatment</th>
+<th>Supported</th>
+<th>Missing</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Continuous</td>
+<td>Binary</td>
+<td>✅Full</td>
+<td>None</td>
+</tr>
+<tr class="even">
+<td>Continuous</td>
+<td>Continuous</td>
+<td>🟡Partially</td>
+<td>Validation</td>
+</tr>
+<tr class="odd">
+<td>Continuous</td>
+<td>Categorical</td>
+<td>✅Full</td>
+<td>None</td>
+</tr>
+<tr class="even">
+<td>Binary</td>
+<td>Binary</td>
+<td>❌Not yet</td>
+<td></td>
+</tr>
+<tr class="odd">
+<td>Binary</td>
+<td>Continuous</td>
+<td>❌Not yet</td>
+<td></td>
+</tr>
+<tr class="even">
+<td>Binary</td>
+<td>Categorical</td>
+<td>❌Not yet</td>
+<td></td>
+</tr>
+<tr class="odd">
+<td>Categorical</td>
+<td>Binary</td>
+<td>❌Not yet</td>
+<td></td>
+</tr>
+<tr class="even">
+<td>Categorical</td>
+<td>Continuous</td>
+<td>❌Not yet</td>
+<td></td>
+</tr>
+<tr class="odd">
+<td>Categorical</td>
+<td>Categorical</td>
+<td>❌Not yet</td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<p>Multi-dimensional outcomes and treatments are not on the roadmap yet.</p>
 <section id="parameters" class="level2">
 <h2 class="anchored" data-anchor-id="parameters">Parameters</h2>
 <table class="caption-top table">
 <colgroup>
-<col style="width: 8%">
-<col style="width: 34%">
-<col style="width: 52%">
-<col style="width: 4%">
+<col style="width: 6%">
+<col style="width: 27%">
+<col style="width: 61%">
+<col style="width: 3%">
 </colgroup>
 <thead>
 <tr class="header">
@@ -284,7 +352,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <tr class="odd">
 <td><code>df</code></td>
 <td>pandas.DataFrame | polars.DataFrame | pyspark.sql.DataFrame | ibis.expr.types.Table</td>
-<td>The input DataFrame representing the data for the EchoCATE instance.</td>
+<td>The input DataFrame representing the data for the CamlCATE instance.</td>
 <td><em>required</em></td>
 </tr>
 <tr class="even">
@@ -302,37 +370,37 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <tr class="even">
 <td><code>X</code></td>
 <td>list[str] | str | None</td>
-<td>The str (if unity) or list of feature names representing the heterogeneity feature set. Defaults to None.</td>
+<td>The str (if unity) or list of feature names representing the confounder/control feature set to be utilized for estimating heterogeneity/CATE.</td>
 <td><code>[]</code></td>
 </tr>
 <tr class="odd">
 <td><code>W</code></td>
 <td>list[str] | str | None</td>
-<td>The str (if unity) or list of feature names representing the confounder feature set. Defaults to None.</td>
+<td>The str (if unity) or list of feature names representing the additional confounder/control features not to be utilized in CATE model for heterogeneity. Only used for fitting nuisance functions.</td>
 <td><code>[]</code></td>
 </tr>
 <tr class="even">
 <td><code>uuid</code></td>
 <td>str | None</td>
-<td>The str representing the column name for the universal identifier code (eg, ehhn). Defaults to None, which implies index for joins.</td>
+<td>The str representing the column name for the universal identifier code (eg, ehhn). Default implies index for joins.</td>
 <td><code>None</code></td>
 </tr>
 <tr class="odd">
 <td><code>discrete_treatment</code></td>
 <td>bool</td>
-<td>A boolean indicating whether the treatment is discrete or continuous. Defaults to True.</td>
+<td>A boolean indicating whether the treatment is discrete/categorical or continuous.</td>
 <td><code>True</code></td>
 </tr>
 <tr class="even">
 <td><code>discrete_outcome</code></td>
 <td>bool</td>
-<td>A boolean indicating whether the outcome is discrete or continuous. Defaults to False.</td>
+<td>A boolean indicating whether the outcome is binary or continuous.</td>
 <td><code>False</code></td>
 </tr>
 <tr class="odd">
 <td><code>seed</code></td>
 <td>int | None</td>
-<td>The seed to use for the random number generator. Defaults to None.</td>
+<td>The seed to use for the random number generator.</td>
 <td><code>None</code></td>
 </tr>
 </tbody>
@@ -342,9 +410,9 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <h2 class="anchored" data-anchor-id="attributes">Attributes</h2>
 <table class="caption-top table">
 <colgroup>
-<col style="width: 9%">
-<col style="width: 35%">
-<col style="width: 54%">
+<col style="width: 8%">
+<col style="width: 31%">
+<col style="width: 60%">
 </colgroup>
 <thead>
 <tr class="header">
@@ -372,12 +440,12 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <tr class="even">
 <td>X</td>
 <td>list[str] | str | None</td>
-<td>The str (if unity) or list/tuple of feature names representing the heterogeneity feature set.</td>
+<td>The str (if unity) or list/tuple of feature names representing the confounder/control feature set to be utilized for estimating heterogeneity/CATE.</td>
 </tr>
 <tr class="odd">
 <td>W</td>
 <td>list[str] | str | None</td>
-<td>The str (if unity) or list/tuple of feature names representing the confounder feature set. Only used for fitting nuisance functions.</td>
+<td>The str (if unity) or list/tuple of feature names additional confounder/control feature se not to be utilized in CATE model. Only used for fitting nuisance functions.</td>
 </tr>
 <tr class="even">
 <td>uuid</td>
@@ -387,119 +455,124 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <tr class="odd">
 <td>discrete_treatment</td>
 <td>bool</td>
-<td>A boolean indicating whether the treatment is discrete or continuous.</td>
+<td>A boolean indicating whether the treatment is discrete/categorical or continuous.</td>
 </tr>
 <tr class="even">
+<td>discrete_outcome</td>
+<td>bool</td>
+<td>A boolean indicating whether the outcome is binary or continuous.</td>
+</tr>
+<tr class="odd">
 <td>validation_estimator</td>
 <td>econml._cate_estimator.BaseCateEstimator | econml.score.EnsembleCateEstimator</td>
 <td>The fitted EconML estimator object for validation.</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td>final_estimator</td>
 <td>econml._cate_estimator.BaseCateEstimator | econml.score.EnsembleCateEstimator</td>
 <td>The fitted EconML estimator object on the entire dataset after validation.</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td>dataframe</td>
 <td>pandas.DataFrame | polars.DataFrame | pyspark.sql.DataFrame | ibis.expr.types.Table</td>
 <td>The input DataFrame with any modifications (e.g., predictions or rank orderings) made by the class returned to the original backend.</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td>_ibis_connection</td>
 <td>ibis.client.Client</td>
 <td>The Ibis client object representing the backend connection to Ibis.</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td>_ibis_df</td>
 <td>ibis.expr.types.Table</td>
 <td>The Ibis table expression representing the DataFrame connected to Ibis.</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td>_table_name</td>
 <td>str</td>
 <td>The name of the temporary table/view created for the DataFrame in the backend.</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td>_spark</td>
 <td>pyspark.sql.SparkSession</td>
 <td>The Spark session object if the DataFrame is a Spark DataFrame.</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td>_Y</td>
 <td>ibis.expr.types.Table</td>
 <td>The outcome variable data as ibis table.</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td>_T</td>
 <td>ibis.expr.types.Table</td>
 <td>The treatment variable data as ibis table.</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td>_X</td>
 <td>ibis.expr.types.Table</td>
 <td>The feature set data as ibis table.</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td>_W</td>
 <td>ibis.expr.types.Table</td>
 <td>The confounder feature set data as ibis table.</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td>_X_W</td>
 <td>ibis.expr.types.Table</td>
 <td>The feature set and confounder feature set data as ibis table.</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td>_X_W_T</td>
 <td>ibis.expr.types.Table</td>
 <td>The feature set, confounder feature set, and treatment variable data as ibis table.</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td>_nuisances_fitted</td>
 <td>bool</td>
 <td>A boolean indicating whether the nuisance functions have been fitted.</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td>_validation_estimator</td>
 <td>econml._cate_estimator.BaseCateEstimator | econml.score.EnsembleCateEstimator</td>
 <td>The fitted EconML estimator object for validation.</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td>_final_estimator</td>
 <td>econml._cate_estimator.BaseCateEstimator | econml.score.EnsembleCateEstimator</td>
 <td>The fitted EconML estimator object for final predictions.</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td>_validator_results</td>
 <td>econml.validate.EvaluationResults</td>
 <td>The results of the validation tests from DRTester.</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td>_cate_models</td>
 <td>list[tuple[str, econml._cate_estimator.BaseCateEstimator]]</td>
 <td>The list of CATE models to fit and ensemble.</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td>_model_Y_X_W</td>
 <td>sklearn.base.BaseEstimator</td>
 <td>The fitted nuisance function for the outcome variable.</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td>_model_Y_X_W_T</td>
 <td>sklearn.base.BaseEstimator</td>
 <td>The fitted nuisance function for the outcome variable with treatment variable.</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td>_model_T_X_W</td>
 <td>sklearn.base.BaseEstimator</td>
 <td>The fitted nuisance function for the treatment variable.</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td>_data_splits</td>
 <td>dict[str, np.ndarray]</td>
 <td>The dictionary containing the training, validation, and test data splits.</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td>_rscorer</td>
 <td>econml.score.RScorer</td>
 <td>The RScorer object for the validation estimator.</td>
@@ -511,10 +584,10 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <h2 class="anchored" data-anchor-id="examples">Examples</h2>
 <div class="sourceCode" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="op">&gt;&gt;&gt;</span> <span class="im">from</span> caml.core.cate <span class="im">import</span> CamlCATE</span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="op">&gt;&gt;&gt;</span> <span class="im">from</span> caml.extensions.synthetic_data <span class="im">import</span> make_fully_heterogeneous_dataset</span>
-<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="op">&gt;&gt;&gt;</span> df, true_cates, true_ate <span class="op">=</span> make_fully_heterogeneous_dataset(n_obs<span class="op">=</span><span class="dv">1000</span>, n_confounders<span class="op">=</span><span class="dv">10</span>, ate<span class="op">=</span><span class="dv">10</span>, seed<span class="op">=</span><span class="dv">1</span>)</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="op">&gt;&gt;&gt;</span> df, true_cates, true_ate <span class="op">=</span> make_fully_heterogeneous_dataset(n_obs<span class="op">=</span><span class="dv">1000</span>, n_confounders<span class="op">=</span><span class="dv">10</span>, theta<span class="op">=</span><span class="dv">10</span>, seed<span class="op">=</span><span class="dv">1</span>)</span>
 <span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="op">&gt;&gt;&gt;</span> df[<span class="st">'uuid'</span>] <span class="op">=</span> df.index</span>
 <span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="op">&gt;&gt;&gt;</span>  caml_obj<span class="op">=</span> CamlCATE(df<span class="op">=</span>df, Y<span class="op">=</span><span class="st">"y"</span>, T<span class="op">=</span><span class="st">"d"</span>, X<span class="op">=</span>[c <span class="cf">for</span> c <span class="kw">in</span> df.columns <span class="cf">if</span> <span class="st">"X"</span> <span class="kw">in</span> c], W<span class="op">=</span>[c <span class="cf">for</span> c <span class="kw">in</span> df.columns <span class="cf">if</span> <span class="st">"W"</span> <span class="kw">in</span> c], uuid<span class="op">=</span><span class="st">"uuid"</span>, discrete_treatment<span class="op">=</span><span class="va">True</span>, discrete_outcome<span class="op">=</span><span class="va">False</span>, seed<span class="op">=</span><span class="dv">1</span>)</span>
-<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="op">&gt;&gt;&gt;</span> </span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="op">&gt;&gt;&gt;</span></span>
 <span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a><span class="op">&gt;&gt;&gt;</span> <span class="co"># Standard pipeline</span></span>
 <span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a><span class="op">&gt;&gt;&gt;</span> caml_obj.auto_nuisance_functions()</span>
 <span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a><span class="op">&gt;&gt;&gt;</span> caml_obj.fit_validator()</span>
@@ -523,8 +596,9 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a><span class="op">&gt;&gt;&gt;</span> caml_obj.predict(join_predictions<span class="op">=</span><span class="va">True</span>)</span>
 <span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a><span class="op">&gt;&gt;&gt;</span> caml_obj.rank_order(join_rank_order<span class="op">=</span><span class="va">True</span>)</span>
 <span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a><span class="op">&gt;&gt;&gt;</span> caml_obj.summarize()</span>
-<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a><span class="op">&gt;&gt;&gt;</span> </span>
-<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a><span class="op">&gt;&gt;&gt;</span> end_of_pipeline_results <span class="op">=</span> caml_obj.dataframe</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a><span class="op">&gt;&gt;&gt;</span></span>
+<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a><span class="op">&gt;&gt;&gt;</span> end_of_pipeline_results <span class="op">=</span> caml_obj.dataframe</span>
+<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a><span class="op">&gt;&gt;&gt;</span> final_estimator <span class="op">=</span> caml_obj.final_estimator <span class="co"># Can be saved for future inference.</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </section>
 <section id="methods" class="level2">
 <h2 class="anchored" data-anchor-id="methods">Methods</h2>
@@ -577,7 +651,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <colgroup>
 <col style="width: 10%">
 <col style="width: 8%">
-<col style="width: 75%">
+<col style="width: 74%">
 <col style="width: 6%">
 </colgroup>
 <thead>
@@ -592,25 +666,25 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <tr class="odd">
 <td><code>flaml_Y_kwargs</code></td>
 <td>dict | None</td>
-<td>The keyword arguments for the FLAML AutoML search for the outcome model. Defaults to None, which implies the base parameters.</td>
+<td>The keyword arguments for the FLAML AutoML search for the outcome model. Default implies the base parameters in CamlBase.</td>
 <td><code>None</code></td>
 </tr>
 <tr class="even">
 <td><code>flaml_T_kwargs</code></td>
 <td>dict | None</td>
-<td>The keyword arguments for the FLAML AutoML search for the treatment model. Defaults to None, which implies the base parameters.</td>
+<td>The keyword arguments for the FLAML AutoML search for the treatment model. Default implies the base parameters in CamlBase.</td>
 <td><code>None</code></td>
 </tr>
 <tr class="odd">
 <td><code>use_ray</code></td>
 <td>bool</td>
-<td>A boolean indicating whether to use Ray for parallel processing. Defaults to False.</td>
+<td>A boolean indicating whether to use Ray for parallel processing.</td>
 <td><code>False</code></td>
 </tr>
 <tr class="even">
 <td><code>use_spark</code></td>
 <td>bool</td>
-<td>A boolean indicating whether to use Spark for parallel processing. Defaults to False.</td>
+<td>A boolean indicating whether to use Spark for parallel processing.</td>
 <td><code>False</code></td>
 </tr>
 </tbody>
@@ -641,17 +715,17 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </section>
 <section id="caml.CamlCATE.fit_validator" class="level3">
 <h3 class="anchored" data-anchor-id="caml.CamlCATE.fit_validator">fit_validator</h3>
-<p><code>CamlCATE.fit_validator(subset_cate_models=['LinearDML', 'NonParamDML', 'DML-Lasso3d', 'CausalForestDML', 'XLearner', 'DomainAdaptationLearner', 'SLearner', 'TLearner', 'DRLearner'], rscorer_kwargs={}, use_ray=False, ray_remote_func_options_kwargs={})</code></p>
+<p><code>CamlCATE.fit_validator(subset_cate_models=['LinearDML', 'NonParamDML', 'DML-Lasso3d', 'CausalForestDML', 'XLearner', 'DomainAdaptationLearner', 'SLearner', 'TLearner', 'DRLearner'], additional_cate_models=[], rscorer_kwargs={}, use_ray=False, ray_remote_func_options_kwargs={})</code></p>
 <p>Fits the CATE models on the training set and evaluates them &amp; ensembles based on the validation set.</p>
 <p>Sets the <code>_validation_estimator</code> and <code>_rscorer</code> internal attributes to the fitted EconML estimator and RScorer object.</p>
 <section id="parameters-2" class="level4">
 <h4 class="anchored" data-anchor-id="parameters-2">Parameters</h4>
 <table class="caption-top table">
 <colgroup>
+<col style="width: 10%">
 <col style="width: 12%">
-<col style="width: 4%">
 <col style="width: 32%">
-<col style="width: 50%">
+<col style="width: 44%">
 </colgroup>
 <thead>
 <tr class="header">
@@ -665,25 +739,31 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <tr class="odd">
 <td><code>subset_cate_models</code></td>
 <td>list[str]</td>
-<td>The list of CATE models to fit and ensemble. Defaults to all available models.</td>
+<td>The list of CATE models to fit and ensemble. Default implies all available models as defined by class.</td>
 <td><code>['LinearDML', 'NonParamDML', 'DML-Lasso3d', 'CausalForestDML', 'XLearner', 'DomainAdaptationLearner', 'SLearner', 'TLearner', 'DRLearner']</code></td>
 </tr>
 <tr class="even">
-<td><code>rscorer_kwargs</code></td>
-<td>dict</td>
-<td>The keyword arguments for the econml.score.RScorer object. Defaults to an empty dictionary.</td>
-<td><code>{}</code></td>
+<td><code>additional_cate_models</code></td>
+<td>list[tuple[str, BaseCateEstimator]]</td>
+<td>The list of additional CATE models to fit and ensemble</td>
+<td><code>[]</code></td>
 </tr>
 <tr class="odd">
-<td><code>use_ray</code></td>
-<td>bool</td>
-<td>A boolean indicating whether to use Ray for parallel processing. Defaults to False.</td>
-<td><code>False</code></td>
+<td><code>rscorer_kwargs</code></td>
+<td>dict</td>
+<td>The keyword arguments for the econml.score.RScorer object.</td>
+<td><code>{}</code></td>
 </tr>
 <tr class="even">
+<td><code>use_ray</code></td>
+<td>bool</td>
+<td>A boolean indicating whether to use Ray for parallel processing.</td>
+<td><code>False</code></td>
+</tr>
+<tr class="odd">
 <td><code>ray_remote_func_options_kwargs</code></td>
 <td>dict</td>
-<td>The keyword arguments for the Ray remote function options. Defaults to an empty dictionary.</td>
+<td>The keyword arguments for the Ray remote function options.</td>
 <td><code>{}</code></td>
 </tr>
 </tbody>
@@ -695,20 +775,23 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>...     <span class="st">"cv"</span>: <span class="dv">3</span>,</span>
 <span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>...     <span class="st">"mc_iters"</span>: <span class="dv">3</span>,</span>
 <span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>...     }</span>
-<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a><span class="op">&gt;&gt;&gt;</span> caml_obj.fit_validator(rscorer_kwargs<span class="op">=</span>rscorer_kwargs)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a><span class="op">&gt;&gt;&gt;</span> subset_cate_models <span class="op">=</span> [<span class="st">"LinearDML"</span>, <span class="st">"NonParamDML"</span>, <span class="st">"DML-Lasso3d"</span>, <span class="st">"CausalForestDML"</span>]</span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a><span class="op">&gt;&gt;&gt;</span> additional_cate_models <span class="op">=</span> [(<span class="st">"XLearner"</span>, XLearner(models<span class="op">=</span>caml_obj._model_Y_X_T, cate_models<span class="op">=</span>caml_obj._model_Y_X_T, propensity_model<span class="op">=</span>caml._model_T_X))]</span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a><span class="op">&gt;&gt;&gt;</span> caml_obj.fit_validator(subset_cate_models<span class="op">=</span>subset_cate_models, additional_cate_models<span class="op">=</span>additional_cate_models, rscorer_kwargs<span class="op">=</span>rscorer_kwargs)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </section>
 </section>
 <section id="caml.CamlCATE.predict" class="level3">
 <h3 class="anchored" data-anchor-id="caml.CamlCATE.predict">predict</h3>
-<p><code>CamlCATE.predict(out_of_sample_df=None, out_of_sample_uuid=None, return_predictions=False, join_predictions=True)</code></p>
+<p><code>CamlCATE.predict(out_of_sample_df=None, out_of_sample_uuid=None, return_predictions=False, join_predictions=True, T0=0, T1=1)</code></p>
 <p>Predicts the CATE based on the fitted final estimator for either the internal dataframe or an out-of-sample dataframe.</p>
+<p>For binary treatments, the CATE is the estimated effect of the treatment and for a continuous treatment, the CATE is the estimated effect of a one-unit increase in the treatment. This can be modified by setting the T0 and T1 parameters to the desired treatment levels.</p>
 <section id="parameters-3" class="level4">
 <h4 class="anchored" data-anchor-id="parameters-3">Parameters</h4>
 <table class="caption-top table">
 <colgroup>
-<col style="width: 8%">
-<col style="width: 38%">
-<col style="width: 47%">
+<col style="width: 9%">
+<col style="width: 41%">
+<col style="width: 43%">
 <col style="width: 4%">
 </colgroup>
 <thead>
@@ -723,26 +806,38 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <tr class="odd">
 <td><code>out_of_sample_df</code></td>
 <td>pandas.DataFrame | polars.DataFrame | pyspark.sql.DataFrame | ibis.expr.types.Table | None</td>
-<td>The out-of-sample DataFrame to make predictions on. Defaults to None.</td>
+<td>The out-of-sample DataFrame to make predictions on.</td>
 <td><code>None</code></td>
 </tr>
 <tr class="even">
 <td><code>out_of_sample_uuid</code></td>
 <td>str | None</td>
-<td>The column name for the universal identifier code (eg, ehhn) in the out-of-sample DataFrame. Defaults to None.</td>
+<td>The column name for the universal identifier code (eg, ehhn) in the out-of-sample DataFrame.</td>
 <td><code>None</code></td>
 </tr>
 <tr class="odd">
 <td><code>return_predictions</code></td>
 <td>bool</td>
-<td>A boolean indicating whether to return the predicted CATE. Defaults to False.</td>
+<td>A boolean indicating whether to return the predicted CATE.</td>
 <td><code>False</code></td>
 </tr>
 <tr class="even">
 <td><code>join_predictions</code></td>
 <td>bool</td>
-<td>A boolean indicating whether to join the predicted CATE to the original DataFrame within the class. Defaults to True.</td>
+<td>A boolean indicating whether to join the predicted CATE to the original DataFrame within the class.</td>
 <td><code>True</code></td>
+</tr>
+<tr class="odd">
+<td><code>T0</code></td>
+<td>int</td>
+<td>Base treatment for each sample.</td>
+<td><code>0</code></td>
+</tr>
+<tr class="even">
+<td><code>T1</code></td>
+<td>int</td>
+<td>Target treatment for each sample.</td>
+<td><code>1</code></td>
 </tr>
 </tbody>
 </table>
@@ -776,15 +871,15 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </section>
 <section id="caml.CamlCATE.rank_order" class="level3">
 <h3 class="anchored" data-anchor-id="caml.CamlCATE.rank_order">rank_order</h3>
-<p><code>CamlCATE.rank_order(out_of_sample_df=None, return_rank_order=False, join_rank_order=True)</code></p>
+<p><code>CamlCATE.rank_order(out_of_sample_df=None, return_rank_order=False, join_rank_order=True, treatment_category=1)</code></p>
 <p>Ranks orders households based on the predicted CATE values for either the internal dataframe or an out-of-sample dataframe.</p>
 <section id="parameters-4" class="level4">
 <h4 class="anchored" data-anchor-id="parameters-4">Parameters</h4>
 <table class="caption-top table">
 <colgroup>
 <col style="width: 8%">
-<col style="width: 39%">
-<col style="width: 47%">
+<col style="width: 35%">
+<col style="width: 51%">
 <col style="width: 4%">
 </colgroup>
 <thead>
@@ -799,20 +894,26 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <tr class="odd">
 <td><code>out_of_sample_df</code></td>
 <td>pandas.DataFrame | polars.DataFrame | pyspark.sql.DataFrame | ibis.expr.types.Table | None</td>
-<td>The out-of-sample DataFrame to rank order. Defaults to None.</td>
+<td>The out-of-sample DataFrame to rank order.</td>
 <td><code>None</code></td>
 </tr>
 <tr class="even">
 <td><code>return_rank_order</code></td>
 <td>bool</td>
-<td>A boolean indicating whether to return the rank ordering. Defaults to False.</td>
+<td>A boolean indicating whether to return the rank ordering.</td>
 <td><code>False</code></td>
 </tr>
 <tr class="odd">
 <td><code>join_rank_order</code></td>
 <td>bool</td>
-<td>A boolean indicating whether to join the rank ordering to the original DataFrame within the class. Defaults to True.</td>
+<td>A boolean indicating whether to join the rank ordering to the original DataFrame within the class.</td>
 <td><code>True</code></td>
+</tr>
+<tr class="even">
+<td><code>treatment_category</code></td>
+<td>int</td>
+<td>The treatment category, in the case of categorical treatments, to rank order the households based on. Default implies the first category.</td>
+<td><code>1</code></td>
 </tr>
 </tbody>
 </table>
@@ -846,16 +947,16 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </section>
 <section id="caml.CamlCATE.summarize" class="level3">
 <h3 class="anchored" data-anchor-id="caml.CamlCATE.summarize">summarize</h3>
-<p><code>CamlCATE.summarize(out_of_sample_df=None)</code></p>
+<p><code>CamlCATE.summarize(out_of_sample_df=None, treatment_category=1)</code></p>
 <p>Provides population summary statistics for the CATE predictions for either the internal dataframe or an out-of-sample dataframe.</p>
 <section id="parameters-5" class="level4">
 <h4 class="anchored" data-anchor-id="parameters-5">Parameters</h4>
 <table class="caption-top table">
 <colgroup>
-<col style="width: 10%">
+<col style="width: 8%">
+<col style="width: 36%">
 <col style="width: 51%">
-<col style="width: 32%">
-<col style="width: 5%">
+<col style="width: 4%">
 </colgroup>
 <thead>
 <tr class="header">
@@ -869,8 +970,14 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <tr class="odd">
 <td><code>out_of_sample_df</code></td>
 <td>pandas.DataFrame | polars.DataFrame | pyspark.sql.DataFrame | ibis.expr.types.Table | None</td>
-<td>The out-of-sample DataFrame to summarize. Defaults to None.</td>
+<td>The out-of-sample DataFrame to summarize.</td>
 <td><code>None</code></td>
+</tr>
+<tr class="even">
+<td><code>treatment_category</code></td>
+<td>int</td>
+<td>The treatment level, in the case of categorical treatments, to summarize the CATE predictions for. Default implies the first category.</td>
+<td><code>1</code></td>
 </tr>
 </tbody>
 </table>
@@ -910,10 +1017,10 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <h4 class="anchored" data-anchor-id="parameters-6">Parameters</h4>
 <table class="caption-top table">
 <colgroup>
-<col style="width: 11%">
-<col style="width: 27%">
-<col style="width: 55%">
-<col style="width: 5%">
+<col style="width: 12%">
+<col style="width: 30%">
+<col style="width: 51%">
+<col style="width: 6%">
 </colgroup>
 <thead>
 <tr class="header">
@@ -927,13 +1034,13 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <tr class="odd">
 <td><code>estimator</code></td>
 <td>BaseCateEstimator | EnsembleCateEstimator | None</td>
-<td>The estimator to validate. Defaults to None, which implies the best estimator from the validation set.</td>
+<td>The estimator to validate. Default implies the best estimator from the validation set.</td>
 <td><code>None</code></td>
 </tr>
 <tr class="even">
 <td><code>print_full_report</code></td>
 <td>bool</td>
-<td>A boolean indicating whether to print the full validation report. Defaults to True.</td>
+<td>A boolean indicating whether to print the full validation report.</td>
 <td><code>True</code></td>
 </tr>
 </tbody>

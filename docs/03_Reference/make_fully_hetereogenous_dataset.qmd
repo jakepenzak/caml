@@ -4,7 +4,7 @@
 
 Generate an "interactive regression" model data generating process with fully heterogenous treatment effects. The outcome is continuous and the treatment is binary.
 The dataset is generated using the `make_confounded_irm_data` function from the `doubleml` [package](https://docs.doubleml.org/stable/index.html).
-We enforce the additional "unobserved" confounder A to be zero for all observations, since confounding is captured in X. 
+We enforce the additional "unobserved" confounder A to be zero for all observations, since confounding is captured in X.
 
 The general form of the data generating process is:
 

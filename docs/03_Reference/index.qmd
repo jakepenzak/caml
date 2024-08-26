@@ -7,19 +7,17 @@
 | | |
 | --- | --- |
 | [CamlCATE](CamlCATE.qmd#caml.CamlCATE) | The CamlCATE class represents an opinionated implementation of Causal Machine Learning techniques for estimating |
-| [CamlPolicy](CamlPolicy.qmd#caml.CamlPolicy) | The CamlPolicy class represents a Policy Learning implementation for estimating... |
-| [CamlDML](CamlDML.qmd#caml.CamlDML) |  |
-| [CamlDynamic](CamlDynamic.qmd#caml.CamlDynamic) | The CamlDynamic class represents a dynamic (time) implementation for estimating... |
 
-## Sythetic Data Generation
+## Synthetic Data Generation
 
 `from caml.extensions.synthetic_data import *`
 
 | | |
 | --- | --- |
-| [make_partially_linear_dataset_simple](make_partially_linear_dataset_simple.qmd#caml.extensions.synthetic_data.make_partially_linear_dataset_simple) | Generate a partially linear data generating process with simple 1 or 2 dimensional CATE function. The outcome is continuous and the treatment can be binary or continuous. |
-| [make_partially_linear_dataset_constant](make_partially_linear_dataset_constant.qmd#caml.extensions.synthetic_data.make_partially_linear_dataset_constant) | Generate a partially linear model data generating process with a constant treatment effect (ATE only). The outcome and treatment are both continuous. |
-| [make_fully_hetereogenous_dataset](make_fully_hetereogenous_dataset.qmd#caml.extensions.synthetic_data.make_fully_hetereogenous_dataset) | Generate an "interactive regression" model data generating process with fully heterogenous treatment effects. The outcome is continuous and the treatment is binary. |
+| [make_partially_linear_dataset_simple](make_partially_linear_dataset_simple.qmd#caml.extensions.synthetic_data.make_partially_linear_dataset_simple) | Simulate data generating process from a partially linear model with a simple 1 or 2 dimensional CATE function. The outcome is continuous and the treatment can be binary or continuous. |
+| [make_partially_linear_dataset_constant](make_partially_linear_dataset_constant.qmd#caml.extensions.synthetic_data.make_partially_linear_dataset_constant) | Simulate a data generating process from a partially linear model with a constant treatment effect (ATE only). The outcome and treatment are both continuous. |
+| [make_fully_heterogeneous_dataset](make_fully_heterogeneous_dataset.qmd#caml.extensions.synthetic_data.make_fully_heterogeneous_dataset) | Simulate data generating process from an interactive regression model with fully heterogenous treatment effects. The outcome is continuous and the treatment is binary. |
+| [make_dowhy_linear_dataset](make_dowhy_linear_dataset.qmd#caml.extensions.synthetic_data.make_dowhy_linear_dataset) | Simulate a linear data generating process with flexible configurations. The outcome and treatment can take on different data types. |
 
 ## Plots
 

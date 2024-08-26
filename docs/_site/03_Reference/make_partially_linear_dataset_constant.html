@@ -266,14 +266,14 @@ window.Quarto = {
 <section id="caml.extensions.synthetic_data.make_partially_linear_dataset_constant" class="level1">
 <h1>make_partially_linear_dataset_constant</h1>
 <p><code>extensions.synthetic_data.make_partially_linear_dataset_constant(n_obs=1000, ate=4.0, n_confounders=10, dgp='make_plr_CCDDHNR2018', seed=None, **doubleml_kwargs)</code></p>
-<p>Generate a partially linear model data generating process with a constant treatment effect (ATE only). The outcome and treatment are both continuous. The dataset is generated using the <code>make_plr_CCDDHNR2018</code> or <code>make_plr_turrell2018</code> function from the <a href="https://docs.doubleml.org/stable/index.html"><code>doubleml</code> package</a>.</p>
+<p>Simulate a data generating process from a partially linear model with a constant treatment effect (ATE only). The outcome and treatment are both continuous. The dataset is generated using the <code>make_plr_CCDDHNR2018</code> or <code>make_plr_turrell2018</code> function from the <a href="https://docs.doubleml.org/stable/index.html"><code>doubleml</code> package</a>.</p>
 <p>The general form of the data generating process is:</p>
 <p><span class="math display">\[
-Y_i= \tau_0 D_i + g(\mathbf{X_i})+\epsilon_i
+y_i= \tau_0 d_i + g(\mathbf{W_i})+\epsilon_i
 \]</span> <span class="math display">\[
-D_i=f(\mathbf{X_i})+\eta_i
+d_i=f(\mathbf{W_i})+\eta_i
 \]</span></p>
-<p>where <span class="math inline">\(Y_i\)</span> is the outcome, <span class="math inline">\(D_i\)</span> is the treatment, <span class="math inline">\(\mathbf{X_i}\)</span> are the covariates, <span class="math inline">\(\epsilon_i\)</span> and <span class="math inline">\(\eta_i\)</span> are the error terms, <span class="math inline">\(\tau_0\)</span> is the ATE parameter, <span class="math inline">\(g\)</span> is the outcome function, and <span class="math inline">\(f\)</span> is the treatment function.</p>
+<p>where <span class="math inline">\(y_i\)</span> is the outcome, <span class="math inline">\(d_i\)</span> is the treatment, <span class="math inline">\(\mathbf{W_i}\)</span> are the confounders, <span class="math inline">\(\epsilon_i\)</span> and <span class="math inline">\(\eta_i\)</span> are the error terms, <span class="math inline">\(\tau_0\)</span> is the ATE parameter, <span class="math inline">\(g\)</span> is the outcome function, and <span class="math inline">\(f\)</span> is the treatment function.</p>
 <p>See the <code>doubleml</code> documentation for more details on the specific functional forms of the data generating process.</p>
 <p>As a DAG, the data generating process can be roughly represented as:</p>
 <div style="text-align: center;">
@@ -283,9 +283,9 @@ D_i=f(\mathbf{X_i})+\eta_i
 <p></p><figure class="figure"><p></p>
 <div>
 <pre class="mermaid mermaid-js">flowchart TD;
-    X((X))--&gt;D((D));
-    X((X))--&gt;Y((Y));
-    D((D))--&gt;|"τ0"|Y((Y));
+    W((W))--&gt;d((d));
+    W((W))--&gt;y((y));
+    d((d))--&gt;|"τ0"|y((y));
     linkStyle 0,1 stroke:black,stroke-width:2px
     linkStyle 1,2 stroke:black,stroke-width:2px
 </pre>
@@ -299,10 +299,10 @@ D_i=f(\mathbf{X_i})+\eta_i
 <h2 class="anchored" data-anchor-id="parameters">Parameters</h2>
 <table class="caption-top table">
 <colgroup>
-<col style="width: 11%">
-<col style="width: 7%">
-<col style="width: 67%">
-<col style="width: 14%">
+<col style="width: 13%">
+<col style="width: 8%">
+<col style="width: 60%">
+<col style="width: 17%">
 </colgroup>
 <thead>
 <tr class="header">
@@ -316,31 +316,31 @@ D_i=f(\mathbf{X_i})+\eta_i
 <tr class="odd">
 <td><code>n_obs</code></td>
 <td>int</td>
-<td>The number of observations to generate. Default is 1000.</td>
+<td>The number of observations to generate.</td>
 <td><code>1000</code></td>
 </tr>
 <tr class="even">
 <td><code>ate</code></td>
 <td>float</td>
-<td>The average treatment effect. Default is 4.0.</td>
+<td>The average treatment effect <span class="math inline">\(\tau_0\)</span>.</td>
 <td><code>4.0</code></td>
 </tr>
 <tr class="odd">
 <td><code>n_confounders</code></td>
 <td>int</td>
-<td>The number of confounders to generate. Default is 10.</td>
+<td>The number of confounders <span class="math inline">\(\mathbf{W_i}\)</span> to generate.</td>
 <td><code>10</code></td>
 </tr>
 <tr class="even">
 <td><code>dgp</code></td>
 <td>str</td>
-<td>The data generating process to use. Default is “make_plr_CCDDHNR20”. Can be “make_plr_CCDDHNR20” or “make_plr_turrell2018”.</td>
+<td>The data generating process to use. Can be “make_plr_CCDDHNR20” or “make_plr_turrell2018”.</td>
 <td><code>'make_plr_CCDDHNR2018'</code></td>
 </tr>
 <tr class="odd">
 <td><code>seed</code></td>
 <td>int | None</td>
-<td>The seed to use for the random number generator. Default is None.</td>
+<td>The seed to use for the random number generator.</td>
 <td><code>None</code></td>
 </tr>
 <tr class="even">
@@ -356,8 +356,8 @@ D_i=f(\mathbf{X_i})+\eta_i
 <h2 class="anchored" data-anchor-id="returns">Returns</h2>
 <table class="caption-top table">
 <colgroup>
-<col style="width: 13%">
-<col style="width: 86%">
+<col style="width: 16%">
+<col style="width: 83%">
 </colgroup>
 <thead>
 <tr class="header">
@@ -367,10 +367,14 @@ D_i=f(\mathbf{X_i})+\eta_i
 </thead>
 <tbody>
 <tr class="odd">
-<td>pd.DataFrame</td>
-<td>The generated dataset where y is the outcome, d is the treatment, and X are the covariates.</td>
+<td>pandas.DataFrame</td>
+<td>The generated dataset where y is the outcome, d is the treatment, and W are the confounders.</td>
 </tr>
 <tr class="even">
+<td>numpy.ndarray</td>
+<td>The true conditional average treatment effects, which are all equal to the ATE here.</td>
+</tr>
+<tr class="odd">
 <td>float</td>
 <td>The true average treatment effect.</td>
 </tr>

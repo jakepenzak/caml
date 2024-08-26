@@ -265,24 +265,24 @@ window.Quarto = {
 
 <section id="caml.extensions.synthetic_data.make_partially_linear_dataset_simple" class="level1">
 <h1>make_partially_linear_dataset_simple</h1>
-<p><code>extensions.synthetic_data.make_partially_linear_dataset_simple(n_obs=1000, n_covariates=10, n_confounders=5, dim_heterogeneity=2, binary_treatment=True, seed=None)</code></p>
-<p>Generate a partially linear data generating process with simple 1 or 2 dimensional CATE function. The outcome is continuous and the treatment can be binary or continuous. The dataset is generated using the<code>make_heterogeneous_data</code> function from the <a href="https://docs.doubleml.org/stable/index.html"><code>doubleml</code> package</a>.</p>
+<p><code>extensions.synthetic_data.make_partially_linear_dataset_simple(n_obs=1000, n_confounders=5, dim_heterogeneity=2, binary_treatment=True, seed=None)</code></p>
+<p>Simulate data generating process from a partially linear model with a simple 1 or 2 dimensional CATE function. The outcome is continuous and the treatment can be binary or continuous. The dataset is generated using the <code>make_heterogeneous_data</code> function from the <a href="https://docs.doubleml.org/stable/index.html"><code>doubleml</code> package</a>.</p>
 <p>The general form of the data generating process is, in the case of dim_heterogeneity=1:</p>
 <p><span class="math display">\[
-Y_i= \tau (x_0) D_i + g(\mathbf{X_i},\mathbf{W_i})+\epsilon_i
+y_i= \tau (x_0) d_i + g(\mathbf{X_i})+\epsilon_i
 \]</span> <span class="math display">\[
-D_i=f(\mathbf{X_i})+\eta_i
+d_i=f(\mathbf{X_i})+\eta_i
 \]</span></p>
 <p>or, in the case of dim_heterogeneity=2:</p>
 <p><span class="math display">\[
-Y_i= \tau (x_0,x_1) D_i + g(\mathbf{X_i},\mathbf{W_i})+\epsilon_i
+y_i= \tau (x_0,x_1) d_i + g(\mathbf{X_i})+\epsilon_i
 \]</span> <span class="math display">\[
-D_i=f(\mathbf{X_i})+\eta_i
+d_i=f(\mathbf{X_i})+\eta_i
 \]</span></p>
-<p>where <span class="math inline">\(Y_i\)</span> is the outcome, <span class="math inline">\(D_i\)</span> is the treatment, <span class="math inline">\(\mathbf{X_i}\)</span> are the confounders, <span class="math inline">\(\mathbf{W_i}\)</span> are the covariates that covary with <span class="math inline">\(Y_i\)</span> only, <span class="math inline">\(\epsilon_i\)</span> and <span class="math inline">\(\eta_i\)</span> are the error terms, <span class="math inline">\(\tau\)</span> is the CATE function, <span class="math inline">\(g\)</span> is the outcome function, and <span class="math inline">\(f\)</span> is the treatment function.</p>
-<p>Here the ATE is defined as the average of the CATE function over the covariates: <span class="math inline">\(\mathbb{E}[\tau (\cdot)]\)</span></p>
+<p>where <span class="math inline">\(y_i\)</span> is the outcome, <span class="math inline">\(d_i\)</span> is the treatment, <span class="math inline">\(\mathbf{X_i}\)</span> are the confounders, <span class="math inline">\(\epsilon_i\)</span> and <span class="math inline">\(\eta_i\)</span> are the error terms, <span class="math inline">\(\tau\)</span> is the CATE function, <span class="math inline">\(g\)</span> is the outcome function, and <span class="math inline">\(f\)</span> is the treatment function.</p>
 <p>See the <code>doubleml</code> documentation for more details on the specific functional forms of the data generating process.</p>
-<p>As a DAG, the data generating process can be roughly represented as, where Xn is all confounders less x0 and x1:</p>
+<p>Here the ATE is defined as the average of the CATE function over all observations: <span class="math inline">\(\mathbb{E}[\tau (\cdot)]\)</span></p>
+<p>As a DAG, the data generating process can be roughly represented as:</p>
 <div style="text-align: center;">
 <div class="cell" data-layout-align="default">
 <div class="cell-output-display">
@@ -290,14 +290,10 @@ D_i=f(\mathbf{X_i})+\eta_i
 <p></p><figure class="figure"><p></p>
 <div>
 <pre class="mermaid mermaid-js">flowchart TD;
-    X0((x0))--&gt;D((D));
-    X0((x0))--&gt;Y((Y));
-    X1((x1))--&gt;D((D));
-    X1((x1))--&gt;Y((Y));
-    Xn((Xn))--&gt;D((D));
-    Xn((Xn))--&gt;Y((Y));
-    W((W))--&gt;Y((Y));
-    D((D))--&gt;|"τ(x0,x1)"|Y((Y));
+    Xn((X))--&gt;d((d));
+    Xn((X))--&gt;y((y));
+    d((d))--&gt;|"τ(x0,x1)"|y((y));
+
     linkStyle 0,1 stroke:black,stroke-width:2px
     linkStyle 1,2 stroke:black,stroke-width:2px
 </pre>
@@ -307,15 +303,14 @@ D_i=f(\mathbf{X_i})+\eta_i
 </div>
 </div>
 </div>
-<p>Note, the returned data will not differentiate between X and W. A random subset of W is selected as confounders based on n_confounders.</p>
 <section id="parameters" class="level2">
 <h2 class="anchored" data-anchor-id="parameters">Parameters</h2>
 <table class="caption-top table">
 <colgroup>
-<col style="width: 18%">
-<col style="width: 11%">
-<col style="width: 61%">
-<col style="width: 9%">
+<col style="width: 17%">
+<col style="width: 10%">
+<col style="width: 63%">
+<col style="width: 8%">
 </colgroup>
 <thead>
 <tr class="header">
@@ -329,37 +324,31 @@ D_i=f(\mathbf{X_i})+\eta_i
 <tr class="odd">
 <td><code>n_obs</code></td>
 <td>int</td>
-<td>The number of observations to generate. Default is 1000.</td>
+<td>The number of observations to generate.</td>
 <td><code>1000</code></td>
 </tr>
 <tr class="even">
-<td><code>n_covariates</code></td>
-<td>int</td>
-<td>The number of covariates to generate. Default is 10.</td>
-<td><code>10</code></td>
-</tr>
-<tr class="odd">
 <td><code>n_confounders</code></td>
 <td>int</td>
-<td>The number of covariates that are confounders. Default is 5.</td>
+<td>The number of confounders <span class="math inline">\(\mathbf{X_i}\)</span>.</td>
 <td><code>5</code></td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td><code>dim_heterogeneity</code></td>
 <td>int</td>
-<td>The dimension of the heterogeneity. Default is 2. Can only be 1 or 2.</td>
+<td>The dimension of the heterogeneity <span class="math inline">\(x_0\)</span> or <span class="math inline">\((x_0,x_1)\)</span>. Can only be 1 or 2.</td>
 <td><code>2</code></td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td><code>binary_treatment</code></td>
 <td>bool</td>
-<td>Whether the treatment is binary or continuous. Default is True.</td>
+<td>Whether the treatment <span class="math inline">\(d_i\)</span> is binary or continuous.</td>
 <td><code>True</code></td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td><code>seed</code></td>
 <td>int | None</td>
-<td>The seed to use for the random number generator. Default is None.</td>
+<td>The seed to use for the random number generator.</td>
 <td><code>None</code></td>
 </tr>
 </tbody>
@@ -369,8 +358,8 @@ D_i=f(\mathbf{X_i})+\eta_i
 <h2 class="anchored" data-anchor-id="returns">Returns</h2>
 <table class="caption-top table">
 <colgroup>
-<col style="width: 13%">
-<col style="width: 86%">
+<col style="width: 11%">
+<col style="width: 88%">
 </colgroup>
 <thead>
 <tr class="header">
@@ -380,11 +369,11 @@ D_i=f(\mathbf{X_i})+\eta_i
 </thead>
 <tbody>
 <tr class="odd">
-<td>pd.DataFrame</td>
-<td>The generated dataset where y is the outcome, d is the treatment, and X are the covariates.</td>
+<td>pandas.DataFrame</td>
+<td>The generated dataset where y is the outcome, d is the treatment, and X are the confounders with a 1d or 2d subset utilized for heterogeneity.</td>
 </tr>
 <tr class="even">
-<td>np.ndarray</td>
+<td>numpy.ndarray</td>
 <td>The true conditional average treatment effects.</td>
 </tr>
 <tr class="odd">
@@ -397,7 +386,7 @@ D_i=f(\mathbf{X_i})+\eta_i
 <section id="examples" class="level2">
 <h2 class="anchored" data-anchor-id="examples">Examples</h2>
 <div class="sourceCode" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="op">&gt;&gt;&gt;</span> <span class="im">from</span> caml.extensions.synthetic_data <span class="im">import</span> make_partially_linear_dataset_simple</span>
-<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="op">&gt;&gt;&gt;</span> df, true_cates, true_ate <span class="op">=</span> make_partially_linear_simple_dataset(n_obs<span class="op">=</span><span class="dv">1000</span>, n_covariates<span class="op">=</span><span class="dv">10</span>, n_confounders<span class="op">=</span><span class="dv">5</span>, dim_heterogeneity<span class="op">=</span><span class="dv">2</span>, binary_treatment<span class="op">=</span><span class="va">True</span>, seed<span class="op">=</span><span class="dv">1</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="op">&gt;&gt;&gt;</span> df, true_cates, true_ate <span class="op">=</span> make_partially_linear_simple_dataset(n_obs<span class="op">=</span><span class="dv">1000</span>, n_confounders<span class="op">=</span><span class="dv">5</span>, dim_heterogeneity<span class="op">=</span><span class="dv">2</span>, binary_treatment<span class="op">=</span><span class="va">True</span>, seed<span class="op">=</span><span class="dv">1</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 
 
 </section>
