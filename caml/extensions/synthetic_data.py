@@ -1,3 +1,5 @@
+import math
+
 import numpy as np
 import pandas as pd
 from doubleml.datasets import (
@@ -5,12 +7,7 @@ from doubleml.datasets import (
     make_plr_CCDDHNR2018,
     make_plr_turrell2018,
 )
-from dowhy.datasets import (
-    construct_col_names,
-    convert_to_binary,
-    convert_to_categorical,
-    stochastically_convert_to_three_level_categorical,
-)
+from numpy.random import choice
 from scipy.linalg import toeplitz
 from typeguard import typechecked
 
@@ -757,3 +754,62 @@ def make_dowhy_linear_dataset(
     true_cates = cates
 
     return df, true_cates, true_ate
+
+
+# Plucked from DoWhy
+def construct_col_names(
+    name, num_vars, num_discrete_vars, num_discrete_levels, one_hot_encode
+):
+    colnames = [(name + str(i)) for i in range(0, num_vars - num_discrete_vars)]
+    if one_hot_encode:
+        discrete_colnames = [
+            name + str(i) + "_" + str(j)
+            for i in range(num_vars - num_discrete_vars, num_vars)
+            for j in range(0, num_discrete_levels)
+        ]
+        colnames = colnames + discrete_colnames
+    else:
+        colnames = colnames + [
+            (name + str(i)) for i in range(num_vars - num_discrete_vars, num_vars)
+        ]
+
+    return colnames
+
+
+def convert_to_binary(x, stochastic=True):
+    p = sigmoid(x)
+    if stochastic:
+        return choice([0, 1], 1, p=[1 - p, p])
+    else:
+        return int(p > 0.5)
+
+
+def stochastically_convert_to_three_level_categorical(x):
+    p = sigmoid(x)
+    return choice([0, 1, 2], 1, p=[0.8 * (1 - p), 0.8 * p, 0.2])
+
+
+def convert_to_categorical(
+    arr, num_vars, num_discrete_vars, quantiles=[0.25, 0.5, 0.75], one_hot_encode=False
+):
+    arr_with_dummy = arr.copy()
+    # Below loop assumes that the last indices of W are alwawys converted to discrete
+    for arr_index in range(num_vars - num_discrete_vars, num_vars):
+        # one-hot encode discrete W
+        arr_bins = np.quantile(arr[:, arr_index], q=quantiles)
+        arr_categorical = np.digitize(arr[:, arr_index], bins=arr_bins)
+        if one_hot_encode:
+            dummy_vecs = np.eye(len(quantiles) + 1)[arr_categorical]
+            arr_with_dummy = np.concatenate((arr_with_dummy, dummy_vecs), axis=1)
+        else:
+            arr_with_dummy = np.concatenate(
+                (arr_with_dummy, arr_categorical[:, np.newaxis]), axis=1
+            )
+    # Now deleting the old continuous value
+    for arr_index in range(num_vars - 1, num_vars - num_discrete_vars - 1, -1):
+        arr_with_dummy = np.delete(arr_with_dummy, arr_index, axis=1)
+    return arr_with_dummy
+
+
+def sigmoid(x):
+    return 1 / (1 + math.exp(-x))

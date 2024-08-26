@@ -14,7 +14,7 @@ $$
 \mathbf{D_i}=f(\mathbf{W_i})+\eta_i
 $$
 
-where $y_i$ is the outcome, $\mathbf{D_i}$ are the treatment(s), $\mathbf{X_i}$ are the effect modifiers (utilized for effect heterogeneity only), $\mathbf{W_i}$ are the confounders, $\epsilon_i$ and $\eta_i$ are the error terms, 
+where $y_i$ is the outcome, $\mathbf{D_i}$ are the treatment(s), $\mathbf{X_i}$ are the effect modifiers (utilized for effect heterogeneity only), $\mathbf{W_i}$ are the confounders, $\epsilon_i$ and $\eta_i$ are the error terms,
 $\tau$ is the linear CATE function, $g$ is the linear outcome function, and $f$ is the linear treatment function.
 
 As a DAG, the data generating process can be roughly represented as:

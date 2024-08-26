@@ -269,7 +269,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <tr class="header">
 <th>Outcome</th>
 <th>Treatment</th>
-<th>Supported</th>
+<th>Support</th>
 <th>Missing</th>
 </tr>
 </thead>
@@ -283,7 +283,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <tr class="even">
 <td>Continuous</td>
 <td>Continuous</td>
-<td>🟡Partially</td>
+<td>🟡Partial</td>
 <td>Validation</td>
 </tr>
 <tr class="odd">
@@ -846,8 +846,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <h4 class="anchored" data-anchor-id="returns">Returns</h4>
 <table class="caption-top table">
 <colgroup>
-<col style="width: 15%">
-<col style="width: 84%">
+<col style="width: 27%">
+<col style="width: 72%">
 </colgroup>
 <thead>
 <tr class="header">
@@ -857,7 +857,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </thead>
 <tbody>
 <tr class="odd">
-<td>np.ndarray</td>
+<td>np.ndarray | DataFrame</td>
 <td>The predicted CATE values if return_predictions is set to True.</td>
 </tr>
 </tbody>
@@ -922,8 +922,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <h4 class="anchored" data-anchor-id="returns-1">Returns</h4>
 <table class="caption-top table">
 <colgroup>
-<col style="width: 16%">
-<col style="width: 84%">
+<col style="width: 28%">
+<col style="width: 71%">
 </colgroup>
 <thead>
 <tr class="header">
@@ -933,7 +933,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </thead>
 <tbody>
 <tr class="odd">
-<td>np.ndarray</td>
+<td>np.ndarray | DataFrame</td>
 <td>The rank ordering values if return_rank_order is set to True.</td>
 </tr>
 </tbody>
@@ -1042,27 +1042,6 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <td>bool</td>
 <td>A boolean indicating whether to print the full validation report.</td>
 <td><code>True</code></td>
-</tr>
-</tbody>
-</table>
-</section>
-<section id="returns-3" class="level4">
-<h4 class="anchored" data-anchor-id="returns-3">Returns</h4>
-<table class="caption-top table">
-<colgroup>
-<col style="width: 41%">
-<col style="width: 58%">
-</colgroup>
-<thead>
-<tr class="header">
-<th>Type</th>
-<th>Description</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td>econml.validate.EvaluationResults</td>
-<td>The evaluation results from the DRTester class.</td>
 </tr>
 </tbody>
 </table>

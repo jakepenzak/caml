@@ -888,7 +888,7 @@ class CamlCATE(CamlBase):
             self._data_splits["X_val"],
         )
 
-        def fit_model(name, model, use_ray, ray_remote_func_options_kwargs):
+        def fit_model(name, model, use_ray=False, ray_remote_func_options_kwargs={}):
             if isinstance(model, _OrthoLearner):
                 model.use_ray = use_ray
                 model.ray_remote_func_options_kwargs = ray_remote_func_options_kwargs

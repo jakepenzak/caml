@@ -32,10 +32,10 @@ For technical details on conditional average treatment effects, see:
 
 **Outcome & Treatment Data Type Support Matrix**
 
-| Outcome     | Treatment   | Supported   | Missing    |
+| Outcome     | Treatment   | Support     | Missing    |
 | ----------- | ----------- | ----------- | ---------- |
 | Continuous  | Binary      | ✅Full      | None       |
-| Continuous  | Continuous  | 🟡Partially | Validation |
+| Continuous  | Continuous  | 🟡Partial   | Validation |
 | Continuous  | Categorical | ✅Full      | None       |
 | Binary      | Binary      | ❌Not yet   |            |
 | Binary      | Continuous  | ❌Not yet   |            |
@@ -211,7 +211,7 @@ Sets the `_validation_estimator` and `_rscorer` internal attributes to the fitte
 
 Predicts the CATE based on the fitted final estimator for either the internal dataframe or an out-of-sample dataframe.
 
-For binary treatments, the CATE is the estimated effect of the treatment and for a continuous treatment, the CATE is the estimated effect of a one-unit increase in the treatment. 
+For binary treatments, the CATE is the estimated effect of the treatment and for a continuous treatment, the CATE is the estimated effect of a one-unit increase in the treatment.
 This can be modified by setting the T0 and T1 parameters to the desired treatment levels.
 
 #### Parameters
@@ -227,9 +227,9 @@ This can be modified by setting the T0 and T1 parameters to the desired treatmen
 
 #### Returns
 
-| Type       | Description                                                     |
-|------------|-----------------------------------------------------------------|
-| np.ndarray | The predicted CATE values if return_predictions is set to True. |
+| Type                    | Description                                                     |
+|-------------------------|-----------------------------------------------------------------|
+| np.ndarray \| DataFrame | The predicted CATE values if return_predictions is set to True. |
 
 #### Examples
 
@@ -255,9 +255,9 @@ Ranks orders households based on the predicted CATE values for either the intern
 
 #### Returns
 
-| Type       | Description                                                   |
-|------------|---------------------------------------------------------------|
-| np.ndarray | The rank ordering values if return_rank_order is set to True. |
+| Type                    | Description                                                   |
+|-------------------------|---------------------------------------------------------------|
+| np.ndarray \| DataFrame | The rank ordering values if return_rank_order is set to True. |
 
 #### Examples
 
@@ -307,12 +307,6 @@ Sets the `_validator_results` internal attribute to the results of the DRTester 
 |---------------------|----------------------------------------------------|----------------------------------------------------------------------------------------|-----------|
 | `estimator`         | BaseCateEstimator \| EnsembleCateEstimator \| None | The estimator to validate. Default implies the best estimator from the validation set. | `None`    |
 | `print_full_report` | bool                                               | A boolean indicating whether to print the full validation report.                      | `True`    |
-
-#### Returns
-
-| Type                              | Description                                     |
-|-----------------------------------|-------------------------------------------------|
-| econml.validate.EvaluationResults | The evaluation results from the DRTester class. |
 
 #### Examples
 

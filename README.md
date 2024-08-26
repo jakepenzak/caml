@@ -1,4 +1,4 @@
-![](https://img.shields.io/badge/version-0.0.0.1-purple)
+![](https://img.shields.io/badge/version-0.0.0.dev3-purple)
 [![pre-commit](https://img.shields.io/badge/pre--commit-enabled-brightgreen?logo=pre-commit&logoColor=white)](https://github.com/pre-commit/pre-commit)
 [![ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
 ![](https://img.shields.io/badge/Lifecycle-Experimental-blue?style=flat)

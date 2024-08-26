@@ -282,7 +282,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 
 <section id="unit-testing" class="level2">
 <h2 class="anchored" data-anchor-id="unit-testing">Unit Testing</h2>
-<p>Unit tests are under the <code>tests/echo/</code> directory following the same structure of the <code>echo/</code> prefixed by “test_”. For example, if we wanted to write tests for <code>echo.py</code>, we would create a new file to build these tests <code>tests/echo/test_echo.py</code>.</p>
+<p>Unit tests are under the <code>tests/caml/</code> directory following the same structure of the <code>caml/</code> prefixed by “test_”. For example, if we wanted to write tests for <code>cate.py</code>, we would create a new file to build these tests <code>tests/caml/core/test_cate.py</code>.</p>
 <p>To run unit tests, we have configured a Pixi job so you can run the command:</p>
 <div class="sourceCode" id="cb1"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">pixi</span> run <span class="at">--environment</span> dev test</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <p>This will run your unit tests (with respective output printed in terminal) and update the coverage badge <img src="../assets/coverage.svg" class="img-fluid"></p>

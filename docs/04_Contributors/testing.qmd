@@ -3,9 +3,9 @@ title: "Testing"
 ---
 
 ## Unit Testing
-Unit tests are under the `tests/echo/` directory following the same structure of the `echo/` prefixed by "test_". 
-For example, if we wanted to write tests for `echo.py`, we would create a new file to build these tests
-`tests/echo/test_echo.py`. 
+Unit tests are under the `tests/caml/` directory following the same structure of the `caml/` prefixed by "test_". 
+For example, if we wanted to write tests for `cate.py`, we would create a new file to build these tests
+`tests/caml/core/test_cate.py`. 
 
 To run unit tests, we have configured a Pixi job so you can run the command: 
 ```bash
