@@ -19,5 +19,5 @@ __pycache__/
 # Backup
 .backup/
 
-# secrets
-secrets*
+# venv
+.venv/
