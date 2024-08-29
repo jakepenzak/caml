@@ -1,30 +1,101 @@
-# Accept user email and username as options to pass into git config
+#!/bin/bash
 
-# Usage: ./docker-run.sh -e <email> -u <username>
-
+# Initialize variables for email, username, and use_git flag
 email=""
 username=""
-while getopts e:u: flag
-do
-    case "${flag}" in
-        e) email=${OPTARG};;
-        u) username=${OPTARG};;
-        *) echo "Usage: $0 -e <email> -u <username>"; exit 1;;
+use_git=0
+image_name="caml"
+dockerfile="Dockerfile"
+
+# Function to display usage
+usage() {
+    echo "Usage: $0 [-g] -e <email> -u <username> [-i <image_name>] [-f <Dockerfile>]"
+    echo "  -g, --use-git           Configure Git with the provided email and username"
+    echo "  -e, --email             Email for Git configuration"
+    echo "  -u, --username          Username for Git configuration"
+    echo "  -i, --image-name        Name of the Docker image (default: my-docker-image)"
+    echo "  -f, --dockerfile        Dockerfile to use for building the image (default: Dockerfile)"
+    echo "  -h, --help              Display the help message"
+    exit 1
+}
+
+# Parse command-line options
+while [[ $# -gt 0 ]]; do
+    case "$1" in
+        -e|--email)
+            email="$2"
+            shift 2
+            ;;
+        -u|--username)
+            username="$2"
+            shift 2
+            ;;
+        -g|--use-git)
+            use_git=1
+            shift 1
+            ;;
+        -i|--image-name)
+            image_name="$2"
+            shift 2
+            ;;
+        -f|--dockerfile)
+            dockerfile="$2"
+            shift 2
+            ;;
+        -h|--help)
+            usage
+            ;;
+        *)
+            echo "Unknown option: $1"
+            usage
+            ;;
     esac
 done
 
-# Check if both email and username are provided
-if [ -z "$email" ] || [ -z "$username" ]; then
-    echo "Both email and username must be provided."
-    echo "Usage: $0 -e <email> -u <username>"
+# Check if both email and username are provided when use_git is enabled
+if [[ $use_git -eq 1 ]]; then
+    if [[ -z "$email" || -z "$username" ]]; then
+        echo "Error: Both email and username must be provided when using Git."
+        usage
+    fi
+fi
+
+# Build the Docker image
+echo "Building Docker image '$image_name' using Dockerfile '$dockerfile'..."
+docker build -t "$image_name" -f "$dockerfile" .
+
+# Check if the build was successful
+if [[ $? -ne 0 ]]; then
+    echo "Error: Docker build failed."
     exit 1
 fi
 
-docker build -t caml -f Dockerfile .
+# Build the Docker run command
+docker_cmd="docker run -it --rm -v $(pwd):/caml -v /caml/.venv -w /caml"
 
-docker run --rm -it \
-    -v $(pwd):/caml \
-    -v /caml/.venv \
-    -w /caml \
-    caml \
-    bash -c "git config --global --add safe.directory /caml && git config --global user.email $email && git config --global user.name $username && bash"
+# Add the image name and bash command
+docker_cmd+=" $image_name bash"
+
+if [[ $use_git -eq 1 ]]; then
+    docker_cmd+=" -c 'git config --global --add safe.directory /caml && git config --global user.name '$username' && git config --global user.email '$email' && bash'"
+else
+    docker_cmd+=" -c 'bash'"
+fi
+
+eval $docker_cmd
+
+# if [ -z "$use_git" ]; then
+#     docker run --rm -it \
+#         -v $(pwd):/caml \
+#         -v /caml/.venv \
+#         -w /caml \
+#         caml \
+#         bash -c "git config --global --add safe.directory /caml && git config --global user.email $email && git config --global user.name $username && bash"
+# else
+#     docker run --rm -it \
+#         -v $(pwd):/caml \
+#         -v /caml/.venv \
+#         -w /caml \
+#         caml \
+#         bash
+# fi
