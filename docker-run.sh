@@ -90,7 +90,7 @@ docker_cmd+=" $image_name bash"
 
 # Configure Git if use_git is enabled
 if [[ $use_git -eq 1 ]]; then
-    docker_cmd+=" -c 'git config --global --add safe.directory /caml && git config --global user.name '$username' && git config --global user.email '$email' && bash'"
+    docker_cmd+=" -c 'git config --global --add safe.directory /caml && git config --global user.name '$username' && git config --global user.email '$email' && pre-commit install && bash'"
 else
     docker_cmd+=" -c 'bash'"
 fi
