@@ -66,7 +66,7 @@ cp $dockerfile $temp_dockerfile
 
 if [[ $use_git -eq 1 ]]; then
     cp $dockerfile $temp_dockerfile
-    echo -e "\nCOPY --chown=root:root .ssh/config /root/.ssh/config" >> $temp_dockerfile
+    echo -e "\nCOPY --chown=root:root .ssh /root/.ssh" >> $temp_dockerfile
 fi
 
 # Build the Docker image
