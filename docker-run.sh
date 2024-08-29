@@ -83,7 +83,7 @@ if [[ $? -ne 0 ]]; then
 fi
 
 # Build the Docker run command
-docker_cmd="docker run -it --rm -v $(pwd):/caml -v /caml/.venv -w /caml"
+docker_cmd="docker run -p 8000:8000 -it --rm -v $(pwd):/caml -v /caml/.venv -w /caml"
 
 # Add the image name and bash command
 docker_cmd+=" $image_name bash"

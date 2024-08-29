@@ -33,5 +33,7 @@ ADD . /caml
 RUN --mount=type=cache,target=/root/.cache/uv \
     uv sync --all-extras --frozen
 
+EXPOSE 8000
+
 # Place executables in the environment at the front of the path
 ENV PATH="/caml/.venv/bin:$PATH"

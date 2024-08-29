@@ -24,3 +24,6 @@ __pycache__/
 
 # .ssh
 .ssh/
+
+# personal devcontainer.json
+devcontainer.json
