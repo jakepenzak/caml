@@ -55,12 +55,22 @@ done
 # Check if both email and username are provided when use_git is enabled
 if [[ $use_git -eq 1 ]]; then
     if [[ -z "$email" || -z "$username" ]]; then
-        echo "Error: Both email and username must be provided when using Git."
-        usage
+        echo "Error: Both email and username must be provided when using Git. Use the -h option for help."
+        exit 1
     fi
 fi
 
 # Build the Docker image
+temp_dockerfile="Dockerfile.temp"
+
+if [[ -f $dockerfile ]] && [[ $use_git -eq 1 ]]; then
+    cp $dockerfile $temp_dockerfile
+    echo "COPY --chown=root:root .ssh/config /root/.ssh/config" >> $temp_dockerfile
+else
+    echo "Error: Dockerfile '$dockerfile' not found."
+    exit 1
+fi
+
 echo "Building Docker image '$image_name' using Dockerfile '$dockerfile'..."
 docker build -t "$image_name" -f "$dockerfile" .
 
@@ -83,19 +93,3 @@ else
 fi
 
 eval $docker_cmd
-
-# if [ -z "$use_git" ]; then
-#     docker run --rm -it \
-#         -v $(pwd):/caml \
-#         -v /caml/.venv \
-#         -w /caml \
-#         caml \
-#         bash -c "git config --global --add safe.directory /caml && git config --global user.email $email && git config --global user.name $username && bash"
-# else
-#     docker run --rm -it \
-#         -v $(pwd):/caml \
-#         -v /caml/.venv \
-#         -w /caml \
-#         caml \
-#         bash
-# fi
