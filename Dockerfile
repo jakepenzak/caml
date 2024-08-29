@@ -37,7 +37,6 @@ RUN --mount=type=cache,target=/root/.cache/uv \
 ENV PATH="/caml/.venv/bin:$PATH"
 
 RUN pre-commit install 
-RUN git config --global --add safe.directory /caml
 
 # Add the ssh keys
 COPY --chown=root:root .ssh/config /root/.ssh/config
@@ -45,6 +44,3 @@ COPY --chown=root:root .ssh/id_caml /root/.ssh/id_caml
 COPY --chown=root:root .ssh/id_caml.pub /root/.ssh/id_caml.pub
 
 RUN chmod 700 /root/.ssh && chmod 600 /root/.ssh/id_caml && chmod 644 /root/.ssh/id_caml.pub
-
-# Default command to open a bash shell
-CMD ["/bin/bash"]

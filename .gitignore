@@ -21,3 +21,6 @@ __pycache__/
 
 # venv
 .venv/
+
+# .ssh
+.ssh/
