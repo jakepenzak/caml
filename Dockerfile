@@ -1,4 +1,4 @@
-FROM python:3.10-slim-bookworm
+FROM python:3.10-slim
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
@@ -37,6 +37,7 @@ RUN --mount=type=cache,target=/root/.cache/uv \
 ENV PATH="/caml/.venv/bin:$PATH"
 
 RUN pre-commit install 
+RUN git config --global --add safe.directory /caml
 
 # Default command to open a bash shell
 CMD ["/bin/bash"]
