@@ -24,14 +24,14 @@ WORKDIR /caml
 ADD uv.lock /caml/uv.lock
 ADD pyproject.toml /caml/pyproject.toml
 RUN --mount=type=cache,target=/root/.cache/uv \
-    uv sync --frozen --no-install-project
+    uv sync --frozen --all-extras --no-install-project
 RUN  curl -sS https://starship.rs/install.sh | sh -s -- -y
 RUN echo 'eval "$(starship init bash)"' >> ~/.bashrc
 
 # Then, install the rest of the project
 ADD . /caml
 RUN --mount=type=cache,target=/root/.cache/uv \
-    uv sync --frozen
+    uv sync --all-extras --frozen
 
 # Place executables in the environment at the front of the path
 ENV PATH="/caml/.venv/bin:$PATH"

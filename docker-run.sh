@@ -60,19 +60,21 @@ if [[ $use_git -eq 1 ]]; then
     fi
 fi
 
-# Build the Docker image
+# Construct the temporary Dockerfile with the Git configuration if use_git is enabled
 temp_dockerfile="Dockerfile.temp"
+cp $dockerfile $temp_dockerfile
 
-if [[ -f $dockerfile ]] && [[ $use_git -eq 1 ]]; then
+if [[ $use_git -eq 1 ]]; then
     cp $dockerfile $temp_dockerfile
-    echo "COPY --chown=root:root .ssh/config /root/.ssh/config" >> $temp_dockerfile
-else
-    echo "Error: Dockerfile '$dockerfile' not found."
-    exit 1
+    echo -e "\nCOPY --chown=root:root .ssh/config /root/.ssh/config" >> $temp_dockerfile
 fi
 
+# Build the Docker image
 echo "Building Docker image '$image_name' using Dockerfile '$dockerfile'..."
-docker build -t "$image_name" -f "$dockerfile" .
+docker build -t "$image_name" -f "$temp_dockerfile" .
+
+# Remove the temporary Dockerfile
+rm $temp_dockerfile
 
 # Check if the build was successful
 if [[ $? -ne 0 ]]; then
@@ -86,6 +88,7 @@ docker_cmd="docker run -it --rm -v $(pwd):/caml -v /caml/.venv -w /caml"
 # Add the image name and bash command
 docker_cmd+=" $image_name bash"
 
+# Configure Git if use_git is enabled
 if [[ $use_git -eq 1 ]]; then
     docker_cmd+=" -c 'git config --global --add safe.directory /caml && git config --global user.name '$username' && git config --global user.email '$email' && bash'"
 else
