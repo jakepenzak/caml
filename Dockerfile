@@ -38,6 +38,8 @@ ENV PATH="/caml/.venv/bin:$PATH"
 
 RUN pre-commit install 
 RUN git config --global --add safe.directory /caml
+RUN git config --global user.email "caml@localhost"
+RUN git config --global user.name "caml"
 
 # Default command to open a bash shell
 CMD ["/bin/bash"]
