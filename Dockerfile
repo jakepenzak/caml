@@ -8,7 +8,12 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     ca-certificates \
     nano \
     ssh \
+    openjdk-17-jdk \
     && rm -rf /var/lib/apt/lists/*
+
+# Add openjdk to path & set env variable
+ENV JAVA_HOME="/usr/lib/jvm/java-17-openjdk-amd64"
+ENV PATH="$JAVA_HOME/bin:$PATH"
 
 # Install uv
 ADD https://astral.sh/uv/0.4.0/install.sh /uv-installer.sh
@@ -33,7 +38,11 @@ ADD . /caml
 RUN --mount=type=cache,target=/root/.cache/uv \
     uv sync --all-extras --frozen
 
+# Expose port for quarto
 EXPOSE 8000
+
+# Copy keys for github ssh access
+COPY --chown=root:root .github_access /root/.ssh
 
 # Place executables in the environment at the front of the path
 ENV PATH="/caml/.venv/bin:$PATH"

@@ -60,21 +60,9 @@ if [[ $use_git -eq 1 ]]; then
     fi
 fi
 
-# Construct the temporary Dockerfile with the Git configuration if use_git is enabled
-temp_dockerfile="Dockerfile.temp"
-cp $dockerfile $temp_dockerfile
-
-if [[ $use_git -eq 1 ]]; then
-    cp $dockerfile $temp_dockerfile
-    echo -e "\nCOPY --chown=root:root .ssh /root/.ssh" >> $temp_dockerfile
-fi
-
 # Build the Docker image
 echo "Building Docker image '$image_name' using Dockerfile '$dockerfile'..."
-docker build -t "$image_name" -f "$temp_dockerfile" .
-
-# Remove the temporary Dockerfile
-rm $temp_dockerfile
+docker build -t "$image_name" -f "$dockerfile" .
 
 # Check if the build was successful
 if [[ $? -ne 0 ]]; then

@@ -4,13 +4,14 @@ dependencies = [
     "econml>=0.15.1",
     "flaml>=2.2.0",
     "xgboost>=2.1.1",
-    "ibis-framework[pandas]>=5.1.0",
+    "ibis-framework[pandas]>=9.3.0",
     "typeguard>=4.3.0",
     "doubleml>=0.8.0",
+    "matplotlib>=3.9.2",
 ]
 description = "Extensions & abstractions of advanced econometric techniques leveraging machine learning."
 name = "caml"
-requires-python = ">= 3.9"
+requires-python = ">= 3.10"
 version = "0.0.0.dev4"
 license = {file = "LICENSE"}
 readme = "README.md"
@@ -21,15 +22,13 @@ classifiers = [
 
 [project.optional-dependencies]
 pyspark = [
-    "ibis-framework[pyspark]>=5.1.0",
+    "ibis-framework[pyspark]>=9.3.0",
     "flaml[spark]>=2.2.0",
     "optuna>=3.6.1",
     "ray>=2.35.0",
-    "pyspark>=3.5.2",
 ]
 polars = [
-    "polars>=0.20.31",
-    "ibis-framework[polars]>=5.1.0",
+    "ibis-framework[polars]>=9.3.0",
 ]
 
 [build-system]
@@ -49,6 +48,7 @@ dev-dependencies = [
     "genbadge>=1.1.1",
     "defusedxml>=0.7.1",
     "quarto-cli>=1.5.57",
+    "jupyter>=1.1.0",
 ]
 
 [tool.ruff]
@@ -56,7 +56,7 @@ exclude = ["scripts/notebooks/",
             ".git",
             ".pytest_cache",
             ".ruff_cache",
-            "jobs/"]
+            "notebooks/"]
 
 extend-include = ["*.ipynb"]
 

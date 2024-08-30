@@ -23,7 +23,8 @@ __pycache__/
 .venv/
 
 # .ssh
-.ssh/
+.github_access/*
+!.github_access/README.md
 
 # personal devcontainer.json
 devcontainer.json

@@ -18,7 +18,6 @@
     "postCreateCommand": "git config --global --add safe.directory /caml && git config --global user.name {USERNAME} && git config --global user.email {EMAIL} && uv sync --all-extras --frozen && pre-commit install && bash",
     "remoteUser": "root",
     "mounts": [
-        "source=${localWorkspaceFolder}/.ssh,target=/root/.ssh,type=bind,consistency=cached",
         "source=${localWorkspaceFolder},target=/caml,type=bind,consistency=cached"
     ],
     "workspaceFolder": "/caml"
