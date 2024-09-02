@@ -1,0 +1,34 @@
+# cate_histogram_plot { #caml.extensions.plots.cate_histogram_plot }
+
+`extensions.plots.cate_histogram_plot(estimated_cates, *, true_cates=None, figure_kwargs={}, hist_kwargs={})`
+
+Plots a histogram the estimated CATEs.
+
+## Parameters
+
+| Name              | Type                           | Description                  | Default    |
+|-------------------|--------------------------------|------------------------------|------------|
+| `estimated_cates` | numpy.typing.ArrayLike         | The estimated CATEs.         | _required_ |
+| `true_cates`      | numpy.typing.ArrayLike \| None | The true CATEs.              | `None`     |
+| `figure_kwargs`   | dict                           | Matplotlib figure arguments. | `{}`       |
+| `hist_kwargs`     | dict                           | Matplotlib hist arguments.   | `{}`       |
+
+## Returns
+
+| Type                     | Description                  |
+|--------------------------|------------------------------|
+| matplotlib.figure.Figure | The histogram figure object. |
+
+## Examples
+
+```{python}
+import numpy as np
+from caml.extensions.plots import cate_histogram_plot
+
+np.random.seed(42)
+true_cates = np.random.normal(0, 1, 1000)
+estimated_cates = true_cates + np.random.normal(0, 0.5, 1000)
+
+fig = cate_histogram_plot(estimated_cates, true_cates=true_cates, hist_kwargs={'bins': 25})
+fig
+```

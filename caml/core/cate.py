@@ -2,17 +2,16 @@ from __future__ import annotations
 
 import copy
 import logging
+from typing import TYPE_CHECKING
 
 import ibis
+import matplotlib.pyplot as plt
 import numpy as np
 import pandas
-import polars
-import pyspark
-import ray
 from econml._cate_estimator import BaseCateEstimator
 from econml._ortho_learner import _OrthoLearner
 from econml.dml import DML, CausalForestDML, LinearDML, NonParamDML
-from econml.dr import DRLearner
+from econml.dr import DRLearner, ForestDRLearner, LinearDRLearner
 from econml.metalearners import DomainAdaptationLearner, SLearner, TLearner, XLearner
 from econml.score import EnsembleCateEstimator, RScorer
 from econml.validate.drtester import DRTester
@@ -27,6 +26,33 @@ from ._base import CamlBase
 
 logger = logging.getLogger(__name__)
 
+# Optional dependencies
+try:
+    import polars
+
+    _HAS_POLARS = True
+except ImportError:
+    _HAS_POLARS = False
+
+try:
+    import pyspark
+
+    _HAS_PYSPARK = True
+except ImportError:
+    _HAS_PYSPARK = False
+
+try:
+    import ray
+
+    _HAS_RAY = True
+except ImportError:
+    _HAS_RAY = False
+
+if TYPE_CHECKING:
+    import polars
+    import pyspark
+    import ray
+
 
 # TODO: Add support for different combinations of dtypes for treatments and outcomes.
 class CamlCATE(CamlBase):
@@ -36,7 +62,7 @@ class CamlCATE(CamlBase):
 
     This class is built on top of the EconML library and provides a high-level API for fitting, validating, and making inference with CATE models,
     with best practices built directly into the API. The class is designed to be easy to use and understand, while still providing
-    flexibility for advanced users. The class is designed to be used with the `pandas`, `polars`, `pyspark`, and `ibis` backends to
+    flexibility for advanced users. The class is designed to be used with `pandas`, `polars`, `pyspark`, or `ibis` backends to
     provide a level of extensibility & interoperability across different data processing frameworks.
 
     The primary workflow for the CamlCATE class is as follows:
@@ -85,8 +111,6 @@ class CamlCATE(CamlBase):
         The str representing the column name(s) for the treatment variable(s).
     X : list[str] | str | None
         The str (if unity) or list of feature names representing the confounder/control feature set to be utilized for estimating heterogeneity/CATE.
-    W : list[str] | str | None
-        The str (if unity) or list of feature names representing the additional confounder/control features not to be utilized in CATE model for heterogeneity. Only used for fitting nuisance functions.
     uuid : str | None
         The str representing the column name for the universal identifier code (eg, ehhn). Default implies index for joins.
     discrete_treatment : bool
@@ -95,6 +119,8 @@ class CamlCATE(CamlBase):
         A boolean indicating whether the outcome is binary or continuous.
     seed : int | None
         The seed to use for the random number generator.
+    verbose : int
+        The verbosity level for logging. Default implies 1 (INFO). Set to 0 for no logging. Set to 2 for DEBUG.
 
     Attributes
     ----------
@@ -104,10 +130,8 @@ class CamlCATE(CamlBase):
         The str representing the column name for the outcome variable.
     T : str
         The str representing the column name(s) for the treatment variable(s).
-    X : list[str] | str | None
+    X : list[str] | str
         The str (if unity) or list/tuple of feature names representing the confounder/control feature set to be utilized for estimating heterogeneity/CATE.
-    W : list[str] | str | None
-        The str (if unity) or list/tuple of feature names additional confounder/control feature se not to be utilized in CATE model. Only used for fitting nuisance functions.
     uuid : str
         The str representing the column name for the universal identifier code (eg, ehhn)
     discrete_treatment : bool
@@ -120,6 +144,12 @@ class CamlCATE(CamlBase):
         The fitted EconML estimator object on the entire dataset after validation.
     dataframe : pandas.DataFrame | polars.DataFrame | pyspark.sql.DataFrame | ibis.expr.types.Table
         The input DataFrame with any modifications (e.g., predictions or rank orderings) made by the class returned to the original backend.
+    model_Y_X: sklearn.base.BaseEstimator
+        The fitted nuisance function for the outcome variable.
+    model_Y_X_T: sklearn.base.BaseEstimator
+        The fitted nuisance function for the outcome variable with treatment variable.
+    model_T_X: sklearn.base.BaseEstimator
+        The fitted nuisance function for the treatment variable.
     _ibis_connection: ibis.client.Client
         The Ibis client object representing the backend connection to Ibis.
     _ibis_df: ibis.expr.types.Table
@@ -133,13 +163,9 @@ class CamlCATE(CamlBase):
     _T: ibis.expr.types.Table
         The treatment variable data as ibis table.
     _X: ibis.expr.types.Table
-        The feature set data as ibis table.
-    _W: ibis.expr.types.Table
-        The confounder feature set data as ibis table.
-    _X_W: ibis.expr.types.Table
-        The feature set and confounder feature set data as ibis table.
-    _X_W_T: ibis.expr.types.Table
-        The feature set, confounder feature set, and treatment variable data as ibis table.
+        The feature/confounder set data as ibis table.
+    _X_T: ibis.expr.types.Table
+        The feature/confounder feature set and treatment variable data as ibis table.
     _nuisances_fitted: bool
         A boolean indicating whether the nuisance functions have been fitted.
     _validation_estimator: econml._cate_estimator.BaseCateEstimator | econml.score.EnsembleCateEstimator
@@ -150,12 +176,6 @@ class CamlCATE(CamlBase):
         The results of the validation tests from DRTester.
     _cate_models: list[tuple[str, econml._cate_estimator.BaseCateEstimator]]
         The list of CATE models to fit and ensemble.
-    _model_Y_X_W: sklearn.base.BaseEstimator
-        The fitted nuisance function for the outcome variable.
-    _model_Y_X_W_T: sklearn.base.BaseEstimator
-        The fitted nuisance function for the outcome variable with treatment variable.
-    _model_T_X_W: sklearn.base.BaseEstimator
-        The fitted nuisance function for the treatment variable.
     _data_splits: dict[str, np.ndarray]
         The dictionary containing the training, validation, and test data splits.
     _rscorer: econml.score.RScorer
@@ -167,7 +187,7 @@ class CamlCATE(CamlBase):
     >>> from caml.extensions.synthetic_data import make_fully_heterogeneous_dataset
     >>> df, true_cates, true_ate = make_fully_heterogeneous_dataset(n_obs=1000, n_confounders=10, theta=10, seed=1)
     >>> df['uuid'] = df.index
-    >>>  caml_obj= CamlCATE(df=df, Y="y", T="d", X=[c for c in df.columns if "X" in c], W=[c for c in df.columns if "W" in c], uuid="uuid", discrete_treatment=True, discrete_outcome=False, seed=1)
+    >>>  caml_obj= CamlCATE(df=df, Y="y", T="d", X=[c for c in df.columns if "X" in c], uuid="uuid", discrete_treatment=True, discrete_outcome=False, seed=1)
     >>>
     >>> # Standard pipeline
     >>> caml_obj.auto_nuisance_functions()
@@ -191,20 +211,21 @@ class CamlCATE(CamlBase):
         | ibis.expr.types.Table,
         Y: str,
         T: str,
-        X: str | list[str] = [],
-        W: str | list[str] = [],
+        X: str | list[str],
         *,
         uuid: str | None = None,
         discrete_treatment: bool = True,
         discrete_outcome: bool = False,
         seed: int | None = None,
+        verbose: int = 1,
     ):
+        super().__init__(verbose=verbose)
+
         self.df = df
         self.uuid = uuid
         self.Y = Y
         self.T = T
         self.X = X
-        self.W = W
         self.discrete_treatment = discrete_treatment
         self.discrete_outcome = discrete_outcome
         self.seed = seed
@@ -221,9 +242,7 @@ class CamlCATE(CamlBase):
         self._Y = self._ibis_df.select(self.Y)
         self._T = self._ibis_df.select(self.T)
         self._X = self._ibis_df.select(self.X)
-        self._W = self._ibis_df.select(self.W) if self.W else None
-        self._X_W = self._ibis_df.select(self.X + self.W)
-        self._X_W_T = self._ibis_df.select(self.X + self.W + [self.T])
+        self._X_T = self._ibis_df.select(self.X + [self.T])
 
         self._nuisances_fitted = False
         self._validation_estimator = None
@@ -248,13 +267,13 @@ class CamlCATE(CamlBase):
         """
         Automatically finds the optimal nuisance functions for estimating EconML estimators.
 
-        Sets the `_model_Y_X_W`, `_model_Y_X_W_T`, and `_model_T_X_W` internal attributes to the fitted nuisance functions.
+        Sets the `model_Y_X`, `model_Y_X_T`, and `model_T_X` internal attributes to the fitted nuisance functions.
 
         Parameters
         ----------
-        flaml_Y_kwargs: dict
+        flaml_Y_kwargs: dict | None
             The keyword arguments for the FLAML AutoML search for the outcome model. Default implies the base parameters in CamlBase.
-        flaml_T_kwargs: dict
+        flaml_T_kwargs: dict | None
             The keyword arguments for the FLAML AutoML search for the treatment model. Default implies the base parameters in CamlBase.
         use_ray: bool
             A boolean indicating whether to use Ray for parallel processing.
@@ -274,25 +293,31 @@ class CamlCATE(CamlBase):
         >>> caml_obj.auto_nuisance_functions(flaml_Y_kwargs=flaml_Y_kwargs, flaml_T_kwargs=flaml_T_kwargs)
         """
 
-        self._model_Y_X_W = self._run_auto_nuisance_functions(
+        if use_ray:
+            assert _HAS_RAY, "Ray is not installed. Please install Ray to use it for parallel processing."
+
+        if use_spark:
+            assert _HAS_PYSPARK, "PySpark is not installed. Please install PySpark optional dependencies via `pip install caml[pyspark]`."
+
+        self.model_Y_X = self._run_auto_nuisance_functions(
             outcome=self._Y,
-            features=self._X_W,
+            features=self._X,
             discrete_outcome=self.discrete_outcome,
             flaml_kwargs=flaml_Y_kwargs,
             use_ray=use_ray,
             use_spark=use_spark,
         )
-        self._model_Y_X_W_T = self._run_auto_nuisance_functions(
+        self.model_Y_X_T = self._run_auto_nuisance_functions(
             outcome=self._Y,
-            features=self._X_W_T,
+            features=self._X_T,
             discrete_outcome=self.discrete_outcome,
             flaml_kwargs=flaml_Y_kwargs,
             use_ray=use_ray,
             use_spark=use_spark,
         )
-        self._model_T_X_W = self._run_auto_nuisance_functions(
+        self.model_T_X = self._run_auto_nuisance_functions(
             outcome=self._T,
-            features=self._X_W,
+            features=self._X,
             discrete_outcome=self.discrete_treatment,
             flaml_kwargs=flaml_T_kwargs,
             use_ray=use_ray,
@@ -315,6 +340,8 @@ class CamlCATE(CamlBase):
             "SLearner",
             "TLearner",
             "DRLearner",
+            "LinearDRLearner",
+            "ForestDRLearner",
         ],
         additional_cate_models: list[tuple[str, BaseCateEstimator]] = [],
         rscorer_kwargs: dict = {},
@@ -352,6 +379,9 @@ class CamlCATE(CamlBase):
 
         assert self._nuisances_fitted, "find_nuissance_functions() method must be called first to find optimal nussiance functions for estimating CATE models."
 
+        if use_ray:
+            assert _HAS_RAY, "Ray is not installed. Please install Ray to use it for parallel processing."
+
         self._split_data(validation_size=0.2, test_size=0.2)
         self._get_cate_models(
             subset_cate_models=subset_cate_models,
@@ -359,7 +389,7 @@ class CamlCATE(CamlBase):
         )
         (self._validation_estimator, self._rscorer) = (
             self._fit_and_ensemble_cate_models(
-                rscorer_settings=rscorer_kwargs,
+                rscorer_kwargs=rscorer_kwargs,
                 use_ray=use_ray,
                 ray_remote_func_options_kwargs=ray_remote_func_options_kwargs,
             )
@@ -390,6 +420,7 @@ class CamlCATE(CamlBase):
         --------
         >>> caml_obj.validate(print_full_report=True) # Prints the full validation report.
         """
+        plt.style.use("ggplot")
 
         if estimator is None:
             estimator = self._validation_estimator
@@ -401,8 +432,8 @@ class CamlCATE(CamlBase):
             )
 
         validator = DRTester(
-            model_regression=self._model_Y_X_W_T,
-            model_propensity=self._model_T_X_W,
+            model_regression=self.model_Y_X_T,
+            model_propensity=self.model_T_X,
             cate=estimator,
         )
 
@@ -747,9 +778,9 @@ class CamlCATE(CamlBase):
             The list of additional CATE models to fit and ensemble.
         """
 
-        mod_Y_X = self._model_Y_X_W
-        mod_T_X = self._model_T_X_W
-        mod_Y_X_T = self._model_Y_X_W_T
+        mod_Y_X = self.model_Y_X
+        mod_T_X = self.model_T_X
+        mod_Y_X_T = self.model_Y_X_T
 
         self._cate_models = [
             (
@@ -818,12 +849,36 @@ class CamlCATE(CamlBase):
                         model_propensity=mod_T_X,
                         model_regression=mod_Y_X_T,
                         model_final=mod_Y_X_T,
+                        discrete_outcome=self.discrete_outcome,
                         cv=3,
                         random_state=self.seed,
                     ),
                 )
             )
-
+            self._cate_models.append(
+                (
+                    "LinearDRLearner",
+                    LinearDRLearner(
+                        model_propensity=mod_T_X,
+                        model_regression=mod_Y_X_T,
+                        discrete_outcome=self.discrete_outcome,
+                        cv=3,
+                        random_state=self.seed,
+                    ),
+                )
+            )
+            self._cate_models.append(
+                (
+                    "ForestDRLearner",
+                    ForestDRLearner(
+                        model_propensity=mod_T_X,
+                        model_regression=mod_Y_X_T,
+                        discrete_outcome=self.discrete_outcome,
+                        cv=3,
+                        random_state=self.seed,
+                    ),
+                )
+            )
         if (self.discrete_treatment and self._T.distinct().count().execute() == 2) or (
             not self.discrete_treatment
         ):
@@ -852,7 +907,7 @@ class CamlCATE(CamlBase):
     def _fit_and_ensemble_cate_models(
         self,
         *,
-        rscorer_settings: dict,
+        rscorer_kwargs: dict,
         use_ray: bool,
         ray_remote_func_options_kwargs: dict,
     ):
@@ -861,7 +916,7 @@ class CamlCATE(CamlBase):
 
         Parameters
         ----------
-        rscorer_settings: dict
+        rscorer_kwargs: dict
             The keyword arguments for the econml.score.RScorer object.
         use_ray: bool
             A boolean indicating whether to use Ray for parallel processing.
@@ -898,22 +953,27 @@ class CamlCATE(CamlBase):
                 return name, model.tune(Y=Y_train, T=T_train, X=X_train).fit(
                     Y=Y_train, T=T_train, X=X_train
                 )
-            return name, model.fit(Y=Y_train, T=T_train, X=X_train)
+            else:
+                return name, model.fit(Y=Y_train, T=T_train, X=X_train)
 
         if use_ray:
             ray.init(ignore_reinit_error=True)
 
-            fit_model = ray.remote(fit_model).options(**ray_remote_func_options_kwargs)
-            futures = [
-                fit_model.remote(
-                    name,
-                    model,
-                    use_ray=True,
-                    ray_remote_func_options_kwargs=ray_remote_func_options_kwargs,
-                )
+            models = [
+                fit_model(name, model, use_ray=True)
                 for name, model in self._cate_models
             ]
-            models = ray.get(futures)
+            # fit_model = ray.remote(fit_model).options(**ray_remote_func_options_kwargs)
+            # futures = [
+            #     fit_model.remote(
+            #         name,
+            #         model,
+            #         use_ray=True,
+            #         ray_remote_func_options_kwargs=ray_remote_func_options_kwargs,
+            #     )
+            #     for name, model in self._cate_models
+            # ]
+            # models = ray.get(futures)
         else:
             models = Parallel(n_jobs=-1)(
                 delayed(fit_model)(name, model) for name, model in self._cate_models
@@ -926,17 +986,17 @@ class CamlCATE(CamlBase):
             "random_state": self.seed,
         }
 
-        if rscorer_settings is not None:
-            base_rscorer_settings.update(rscorer_settings)
+        if rscorer_kwargs is not None:
+            base_rscorer_settings.update(rscorer_kwargs)
 
         rscorer = RScorer(  # BUG: RScorer does not work with discrete outcomes. See monkey patch below.
-            model_y=self._model_Y_X_W,
-            model_t=self._model_T_X_W,
+            model_y=self.model_Y_X,
+            model_t=self.model_T_X,
             discrete_treatment=self.discrete_treatment,
             **base_rscorer_settings,
         )
 
-        rscorer.fit(Y_val, T_val, X_val, discrete_outcome=self.discrete_outcome)
+        rscorer.fit(Y=Y_val, T=T_val, X=X_val, discrete_outcome=self.discrete_outcome)
 
         ensemble_estimator, ensemble_score, estimator_scores = rscorer.ensemble(
             [mdl for _, mdl in models], return_scores=True
@@ -960,7 +1020,7 @@ class CamlCATE(CamlBase):
                 ]
             else:
                 logger.info(
-                    "The ensemble estimator is the best estimator, filtering models with weights less than 0.01."
+                    "The ensemble estimator is the best estimator, filtering out models with weights less than 0.01."
                 )
                 estimator_weight_map = dict(
                     zip(ensemble_estimator._cate_models, ensemble_estimator._weights)
@@ -970,6 +1030,9 @@ class CamlCATE(CamlBase):
                 ]
                 ensemble_estimator._weights = np.array(
                     [v for _, v in estimator_weight_map.items() if v > 0.01]
+                )
+                ensemble_estimator._weights = ensemble_estimator._weights / np.sum(
+                    ensemble_estimator._weights
                 )
                 best_estimator = ensemble_estimator
 
@@ -981,10 +1044,44 @@ class CamlCATE(CamlBase):
 
         return best_estimator, rscorer
 
+    def __str__(self):
+        """
+        Returns a string representation of the CamlCATE object.
+        Returns
+        -------
+        summary : str
+            A string containing information about the CamlCATE object, including data backend, number of observations, UUID, outcome variable, discrete outcome, treatment variable, discrete treatment, features/confounders, random seed, nuissance models (if fitted), and final estimator (if available).
+        """
+
+        summary = (
+            "================== CamlCATE Object ==================\n"
+            + f"Data Backend: {self._ibis_connection.name}\n"
+            + f"No. of Observations: {self._Y.count().execute()}\n"
+            + f"UUID: {self.uuid}\n"
+            + f"Outcome Variable: {self.Y}\n"
+            + f"Discrete Outcome: {self.discrete_outcome}\n"
+            + f"Treatment Variable: {self.T}\n"
+            + f"Discrete Treatment: {self.discrete_treatment}\n"
+            + f"Features/Confounders: {self.X}\n"
+            + f"Random Seed: {self.seed}\n"
+        )
+
+        if self._nuisances_fitted:
+            summary += (
+                f"Nuissance Model Y_X: {self.model_Y_X}\n"
+                + f"Propensity/Nuissance Model T_X: {self.model_T_X}\n"
+                + f"Regression Model Y_X_T: {self.model_Y_X_T}\n"
+            )
+
+        if self._final_estimator is not None:
+            summary += f"Final Estimator: {self._final_estimator}\n"
+
+        return summary
+
 
 # Monkey patching Rscorer
 def patched_fit(
-    self, y, T, X=None, W=None, sample_weight=None, groups=None, discrete_outcome=False
+    self, Y, T, X=None, W=None, sample_weight=None, groups=None, discrete_outcome=False
 ):
     if X is None:
         raise ValueError("X cannot be None for the RScorer!")
@@ -1001,7 +1098,7 @@ def patched_fit(
         mc_agg=self.mc_agg,
     )
     self.lineardml_.fit(
-        y,
+        Y,
         T,
         X=None,
         W=np.hstack([v for v in [X, W] if v is not None]),

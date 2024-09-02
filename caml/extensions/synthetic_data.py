@@ -231,7 +231,7 @@ def make_fully_heterogeneous_dataset(
     d_i=f(\mathbf{X_i})+\eta_i
     $$
 
-    where $y_i$ is the outcome, $d_i$ is the treatment, $\mathbf{X_i}$ are the confounders utilized for effect heterogeneity, $\epsilon_i$ and $\eta_i$ are the error terms, $g$ is the outcome function, and $f$ is the treatment function.
+    where $y_i$ is the outcome, $d_i$ is the treatment, $\mathbf{X_i}$ are the confounders utilized for full effect heterogeneity, $\epsilon_i$ and $\eta_i$ are the error terms, $g$ is the outcome function, and $f$ is the treatment function.
 
     See the `doubleml` documentation for more details on the specific functional forms of the data generating process.
 

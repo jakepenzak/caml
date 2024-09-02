@@ -11,7 +11,7 @@ format:
     toc: true
 
 website:
-  title: CaML - Causal ML 
+  title: CaML - Causal ML
   favicon: assets/logo_no_text.svg
   page-navigation: true
   open-graph: true
@@ -41,10 +41,10 @@ website:
       - sidebar:Concepts
       - text: "API Reference"
         file: 03_Reference/index.qmd
-  
+
     right:
       - sidebar:Contributors
-  
+
   sidebar:
     - id: ""
     - id: Home
@@ -96,8 +96,11 @@ quartodoc:
         - make_dowhy_linear_dataset
     - title: Plots
       desc: "`from caml.extensions.plots import *`"
+      package: caml.extensions.plots
       contents:
-        - extensions.plots.plot
+        - cate_histogram_plot
+        - cate_line_plot
+        - cate_true_vs_estimated_plot
     -  title: Developer Tools
        contents:
         - utils.generate_random_string

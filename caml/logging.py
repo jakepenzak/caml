@@ -25,7 +25,7 @@ rich_handler = RichHandler(
 )
 
 
-def setup_logging():
+def setup_logging(verbose: int = 1):
     """
     Set up logging configuration.
 
@@ -34,12 +34,18 @@ def setup_logging():
     The logging handler used is `rich_handler`.
     """
 
-    logging.basicConfig(
-        level=logging.INFO, format="%(message)s", handlers=[rich_handler]
-    )
+    if verbose == 0:
+        logging.basicConfig(
+            level=logging.WARNING, format="%(message)s", handlers=[rich_handler]
+        )
+    elif verbose == 1:
+        logging.basicConfig(
+            level=logging.INFO, format="%(message)s", handlers=[rich_handler]
+        )
+    elif verbose >= 2:
+        logging.basicConfig(
+            level=logging.DEBUG, format="%(message)s", handlers=[rich_handler]
+        )
 
     logger = logging.getLogger(__name__)
     logger.info("Logging has been set up.")
-
-
-setup_logging()

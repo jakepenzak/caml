@@ -12,7 +12,9 @@ website:
       - 03_Reference/make_dowhy_linear_dataset.qmd
       section: Synthetic Data Generation
     - contents:
-      - 03_Reference/extensions.plots.plot.qmd
+      - 03_Reference/cate_histogram_plot.qmd
+      - 03_Reference/cate_line_plot.qmd
+      - 03_Reference/cate_true_vs_estimated_plot.qmd
       section: Plots
     - contents:
       - 03_Reference/utils.generate_random_string.qmd

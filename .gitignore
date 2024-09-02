@@ -20,7 +20,7 @@ __pycache__/
 .backup/
 
 # venv
-.venv/
+.venv*/
 
 # .ssh
 .github_access/*

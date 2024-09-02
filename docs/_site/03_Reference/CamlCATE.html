@@ -2,12 +2,12 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
 
 <meta charset="utf-8">
-<meta name="generator" content="quarto-1.4.557">
+<meta name="generator" content="quarto-1.5.57">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 
-<title>CaML - Causal ML</title>
+<title>camlcate – CaML - Causal ML</title>
 <style>
 code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
@@ -17,7 +17,7 @@ div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
 ul.task-list{list-style: none;}
 ul.task-list li input[type="checkbox"] {
   width: 0.8em;
-  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */
   vertical-align: middle;
 }
 /* CSS for syntax highlighting */
@@ -121,75 +121,75 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     </a>
   </div>
             <div id="quarto-search" class="" title="Search"></div>
-          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" aria-expanded="false" aria-label="Toggle navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" role="menu" aria-expanded="false" aria-label="Toggle navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
   <span class="navbar-toggler-icon"></span>
 </button>
           <div class="collapse navbar-collapse" id="navbarCollapse">
             <ul class="navbar-nav navbar-nav-scroll me-auto">
   <li class="nav-item dropdown ">
-    <a class="nav-link dropdown-toggle" href="#" id="nav-menu-home" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+    <a class="nav-link dropdown-toggle" href="#" id="nav-menu-home" role="link" data-bs-toggle="dropdown" aria-expanded="false">
  <span class="menu-text">Home</span>
     </a>
-    <ul class="dropdown-menu" aria-labelledby="nav-menu-home">    
+    <ul class="dropdown-menu" aria-labelledby="nav-menu-home">
         <li>
     <a class="dropdown-item" href="../index.html">
  <span class="dropdown-text">Welcome!</span></a>
-  </li>  
+  </li>
         <li>
     <a class="dropdown-item" href="../01_Home/installation.html">
  <span class="dropdown-text">Installation</span></a>
-  </li>  
+  </li>
         <li>
     <a class="dropdown-item" href="../01_Home/quickstart.html">
  <span class="dropdown-text">Tutorial: Quick Start</span></a>
-  </li>  
+  </li>
     </ul>
   </li>
   <li class="nav-item dropdown ">
-    <a class="nav-link dropdown-toggle" href="#" id="nav-menu-concepts" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+    <a class="nav-link dropdown-toggle" href="#" id="nav-menu-concepts" role="link" data-bs-toggle="dropdown" aria-expanded="false">
  <span class="menu-text">Concepts</span>
     </a>
-    <ul class="dropdown-menu" aria-labelledby="nav-menu-concepts">    
+    <ul class="dropdown-menu" aria-labelledby="nav-menu-concepts">
         <li>
     <a class="dropdown-item" href="../02_Concepts/motivation.html">
  <span class="dropdown-text">Motivation</span></a>
-  </li>  
+  </li>
         <li>
     <a class="dropdown-item" href="../02_Concepts/theory.html">
  <span class="dropdown-text">Econometric Theory</span></a>
-  </li>  
+  </li>
     </ul>
   </li>
   <li class="nav-item">
-    <a class="nav-link" href="../03_Reference/index.html"> 
+    <a class="nav-link" href="../03_Reference/index.html">
 <span class="menu-text">API Reference</span></a>
-  </li>  
+  </li>
 </ul>
             <ul class="navbar-nav navbar-nav-scroll ms-auto">
   <li class="nav-item dropdown ">
-    <a class="nav-link dropdown-toggle" href="#" id="nav-menu-contributors" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+    <a class="nav-link dropdown-toggle" href="#" id="nav-menu-contributors" role="link" data-bs-toggle="dropdown" aria-expanded="false">
  <span class="menu-text">Contributors</span>
     </a>
-    <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="nav-menu-contributors">    
+    <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="nav-menu-contributors">
         <li>
     <a class="dropdown-item" href="../04_Contributors/environment.html">
  <span class="dropdown-text">Environment &amp; Development</span></a>
-  </li>  
+  </li>
         <li>
     <a class="dropdown-item" href="../04_Contributors/testing.html">
  <span class="dropdown-text">Testing</span></a>
-  </li>  
+  </li>
         <li>
     <a class="dropdown-item" href="../04_Contributors/documentation.html">
  <span class="dropdown-text">Documentation</span></a>
-  </li>  
+  </li>
     </ul>
   </li>
 </ul>
           </div> <!-- /navcollapse -->
-          <div class="quarto-navbar-tools">
+            <div class="quarto-navbar-tools">
     <div class="dropdown">
-      <a href="" title="" id="quarto-navigation-tool-dropdown-0" class="quarto-navigation-tool dropdown-toggle px-1" data-bs-toggle="dropdown" aria-expanded="false" aria-label=""><i class="bi bi-github"></i></a>
+      <a href="" title="" id="quarto-navigation-tool-dropdown-0" class="quarto-navigation-tool dropdown-toggle px-1" data-bs-toggle="dropdown" aria-expanded="false" role="link" aria-label=""><i class="bi bi-github"></i></a>
       <ul class="dropdown-menu" aria-labelledby="quarto-navigation-tool-dropdown-0">
           <li>
             <a class="dropdown-item quarto-navbar-tools-item" href="https://github.com/jakepenzak/caml">
@@ -214,7 +214,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
         <nav id="TOC" role="doc-toc" class="toc-active">
     <h2 id="toc-title">On this page</h2>
-   
+
   <ul>
   <li><a href="#caml.CamlCATE" id="toc-caml.CamlCATE" class="nav-link active" data-scroll-target="#caml.CamlCATE">CamlCATE</a>
   <ul class="collapse">
@@ -243,9 +243,9 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 
 <section id="caml.CamlCATE" class="level1">
 <h1>CamlCATE</h1>
-<p><code>CamlCATE(self, df, Y, T, X=[], W=[], *, uuid=None, discrete_treatment=True, discrete_outcome=False, seed=None)</code></p>
+<p><code>CamlCATE(self, df, Y, T, X, *, uuid=None, discrete_treatment=True, discrete_outcome=False, seed=None, verbose=1)</code></p>
 <p>The CamlCATE class represents an opinionated implementation of Causal Machine Learning techniques for estimating highly accurate conditional average treatment effects (CATEs).</p>
-<p>This class is built on top of the EconML library and provides a high-level API for fitting, validating, and making inference with CATE models, with best practices built directly into the API. The class is designed to be easy to use and understand, while still providing flexibility for advanced users. The class is designed to be used with the <code>pandas</code>, <code>polars</code>, <code>pyspark</code>, and <code>ibis</code> backends to provide a level of extensibility &amp; interoperability across different data processing frameworks.</p>
+<p>This class is built on top of the EconML library and provides a high-level API for fitting, validating, and making inference with CATE models, with best practices built directly into the API. The class is designed to be easy to use and understand, while still providing flexibility for advanced users. The class is designed to be used with <code>pandas</code>, <code>polars</code>, <code>pyspark</code>, or <code>ibis</code> backends to provide a level of extensibility &amp; interoperability across different data processing frameworks.</p>
 <p>The primary workflow for the CamlCATE class is as follows:</p>
 <ol type="1">
 <li>Initialize the class with the input DataFrame and the necessary columns.</li>
@@ -335,10 +335,10 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <h2 class="anchored" data-anchor-id="parameters">Parameters</h2>
 <table class="caption-top table">
 <colgroup>
-<col style="width: 6%">
-<col style="width: 27%">
-<col style="width: 61%">
-<col style="width: 3%">
+<col style="width: 8%">
+<col style="width: 33%">
+<col style="width: 53%">
+<col style="width: 4%">
 </colgroup>
 <thead>
 <tr class="header">
@@ -371,37 +371,37 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <td><code>X</code></td>
 <td>list[str] | str | None</td>
 <td>The str (if unity) or list of feature names representing the confounder/control feature set to be utilized for estimating heterogeneity/CATE.</td>
-<td><code>[]</code></td>
+<td><em>required</em></td>
 </tr>
 <tr class="odd">
-<td><code>W</code></td>
-<td>list[str] | str | None</td>
-<td>The str (if unity) or list of feature names representing the additional confounder/control features not to be utilized in CATE model for heterogeneity. Only used for fitting nuisance functions.</td>
-<td><code>[]</code></td>
-</tr>
-<tr class="even">
 <td><code>uuid</code></td>
 <td>str | None</td>
 <td>The str representing the column name for the universal identifier code (eg, ehhn). Default implies index for joins.</td>
 <td><code>None</code></td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td><code>discrete_treatment</code></td>
 <td>bool</td>
 <td>A boolean indicating whether the treatment is discrete/categorical or continuous.</td>
 <td><code>True</code></td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td><code>discrete_outcome</code></td>
 <td>bool</td>
 <td>A boolean indicating whether the outcome is binary or continuous.</td>
 <td><code>False</code></td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td><code>seed</code></td>
 <td>int | None</td>
 <td>The seed to use for the random number generator.</td>
 <td><code>None</code></td>
+</tr>
+<tr class="odd">
+<td><code>verbose</code></td>
+<td>int</td>
+<td>The verbosity level for logging. Default implies 1 (INFO). Set to 0 for no logging. Set to 2 for DEBUG.</td>
+<td><code>1</code></td>
 </tr>
 </tbody>
 </table>
@@ -411,8 +411,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <table class="caption-top table">
 <colgroup>
 <col style="width: 8%">
-<col style="width: 31%">
-<col style="width: 60%">
+<col style="width: 33%">
+<col style="width: 57%">
 </colgroup>
 <thead>
 <tr class="header">
@@ -439,43 +439,53 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </tr>
 <tr class="even">
 <td>X</td>
-<td>list[str] | str | None</td>
+<td>list[str] | str</td>
 <td>The str (if unity) or list/tuple of feature names representing the confounder/control feature set to be utilized for estimating heterogeneity/CATE.</td>
 </tr>
 <tr class="odd">
-<td>W</td>
-<td>list[str] | str | None</td>
-<td>The str (if unity) or list/tuple of feature names additional confounder/control feature se not to be utilized in CATE model. Only used for fitting nuisance functions.</td>
-</tr>
-<tr class="even">
 <td>uuid</td>
 <td>str</td>
 <td>The str representing the column name for the universal identifier code (eg, ehhn)</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td>discrete_treatment</td>
 <td>bool</td>
 <td>A boolean indicating whether the treatment is discrete/categorical or continuous.</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td>discrete_outcome</td>
 <td>bool</td>
 <td>A boolean indicating whether the outcome is binary or continuous.</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td>validation_estimator</td>
 <td>econml._cate_estimator.BaseCateEstimator | econml.score.EnsembleCateEstimator</td>
 <td>The fitted EconML estimator object for validation.</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td>final_estimator</td>
 <td>econml._cate_estimator.BaseCateEstimator | econml.score.EnsembleCateEstimator</td>
 <td>The fitted EconML estimator object on the entire dataset after validation.</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td>dataframe</td>
 <td>pandas.DataFrame | polars.DataFrame | pyspark.sql.DataFrame | ibis.expr.types.Table</td>
 <td>The input DataFrame with any modifications (e.g., predictions or rank orderings) made by the class returned to the original backend.</td>
+</tr>
+<tr class="odd">
+<td>model_Y_X</td>
+<td>sklearn.base.BaseEstimator</td>
+<td>The fitted nuisance function for the outcome variable.</td>
+</tr>
+<tr class="even">
+<td>model_Y_X_T</td>
+<td>sklearn.base.BaseEstimator</td>
+<td>The fitted nuisance function for the outcome variable with treatment variable.</td>
+</tr>
+<tr class="odd">
+<td>model_T_X</td>
+<td>sklearn.base.BaseEstimator</td>
+<td>The fitted nuisance function for the treatment variable.</td>
 </tr>
 <tr class="even">
 <td>_ibis_connection</td>
@@ -510,22 +520,12 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <tr class="even">
 <td>_X</td>
 <td>ibis.expr.types.Table</td>
-<td>The feature set data as ibis table.</td>
+<td>The feature/confounder set data as ibis table.</td>
 </tr>
 <tr class="odd">
-<td>_W</td>
+<td>_X_T</td>
 <td>ibis.expr.types.Table</td>
-<td>The confounder feature set data as ibis table.</td>
-</tr>
-<tr class="even">
-<td>_X_W</td>
-<td>ibis.expr.types.Table</td>
-<td>The feature set and confounder feature set data as ibis table.</td>
-</tr>
-<tr class="odd">
-<td>_X_W_T</td>
-<td>ibis.expr.types.Table</td>
-<td>The feature set, confounder feature set, and treatment variable data as ibis table.</td>
+<td>The feature/confounder feature set and treatment variable data as ibis table.</td>
 </tr>
 <tr class="even">
 <td>_nuisances_fitted</td>
@@ -553,26 +553,11 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <td>The list of CATE models to fit and ensemble.</td>
 </tr>
 <tr class="odd">
-<td>_model_Y_X_W</td>
-<td>sklearn.base.BaseEstimator</td>
-<td>The fitted nuisance function for the outcome variable.</td>
-</tr>
-<tr class="even">
-<td>_model_Y_X_W_T</td>
-<td>sklearn.base.BaseEstimator</td>
-<td>The fitted nuisance function for the outcome variable with treatment variable.</td>
-</tr>
-<tr class="odd">
-<td>_model_T_X_W</td>
-<td>sklearn.base.BaseEstimator</td>
-<td>The fitted nuisance function for the treatment variable.</td>
-</tr>
-<tr class="even">
 <td>_data_splits</td>
 <td>dict[str, np.ndarray]</td>
 <td>The dictionary containing the training, validation, and test data splits.</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td>_rscorer</td>
 <td>econml.score.RScorer</td>
 <td>The RScorer object for the validation estimator.</td>
@@ -586,7 +571,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="op">&gt;&gt;&gt;</span> <span class="im">from</span> caml.extensions.synthetic_data <span class="im">import</span> make_fully_heterogeneous_dataset</span>
 <span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="op">&gt;&gt;&gt;</span> df, true_cates, true_ate <span class="op">=</span> make_fully_heterogeneous_dataset(n_obs<span class="op">=</span><span class="dv">1000</span>, n_confounders<span class="op">=</span><span class="dv">10</span>, theta<span class="op">=</span><span class="dv">10</span>, seed<span class="op">=</span><span class="dv">1</span>)</span>
 <span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="op">&gt;&gt;&gt;</span> df[<span class="st">'uuid'</span>] <span class="op">=</span> df.index</span>
-<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="op">&gt;&gt;&gt;</span>  caml_obj<span class="op">=</span> CamlCATE(df<span class="op">=</span>df, Y<span class="op">=</span><span class="st">"y"</span>, T<span class="op">=</span><span class="st">"d"</span>, X<span class="op">=</span>[c <span class="cf">for</span> c <span class="kw">in</span> df.columns <span class="cf">if</span> <span class="st">"X"</span> <span class="kw">in</span> c], W<span class="op">=</span>[c <span class="cf">for</span> c <span class="kw">in</span> df.columns <span class="cf">if</span> <span class="st">"W"</span> <span class="kw">in</span> c], uuid<span class="op">=</span><span class="st">"uuid"</span>, discrete_treatment<span class="op">=</span><span class="va">True</span>, discrete_outcome<span class="op">=</span><span class="va">False</span>, seed<span class="op">=</span><span class="dv">1</span>)</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="op">&gt;&gt;&gt;</span>  caml_obj<span class="op">=</span> CamlCATE(df<span class="op">=</span>df, Y<span class="op">=</span><span class="st">"y"</span>, T<span class="op">=</span><span class="st">"d"</span>, X<span class="op">=</span>[c <span class="cf">for</span> c <span class="kw">in</span> df.columns <span class="cf">if</span> <span class="st">"X"</span> <span class="kw">in</span> c], uuid<span class="op">=</span><span class="st">"uuid"</span>, discrete_treatment<span class="op">=</span><span class="va">True</span>, discrete_outcome<span class="op">=</span><span class="va">False</span>, seed<span class="op">=</span><span class="dv">1</span>)</span>
 <span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="op">&gt;&gt;&gt;</span></span>
 <span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a><span class="op">&gt;&gt;&gt;</span> <span class="co"># Standard pipeline</span></span>
 <span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a><span class="op">&gt;&gt;&gt;</span> caml_obj.auto_nuisance_functions()</span>
@@ -644,7 +629,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <h3 class="anchored" data-anchor-id="caml.CamlCATE.auto_nuisance_functions">auto_nuisance_functions</h3>
 <p><code>CamlCATE.auto_nuisance_functions(flaml_Y_kwargs=None, flaml_T_kwargs=None, use_ray=False, use_spark=False)</code></p>
 <p>Automatically finds the optimal nuisance functions for estimating EconML estimators.</p>
-<p>Sets the <code>_model_Y_X_W</code>, <code>_model_Y_X_W_T</code>, and <code>_model_T_X_W</code> internal attributes to the fitted nuisance functions.</p>
+<p>Sets the <code>model_Y_X</code>, <code>model_Y_X_T</code>, and <code>model_T_X</code> internal attributes to the fitted nuisance functions.</p>
 <section id="parameters-1" class="level4">
 <h4 class="anchored" data-anchor-id="parameters-1">Parameters</h4>
 <table class="caption-top table">
@@ -715,17 +700,17 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </section>
 <section id="caml.CamlCATE.fit_validator" class="level3">
 <h3 class="anchored" data-anchor-id="caml.CamlCATE.fit_validator">fit_validator</h3>
-<p><code>CamlCATE.fit_validator(subset_cate_models=['LinearDML', 'NonParamDML', 'DML-Lasso3d', 'CausalForestDML', 'XLearner', 'DomainAdaptationLearner', 'SLearner', 'TLearner', 'DRLearner'], additional_cate_models=[], rscorer_kwargs={}, use_ray=False, ray_remote_func_options_kwargs={})</code></p>
+<p><code>CamlCATE.fit_validator(subset_cate_models=['LinearDML', 'NonParamDML', 'DML-Lasso3d', 'CausalForestDML', 'XLearner', 'DomainAdaptationLearner', 'SLearner', 'TLearner', 'DRLearner', 'LinearDRLearner', 'ForestDRLearner'], additional_cate_models=[], rscorer_kwargs={}, use_ray=False, ray_remote_func_options_kwargs={})</code></p>
 <p>Fits the CATE models on the training set and evaluates them &amp; ensembles based on the validation set.</p>
 <p>Sets the <code>_validation_estimator</code> and <code>_rscorer</code> internal attributes to the fitted EconML estimator and RScorer object.</p>
 <section id="parameters-2" class="level4">
 <h4 class="anchored" data-anchor-id="parameters-2">Parameters</h4>
 <table class="caption-top table">
 <colgroup>
-<col style="width: 10%">
-<col style="width: 12%">
-<col style="width: 32%">
-<col style="width: 44%">
+<col style="width: 9%">
+<col style="width: 11%">
+<col style="width: 28%">
+<col style="width: 50%">
 </colgroup>
 <thead>
 <tr class="header">
@@ -740,7 +725,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <td><code>subset_cate_models</code></td>
 <td>list[str]</td>
 <td>The list of CATE models to fit and ensemble. Default implies all available models as defined by class.</td>
-<td><code>['LinearDML', 'NonParamDML', 'DML-Lasso3d', 'CausalForestDML', 'XLearner', 'DomainAdaptationLearner', 'SLearner', 'TLearner', 'DRLearner']</code></td>
+<td><code>['LinearDML', 'NonParamDML', 'DML-Lasso3d', 'CausalForestDML', 'XLearner', 'DomainAdaptationLearner', 'SLearner', 'TLearner', 'DRLearner', 'LinearDRLearner', 'ForestDRLearner']</code></td>
 </tr>
 <tr class="even">
 <td><code>additional_cate_models</code></td>
@@ -1076,7 +1061,7 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
       toggleBodyColorMode(bsSheetEl);
     }
   }
-  toggleBodyColorPrimary();  
+  toggleBodyColorPrimary();
   const icon = "";
   const anchorJS = new window.AnchorJS();
   anchorJS.options = {
@@ -1086,24 +1071,13 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
   anchorJS.add('.anchored');
   const isCodeAnnotation = (el) => {
     for (const clz of el.classList) {
-      if (clz.startsWith('code-annotation-')) {                     
+      if (clz.startsWith('code-annotation-')) {
         return true;
       }
     }
     return false;
   }
-  const clipboard = new window.ClipboardJS('.code-copy-button', {
-    text: function(trigger) {
-      const codeEl = trigger.previousElementSibling.cloneNode(true);
-      for (const childEl of codeEl.children) {
-        if (isCodeAnnotation(childEl)) {
-          childEl.remove();
-        }
-      }
-      return codeEl.innerText;
-    }
-  });
-  clipboard.on('success', function(e) {
+  const onCopySuccess = function(e) {
     // button target
     const button = e.trigger;
     // don't keep focus
@@ -1117,11 +1091,11 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
       button.setAttribute("data-bs-toggle", "tooltip");
       button.setAttribute("data-bs-placement", "left");
       button.setAttribute("data-bs-title", "Copied!");
-      tooltip = new bootstrap.Tooltip(button, 
-        { trigger: "manual", 
+      tooltip = new bootstrap.Tooltip(button,
+        { trigger: "manual",
           customClass: "code-copy-button-tooltip",
           offset: [0, -8]});
-      tooltip.show();    
+      tooltip.show();
     }
     setTimeout(function() {
       if (tooltip) {
@@ -1135,7 +1109,29 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
     }, 1000);
     // clear code selection
     e.clearSelection();
+  }
+  const getTextToCopy = function(trigger) {
+      const codeEl = trigger.previousElementSibling.cloneNode(true);
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+  }
+  const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+    text: getTextToCopy
   });
+  clipboard.on('success', onCopySuccess);
+  if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+    // For code content inside modals, clipBoardJS needs to be initialized with a container option
+    // TODO: Check when it could be a function (https://github.com/zenorocha/clipboard.js/issues/860)
+    const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+      text: getTextToCopy,
+      container: window.document.getElementById('quarto-embedded-source-code-modal')
+    });
+    clipboardModal.on('success', onCopySuccess);
+  }
     var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
     var mailtoRegex = new RegExp(/^mailto:/);
       var filterRegex = new RegExp('/' + window.location.host + '/');
@@ -1143,7 +1139,7 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
         return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
     }
     // Inspect non-navigation links and adorn them if external
- 	var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool)');
+ 	var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
     for (var i=0; i<links.length; i++) {
       const link = links[i];
       if (!isInternal(link.href)) {
@@ -1177,7 +1173,7 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
     if (onUntriggerFn) {
       config.onUntrigger = onUntriggerFn;
     }
-    window.tippy(el, config); 
+    window.tippy(el, config);
   }
   const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
   for (var i=0; i<noterefs.length; i++) {
@@ -1253,7 +1249,7 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
     tippyHover(xref, undefined, function(instance) {
       instance.disable();
       let url = xref.getAttribute('href');
-      let hash = undefined; 
+      let hash = undefined;
       if (url.startsWith('#')) {
         hash = url;
       } else {
@@ -1281,7 +1277,7 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
             if (note !== null) {
               const html = processXRef(id, note);
               instance.setContent(html);
-            } 
+            }
           }).finally(() => {
             instance.enable();
             instance.show();
@@ -1305,7 +1301,7 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
             }
             const html = processXRef(null, note);
             instance.setContent(html);
-          } 
+          }
         }).finally(() => {
           instance.enable();
           instance.show();
@@ -1345,7 +1341,7 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
             height = bottom - top;
           }
           if (top !== null && height !== null && parent !== null) {
-            // cook up a div (if necessary) and position it 
+            // cook up a div (if necessary) and position it
             let div = window.document.getElementById("code-annotation-line-highlight");
             if (div === null) {
               div = window.document.createElement("div");
@@ -1471,7 +1467,7 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
   <div class="nav-footer">
     <div class="nav-footer-left">
 <p>© Copyright 2024, Jacob Pieniazek</p>
-</div>   
+</div>
     <div class="nav-footer-center">
       &nbsp;
     <div class="toc-actions d-sm-block d-md-none"><ul><li><a href="https://github.com/jakepenzak/caml/edit/main/docs/03_Reference/CamlCATE.qmd" class="toc-action"><i class="bi bi-github"></i>Edit this page</a></li><li><a href="https://github.com/jakepenzak/caml/issues/new" class="toc-action"><i class="bi empty"></i>Report an issue</a></li></ul></div></div>

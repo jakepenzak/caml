@@ -1,18 +1,39 @@
+from __future__ import annotations
+
 import abc
 import logging
+from typing import TYPE_CHECKING
 
 import ibis
 import pandas
-import polars
-import pyspark
 from flaml import AutoML
-from pyspark.sql import SparkSession
 from sklearn.model_selection import train_test_split
 from typeguard import typechecked
 
+from ..logging import setup_logging
 from ..utils import generate_random_string
 
 logger = logging.getLogger(__name__)
+
+# Optional dependencies
+try:
+    import polars
+
+    _HAS_POLARS = True
+except ImportError:
+    _HAS_POLARS = False
+
+try:
+    import pyspark
+    from pyspark.sql import SparkSession
+
+    _HAS_PYSPARK = True
+except ImportError:
+    _HAS_PYSPARK = False
+
+if TYPE_CHECKING:
+    import polars
+    import pyspark
 
 
 class CamlBase(metaclass=abc.ABCMeta):
@@ -21,6 +42,9 @@ class CamlBase(metaclass=abc.ABCMeta):
 
     This class contains the shared methods and properties for the Caml classes.
     """
+
+    def __init__(self, verbose: int = 1):
+        setup_logging(verbose)
 
     @property
     def dataframe(self):
@@ -224,7 +248,7 @@ class CamlBase(metaclass=abc.ABCMeta):
         else:
             table_name = custom_table_name
 
-        if isinstance(self.df, pyspark.sql.DataFrame):
+        if _HAS_PYSPARK and isinstance(self.df, pyspark.sql.DataFrame):
             self._spark = SparkSession.builder.getOrCreate()
             self.df.createOrReplaceTempView(table_name)
             ibis_connection = ibis.pyspark.connect(session=self._spark)
@@ -232,7 +256,7 @@ class CamlBase(metaclass=abc.ABCMeta):
         elif isinstance(self.df, pandas.DataFrame):
             ibis_connection = ibis.pandas.connect({table_name: self.df})
             ibis_df = ibis_connection.table(table_name)
-        elif isinstance(self.df, polars.DataFrame):
+        elif _HAS_POLARS and isinstance(self.df, polars.DataFrame):
             ibis_connection = ibis.polars.connect({table_name: self.df})
             ibis_df = ibis_connection.table(table_name)
         elif isinstance(self.df, ibis.expr.types.Table):

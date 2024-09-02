@@ -25,7 +25,9 @@
 
 | | |
 | --- | --- |
-| [extensions.plots.plot](extensions.plots.plot.qmd#caml.extensions.plots.plot) | A plot. |
+| [cate_histogram_plot](cate_histogram_plot.qmd#caml.extensions.plots.cate_histogram_plot) | Plots a histogram the estimated CATEs. |
+| [cate_line_plot](cate_line_plot.qmd#caml.extensions.plots.cate_line_plot) | Plots a line plot of the ordered estimated CATEs as a rolling mean with optional confidence intervals. |
+| [cate_true_vs_estimated_plot](cate_true_vs_estimated_plot.qmd#caml.extensions.plots.cate_true_vs_estimated_plot) | Plots a scatter plot of the estimated CATEs against the true CATEs. |
 
 ## Developer Tools
 

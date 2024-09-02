@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 
-<title>utils.generate_random_string – CaML - Causal ML</title>
+<title>plot_cates_true_vs_estimated – CaML - Causal ML</title>
 <style>
 code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
@@ -19,6 +19,40 @@ ul.task-list li input[type="checkbox"] {
   width: 0.8em;
   margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */
   vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { display: inline-block; text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
 }
 </style>
 
@@ -182,33 +216,44 @@ ul.task-list li input[type="checkbox"] {
     <h2 id="toc-title">On this page</h2>
 
   <ul>
-  <li><a href="#caml.utils.generate_random_string" id="toc-caml.utils.generate_random_string" class="nav-link active" data-scroll-target="#caml.utils.generate_random_string">utils.generate_random_string</a>
-  <ul class="collapse">
-  <li><a href="#parameters" id="toc-parameters" class="nav-link" data-scroll-target="#parameters">Parameters</a></li>
+  <li><a href="#parameters" id="toc-parameters" class="nav-link active" data-scroll-target="#parameters">Parameters</a></li>
   <li><a href="#returns" id="toc-returns" class="nav-link" data-scroll-target="#returns">Returns</a></li>
-  </ul></li>
+  <li><a href="#examples" id="toc-examples" class="nav-link" data-scroll-target="#examples">Examples</a></li>
   </ul>
-<div class="toc-actions"><ul><li><a href="https://github.com/jakepenzak/caml/edit/main/docs/03_Reference/utils.generate_random_string.qmd" class="toc-action"><i class="bi bi-github"></i>Edit this page</a></li><li><a href="https://github.com/jakepenzak/caml/issues/new" class="toc-action"><i class="bi empty"></i>Report an issue</a></li></ul></div></nav>
+<div class="toc-actions"><ul><li><a href="https://github.com/jakepenzak/caml/edit/main/docs/03_Reference/plot_cates_true_vs_estimated.qmd" class="toc-action"><i class="bi bi-github"></i>Edit this page</a></li><li><a href="https://github.com/jakepenzak/caml/issues/new" class="toc-action"><i class="bi empty"></i>Report an issue</a></li></ul></div></nav>
     </div>
 <!-- main -->
 <main class="content" id="quarto-document-content">
 
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title">plot_cates_true_vs_estimated</h1>
+</div>
 
 
 
-<section id="caml.utils.generate_random_string" class="level1">
-<h1>utils.generate_random_string</h1>
-<p><code>utils.generate_random_string(N)</code></p>
-<p>Function to generate a random string of ascii lowercase letters and digits of length N.</p>
-<p>Utilized to generate a random table name for the Ibis Tables.</p>
+<div class="quarto-title-meta">
+
+
+
+
+  </div>
+
+
+
+</header>
+
+
+<p><code>extensions.plots.plot_cates_true_vs_estimated(true_cates, estimated_cates, *, figure_kwargs={}, scatter_kwargs={})</code></p>
+<p>Plots a scatter plot of the estimated CATEs against the true CATEs.</p>
 <section id="parameters" class="level2">
 <h2 class="anchored" data-anchor-id="parameters">Parameters</h2>
 <table class="caption-top table">
 <colgroup>
-<col style="width: 11%">
-<col style="width: 11%">
-<col style="width: 60%">
-<col style="width: 17%">
+<col style="width: 22%">
+<col style="width: 28%">
+<col style="width: 35%">
+<col style="width: 14%">
 </colgroup>
 <thead>
 <tr class="header">
@@ -220,10 +265,22 @@ ul.task-list li input[type="checkbox"] {
 </thead>
 <tbody>
 <tr class="odd">
-<td><code>N</code></td>
-<td>int</td>
-<td>The length of random string to generate.</td>
+<td><code>estimated_cates</code></td>
+<td>numpy.typing.ArrayLike</td>
+<td>The estimated CATEs.</td>
 <td><em>required</em></td>
+</tr>
+<tr class="even">
+<td><code>figure_kwargs</code></td>
+<td>dict</td>
+<td>Matplotlib figure arguments.</td>
+<td><code>{}</code></td>
+</tr>
+<tr class="odd">
+<td><code>scatter_kwargs</code></td>
+<td>dict</td>
+<td>Matplotlib line arguments.</td>
+<td><code>{}</code></td>
 </tr>
 </tbody>
 </table>
@@ -239,14 +296,34 @@ ul.task-list li input[type="checkbox"] {
 </thead>
 <tbody>
 <tr class="odd">
-<td>str: The random string of length N.</td>
-<td></td>
+<td>matplotlib.figure.Figure</td>
+<td>The line plot figure object.</td>
 </tr>
 </tbody>
 </table>
-
-
 </section>
+<section id="examples" class="level2">
+<h2 class="anchored" data-anchor-id="examples">Examples</h2>
+<div id="ae775022" class="cell" data-execution_count="1">
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> caml.extensions.plots <span class="im">import</span> plot_cates_true_vs_estimated</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>np.random.seed(<span class="dv">42</span>)</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>true_cates <span class="op">=</span> np.random.normal(<span class="dv">0</span>, <span class="dv">1</span>, <span class="dv">100</span>)</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>estimated_cates <span class="op">=</span> true_cates <span class="op">+</span> np.random.normal(<span class="dv">0</span>, <span class="fl">0.5</span>, <span class="dv">100</span>)</span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>fig <span class="op">=</span> plot_cates_true_vs_estimated(true_cates, estimated_cates)</span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>fig</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="1">
+<div>
+<figure class="figure">
+<p><img src="plot_cates_true_vs_estimated_files/figure-html/cell-2-output-1.png" width="593" height="435" class="figure-img"></p>
+</figure>
+</div>
+</div>
+</div>
+
+
 </section>
 
 <a onclick="window.scrollTo(0, 0); return false;" role="button" id="quarto-back-to-top"><i class="bi bi-arrow-up"></i> Back to top</a></main> <!-- /main -->
@@ -678,7 +755,7 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
 </div>
     <div class="nav-footer-center">
       &nbsp;
-    <div class="toc-actions d-sm-block d-md-none"><ul><li><a href="https://github.com/jakepenzak/caml/edit/main/docs/03_Reference/utils.generate_random_string.qmd" class="toc-action"><i class="bi bi-github"></i>Edit this page</a></li><li><a href="https://github.com/jakepenzak/caml/issues/new" class="toc-action"><i class="bi empty"></i>Report an issue</a></li></ul></div></div>
+    <div class="toc-actions d-sm-block d-md-none"><ul><li><a href="https://github.com/jakepenzak/caml/edit/main/docs/03_Reference/plot_cates_true_vs_estimated.qmd" class="toc-action"><i class="bi bi-github"></i>Edit this page</a></li><li><a href="https://github.com/jakepenzak/caml/issues/new" class="toc-action"><i class="bi empty"></i>Report an issue</a></li></ul></div></div>
     <div class="nav-footer-right">
 <p>Powered by: <a href="https://quarto.org/"><img src="../assets/external_logos/quarto.png" class="img-fluid" width="85"></a></p>
 </div>

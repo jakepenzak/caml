@@ -1,0 +1,33 @@
+# plot_cates_true_vs_estimated { #caml.extensions.plots.plot_cates_true_vs_estimated }
+
+`extensions.plots.plot_cates_true_vs_estimated(true_cates, estimated_cates, *, figure_kwargs={}, scatter_kwargs={})`
+
+Plots a scatter plot of the estimated CATEs against the true CATEs.
+
+## Parameters
+
+| Name              | Type                   | Description                  | Default    |
+|-------------------|------------------------|------------------------------|------------|
+| `estimated_cates` | numpy.typing.ArrayLike | The estimated CATEs.         | _required_ |
+| `figure_kwargs`   | dict                   | Matplotlib figure arguments. | `{}`       |
+| `scatter_kwargs`  | dict                   | Matplotlib line arguments.   | `{}`       |
+
+## Returns
+
+| Type                     | Description                  |
+|--------------------------|------------------------------|
+| matplotlib.figure.Figure | The line plot figure object. |
+
+## Examples
+
+```{python}
+import numpy as np
+from caml.extensions.plots import plot_cates_true_vs_estimated
+
+np.random.seed(42)
+true_cates = np.random.normal(0, 1, 100)
+estimated_cates = true_cates + np.random.normal(0, 0.5, 100)
+
+fig = plot_cates_true_vs_estimated(true_cates, estimated_cates)
+fig
+```
