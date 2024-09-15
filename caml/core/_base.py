@@ -5,6 +5,7 @@ import logging
 from typing import TYPE_CHECKING
 
 import ibis
+import numpy as np
 import pandas
 from flaml import AutoML
 from sklearn.model_selection import train_test_split
@@ -98,7 +99,11 @@ class CamlBase(metaclass=abc.ABCMeta):
 
     @typechecked
     def _split_data(
-        self, *, validation_size: float | None = None, test_size: float = 0.2
+        self,
+        *,
+        validation_size: float | None = None,
+        test_size: float = 0.2,
+        sample_fraction: float = 1.0,
     ):
         """
         Splits the data into training, validation, and test sets.
@@ -111,10 +116,23 @@ class CamlBase(metaclass=abc.ABCMeta):
             The size of the validation set. Default is None.
         test_size:
             The size of the test set. Default is 0.2.
+        sample_fraction:
+            The size of the sample to use for training. Default is 1.0.
         """
         X = self._X.execute().to_numpy()
         Y = self._Y.execute().to_numpy().ravel()
         T = self._T.execute().to_numpy().ravel()
+
+        if sample_fraction != 1.0:
+            # shuffle X, Y, T in unison
+            idx = np.random.permutation(len(X))
+            X = X[idx]
+            Y = Y[idx]
+            T = T[idx]
+            sample_size = int(sample_fraction * len(X))
+            X = X[:sample_size]
+            Y = Y[:sample_size]
+            T = T[:sample_size]
 
         X_train, X_test, T_train, T_test, Y_train, Y_test = train_test_split(
             X, T, Y, test_size=test_size, random_state=self.seed
@@ -203,7 +221,7 @@ class CamlBase(metaclass=abc.ABCMeta):
             _flaml_kwargs["task"] = "regression"
             _flaml_kwargs["metric"] = "mse"
 
-        if self._spark or use_spark:
+        if use_spark:
             _flaml_kwargs["use_spark"] = True
             _flaml_kwargs["n_concurrent_trials"] = 4
         elif use_ray:

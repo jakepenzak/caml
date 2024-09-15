@@ -249,7 +249,7 @@ class CamlCATE(CamlBase):
         self._final_estimator = None
 
         if not self.discrete_treatment:
-            logger.warn("Validation for continuous treatments is not supported yet.")
+            logger.warning("Validation for continuous treatments is not supported yet.")
 
         if self.discrete_outcome:
             logger.error("Binary outcomes is not supported yet.")
@@ -347,6 +347,8 @@ class CamlCATE(CamlBase):
         rscorer_kwargs: dict = {},
         use_ray: bool = False,
         ray_remote_func_options_kwargs: dict = {},
+        sample_fraction: float = 1.0,
+        n_jobs: int = -1,
     ):
         """
         Fits the CATE models on the training set and evaluates them & ensembles based on the validation set.
@@ -365,6 +367,10 @@ class CamlCATE(CamlBase):
             A boolean indicating whether to use Ray for parallel processing.
         ray_remote_func_options_kwargs: dict
             The keyword arguments for the Ray remote function options.
+        sample_fraction: float
+            The fraction of the training data to use for fitting the CATE models. Default implies 1.0 (full training data).
+        n_jobs: int
+            The number of parallel jobs to run. Default implies -1 (all processors).
 
         Examples
         --------
@@ -382,7 +388,9 @@ class CamlCATE(CamlBase):
         if use_ray:
             assert _HAS_RAY, "Ray is not installed. Please install Ray to use it for parallel processing."
 
-        self._split_data(validation_size=0.2, test_size=0.2)
+        self._split_data(
+            validation_size=0.2, test_size=0.2, sample_fraction=sample_fraction
+        )
         self._get_cate_models(
             subset_cate_models=subset_cate_models,
             additional_cate_models=additional_cate_models,
@@ -392,6 +400,7 @@ class CamlCATE(CamlBase):
                 rscorer_kwargs=rscorer_kwargs,
                 use_ray=use_ray,
                 ray_remote_func_options_kwargs=ray_remote_func_options_kwargs,
+                n_jobs=n_jobs,
             )
         )
 
@@ -458,7 +467,7 @@ class CamlCATE(CamlBase):
         # Check for insignificant results & warn user
         summary = res.summary()
         if np.array(summary[[c for c in summary.columns if "pval" in c]] > 0.1).any():
-            logger.warn(
+            logger.warning(
                 "Some of the validation results suggest that the model may not have found statistically significant heterogeneity. Please closely look at the validation results and consider retraining with new configurations."
             )
         else:
@@ -910,6 +919,7 @@ class CamlCATE(CamlBase):
         rscorer_kwargs: dict,
         use_ray: bool,
         ray_remote_func_options_kwargs: dict,
+        n_jobs: int = -1,
     ):
         """
         Fits the CATE models and ensembles them.
@@ -922,6 +932,8 @@ class CamlCATE(CamlBase):
             A boolean indicating whether to use Ray for parallel processing.
         ray_remote_func_options_kwargs: dict
             The keyword arguments for the Ray remote function options.
+        n_jobs: int
+            The number of parallel jobs to run. Default implies -1 (all CPUs).
 
         Returns
         -------
@@ -960,7 +972,12 @@ class CamlCATE(CamlBase):
             ray.init(ignore_reinit_error=True)
 
             models = [
-                fit_model(name, model, use_ray=True)
+                fit_model(
+                    name,
+                    model,
+                    use_ray=True,
+                    ray_remote_func_options_kwargs=ray_remote_func_options_kwargs,
+                )
                 for name, model in self._cate_models
             ]
             # fit_model = ray.remote(fit_model).options(**ray_remote_func_options_kwargs)
@@ -975,7 +992,7 @@ class CamlCATE(CamlBase):
             # ]
             # models = ray.get(futures)
         else:
-            models = Parallel(n_jobs=-1)(
+            models = Parallel(n_jobs=n_jobs)(
                 delayed(fit_model)(name, model) for name, model in self._cate_models
             )
 
@@ -1012,12 +1029,12 @@ class CamlCATE(CamlBase):
             ensemble_estimator, ensemble_score, estimator_scores
         ):
             if np.max(estimator_scores) >= ensemble_score:
-                logger.info(
-                    "The best estimator is greater than the ensemble estimator. Returning that individual estimator."
-                )
                 best_estimator = ensemble_estimator._cate_models[
                     np.argmax(estimator_scores)
                 ]
+                logger.info(
+                    f"The best estimator is greater than the ensemble estimator. Returning that individual estimator: {best_estimator}"
+                )
             else:
                 logger.info(
                     "The ensemble estimator is the best estimator, filtering out models with weights less than 0.01."
