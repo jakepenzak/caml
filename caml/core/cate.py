@@ -348,7 +348,7 @@ class CamlCATE(CamlBase):
         use_ray: bool = False,
         ray_remote_func_options_kwargs: dict = {},
         sample_fraction: float = 1.0,
-        n_jobs: int = -1,
+        n_jobs: int = 1,
     ):
         """
         Fits the CATE models on the training set and evaluates them & ensembles based on the validation set.
@@ -370,7 +370,7 @@ class CamlCATE(CamlBase):
         sample_fraction: float
             The fraction of the training data to use for fitting the CATE models. Default implies 1.0 (full training data).
         n_jobs: int
-            The number of parallel jobs to run. Default implies -1 (all processors).
+            The number of parallel jobs to run. Default implies 1 (no parallel jobs).
 
         Examples
         --------
@@ -408,6 +408,8 @@ class CamlCATE(CamlBase):
     def validate(
         self,
         *,
+        n_groups: int = 4,
+        n_bootstrap: int = 100,
         estimator: BaseCateEstimator | EnsembleCateEstimator | None = None,
         print_full_report: bool = True,
     ):
@@ -420,6 +422,10 @@ class CamlCATE(CamlBase):
 
         Parameters
         ----------
+        n_groups: int
+            The number of quantile based groups used to calculate calibration scores.
+        n_bootstrap: int
+            The number of boostrap samples to run when calculating confidence bands.
         estimator: econml._cate_estimator.BaseCateEstimator | econml.score.EnsembleCateEstimator
             The estimator to validate. Default implies the best estimator from the validation set.
         print_full_report: bool
@@ -444,6 +450,7 @@ class CamlCATE(CamlBase):
             model_regression=self.model_Y_X_T,
             model_propensity=self.model_T_X,
             cate=estimator,
+            cv=3,
         )
 
         X_test, T_test, Y_test = (
@@ -462,7 +469,9 @@ class CamlCATE(CamlBase):
             X_test, T_test.astype(int), Y_test, X_train, T_train.astype(int), Y_train
         )
 
-        res = validator.evaluate_all(X_test, X_train)
+        res = validator.evaluate_all(
+            X_test, X_train, n_groups=n_groups, n_bootstrap=n_bootstrap
+        )
 
         # Check for insignificant results & warn user
         summary = res.summary()
@@ -991,6 +1000,8 @@ class CamlCATE(CamlBase):
             #     for name, model in self._cate_models
             # ]
             # models = ray.get(futures)
+        elif n_jobs == 1:
+            models = [fit_model(name, model) for name, model in self._cate_models]
         else:
             models = Parallel(n_jobs=n_jobs)(
                 delayed(fit_model)(name, model) for name, model in self._cate_models

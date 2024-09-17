@@ -16,8 +16,7 @@ ENV JAVA_HOME="/usr/lib/jvm/java-17-openjdk-amd64"
 ENV PATH="$JAVA_HOME/bin:$PATH"
 
 # Install uv
-ADD https://astral.sh/uv/0.4.0/install.sh /uv-installer.sh
-ADD https://astral.sh/uv/install.sh /uv-installer.sh
+ADD https://astral.sh/uv/0.4.10/install.sh /uv-installer.sh
 RUN sh /uv-installer.sh && rm /uv-installer.sh
 ENV PATH="/root/.cargo/bin/:$PATH"
 
