@@ -18,6 +18,7 @@ website:
       section: Plots
     - contents:
       - 03_Reference/utils.generate_random_string.qmd
+      - 03_Reference/utils.cls_typechecked.qmd
       - 03_Reference/logging.setup_logging.qmd
       section: Developer Tools
     id: 03_Reference

@@ -1,5 +1,0 @@
-# CamlDynamic { #caml.CamlDynamic }
-
-`CamlDynamic()`
-
-The CamlDynamic class represents a dynamic (time) implementation for estimating...

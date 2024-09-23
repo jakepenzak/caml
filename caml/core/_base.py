@@ -5,14 +5,12 @@ import logging
 from typing import TYPE_CHECKING
 
 import ibis
-import numpy as np
 import pandas
 from flaml import AutoML
 from sklearn.model_selection import train_test_split
-from typeguard import typechecked
 
 from ..logging import setup_logging
-from ..utils import generate_random_string
+from ..utils import cls_typechecked, generate_random_string
 
 logger = logging.getLogger(__name__)
 
@@ -37,6 +35,7 @@ if TYPE_CHECKING:
     import pyspark
 
 
+@cls_typechecked
 class CamlBase(metaclass=abc.ABCMeta):
     """
     Base ABC class for core Caml classes.
@@ -97,7 +96,9 @@ class CamlBase(metaclass=abc.ABCMeta):
     def summarize(self):
         pass
 
-    @typechecked
+    def interpret(self):
+        pass
+
     def _split_data(
         self,
         *,
@@ -119,20 +120,14 @@ class CamlBase(metaclass=abc.ABCMeta):
         sample_fraction:
             The size of the sample to use for training. Default is 1.0.
         """
-        X = self._X.execute().to_numpy()
-        Y = self._Y.execute().to_numpy().ravel()
-        T = self._T.execute().to_numpy().ravel()
+        X = self._X.execute()
+        Y = self._Y.execute()
+        T = self._T.execute()
 
         if sample_fraction != 1.0:
-            # shuffle X, Y, T in unison
-            idx = np.random.permutation(len(X))
-            X = X[idx]
-            Y = Y[idx]
-            T = T[idx]
-            sample_size = int(sample_fraction * len(X))
-            X = X[:sample_size]
-            Y = Y[:sample_size]
-            T = T[:sample_size]
+            X = X.sample(frac=sample_fraction, random_state=self.seed)
+            Y = Y.loc[X.index]
+            T = T.loc[X.index]
 
         X_train, X_test, T_train, T_test, Y_train, Y_test = train_test_split(
             X, T, Y, test_size=test_size, random_state=self.seed
@@ -163,7 +158,6 @@ class CamlBase(metaclass=abc.ABCMeta):
             self._data_splits["T_train"] = T_train
             self._data_splits["Y_train"] = Y_train
 
-    @typechecked
     def _run_auto_nuisance_functions(
         self,
         *,
@@ -209,7 +203,7 @@ class CamlBase(metaclass=abc.ABCMeta):
             "eval_method": "cv",
             "n_splits": 3,
             "starting_points": "static",
-            "estimator_list": ["lgbm", "rf", "xgboost", "extra_tree", "xgb_limitdepth"],
+            "estimator_list": ["rf", "xgboost", "extra_tree", "xgb_limitdepth"],
         }
 
         _flaml_kwargs = base_settings.copy()
@@ -241,7 +235,6 @@ class CamlBase(metaclass=abc.ABCMeta):
 
         return model
 
-    @typechecked
     def _ibis_connector(
         self,
         custom_table_name: str | None = None,
@@ -289,7 +282,6 @@ class CamlBase(metaclass=abc.ABCMeta):
         self._ibis_df = ibis_df
         self._ibis_connection = ibis_connection
 
-    @typechecked
     def _create_internal_ibis_table(
         self,
         *,
@@ -338,7 +330,6 @@ class CamlBase(metaclass=abc.ABCMeta):
 
         return ibis_df
 
-    @typechecked
     @staticmethod
     def _return_ibis_dataframe_to_original_backend(
         *, ibis_df: ibis.expr.types.Table, backend: str | None = None

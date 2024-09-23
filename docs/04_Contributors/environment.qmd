@@ -3,43 +3,51 @@ title: "Environment & Development"
 ---
 
 ## Prerequisites
-- [pixi](https://pixi.sh/latest/)
-- [WSL](https://learn.microsoft.com/en-us/windows/wsl/install) (required for Windows users to utilize Quarto) 
+- [uv](https://docs.astral.sh/uv/)
+- [WSL](https://learn.microsoft.com/en-us/windows/wsl/install) (required for Windows users to utilize Quarto for docs)
+- Optional: [Docker](https://www.docker.com/)
 
 ## Environment Setup
 
-### Local Environment
+We primarily utilize [Docker](https://www.docker.com/) for development environment standardization & [uv](https://docs.astral.sh/uv/) for project, package, and dependency management.
 
-1. Clone repository
+### Option 1 (recommended): Docker Development Environment
 
-```bash
-git clone https://github.com/jakepenzak/caml
-```
+1. Install [Docker](https://www.docker.com/)
 
-2. Change directory (cd) into project root then create your pixi environments:
+2. Clone repository
 
-```bash
-pixi install
-pixi install --environment dev
-pixi install --environment dev-ray
-pixi install --environment dev-pyspark
-```
-
-3. Activate you pixi shell for dev environment
+We highly recommend [utilizing ssh for cloning](https://docs.github.com/en/authentication/connecting-to-github-with-ssh) the repository.
 
 ```bash
-pixi shell --environment dev
+git clone git@github.com:jakepenzak/caml.git
+cd caml
 ```
 
-4. Initialize pre-commit hooks via `pre-commit install`
+3. **VS Code Users**: Set up Dev Containers
 
-5. Edit & test code locally (as applicable)
+a. Download [Dev Containers Extension](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers)
+b. Copy `.devcontainer-template.json` as `.devcontainer.json` and fill out {USERNAME} & {EMAIL}
+c. Follow steps to open current working directory in container
+d. Test github access - if running into issues, copy .ssh keys into `.github_access/` directory. This directory gets copied into `.ssh/` directory inside container. DO NOT COMMIT anything stored under `.github_access/`.
+e. Test `uv pip list` to ensure environment dependencies are properly installed - you should see caml installed as an editable package.
 
-Please refer to the [pixi](https://pixi.sh/latest/) documentation for modifying dependencies and any other pixi related questions.
+4. **Non-VS Code Users**: Utilize `docker-run.sh`
+
+a. Run `source docker-run.sh` with respective flags. Call `--help` for details. This should spin up a terminal session in docker container.
+b. Test github access - if running into issues, copy .ssh keys into `.github_access/` directory. This directory gets copied into `.ssh/` directory inside container. DO NOT COMMIT anything stored under `.github_access/`.
+c. Test `uv pip list` to ensure environment dependencies are properly installed - you should see caml installed as an editable package.
+
+### Option 2: Virtual Environment Only
+
+a. Install [uv](https://docs.astral.sh/uv/)
+b. Run `uv sync --all-extras --frozen`
+c. Activate the .venv via `source .venv/bin/activate`
+d. Test `uv pip list` to ensure environment dependencies are properly installed - you should see caml installed as an editable package.
+e. Run `pre-commit install`
+f. Optional: Install Quarto for edits on documentation, please refer to [documentation page](documentation.qmd)
 
 ## Committing & Pull Requests
 
 - Try best to follow commit message conventions outlined [here](https://gist.github.com/qoomon/5dfcdf8eec66a051ecd85625518cfd13)
-- On PRs, please fill out the generated PR template. As of now, there are two github actions that will be triggered on pull request 
-& will be required to run successfully in order to merge:
-  1. 
+- On PRs, please fill out the generated PR template. All github actions & workflows will be required to complete successfully prior to merging.

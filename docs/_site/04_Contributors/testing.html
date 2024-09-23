@@ -20,40 +20,6 @@ ul.task-list li input[type="checkbox"] {
   margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */
   vertical-align: middle;
 }
-/* CSS for syntax highlighting */
-pre > code.sourceCode { white-space: pre; position: relative; }
-pre > code.sourceCode > span { line-height: 1.25; }
-pre > code.sourceCode > span:empty { height: 1.2em; }
-.sourceCode { overflow: visible; }
-code.sourceCode > span { color: inherit; text-decoration: inherit; }
-div.sourceCode { margin: 1em 0; }
-pre.sourceCode { margin: 0; }
-@media screen {
-div.sourceCode { overflow: auto; }
-}
-@media print {
-pre > code.sourceCode { white-space: pre-wrap; }
-pre > code.sourceCode > span { display: inline-block; text-indent: -5em; padding-left: 5em; }
-}
-pre.numberSource code
-  { counter-reset: source-line 0; }
-pre.numberSource code > span
-  { position: relative; left: -4em; counter-increment: source-line; }
-pre.numberSource code > span > a:first-child::before
-  { content: counter(source-line);
-    position: relative; left: -1em; text-align: right; vertical-align: baseline;
-    border: none; display: inline-block;
-    -webkit-touch-callout: none; -webkit-user-select: none;
-    -khtml-user-select: none; -moz-user-select: none;
-    -ms-user-select: none; user-select: none;
-    padding: 0 4px; width: 4em;
-  }
-pre.numberSource { margin-left: 3em;  padding-left: 4px; }
-div.sourceCode
-  {   }
-@media screen {
-pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
-}
 </style>
 
 
@@ -64,8 +30,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <script src="../site_libs/quarto-search/fuse.min.js"></script>
 <script src="../site_libs/quarto-search/quarto-search.js"></script>
 <meta name="quarto:offset" content="../">
-<link href="../04_Contributors/documentation.html" rel="next">
-<link href="../04_Contributors/environment.html" rel="prev">
+<link href="../04_Contributors/documentation.html" rel="prev">
 <link href="../assets/logo_no_text.svg" rel="icon" type="image/svg+xml">
 <script src="../site_libs/quarto-html/quarto.js"></script>
 <script src="../site_libs/quarto-html/popper.min.js"></script>
@@ -178,12 +143,12 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
  <span class="dropdown-text">Environment &amp; Development</span></a>
   </li>
         <li>
-    <a class="dropdown-item" href="../04_Contributors/testing.html">
- <span class="dropdown-text">Testing</span></a>
-  </li>
-        <li>
     <a class="dropdown-item" href="../04_Contributors/documentation.html">
  <span class="dropdown-text">Documentation</span></a>
+  </li>
+        <li>
+    <a class="dropdown-item" href="../04_Contributors/testing.html">
+ <span class="dropdown-text">Testing</span></a>
   </li>
     </ul>
   </li>
@@ -233,14 +198,14 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </li>
         <li class="sidebar-item">
   <div class="sidebar-item-container">
-  <a href="../04_Contributors/testing.html" class="sidebar-item-text sidebar-link active">
- <span class="menu-text">Testing</span></a>
+  <a href="../04_Contributors/documentation.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Documentation</span></a>
   </div>
 </li>
         <li class="sidebar-item">
   <div class="sidebar-item-container">
-  <a href="../04_Contributors/documentation.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text">Documentation</span></a>
+  <a href="../04_Contributors/testing.html" class="sidebar-item-text sidebar-link active">
+ <span class="menu-text">Testing</span></a>
   </div>
 </li>
     </ul>
@@ -280,17 +245,17 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </header>
 
 
+<p>We utilize <a href="https://docs.pytest.org/en/stable/">pytest</a> for testing our codebase.</p>
 <section id="unit-testing" class="level2">
 <h2 class="anchored" data-anchor-id="unit-testing">Unit Testing</h2>
 <p>Unit tests are under the <code>tests/caml/</code> directory following the same structure of the <code>caml/</code> prefixed by “test_”. For example, if we wanted to write tests for <code>cate.py</code>, we would create a new file to build these tests <code>tests/caml/core/test_cate.py</code>.</p>
-<p>To run unit tests, we have configured a Pixi job so you can run the command:</p>
-<div class="sourceCode" id="cb1"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">pixi</span> run <span class="at">--environment</span> dev test</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<p>This will run your unit tests (with respective output printed in terminal) and update the coverage badge <img src="../assets/coverage.svg" class="img-fluid"></p>
+<p>To run unit tests, simply run <code>pytest</code> in terminal:</p>
+<p>This will run your unit tests (with respective output printed in terminal).</p>
 <p>Additionally, an html report of the coverage will be exported to <code>tests/reports/htmlcov</code>, which can be a useful tool for interactively evaluating the coverage of your unit tests.</p>
 </section>
 <section id="advanced-testing" class="level2">
 <h2 class="anchored" data-anchor-id="advanced-testing">Advanced Testing</h2>
-<p>Unit tests are automatically run during PR process via GitHub Actions.</p>
+<p>Unit tests are automatically run during PR process via GitHub Actions. Integration &amp; regression testing forthcoming.</p>
 
 
 </section>
@@ -718,14 +683,11 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
 </script>
 <nav class="page-navigation">
   <div class="nav-page nav-page-previous">
-      <a href="../04_Contributors/environment.html" class="pagination-link" aria-label="Environment &amp; Development">
-        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text">Environment &amp; Development</span>
+      <a href="../04_Contributors/documentation.html" class="pagination-link" aria-label="Documentation">
+        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text">Documentation</span>
       </a>
   </div>
   <div class="nav-page nav-page-next">
-      <a href="../04_Contributors/documentation.html" class="pagination-link" aria-label="Documentation">
-        <span class="nav-page-text">Documentation</span> <i class="bi bi-arrow-right-short"></i>
-      </a>
   </div>
 </nav>
 </div> <!-- /content -->

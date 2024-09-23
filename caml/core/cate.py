@@ -10,18 +10,14 @@ import numpy as np
 import pandas
 from econml._cate_estimator import BaseCateEstimator
 from econml._ortho_learner import _OrthoLearner
-from econml.dml import DML, CausalForestDML, LinearDML, NonParamDML
-from econml.dr import DRLearner, ForestDRLearner, LinearDRLearner
-from econml.metalearners import DomainAdaptationLearner, SLearner, TLearner, XLearner
+from econml.dml import LinearDML
 from econml.score import EnsembleCateEstimator, RScorer
 from econml.validate.drtester import DRTester
 from ibis.common.exceptions import IbisTypeError
 from joblib import Parallel, delayed
-from sklearn.linear_model import LassoCV
-from sklearn.preprocessing import PolynomialFeatures
-from typeguard import typechecked
-from xgboost import XGBRegressor
 
+from ..utils import cls_typechecked
+from . import model_bank
 from ._base import CamlBase
 
 logger = logging.getLogger(__name__)
@@ -54,10 +50,11 @@ if TYPE_CHECKING:
     import ray
 
 
-# TODO: Add support for different combinations of dtypes for treatments and outcomes.
+# TODO: Update docstrings to include for mathematical details.
+@cls_typechecked
 class CamlCATE(CamlBase):
     """
-    The CamlCATE class represents an opinionated implementation of Causal Machine Learning techniques for estimating
+    The CamlCATE class represents an opinionated framework of Causal Machine Learning techniques for estimating
     highly accurate conditional average treatment effects (CATEs).
 
     This class is built on top of the EconML library and provides a high-level API for fitting, validating, and making inference with CATE models,
@@ -68,7 +65,7 @@ class CamlCATE(CamlBase):
     The primary workflow for the CamlCATE class is as follows:
 
     1. Initialize the class with the input DataFrame and the necessary columns.
-    2. Utilize AutoML to find the optimal nuisance functions to be utilized in the EconML estimators.
+    2. Utilize AutoML to find the optimal nuisance functions or propensity/regression models to be utilized in the EconML estimators.
     3. Fit the CATE models on the training set and evaluate based on the validation set, then select the top performer/ensemble.
     4. Validate the fitted CATE model on the test set to check for generalization performance.
     5. Fit the final estimator on the entire dataset, after validation and testing.
@@ -99,7 +96,7 @@ class CamlCATE(CamlBase):
     | Categorical | Continuous  | ❌Not yet   |            |
     | Categorical | Categorical | ❌Not yet   |            |
 
-    Multi-dimensional outcomes and treatments are not on the roadmap yet.
+    Multi-dimensional outcomes and treatments are not yet supported.
 
     Parameters
     ----------
@@ -202,7 +199,6 @@ class CamlCATE(CamlBase):
     >>> final_estimator = caml_obj.final_estimator # Can be saved for future inference.
     """
 
-    @typechecked
     def __init__(
         self,
         df: pandas.DataFrame
@@ -252,10 +248,9 @@ class CamlCATE(CamlBase):
             logger.warning("Validation for continuous treatments is not supported yet.")
 
         if self.discrete_outcome:
-            logger.error("Binary outcomes is not supported yet.")
-            raise ValueError("Binary outcomes is not supported yet.")
+            logger.error("Binary outcomes are not supported yet.")
+            raise ValueError("Binary outcomes are not supported yet.")
 
-    @typechecked
     def auto_nuisance_functions(
         self,
         *,
@@ -326,22 +321,23 @@ class CamlCATE(CamlBase):
 
         self._nuisances_fitted = True
 
-    @typechecked
     def fit_validator(
         self,
         *,
         subset_cate_models: list[str] = [
             "LinearDML",
-            "NonParamDML",
-            "DML-Lasso3d",
             "CausalForestDML",
-            "XLearner",
+            "NonParamDML",
+            "AutoNonParamDML",
+            "SparseLinearDML-2D",
+            "DRLearner",
+            "ForestDRLearner",
+            "LinearDRLearner",
+            "SparseLinearDRLearner-2D",
             "DomainAdaptationLearner",
             "SLearner",
             "TLearner",
-            "DRLearner",
-            "LinearDRLearner",
-            "ForestDRLearner",
+            "XLearner",
         ],
         additional_cate_models: list[tuple[str, BaseCateEstimator]] = [],
         rscorer_kwargs: dict = {},
@@ -378,7 +374,7 @@ class CamlCATE(CamlBase):
         ...     "cv": 3,
         ...     "mc_iters": 3,
         ...     }
-        >>> subset_cate_models = ["LinearDML", "NonParamDML", "DML-Lasso3d", "CausalForestDML"]
+        >>> subset_cate_models = ["LinearDML", "NonParamDML", "CausalForestDML"]
         >>> additional_cate_models = [("XLearner", XLearner(models=caml_obj._model_Y_X_T, cate_models=caml_obj._model_Y_X_T, propensity_model=caml._model_T_X))]
         >>> caml_obj.fit_validator(subset_cate_models=subset_cate_models, additional_cate_models=additional_cate_models, rscorer_kwargs=rscorer_kwargs)
         """
@@ -404,7 +400,6 @@ class CamlCATE(CamlBase):
             )
         )
 
-    @typechecked
     def validate(
         self,
         *,
@@ -465,6 +460,23 @@ class CamlCATE(CamlBase):
             self._data_splits["Y_train"],
         )
 
+        if Y_test.shape[1] == 1:
+            Y_test = Y_test.to_numpy().ravel()
+            Y_train = Y_train.to_numpy().ravel()
+        else:
+            Y_test = Y_test.to_numpy()
+            Y_train = Y_train.to_numpy()
+
+        if T_test.shape[1] == 1:
+            T_test = T_test.to_numpy().ravel()
+            T_train = T_train.to_numpy().ravel()
+        else:
+            T_test = T_test.to_numpy()
+            T_train = T_train.to_numpy()
+
+        X_test = X_test.to_numpy()
+        X_train = X_train.to_numpy()
+
         validator.fit_nuisance(
             X_test, T_test.astype(int), Y_test, X_train, T_train.astype(int), Y_train
         )
@@ -494,7 +506,6 @@ class CamlCATE(CamlBase):
 
         self._validator_results = res
 
-    @typechecked
     def fit_final(self):
         """
         Fits the final estimator on the entire dataset, after validation and testing.
@@ -512,21 +523,28 @@ class CamlCATE(CamlBase):
 
         self._final_estimator = copy.deepcopy(self._validation_estimator)
 
+        Y, T, X = self._Y.execute(), self._T.execute(), self._X.execute()
+
+        if Y.shape[1] == 1:
+            Y = Y.to_numpy().ravel()
+
+        if T.shape[1] == 1:
+            T = T.to_numpy().ravel()
+
         if isinstance(self._final_estimator, EnsembleCateEstimator):
             for estimator in self._final_estimator._cate_models:
                 estimator.fit(
-                    Y=self._Y.execute().to_numpy().ravel(),
-                    T=self._T.execute().to_numpy().ravel(),
-                    X=self._X.execute().to_numpy(),
+                    Y=Y,
+                    T=T,
+                    X=X.to_numpy(),
                 )
         else:
             self._final_estimator.fit(
-                Y=self._Y.execute().to_numpy().ravel(),
-                T=self._T.execute().to_numpy().ravel(),
-                X=self._X.execute().to_numpy(),
+                Y=Y,
+                T=T,
+                X=X.to_numpy(),
             )
 
-    @typechecked
     def predict(
         self,
         *,
@@ -580,24 +598,24 @@ class CamlCATE(CamlBase):
         assert self._final_estimator, "The final estimator must be fitted first before making predictions. Please run the fit() method with final_estimator=True."
 
         if out_of_sample_df is None:
-            X = self._X.execute().to_numpy()
-            uuids = self._ibis_df[self.uuid].execute().to_numpy()
+            X = self._X.execute()
+            uuids = self._ibis_df[self.uuid].execute()
             uuid_col = self.uuid
         else:
             input_df = self._create_internal_ibis_table(df=out_of_sample_df)
             if join_predictions:
                 if out_of_sample_uuid is None:
                     try:
-                        uuids = input_df[self.uuid].execute().to_numpy()
+                        uuids = input_df[self.uuid].execute()
                         uuid_col = self.uuid
                     except IbisTypeError:
                         raise ValueError(
                             "The `uuid` column must be provided in the out-of-sample DataFrame to join predictions and the `out_of_sample_uuid` argument must be set to the string name of the column."
                         )
                 else:
-                    uuids = input_df[out_of_sample_uuid].execute().to_numpy()
+                    uuids = input_df[out_of_sample_uuid].execute()
                     uuid_col = out_of_sample_uuid
-            X = input_df.select(self.X).execute().to_numpy()
+            X = input_df.select(self.X).execute()
 
         if self.discrete_treatment:
             num_categories = self._T.distinct().count().execute()
@@ -647,7 +665,6 @@ class CamlCATE(CamlBase):
             if return_predictions:
                 return data_dict
 
-    @typechecked
     def rank_order(
         self,
         *,
@@ -719,7 +736,6 @@ class CamlCATE(CamlBase):
                 )
                 return final_df
 
-    @typechecked
     def summarize(
         self,
         *,
@@ -776,7 +792,6 @@ class CamlCATE(CamlBase):
             ibis_df=cate_summary_statistics
         )
 
-    @typechecked
     def _get_cate_models(
         self,
         *,
@@ -799,129 +814,26 @@ class CamlCATE(CamlBase):
         mod_Y_X = self.model_Y_X
         mod_T_X = self.model_T_X
         mod_Y_X_T = self.model_Y_X_T
+        discrete_treatment = self.discrete_treatment
+        discrete_outcome = self.discrete_outcome
+        random_state = self.seed
 
-        self._cate_models = [
-            (
-                "LinearDML",
-                LinearDML(
-                    model_y=mod_Y_X,
-                    model_t=mod_T_X,
-                    discrete_treatment=self.discrete_treatment,
-                    discrete_outcome=self.discrete_outcome,
-                    cv=3,
-                    random_state=self.seed,
-                ),
-            ),
-            (
-                "DML-Lasso3d",
-                DML(
-                    model_y=mod_Y_X,
-                    model_t=mod_T_X,
-                    model_final=LassoCV(),
-                    discrete_treatment=self.discrete_treatment,
-                    discrete_outcome=self.discrete_outcome,
-                    featurizer=PolynomialFeatures(degree=3),
-                    cv=3,
-                    random_state=self.seed,
-                ),
-            ),
-            (
-                "CausalForestDML",
-                CausalForestDML(
-                    model_y=mod_Y_X,
-                    model_t=mod_T_X,
-                    discrete_treatment=self.discrete_treatment,
-                    discrete_outcome=self.discrete_outcome,
-                    cv=3,
-                    random_state=self.seed,
-                ),
-            ),
-        ]
-        if self.discrete_treatment and not self.discrete_outcome:
+        self._cate_models = []
+        for cate_model in subset_cate_models:
             self._cate_models.append(
-                (
-                    "XLearner",
-                    XLearner(
-                        models=mod_Y_X_T,
-                        cate_models=mod_Y_X_T,
-                        propensity_model=mod_T_X,
-                    ),
-                )
-            )
-            self._cate_models.append(
-                (
-                    "DomainAdaptationLearner",
-                    DomainAdaptationLearner(
-                        models=mod_Y_X,
-                        final_models=mod_Y_X_T,
-                        propensity_model=mod_T_X,
-                    ),
-                )
-            )
-            self._cate_models.append(("SLearner", SLearner(overall_model=mod_Y_X_T)))
-            self._cate_models.append(("TLearner", TLearner(models=mod_Y_X_T)))
-            self._cate_models.append(
-                (
-                    "DRLearner",
-                    DRLearner(
-                        model_propensity=mod_T_X,
-                        model_regression=mod_Y_X_T,
-                        model_final=mod_Y_X_T,
-                        discrete_outcome=self.discrete_outcome,
-                        cv=3,
-                        random_state=self.seed,
-                    ),
-                )
-            )
-            self._cate_models.append(
-                (
-                    "LinearDRLearner",
-                    LinearDRLearner(
-                        model_propensity=mod_T_X,
-                        model_regression=mod_Y_X_T,
-                        discrete_outcome=self.discrete_outcome,
-                        cv=3,
-                        random_state=self.seed,
-                    ),
-                )
-            )
-            self._cate_models.append(
-                (
-                    "ForestDRLearner",
-                    ForestDRLearner(
-                        model_propensity=mod_T_X,
-                        model_regression=mod_Y_X_T,
-                        discrete_outcome=self.discrete_outcome,
-                        cv=3,
-                        random_state=self.seed,
-                    ),
-                )
-            )
-        if (self.discrete_treatment and self._T.distinct().count().execute() == 2) or (
-            not self.discrete_treatment
-        ):
-            self._cate_models.append(
-                (
-                    "NonParamDML",
-                    NonParamDML(
-                        model_y=mod_Y_X,
-                        model_t=mod_T_X,
-                        model_final=mod_Y_X_T
-                        if not self.discrete_outcome
-                        else XGBRegressor(),
-                        discrete_treatment=self.discrete_treatment,
-                        discrete_outcome=self.discrete_outcome,
-                        cv=3,
-                        random_state=self.seed,
-                    ),
+                model_bank.get_cate_model(
+                    cate_model,
+                    mod_Y_X,
+                    mod_T_X,
+                    mod_Y_X_T,
+                    discrete_treatment,
+                    discrete_outcome,
+                    random_state,
                 )
             )
 
-        self._cate_models = [
-            m for m in self._cate_models if m[0] in subset_cate_models
-        ] + additional_cate_models
+        self._cate_models = self._cate_models + additional_cate_models
 
-    @typechecked
     def _fit_and_ensemble_cate_models(
         self,
         *,
@@ -964,18 +876,19 @@ class CamlCATE(CamlBase):
             self._data_splits["X_val"],
         )
 
+        if Y_train.shape[1] == 1:
+            Y_train = Y_train.to_numpy().ravel()
+            Y_val = Y_val.to_numpy().ravel()
+
+        if T_train.shape[1] == 1:
+            T_train = T_train.to_numpy().ravel()
+            T_val = T_val.to_numpy().ravel()
+
         def fit_model(name, model, use_ray=False, ray_remote_func_options_kwargs={}):
             if isinstance(model, _OrthoLearner):
                 model.use_ray = use_ray
                 model.ray_remote_func_options_kwargs = ray_remote_func_options_kwargs
-            if (
-                name == "CausalForestDML" and not self.discrete_outcome
-            ):  # BUG: Tune does not work with discrete outcomes
-                return name, model.tune(Y=Y_train, T=T_train, X=X_train).fit(
-                    Y=Y_train, T=T_train, X=X_train
-                )
-            else:
-                return name, model.fit(Y=Y_train, T=T_train, X=X_train)
+            return name, model.fit(Y=Y_train, T=T_train, X=X_train)
 
         if use_ray:
             ray.init(ignore_reinit_error=True)
@@ -989,17 +902,6 @@ class CamlCATE(CamlBase):
                 )
                 for name, model in self._cate_models
             ]
-            # fit_model = ray.remote(fit_model).options(**ray_remote_func_options_kwargs)
-            # futures = [
-            #     fit_model.remote(
-            #         name,
-            #         model,
-            #         use_ray=True,
-            #         ray_remote_func_options_kwargs=ray_remote_func_options_kwargs,
-            #     )
-            #     for name, model in self._cate_models
-            # ]
-            # models = ray.get(futures)
         elif n_jobs == 1:
             models = [fit_model(name, model) for name, model in self._cate_models]
         else:
@@ -1075,6 +977,7 @@ class CamlCATE(CamlBase):
     def __str__(self):
         """
         Returns a string representation of the CamlCATE object.
+
         Returns
         -------
         summary : str

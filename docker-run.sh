@@ -13,10 +13,11 @@ usage() {
     echo "  -g, --use-git           Configure Git with the provided email and username"
     echo "  -e, --email             Email for Git configuration"
     echo "  -u, --username          Username for Git configuration"
-    echo "  -i, --image-name        Name of the Docker image (default: my-docker-image)"
+    echo "  -i, --image-name        Name of the Docker image (default: caml)"
     echo "  -f, --dockerfile        Dockerfile to use for building the image (default: Dockerfile)"
     echo "  -h, --help              Display the help message"
-    exit 1
+    # exit without killing terminal session
+    return 0
 }
 
 # Parse command-line options
@@ -44,10 +45,12 @@ while [[ $# -gt 0 ]]; do
             ;;
         -h|--help)
             usage
+            return 0
             ;;
         *)
             echo "Unknown option: $1"
             usage
+            return 1
             ;;
     esac
 done
@@ -56,7 +59,7 @@ done
 if [[ $use_git -eq 1 ]]; then
     if [[ -z "$email" || -z "$username" ]]; then
         echo "Error: Both email and username must be provided when using Git. Use the -h option for help."
-        exit 1
+        return 1
     fi
 fi
 
@@ -67,7 +70,7 @@ docker build -t "$image_name" -f "$dockerfile" .
 # Check if the build was successful
 if [[ $? -ne 0 ]]; then
     echo "Error: Docker build failed."
-    exit 1
+    return 1
 fi
 
 # Build the Docker run command

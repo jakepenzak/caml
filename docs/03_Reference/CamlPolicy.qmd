@@ -1,5 +1,0 @@
-# CamlPolicy { #caml.CamlPolicy }
-
-`CamlPolicy()`
-
-The CamlPolicy class represents a Policy Learning implementation for estimating...

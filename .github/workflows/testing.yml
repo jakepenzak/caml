@@ -11,23 +11,23 @@ jobs:
     steps:
 
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
         with:
           ref: ${{ github.head_ref }}
 
-      - name: Set up Python
-        uses: actions/setup-python@v2
+      - name: Install uv
+        uses: astral-sh/setup-uv@v2
         with:
-          python-version: "3.10"
-      
-      - name: Set up Pixi Environment
-        uses: prefix-dev/setup-pixi@v0.8.0
-        with:
-          auth-host: prefix.dev
-          auth-token: ${{ secrets.PREFIX_DEV_TOKEN }}
+          version: "0.4.10"
 
-      - name: Run tests & update badge
-        run: pixi run --environment dev test
+      - name: Install Python
+        run: uv python install
+
+      - name: Install the project
+        run: uv sync --all-extras --dev
+
+      - name: Run tests
+        run: uv run pytest tests
 
       - name: Check for changes & Push if exist
         id: git_check

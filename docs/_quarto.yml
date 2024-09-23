@@ -65,8 +65,8 @@ website:
       style: floating
       contents:
         - 04_Contributors/environment.qmd
-        - 04_Contributors/testing.qmd
         - 04_Contributors/documentation.qmd
+        - 04_Contributors/testing.qmd
 
   page-footer:
     border: false
@@ -104,6 +104,7 @@ quartodoc:
     -  title: Developer Tools
        contents:
         - utils.generate_random_string
+        - utils.cls_typechecked
         - logging.setup_logging
 
 metadata-files:

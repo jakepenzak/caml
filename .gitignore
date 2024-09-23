@@ -1,7 +1,3 @@
-# pixi environments
-.pixi
-*.egg-info
-
 # Builds
 dist/
 
@@ -28,3 +24,6 @@ __pycache__/
 
 # personal devcontainer.json
 devcontainer.json
+
+# Experimental notebooks
+notebooks/dev/experimental/

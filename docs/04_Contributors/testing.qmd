@@ -2,21 +2,19 @@
 title: "Testing"
 ---
 
+We utilize [pytest](https://docs.pytest.org/en/stable/) for testing our codebase.
+
 ## Unit Testing
-Unit tests are under the `tests/caml/` directory following the same structure of the `caml/` prefixed by "test_". 
+Unit tests are under the `tests/caml/` directory following the same structure of the `caml/` prefixed by "test_".
 For example, if we wanted to write tests for `cate.py`, we would create a new file to build these tests
-`tests/caml/core/test_cate.py`. 
+`tests/caml/core/test_cate.py`.
 
-To run unit tests, we have configured a Pixi job so you can run the command: 
-```bash
-pixi run --environment dev test
-```
+To run unit tests, simply run `pytest` in terminal:
 
-This will run your unit tests (with respective output printed in terminal) and update the coverage badge 
-![](/assets/coverage.svg)
+This will run your unit tests (with respective output printed in terminal).
 
-Additionally, an html report of the coverage will be exported to `tests/reports/htmlcov`, 
+Additionally, an html report of the coverage will be exported to `tests/reports/htmlcov`,
 which can be a useful tool for interactively evaluating the coverage of your unit tests.
 
 ## Advanced Testing
-Unit tests are automatically run during PR process via GitHub Actions.
+Unit tests are automatically run during PR process via GitHub Actions. Integration & regression testing forthcoming.

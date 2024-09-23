@@ -1,4 +1,0 @@
-# CamlDML { #caml.CamlDML }
-
-`CamlDML()`
-

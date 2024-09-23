@@ -64,7 +64,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <script src="../site_libs/quarto-search/fuse.min.js"></script>
 <script src="../site_libs/quarto-search/quarto-search.js"></script>
 <meta name="quarto:offset" content="../">
-<link href="../04_Contributors/testing.html" rel="next">
+<link href="../04_Contributors/documentation.html" rel="next">
 <link href="../assets/logo_no_text.svg" rel="icon" type="image/svg+xml">
 <script src="../site_libs/quarto-html/quarto.js"></script>
 <script src="../site_libs/quarto-html/popper.min.js"></script>
@@ -106,6 +106,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 
 <link rel="stylesheet" href="../styles/styles.css">
 <meta property="og:title" content="Environment &amp; Development – CaML - Causal ML">
+<meta property="og:description" content="">
 <meta property="og:site_name" content="CaML - Causal ML">
 </head>
 
@@ -176,12 +177,12 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
  <span class="dropdown-text">Environment &amp; Development</span></a>
   </li>
         <li>
-    <a class="dropdown-item" href="../04_Contributors/testing.html">
- <span class="dropdown-text">Testing</span></a>
-  </li>
-        <li>
     <a class="dropdown-item" href="../04_Contributors/documentation.html">
  <span class="dropdown-text">Documentation</span></a>
+  </li>
+        <li>
+    <a class="dropdown-item" href="../04_Contributors/testing.html">
+ <span class="dropdown-text">Testing</span></a>
   </li>
     </ul>
   </li>
@@ -231,14 +232,14 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </li>
         <li class="sidebar-item">
   <div class="sidebar-item-container">
-  <a href="../04_Contributors/testing.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text">Testing</span></a>
+  <a href="../04_Contributors/documentation.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Documentation</span></a>
   </div>
 </li>
         <li class="sidebar-item">
   <div class="sidebar-item-container">
-  <a href="../04_Contributors/documentation.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text">Documentation</span></a>
+  <a href="../04_Contributors/testing.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Testing</span></a>
   </div>
 </li>
     </ul>
@@ -254,7 +255,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   <li><a href="#prerequisites" id="toc-prerequisites" class="nav-link active" data-scroll-target="#prerequisites">Prerequisites</a></li>
   <li><a href="#environment-setup" id="toc-environment-setup" class="nav-link" data-scroll-target="#environment-setup">Environment Setup</a>
   <ul class="collapse">
-  <li><a href="#local-environment" id="toc-local-environment" class="nav-link" data-scroll-target="#local-environment">Local Environment</a></li>
+  <li><a href="#option-1-recommended-docker-development-environment" id="toc-option-1-recommended-docker-development-environment" class="nav-link" data-scroll-target="#option-1-recommended-docker-development-environment">Option 1 (recommended): Docker Development Environment</a></li>
+  <li><a href="#option-2-virtual-environment-only" id="toc-option-2-virtual-environment-only" class="nav-link" data-scroll-target="#option-2-virtual-environment-only">Option 2: Virtual Environment Only</a></li>
   </ul></li>
   <li><a href="#committing-pull-requests" id="toc-committing-pull-requests" class="nav-link" data-scroll-target="#committing-pull-requests">Committing &amp; Pull Requests</a></li>
   </ul>
@@ -285,44 +287,59 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <section id="prerequisites" class="level2">
 <h2 class="anchored" data-anchor-id="prerequisites">Prerequisites</h2>
 <ul>
-<li><a href="https://pixi.sh/latest/">pixi</a></li>
-<li><a href="https://learn.microsoft.com/en-us/windows/wsl/install">WSL</a> (required for Windows users to utilize Quarto)</li>
+<li><a href="https://docs.astral.sh/uv/">uv</a></li>
+<li><a href="https://learn.microsoft.com/en-us/windows/wsl/install">WSL</a> (required for Windows users to utilize Quarto for docs)</li>
+<li>Optional: <a href="https://www.docker.com/">Docker</a></li>
 </ul>
 </section>
 <section id="environment-setup" class="level2">
 <h2 class="anchored" data-anchor-id="environment-setup">Environment Setup</h2>
-<section id="local-environment" class="level3">
-<h3 class="anchored" data-anchor-id="local-environment">Local Environment</h3>
+<p>We primarily utilize <a href="https://www.docker.com/">Docker</a> for development environment standardization &amp; <a href="https://docs.astral.sh/uv/">uv</a> for project, package, and dependency management.</p>
+<section id="option-1-recommended-docker-development-environment" class="level3">
+<h3 class="anchored" data-anchor-id="option-1-recommended-docker-development-environment">Option 1 (recommended): Docker Development Environment</h3>
 <ol type="1">
-<li>Clone repository</li>
+<li><p>Install <a href="https://www.docker.com/">Docker</a></p></li>
+<li><p>Clone repository</p></li>
 </ol>
-<div class="sourceCode" id="cb1"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> clone https://github.com/jakepenzak/caml</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<ol start="2" type="1">
-<li>Change directory (cd) into project root then create your pixi environments:</li>
-</ol>
-<div class="sourceCode" id="cb2"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">pixi</span> install</span>
-<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="ex">pixi</span> install <span class="at">--environment</span> dev</span>
-<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="ex">pixi</span> install <span class="at">--environment</span> dev-ray</span>
-<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a><span class="ex">pixi</span> install <span class="at">--environment</span> dev-pyspark</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<p>We highly recommend <a href="https://docs.github.com/en/authentication/connecting-to-github-with-ssh">utilizing ssh for cloning</a> the repository.</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> clone git@github.com:jakepenzak/caml.git</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="bu">cd</span> caml</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <ol start="3" type="1">
-<li>Activate you pixi shell for dev environment</li>
+<li><strong>VS Code Users</strong>: Set up Dev Containers</li>
 </ol>
-<div class="sourceCode" id="cb3"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">pixi</span> shell <span class="at">--environment</span> dev</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<ol type="a">
+<li>Download <a href="https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers">Dev Containers Extension</a></li>
+<li>Copy <code>.devcontainer-template.json</code> as <code>.devcontainer.json</code> and fill out {USERNAME} &amp; {EMAIL}</li>
+<li>Follow steps to open current working directory in container</li>
+<li>Test github access - if running into issues, copy .ssh keys into <code>.github_access/</code> directory. This directory gets copied into <code>.ssh/</code> directory inside container. DO NOT COMMIT anything stored under <code>.github_access/</code>.</li>
+<li>Test <code>uv pip list</code> to ensure environment dependencies are properly installed - you should see caml installed as an editable package.</li>
+</ol>
 <ol start="4" type="1">
-<li><p>Initialize pre-commit hooks via <code>pre-commit install</code></p></li>
-<li><p>Edit &amp; test code locally (as applicable)</p></li>
+<li><strong>Non-VS Code Users</strong>: Utilize <code>docker-run.sh</code></li>
 </ol>
-<p>Please refer to the <a href="https://pixi.sh/latest/">pixi</a> documentation for modifying dependencies and any other pixi related questions.</p>
+<ol type="a">
+<li>Run <code>source docker-run.sh</code> with respective flags. Call <code>--help</code> for details. This should spin up a terminal session in docker container.</li>
+<li>Test github access - if running into issues, copy .ssh keys into <code>.github_access/</code> directory. This directory gets copied into <code>.ssh/</code> directory inside container. DO NOT COMMIT anything stored under <code>.github_access/</code>.</li>
+<li>Test <code>uv pip list</code> to ensure environment dependencies are properly installed - you should see caml installed as an editable package.</li>
+</ol>
+</section>
+<section id="option-2-virtual-environment-only" class="level3">
+<h3 class="anchored" data-anchor-id="option-2-virtual-environment-only">Option 2: Virtual Environment Only</h3>
+<ol type="a">
+<li>Install <a href="https://docs.astral.sh/uv/">uv</a></li>
+<li>Run <code>uv sync --all-extras --frozen</code></li>
+<li>Activate the .venv via <code>source .venv/bin/activate</code></li>
+<li>Test <code>uv pip list</code> to ensure environment dependencies are properly installed - you should see caml installed as an editable package.</li>
+<li>Run <code>pre-commit install</code></li>
+<li>Optional: Install Quarto for edits on documentation, please refer to <a href="../04_Contributors/documentation.html">documentation page</a></li>
+</ol>
 </section>
 </section>
 <section id="committing-pull-requests" class="level2">
 <h2 class="anchored" data-anchor-id="committing-pull-requests">Committing &amp; Pull Requests</h2>
 <ul>
 <li>Try best to follow commit message conventions outlined <a href="https://gist.github.com/qoomon/5dfcdf8eec66a051ecd85625518cfd13">here</a></li>
-<li>On PRs, please fill out the generated PR template. As of now, there are two github actions that will be triggered on pull request &amp; will be required to run successfully in order to merge:
-<ol type="1">
-<li></li>
-</ol></li>
+<li>On PRs, please fill out the generated PR template. All github actions &amp; workflows will be required to complete successfully prior to merging.</li>
 </ul>
 
 
@@ -753,8 +770,8 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
   <div class="nav-page nav-page-previous">
   </div>
   <div class="nav-page nav-page-next">
-      <a href="../04_Contributors/testing.html" class="pagination-link" aria-label="Testing">
-        <span class="nav-page-text">Testing</span> <i class="bi bi-arrow-right-short"></i>
+      <a href="../04_Contributors/documentation.html" class="pagination-link" aria-label="Documentation">
+        <span class="nav-page-text">Documentation</span> <i class="bi bi-arrow-right-short"></i>
       </a>
   </div>
 </nav>

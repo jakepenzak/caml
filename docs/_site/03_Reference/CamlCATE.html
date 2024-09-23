@@ -176,12 +176,12 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
  <span class="dropdown-text">Environment &amp; Development</span></a>
   </li>
         <li>
-    <a class="dropdown-item" href="../04_Contributors/testing.html">
- <span class="dropdown-text">Testing</span></a>
-  </li>
-        <li>
     <a class="dropdown-item" href="../04_Contributors/documentation.html">
  <span class="dropdown-text">Documentation</span></a>
+  </li>
+        <li>
+    <a class="dropdown-item" href="../04_Contributors/testing.html">
+ <span class="dropdown-text">Testing</span></a>
   </li>
     </ul>
   </li>
@@ -244,12 +244,12 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <section id="caml.CamlCATE" class="level1">
 <h1>CamlCATE</h1>
 <p><code>CamlCATE(self, df, Y, T, X, *, uuid=None, discrete_treatment=True, discrete_outcome=False, seed=None, verbose=1)</code></p>
-<p>The CamlCATE class represents an opinionated implementation of Causal Machine Learning techniques for estimating highly accurate conditional average treatment effects (CATEs).</p>
+<p>The CamlCATE class represents an opinionated framework of Causal Machine Learning techniques for estimating highly accurate conditional average treatment effects (CATEs).</p>
 <p>This class is built on top of the EconML library and provides a high-level API for fitting, validating, and making inference with CATE models, with best practices built directly into the API. The class is designed to be easy to use and understand, while still providing flexibility for advanced users. The class is designed to be used with <code>pandas</code>, <code>polars</code>, <code>pyspark</code>, or <code>ibis</code> backends to provide a level of extensibility &amp; interoperability across different data processing frameworks.</p>
 <p>The primary workflow for the CamlCATE class is as follows:</p>
 <ol type="1">
 <li>Initialize the class with the input DataFrame and the necessary columns.</li>
-<li>Utilize AutoML to find the optimal nuisance functions to be utilized in the EconML estimators.</li>
+<li>Utilize AutoML to find the optimal nuisance functions or propensity/regression models to be utilized in the EconML estimators.</li>
 <li>Fit the CATE models on the training set and evaluate based on the validation set, then select the top performer/ensemble.</li>
 <li>Validate the fitted CATE model on the test set to check for generalization performance.</li>
 <li>Fit the final estimator on the entire dataset, after validation and testing.</li>
@@ -330,7 +330,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </tr>
 </tbody>
 </table>
-<p>Multi-dimensional outcomes and treatments are not on the roadmap yet.</p>
+<p>Multi-dimensional outcomes and treatments are not yet supported.</p>
 <section id="parameters" class="level2">
 <h2 class="anchored" data-anchor-id="parameters">Parameters</h2>
 <table class="caption-top table">
@@ -700,17 +700,17 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </section>
 <section id="caml.CamlCATE.fit_validator" class="level3">
 <h3 class="anchored" data-anchor-id="caml.CamlCATE.fit_validator">fit_validator</h3>
-<p><code>CamlCATE.fit_validator(subset_cate_models=['LinearDML', 'NonParamDML', 'DML-Lasso3d', 'CausalForestDML', 'XLearner', 'DomainAdaptationLearner', 'SLearner', 'TLearner', 'DRLearner', 'LinearDRLearner', 'ForestDRLearner'], additional_cate_models=[], rscorer_kwargs={}, use_ray=False, ray_remote_func_options_kwargs={}, sample_fraction=1.0, n_jobs=1)</code></p>
+<p><code>CamlCATE.fit_validator(subset_cate_models=['LinearDML', 'CausalForestDML', 'NonParamDML', 'AutoNonParamDML', 'SparseLinearDML-2D', 'DRLearner', 'ForestDRLearner', 'LinearDRLearner', 'SparseLinearDRLearner-2D', 'DomainAdaptationLearner', 'SLearner', 'TLearner', 'XLearner'], additional_cate_models=[], rscorer_kwargs={}, use_ray=False, ray_remote_func_options_kwargs={}, sample_fraction=1.0, n_jobs=1)</code></p>
 <p>Fits the CATE models on the training set and evaluates them &amp; ensembles based on the validation set.</p>
 <p>Sets the <code>_validation_estimator</code> and <code>_rscorer</code> internal attributes to the fitted EconML estimator and RScorer object.</p>
 <section id="parameters-2" class="level4">
 <h4 class="anchored" data-anchor-id="parameters-2">Parameters</h4>
 <table class="caption-top table">
 <colgroup>
+<col style="width: 8%">
 <col style="width: 9%">
-<col style="width: 11%">
-<col style="width: 30%">
-<col style="width: 48%">
+<col style="width: 26%">
+<col style="width: 55%">
 </colgroup>
 <thead>
 <tr class="header">
@@ -725,7 +725,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <td><code>subset_cate_models</code></td>
 <td>list[str]</td>
 <td>The list of CATE models to fit and ensemble. Default implies all available models as defined by class.</td>
-<td><code>['LinearDML', 'NonParamDML', 'DML-Lasso3d', 'CausalForestDML', 'XLearner', 'DomainAdaptationLearner', 'SLearner', 'TLearner', 'DRLearner', 'LinearDRLearner', 'ForestDRLearner']</code></td>
+<td><code>['LinearDML', 'CausalForestDML', 'NonParamDML', 'AutoNonParamDML', 'SparseLinearDML-2D', 'DRLearner', 'ForestDRLearner', 'LinearDRLearner', 'SparseLinearDRLearner-2D', 'DomainAdaptationLearner', 'SLearner', 'TLearner', 'XLearner']</code></td>
 </tr>
 <tr class="even">
 <td><code>additional_cate_models</code></td>
@@ -772,7 +772,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>...     <span class="st">"cv"</span>: <span class="dv">3</span>,</span>
 <span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>...     <span class="st">"mc_iters"</span>: <span class="dv">3</span>,</span>
 <span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>...     }</span>
-<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a><span class="op">&gt;&gt;&gt;</span> subset_cate_models <span class="op">=</span> [<span class="st">"LinearDML"</span>, <span class="st">"NonParamDML"</span>, <span class="st">"DML-Lasso3d"</span>, <span class="st">"CausalForestDML"</span>]</span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a><span class="op">&gt;&gt;&gt;</span> subset_cate_models <span class="op">=</span> [<span class="st">"LinearDML"</span>, <span class="st">"NonParamDML"</span>, <span class="st">"CausalForestDML"</span>]</span>
 <span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a><span class="op">&gt;&gt;&gt;</span> additional_cate_models <span class="op">=</span> [(<span class="st">"XLearner"</span>, XLearner(models<span class="op">=</span>caml_obj._model_Y_X_T, cate_models<span class="op">=</span>caml_obj._model_Y_X_T, propensity_model<span class="op">=</span>caml._model_T_X))]</span>
 <span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a><span class="op">&gt;&gt;&gt;</span> caml_obj.fit_validator(subset_cate_models<span class="op">=</span>subset_cate_models, additional_cate_models<span class="op">=</span>additional_cate_models, rscorer_kwargs<span class="op">=</span>rscorer_kwargs)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </section>

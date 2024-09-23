@@ -64,7 +64,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <script src="../site_libs/quarto-search/fuse.min.js"></script>
 <script src="../site_libs/quarto-search/quarto-search.js"></script>
 <meta name="quarto:offset" content="../">
-<link href="../04_Contributors/testing.html" rel="prev">
+<link href="../04_Contributors/testing.html" rel="next">
+<link href="../04_Contributors/environment.html" rel="prev">
 <link href="../assets/logo_no_text.svg" rel="icon" type="image/svg+xml">
 <script src="../site_libs/quarto-html/quarto.js"></script>
 <script src="../site_libs/quarto-html/popper.min.js"></script>
@@ -177,12 +178,12 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
  <span class="dropdown-text">Environment &amp; Development</span></a>
   </li>
         <li>
-    <a class="dropdown-item" href="../04_Contributors/testing.html">
- <span class="dropdown-text">Testing</span></a>
-  </li>
-        <li>
     <a class="dropdown-item" href="../04_Contributors/documentation.html">
  <span class="dropdown-text">Documentation</span></a>
+  </li>
+        <li>
+    <a class="dropdown-item" href="../04_Contributors/testing.html">
+ <span class="dropdown-text">Testing</span></a>
   </li>
     </ul>
   </li>
@@ -232,14 +233,14 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </li>
         <li class="sidebar-item">
   <div class="sidebar-item-container">
-  <a href="../04_Contributors/testing.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text">Testing</span></a>
+  <a href="../04_Contributors/documentation.html" class="sidebar-item-text sidebar-link active">
+ <span class="menu-text">Documentation</span></a>
   </div>
 </li>
         <li class="sidebar-item">
   <div class="sidebar-item-container">
-  <a href="../04_Contributors/documentation.html" class="sidebar-item-text sidebar-link active">
- <span class="menu-text">Documentation</span></a>
+  <a href="../04_Contributors/testing.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Testing</span></a>
   </div>
 </li>
     </ul>
@@ -272,13 +273,13 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </header>
 
 
-<p><em>Note: Windows users must create <a href="../04_Contributors/environment.html#prerequisites">environment</a> using WSL as Quarto requires MacOS or LinuxOS</em></p>
-<p>This repository uses <a href="https://quarto.org/"><img src="../assets/external_logos/quarto.png" class="img-fluid" width="85"></a> &amp; <a href="">quartodoc</a> for documentation. All files relating to the documentation are under the <code>docs/</code> directory. Quarto &amp; quartodoc provide very detailed documentation on usage so I will refer the reader to these resources for more details.</p>
+<p><em>Note: Windows users must create <a href="../04_Contributors/environment.html#prerequisites">environment</a> using WSL or Docker container as Quarto requires MacOS or LinuxOS</em></p>
+<p>This repository uses <a href="https://quarto.org/"><img src="../assets/external_logos/quarto.png" class="img-fluid" width="85"></a> &amp; <a href="https://machow.github.io/quartodoc/get-started/overview.html">quartodoc</a> for documentation. All files relating to the documentation are under the <code>docs/</code> directory. Quarto &amp; quartodoc provide very detailed documentation on usage so I will refer the reader to these resources for more details.</p>
 <p>To build the documentation, run the following command from the projects root directory:</p>
 <div class="sourceCode" id="cb1"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">quartodoc</span> build <span class="at">--config</span> docs/_quarto.yml</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <p>And to preview the documentation, run the following command:</p>
 <div class="sourceCode" id="cb2"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">quarto</span> preview docs/</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<p>The documentation preview will be hosted on <a href="http://localhost:8000/">http://localhost:8000/</a>. Note that the quarto preview will be checking for live updates &amp; applying them in real-time. In some cases, the changes will not manifest until you rerun <code>quartodoc build --config docs/_quarto.yml</code>. In general, this will occur when you make changes to the “quartodoc:” section of the <code>docs/_quarto.yml</code> file or any corresponding API changes, but it has been observed to occur (for undetermined reasons on our end) at other times as well.</p>
+<p>The documentation preview will be hosted on <a href="http://localhost:8000/">http://localhost:8000/</a>. Note that the quarto preview will be checking for live updates &amp; applying them in real-time. In some cases, the changes will not manifest until you rerun <code>quartodoc build --config docs/_quarto.yml</code>. In general, this will occur when you make changes to the “quartodoc:” section of the <code>docs/_quarto.yml</code> file or any corresponding API changes.</p>
 
 
 
@@ -705,11 +706,14 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
 </script>
 <nav class="page-navigation">
   <div class="nav-page nav-page-previous">
-      <a href="../04_Contributors/testing.html" class="pagination-link" aria-label="Testing">
-        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text">Testing</span>
+      <a href="../04_Contributors/environment.html" class="pagination-link" aria-label="Environment &amp; Development">
+        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text">Environment &amp; Development</span>
       </a>
   </div>
   <div class="nav-page nav-page-next">
+      <a href="../04_Contributors/testing.html" class="pagination-link" aria-label="Testing">
+        <span class="nav-page-text">Testing</span> <i class="bi bi-arrow-right-short"></i>
+      </a>
   </div>
 </nav>
 </div> <!-- /content -->
