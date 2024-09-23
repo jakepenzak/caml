@@ -174,7 +174,7 @@ Sets the `_final_estimator` internal attribute to the fitted EconML estimator.
 
 ### fit_validator { #caml.CamlCATE.fit_validator }
 
-`CamlCATE.fit_validator(subset_cate_models=['LinearDML', 'NonParamDML', 'DML-Lasso3d', 'CausalForestDML', 'XLearner', 'DomainAdaptationLearner', 'SLearner', 'TLearner', 'DRLearner', 'LinearDRLearner', 'ForestDRLearner'], additional_cate_models=[], rscorer_kwargs={}, use_ray=False, ray_remote_func_options_kwargs={})`
+`CamlCATE.fit_validator(subset_cate_models=['LinearDML', 'NonParamDML', 'DML-Lasso3d', 'CausalForestDML', 'XLearner', 'DomainAdaptationLearner', 'SLearner', 'TLearner', 'DRLearner', 'LinearDRLearner', 'ForestDRLearner'], additional_cate_models=[], rscorer_kwargs={}, use_ray=False, ray_remote_func_options_kwargs={}, sample_fraction=1.0, n_jobs=1)`
 
 Fits the CATE models on the training set and evaluates them & ensembles based on the validation set.
 
@@ -182,13 +182,15 @@ Sets the `_validation_estimator` and `_rscorer` internal attributes to the fitte
 
 #### Parameters
 
-| Name                             | Type                                    | Description                                                                                            | Default                                                                                                                                                                            |
-|----------------------------------|-----------------------------------------|--------------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `subset_cate_models`             | list\[str\]                             | The list of CATE models to fit and ensemble. Default implies all available models as defined by class. | `['LinearDML', 'NonParamDML', 'DML-Lasso3d', 'CausalForestDML', 'XLearner', 'DomainAdaptationLearner', 'SLearner', 'TLearner', 'DRLearner', 'LinearDRLearner', 'ForestDRLearner']` |
-| `additional_cate_models`         | list\[tuple\[str, BaseCateEstimator\]\] | The list of additional CATE models to fit and ensemble                                                 | `[]`                                                                                                                                                                               |
-| `rscorer_kwargs`                 | dict                                    | The keyword arguments for the econml.score.RScorer object.                                             | `{}`                                                                                                                                                                               |
-| `use_ray`                        | bool                                    | A boolean indicating whether to use Ray for parallel processing.                                       | `False`                                                                                                                                                                            |
-| `ray_remote_func_options_kwargs` | dict                                    | The keyword arguments for the Ray remote function options.                                             | `{}`                                                                                                                                                                               |
+| Name                             | Type                                    | Description                                                                                                     | Default                                                                                                                                                                            |
+|----------------------------------|-----------------------------------------|-----------------------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `subset_cate_models`             | list\[str\]                             | The list of CATE models to fit and ensemble. Default implies all available models as defined by class.          | `['LinearDML', 'NonParamDML', 'DML-Lasso3d', 'CausalForestDML', 'XLearner', 'DomainAdaptationLearner', 'SLearner', 'TLearner', 'DRLearner', 'LinearDRLearner', 'ForestDRLearner']` |
+| `additional_cate_models`         | list\[tuple\[str, BaseCateEstimator\]\] | The list of additional CATE models to fit and ensemble                                                          | `[]`                                                                                                                                                                               |
+| `rscorer_kwargs`                 | dict                                    | The keyword arguments for the econml.score.RScorer object.                                                      | `{}`                                                                                                                                                                               |
+| `use_ray`                        | bool                                    | A boolean indicating whether to use Ray for parallel processing.                                                | `False`                                                                                                                                                                            |
+| `ray_remote_func_options_kwargs` | dict                                    | The keyword arguments for the Ray remote function options.                                                      | `{}`                                                                                                                                                                               |
+| `sample_fraction`                | float                                   | The fraction of the training data to use for fitting the CATE models. Default implies 1.0 (full training data). | `1.0`                                                                                                                                                                              |
+| `n_jobs`                         | int                                     | The number of parallel jobs to run. Default implies 1 (no parallel jobs).                                       | `1`                                                                                                                                                                                |
 
 #### Examples
 
@@ -290,7 +292,7 @@ Provides population summary statistics for the CATE predictions for either the i
 
 ### validate { #caml.CamlCATE.validate }
 
-`CamlCATE.validate(estimator=None, print_full_report=True)`
+`CamlCATE.validate(n_groups=4, n_bootstrap=100, estimator=None, print_full_report=True)`
 
 Validates the fitted CATE models on the test set to check for generalization performance. Uses the DRTester class from EconML to obtain the Best
 Linear Predictor (BLP), Calibration, AUTOC, and QINI. See [EconML documentation](https://econml.azurewebsites.net/_autosummary/econml.validate.DRTester.html) for more details.
@@ -302,6 +304,8 @@ Sets the `_validator_results` internal attribute to the results of the DRTester 
 
 | Name                | Type                                               | Description                                                                            | Default   |
 |---------------------|----------------------------------------------------|----------------------------------------------------------------------------------------|-----------|
+| `n_groups`          | int                                                | The number of quantile based groups used to calculate calibration scores.              | `4`       |
+| `n_bootstrap`       | int                                                | The number of boostrap samples to run when calculating confidence bands.               | `100`     |
 | `estimator`         | BaseCateEstimator \| EnsembleCateEstimator \| None | The estimator to validate. Default implies the best estimator from the validation set. | `None`    |
 | `print_full_report` | bool                                               | A boolean indicating whether to print the full validation report.                      | `True`    |
 

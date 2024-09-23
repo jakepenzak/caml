@@ -700,7 +700,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </section>
 <section id="caml.CamlCATE.fit_validator" class="level3">
 <h3 class="anchored" data-anchor-id="caml.CamlCATE.fit_validator">fit_validator</h3>
-<p><code>CamlCATE.fit_validator(subset_cate_models=['LinearDML', 'NonParamDML', 'DML-Lasso3d', 'CausalForestDML', 'XLearner', 'DomainAdaptationLearner', 'SLearner', 'TLearner', 'DRLearner', 'LinearDRLearner', 'ForestDRLearner'], additional_cate_models=[], rscorer_kwargs={}, use_ray=False, ray_remote_func_options_kwargs={})</code></p>
+<p><code>CamlCATE.fit_validator(subset_cate_models=['LinearDML', 'NonParamDML', 'DML-Lasso3d', 'CausalForestDML', 'XLearner', 'DomainAdaptationLearner', 'SLearner', 'TLearner', 'DRLearner', 'LinearDRLearner', 'ForestDRLearner'], additional_cate_models=[], rscorer_kwargs={}, use_ray=False, ray_remote_func_options_kwargs={}, sample_fraction=1.0, n_jobs=1)</code></p>
 <p>Fits the CATE models on the training set and evaluates them &amp; ensembles based on the validation set.</p>
 <p>Sets the <code>_validation_estimator</code> and <code>_rscorer</code> internal attributes to the fitted EconML estimator and RScorer object.</p>
 <section id="parameters-2" class="level4">
@@ -709,8 +709,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <colgroup>
 <col style="width: 9%">
 <col style="width: 11%">
-<col style="width: 28%">
-<col style="width: 50%">
+<col style="width: 30%">
+<col style="width: 48%">
 </colgroup>
 <thead>
 <tr class="header">
@@ -750,6 +750,18 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <td>dict</td>
 <td>The keyword arguments for the Ray remote function options.</td>
 <td><code>{}</code></td>
+</tr>
+<tr class="even">
+<td><code>sample_fraction</code></td>
+<td>float</td>
+<td>The fraction of the training data to use for fitting the CATE models. Default implies 1.0 (full training data).</td>
+<td><code>1.0</code></td>
+</tr>
+<tr class="odd">
+<td><code>n_jobs</code></td>
+<td>int</td>
+<td>The number of parallel jobs to run. Default implies 1 (no parallel jobs).</td>
+<td><code>1</code></td>
 </tr>
 </tbody>
 </table>
@@ -995,7 +1007,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </section>
 <section id="caml.CamlCATE.validate" class="level3">
 <h3 class="anchored" data-anchor-id="caml.CamlCATE.validate">validate</h3>
-<p><code>CamlCATE.validate(estimator=None, print_full_report=True)</code></p>
+<p><code>CamlCATE.validate(n_groups=4, n_bootstrap=100, estimator=None, print_full_report=True)</code></p>
 <p>Validates the fitted CATE models on the test set to check for generalization performance. Uses the DRTester class from EconML to obtain the Best Linear Predictor (BLP), Calibration, AUTOC, and QINI. See <a href="https://econml.azurewebsites.net/_autosummary/econml.validate.DRTester.html">EconML documentation</a> for more details. In short, we are checking for the ability of the model to find statistically significant heterogeneity in a “well-calibrated” fashion.</p>
 <p>Sets the <code>_validator_results</code> internal attribute to the results of the DRTester class.</p>
 <section id="parameters-6" class="level4">
@@ -1016,6 +1028,18 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </tr>
 </thead>
 <tbody>
+<tr class="odd">
+<td><code>n_groups</code></td>
+<td>int</td>
+<td>The number of quantile based groups used to calculate calibration scores.</td>
+<td><code>4</code></td>
+</tr>
+<tr class="even">
+<td><code>n_bootstrap</code></td>
+<td>int</td>
+<td>The number of boostrap samples to run when calculating confidence bands.</td>
+<td><code>100</code></td>
+</tr>
 <tr class="odd">
 <td><code>estimator</code></td>
 <td>BaseCateEstimator | EnsembleCateEstimator | None</td>

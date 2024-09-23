@@ -19,6 +19,7 @@ ENV PATH="$JAVA_HOME/bin:$PATH"
 ADD https://astral.sh/uv/0.4.10/install.sh /uv-installer.sh
 RUN sh /uv-installer.sh && rm /uv-installer.sh
 ENV PATH="/root/.cargo/bin/:$PATH"
+ENV UV_HTTP_TIMEOUT=300
 
 # Install the project with intermediate layers
 ADD .dockerignore .
