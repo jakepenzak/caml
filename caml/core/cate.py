@@ -100,7 +100,7 @@ class CamlCATE(CamlBase):
 
     Parameters
     ----------
-    df : pandas.DataFrame | polars.DataFrame | pyspark.sql.DataFrame | ibis.expr.types.Table
+    df : pandas.DataFrame | polars.DataFrame | pyspark.sql.DataFrame | ibis.Table
         The input DataFrame representing the data for the CamlCATE instance.
     Y : str
         The str representing the column name for the outcome variable.
@@ -121,7 +121,7 @@ class CamlCATE(CamlBase):
 
     Attributes
     ----------
-    df : pandas.DataFrame | polars.DataFrame | pyspark.sql.DataFrame | ibis.expr.types.Table
+    df : pandas.DataFrame | polars.DataFrame | pyspark.sql.DataFrame | ibis.Table
         The input DataFrame representing the data for the CamlCATE instance.
     Y : str
         The str representing the column name for the outcome variable.
@@ -139,7 +139,7 @@ class CamlCATE(CamlBase):
         The fitted EconML estimator object for validation.
     final_estimator : econml._cate_estimator.BaseCateEstimator | econml.score.EnsembleCateEstimator
         The fitted EconML estimator object on the entire dataset after validation.
-    dataframe : pandas.DataFrame | polars.DataFrame | pyspark.sql.DataFrame | ibis.expr.types.Table
+    dataframe : pandas.DataFrame | polars.DataFrame | pyspark.sql.DataFrame | ibis.Table
         The input DataFrame with any modifications (e.g., predictions or rank orderings) made by the class returned to the original backend.
     model_Y_X: sklearn.base.BaseEstimator
         The fitted nuisance function for the outcome variable.
@@ -149,19 +149,19 @@ class CamlCATE(CamlBase):
         The fitted nuisance function for the treatment variable.
     _ibis_connection: ibis.client.Client
         The Ibis client object representing the backend connection to Ibis.
-    _ibis_df: ibis.expr.types.Table
+    _ibis_df: ibis.Table
         The Ibis table expression representing the DataFrame connected to Ibis.
     _table_name: str
         The name of the temporary table/view created for the DataFrame in the backend.
     _spark: pyspark.sql.SparkSession
         The Spark session object if the DataFrame is a Spark DataFrame.
-    _Y: ibis.expr.types.Table
+    _Y: ibis.Table
         The outcome variable data as ibis table.
-    _T: ibis.expr.types.Table
+    _T: ibis.Table
         The treatment variable data as ibis table.
-    _X: ibis.expr.types.Table
+    _X: ibis.Table
         The feature/confounder set data as ibis table.
-    _X_T: ibis.expr.types.Table
+    _X_T: ibis.Table
         The feature/confounder feature set and treatment variable data as ibis table.
     _nuisances_fitted: bool
         A boolean indicating whether the nuisance functions have been fitted.
@@ -201,10 +201,7 @@ class CamlCATE(CamlBase):
 
     def __init__(
         self,
-        df: pandas.DataFrame
-        | polars.DataFrame
-        | pyspark.sql.DataFrame
-        | ibis.expr.types.Table,
+        df: pandas.DataFrame | polars.DataFrame | pyspark.sql.DataFrame | ibis.Table,
         Y: str,
         T: str,
         X: str | list[str],
@@ -551,7 +548,7 @@ class CamlCATE(CamlBase):
         out_of_sample_df: pandas.DataFrame
         | polars.DataFrame
         | pyspark.sql.DataFrame
-        | ibis.expr.types.Table
+        | ibis.Table
         | None = None,
         out_of_sample_uuid: str | None = None,
         return_predictions: bool = False,
@@ -567,7 +564,7 @@ class CamlCATE(CamlBase):
 
         Parameters
         ----------
-        out_of_sample_df: pandas.DataFrame | polars.DataFrame | pyspark.sql.DataFrame | ibis.expr.types.Table | None
+        out_of_sample_df: pandas.DataFrame | polars.DataFrame | pyspark.sql.DataFrame | ibis.Table | None
             The out-of-sample DataFrame to make predictions on.
         out_of_sample_uuid: str | None
             The column name for the universal identifier code (eg, ehhn) in the out-of-sample DataFrame.
@@ -671,7 +668,7 @@ class CamlCATE(CamlBase):
         out_of_sample_df: pandas.DataFrame
         | polars.DataFrame
         | pyspark.sql.DataFrame
-        | ibis.expr.types.Table
+        | ibis.Table
         | None = None,
         return_rank_order: bool = False,
         join_rank_order: bool = True,
@@ -682,7 +679,7 @@ class CamlCATE(CamlBase):
 
         Parameters
         ----------
-        out_of_sample_df: pandas.DataFrame | polars.DataFrame | pyspark.sql.DataFrame | ibis.expr.types.Table | None
+        out_of_sample_df: pandas.DataFrame | polars.DataFrame | pyspark.sql.DataFrame | ibis.Table | None
             The out-of-sample DataFrame to rank order.
         return_rank_order: bool
             A boolean indicating whether to return the rank ordering.
@@ -742,7 +739,7 @@ class CamlCATE(CamlBase):
         out_of_sample_df: pandas.DataFrame
         | polars.DataFrame
         | pyspark.sql.DataFrame
-        | ibis.expr.types.Table
+        | ibis.Table
         | None = None,
         treatment_category: int = 1,
     ):
@@ -751,14 +748,14 @@ class CamlCATE(CamlBase):
 
         Parameters
         ----------
-        out_of_sample_df: pandas.DataFrame | polars.DataFrame | pyspark.sql.DataFrame | ibis.expr.types.Table | None
+        out_of_sample_df: pandas.DataFrame | polars.DataFrame | pyspark.sql.DataFrame | ibis.Table | None
             The out-of-sample DataFrame to summarize.
         treatment_category: int
             The treatment level, in the case of categorical treatments, to summarize the CATE predictions for. Default implies the first category.
 
         Returns
         -------
-        pandas.DataFrame | polars.DataFrame | pyspark.sql.DataFrame | ibis.expr.types.Table
+        pandas.DataFrame | polars.DataFrame | pyspark.sql.DataFrame | ibis.Table
             The summary statistics for the CATE predictions.
 
         Examples

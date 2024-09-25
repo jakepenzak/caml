@@ -161,8 +161,8 @@ class CamlBase(metaclass=abc.ABCMeta):
     def _run_auto_nuisance_functions(
         self,
         *,
-        outcome: ibis.expr.types.Table,
-        features: ibis.expr.types.Table,
+        outcome: ibis.Table,
+        features: ibis.Table,
         discrete_outcome: bool,
         flaml_kwargs: dict | None,
         use_ray: bool,
@@ -173,9 +173,9 @@ class CamlBase(metaclass=abc.ABCMeta):
 
         Parameters
         ----------
-        outcome : ibis.expr.types.Table
+        outcome : ibis.Table
             The outcome variable as an Ibis Table.
-        features : ibis.expr.types.Table
+        features : ibis.Table
             The features matrix as an Ibis Table.
         discrete_outcome : bool
             Whether the outcome is discrete or continuous.
@@ -245,7 +245,7 @@ class CamlBase(metaclass=abc.ABCMeta):
         If the DataFrame is a pyspark.sql.DataFrame, it creates a temporary view and connects to Ibis using the PySpark session.
         If the DataFrame is a pandas.DataFrame, it connects to Ibis using the pandas DataFrame.
         If the DataFrame is a polars.DataFrame, it connects to Ibis using the polars DataFrame.
-        If the DataFrame is an ibis.expr.types.Table, it creates a new table (copy of df) on Ibis using the current Ibis connection.
+        If the DataFrame is an ibis.Table, it creates a new table (copy of df) on Ibis using the current Ibis connection.
 
         This method sets the '_table_name`, '_ibis_df` and `_ibis_connection` internal attributes of the class when nonbase_df is None.
 
@@ -270,7 +270,7 @@ class CamlBase(metaclass=abc.ABCMeta):
         elif _HAS_POLARS and isinstance(self.df, polars.DataFrame):
             ibis_connection = ibis.polars.connect({table_name: self.df})
             ibis_df = ibis_connection.table(table_name)
-        elif isinstance(self.df, ibis.expr.types.Table):
+        elif isinstance(self.df, ibis.Table):
             ibis_connection = self.df._find_backend()
             if isinstance(ibis_connection, ibis.backends.pyspark.Backend):
                 obj = self.df
@@ -286,7 +286,7 @@ class CamlBase(metaclass=abc.ABCMeta):
         self,
         *,
         data_dict: dict | None = None,
-        df: ibis.expr.types.Table
+        df: ibis.Table
         | pyspark.sql.DataFrame
         | pandas.DataFrame
         | polars.DataFrame
@@ -299,12 +299,12 @@ class CamlBase(metaclass=abc.ABCMeta):
         ----------
         data_dict : dict
             The data dictionary to create the table from.
-        df : ibis.expr.types.Table | pyspark.sql.DataFrame | pandas.DataFrame | polars.DataFrame
+        df : ibis.Table | pyspark.sql.DataFrame | pandas.DataFrame | polars.DataFrame
             The DataFrame to create the table from.
 
         Returns
         -------
-        ibis_df : ibis.expr.types.Table
+        ibis_df : ibis.Table
             The Ibis DataFrame created from the data dictionary or provided DataFrame.
         """
 
@@ -332,14 +332,14 @@ class CamlBase(metaclass=abc.ABCMeta):
 
     @staticmethod
     def _return_ibis_dataframe_to_original_backend(
-        *, ibis_df: ibis.expr.types.Table, backend: str | None = None
+        *, ibis_df: ibis.Table, backend: str | None = None
     ):
         """
         Return the Ibis DataFrame to the original backend.
 
         Parameters
         ----------
-        ibis_df : ibis.expr.types.Table
+        ibis_df : ibis.Table
             The Ibis DataFrame to return to the original backend.
         backend : str
             The backend to return the DataFrame to. Default is None (will return to the original backend).
