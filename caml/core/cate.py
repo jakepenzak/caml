@@ -59,8 +59,8 @@ class CamlCATE(CamlBase):
 
     This class is built on top of the EconML library and provides a high-level API for fitting, validating, and making inference with CATE models,
     with best practices built directly into the API. The class is designed to be easy to use and understand, while still providing
-    flexibility for advanced users. The class is designed to be used with `pandas`, `polars`, `pyspark`, or `ibis` backends to
-    provide a level of extensibility & interoperability across different data processing frameworks.
+    flexibility for advanced users. The class is designed to be used with `pandas`, `polars`, or `pyspark` backends, which ultimately get
+    converted to NumPy Arrays under the hood to provide a level of extensibility & interoperability across different data processing frameworks.
 
     The primary workflow for the CamlCATE class is as follows:
 
@@ -100,16 +100,16 @@ class CamlCATE(CamlBase):
 
     Parameters
     ----------
-    df : pandas.DataFrame | polars.DataFrame | pyspark.sql.DataFrame | ibis.Table
+    df : pandas.DataFrame | polars.DataFrame | pyspark.sql.DataFrame
         The input DataFrame representing the data for the CamlCATE instance.
     Y : str
         The str representing the column name for the outcome variable.
     T : str
         The str representing the column name(s) for the treatment variable(s).
     X : list[str] | str | None
-        The str (if unity) or list of feature names representing the confounder/control feature set to be utilized for estimating heterogeneity/CATE.
-    uuid : str | None
-        The str representing the column name for the universal identifier code (eg, ehhn). Default implies index for joins.
+        The str (if unity) or list of feature names representing the feature set to be utilized for estimating heterogeneity/CATE.
+    W : list[str] | str | None
+        The str (if unity) or list of feature names representing the confounder/control feature set to be utilized only for nuisance function estimation where applicable.
     discrete_treatment : bool
         A boolean indicating whether the treatment is discrete/categorical or continuous.
     discrete_outcome : bool
@@ -128,9 +128,9 @@ class CamlCATE(CamlBase):
     T : str
         The str representing the column name(s) for the treatment variable(s).
     X : list[str] | str
-        The str (if unity) or list/tuple of feature names representing the confounder/control feature set to be utilized for estimating heterogeneity/CATE.
-    uuid : str
-        The str representing the column name for the universal identifier code (eg, ehhn)
+        The str (if unity) or list/tuple of feature names representing the confounder/control feature set to be utilized for estimating heterogeneity/CATE and nuisance function estimation where applicable.
+    W : list[str] | str
+        The str (if unity) or list/tuple of feature names representing the confounder/control feature set to be utilized only for nuisance function estimation, where applicable. These will be included by default in Meta-Learners.
     discrete_treatment : bool
         A boolean indicating whether the treatment is discrete/categorical or continuous.
     discrete_outcome : bool
@@ -147,14 +147,6 @@ class CamlCATE(CamlBase):
         The fitted nuisance function for the outcome variable with treatment variable.
     model_T_X: sklearn.base.BaseEstimator
         The fitted nuisance function for the treatment variable.
-    _ibis_connection: ibis.client.Client
-        The Ibis client object representing the backend connection to Ibis.
-    _ibis_df: ibis.Table
-        The Ibis table expression representing the DataFrame connected to Ibis.
-    _table_name: str
-        The name of the temporary table/view created for the DataFrame in the backend.
-    _spark: pyspark.sql.SparkSession
-        The Spark session object if the DataFrame is a Spark DataFrame.
     _Y: ibis.Table
         The outcome variable data as ibis table.
     _T: ibis.Table
@@ -201,12 +193,12 @@ class CamlCATE(CamlBase):
 
     def __init__(
         self,
-        df: pandas.DataFrame | polars.DataFrame | pyspark.sql.DataFrame | ibis.Table,
+        df: pandas.DataFrame | polars.DataFrame | pyspark.sql.DataFrame,
         Y: str,
         T: str,
         X: str | list[str],
+        W: str | list[str],
         *,
-        uuid: str | None = None,
         discrete_treatment: bool = True,
         discrete_outcome: bool = False,
         seed: int | None = None,
@@ -215,27 +207,15 @@ class CamlCATE(CamlBase):
         super().__init__(verbose=verbose)
 
         self.df = df
-        self.uuid = uuid
         self.Y = Y
         self.T = T
         self.X = X
+        self.W = W
         self.discrete_treatment = discrete_treatment
         self.discrete_outcome = discrete_outcome
         self.seed = seed
-        self._spark = None
 
-        self._ibis_connector()
-
-        if self.uuid is None:
-            self._ibis_df = self._ibis_df.mutate(
-                uuid=ibis.row_number().over(ibis.window())
-            )
-            self.uuid = "uuid"
-
-        self._Y = self._ibis_df.select(self.Y)
-        self._T = self._ibis_df.select(self.T)
-        self._X = self._ibis_df.select(self.X)
-        self._X_T = self._ibis_df.select(self.X + [self.T])
+        self._Y, self._T, self._X, self._W = self._dataframe_to_numpy()
 
         self._nuisances_fitted = False
         self._validation_estimator = None
@@ -245,8 +225,7 @@ class CamlCATE(CamlBase):
             logger.warning("Validation for continuous treatments is not supported yet.")
 
         if self.discrete_outcome:
-            logger.error("Binary outcomes are not supported yet.")
-            raise ValueError("Binary outcomes are not supported yet.")
+            logger.warning("Binary outcomes are experimental and bugs may exist.")
 
     def auto_nuisance_functions(
         self,
@@ -291,25 +270,25 @@ class CamlCATE(CamlBase):
         if use_spark:
             assert _HAS_PYSPARK, "PySpark is not installed. Please install PySpark optional dependencies via `pip install caml[pyspark]`."
 
-        self.model_Y_X = self._run_auto_nuisance_functions(
+        self.model_Y_X_W = self._run_auto_nuisance_functions(
             outcome=self._Y,
-            features=self._X,
+            features=[self._X, self._W],
             discrete_outcome=self.discrete_outcome,
             flaml_kwargs=flaml_Y_kwargs,
             use_ray=use_ray,
             use_spark=use_spark,
         )
-        self.model_Y_X_T = self._run_auto_nuisance_functions(
+        self.model_Y_X_W_T = self._run_auto_nuisance_functions(
             outcome=self._Y,
-            features=self._X_T,
+            features=[self._X, self._W, self._T],
             discrete_outcome=self.discrete_outcome,
             flaml_kwargs=flaml_Y_kwargs,
             use_ray=use_ray,
             use_spark=use_spark,
         )
-        self.model_T_X = self._run_auto_nuisance_functions(
+        self.model_T_X_W = self._run_auto_nuisance_functions(
             outcome=self._T,
-            features=self._X,
+            features=[self._X, self._W],
             discrete_outcome=self.discrete_treatment,
             flaml_kwargs=flaml_T_kwargs,
             use_ray=use_ray,
@@ -384,7 +363,7 @@ class CamlCATE(CamlBase):
         self._split_data(
             validation_size=0.2, test_size=0.2, sample_fraction=sample_fraction
         )
-        self._get_cate_models(
+        self._cate_models = self._get_cate_models(
             subset_cate_models=subset_cate_models,
             additional_cate_models=additional_cate_models,
         )
@@ -808,28 +787,21 @@ class CamlCATE(CamlBase):
             The list of additional CATE models to fit and ensemble.
         """
 
-        mod_Y_X = self.model_Y_X
-        mod_T_X = self.model_T_X
-        mod_Y_X_T = self.model_Y_X_T
-        discrete_treatment = self.discrete_treatment
-        discrete_outcome = self.discrete_outcome
-        random_state = self.seed
-
-        self._cate_models = []
+        _cate_models = []
         for cate_model in subset_cate_models:
-            self._cate_models.append(
+            _cate_models.append(
                 model_bank.get_cate_model(
                     cate_model,
-                    mod_Y_X,
-                    mod_T_X,
-                    mod_Y_X_T,
-                    discrete_treatment,
-                    discrete_outcome,
-                    random_state,
+                    self.model_Y_X_W,
+                    self.model_T_X_W,
+                    self.model_Y_X_W_T,
+                    self.discrete_treatment,
+                    self.discrete_outcome,
+                    self.seed,
                 )
             )
 
-        self._cate_models = self._cate_models + additional_cate_models
+        return _cate_models + additional_cate_models
 
     def _fit_and_ensemble_cate_models(
         self,
@@ -861,25 +833,27 @@ class CamlCATE(CamlBase):
             The fitted RScorer object.
         """
 
-        Y_train, T_train, X_train = (
+        Y_train, T_train, X_train, W_train = (  # noqa: F841
             self._data_splits["Y_train"],
             self._data_splits["T_train"],
             self._data_splits["X_train"],
+            self._data_splits["W_train"],
         )
 
-        Y_val, T_val, X_val = (
+        Y_val, T_val, X_val, W_val = (  # noqa: F841
             self._data_splits["Y_val"],
             self._data_splits["T_val"],
             self._data_splits["X_val"],
+            self._data_splits["W_val"],
         )
 
         if Y_train.shape[1] == 1:
-            Y_train = Y_train.to_numpy().ravel()
-            Y_val = Y_val.to_numpy().ravel()
+            Y_train = Y_train.ravel()
+            Y_val = Y_val.ravel()
 
         if T_train.shape[1] == 1:
-            T_train = T_train.to_numpy().ravel()
-            T_val = T_val.to_numpy().ravel()
+            T_train = T_train.ravel()
+            T_val = T_val.ravel()
 
         def fit_model(name, model, use_ray=False, ray_remote_func_options_kwargs={}):
             if isinstance(model, _OrthoLearner):
@@ -917,8 +891,8 @@ class CamlCATE(CamlBase):
             base_rscorer_settings.update(rscorer_kwargs)
 
         rscorer = RScorer(  # BUG: RScorer does not work with discrete outcomes. See monkey patch below.
-            model_y=self.model_Y_X,
-            model_t=self.model_T_X,
+            model_y=self.model_Y_X_W,
+            model_t=self.model_T_X_W,
             discrete_treatment=self.discrete_treatment,
             **base_rscorer_settings,
         )
@@ -981,16 +955,26 @@ class CamlCATE(CamlBase):
             A string containing information about the CamlCATE object, including data backend, number of observations, UUID, outcome variable, discrete outcome, treatment variable, discrete treatment, features/confounders, random seed, nuissance models (if fitted), and final estimator (if available).
         """
 
+        data_backend = (
+            "pandas"
+            if isinstance(self.df, pandas.DataFrame)
+            else "polars"
+            if isinstance(self.df, polars.DataFrame)
+            else "pyspark"
+            if isinstance(self.df, (pyspark.sql.DataFrame, pyspark.pandas.DataFrame))
+            else "unknown"
+        )
+
         summary = (
             "================== CamlCATE Object ==================\n"
-            + f"Data Backend: {self._ibis_connection.name}\n"
-            + f"No. of Observations: {self._Y.count().execute()}\n"
-            + f"UUID: {self.uuid}\n"
+            + f"Data Backend: {data_backend}\n"
+            + f"No. of Observations: {self._Y.shape[0]}\n"
             + f"Outcome Variable: {self.Y}\n"
             + f"Discrete Outcome: {self.discrete_outcome}\n"
             + f"Treatment Variable: {self.T}\n"
             + f"Discrete Treatment: {self.discrete_treatment}\n"
-            + f"Features/Confounders: {self.X}\n"
+            + f"Features/Confounders for Heterogeneity (X): {self.X}\n"
+            + f"Features/Confounders as Controls (W): {self.W}\n"
             + f"Random Seed: {self.seed}\n"
         )
 

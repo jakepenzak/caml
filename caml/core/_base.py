@@ -4,13 +4,13 @@ import abc
 import logging
 from typing import TYPE_CHECKING
 
-import ibis
+import numpy as np
 import pandas
 from flaml import AutoML
 from sklearn.model_selection import train_test_split
 
 from ..logging import setup_logging
-from ..utils import cls_typechecked, generate_random_string
+from ..utils import cls_typechecked
 
 logger = logging.getLogger(__name__)
 
@@ -24,7 +24,7 @@ except ImportError:
 
 try:
     import pyspark
-    from pyspark.sql import SparkSession
+    # from pyspark.sql import SparkSession
 
     _HAS_PYSPARK = True
 except ImportError:
@@ -48,7 +48,7 @@ class CamlBase(metaclass=abc.ABCMeta):
 
     @property
     def dataframe(self):
-        return self._return_ibis_dataframe_to_original_backend(ibis_df=self._ibis_df)
+        return self.df
 
     @property
     def validation_estimator(self):
@@ -120,22 +120,26 @@ class CamlBase(metaclass=abc.ABCMeta):
         sample_fraction:
             The size of the sample to use for training. Default is 1.0.
         """
-        X = self._X.execute()
-        Y = self._Y.execute()
-        T = self._T.execute()
+        X = self._X
+        W = self._W
+        Y = self._Y
+        T = self._T
 
         if sample_fraction != 1.0:
             X = X.sample(frac=sample_fraction, random_state=self.seed)
+            W = W.loc[X.index]
             Y = Y.loc[X.index]
             T = T.loc[X.index]
 
-        X_train, X_test, T_train, T_test, Y_train, Y_test = train_test_split(
-            X, T, Y, test_size=test_size, random_state=self.seed
+        X_train, X_test, W_train, W_test, T_train, T_test, Y_train, Y_test = (
+            train_test_split(X, W, T, Y, test_size=test_size, random_state=self.seed)
         )
 
         self._data_splits = {
             "X_train": X_train,
             "X_test": X_test,
+            "W_train": W_train,
+            "W_test": W_test,
             "T_train": T_train,
             "T_test": T_test,
             "Y_train": Y_train,
@@ -143,26 +147,31 @@ class CamlBase(metaclass=abc.ABCMeta):
         }
 
         if validation_size:
-            X_train, X_val, T_train, T_val, Y_train, Y_val = train_test_split(
-                X_train,
-                T_train,
-                Y_train,
-                test_size=validation_size,
-                random_state=self.seed,
+            X_train, X_val, W_train, W_val, T_train, T_val, Y_train, Y_val = (
+                train_test_split(
+                    X_train,
+                    W_train,
+                    T_train,
+                    Y_train,
+                    test_size=validation_size,
+                    random_state=self.seed,
+                )
             )
 
             self._data_splits["X_val"] = X_val
+            self._data_splits["W_val"] = W_val
             self._data_splits["T_val"] = T_val
             self._data_splits["Y_val"] = Y_val
             self._data_splits["X_train"] = X_train
+            self._data_splits["W_train"] = W_train
             self._data_splits["T_train"] = T_train
             self._data_splits["Y_train"] = Y_train
 
     def _run_auto_nuisance_functions(
         self,
         *,
-        outcome: ibis.Table,
-        features: ibis.Table,
+        outcome: np.ndarray,
+        features: np.ndarray | list[np.ndarray],
         discrete_outcome: bool,
         flaml_kwargs: dict | None,
         use_ray: bool,
@@ -173,10 +182,10 @@ class CamlBase(metaclass=abc.ABCMeta):
 
         Parameters
         ----------
-        outcome : ibis.Table
-            The outcome variable as an Ibis Table.
-        features : ibis.Table
-            The features matrix as an Ibis Table.
+        outcome : numpy.ndarray
+            The outcome variable.
+        features : numpy.ndarray
+            The features matrix/matrices.
         discrete_outcome : bool
             Whether the outcome is discrete or continuous.
         flaml_kwargs : dict
@@ -225,140 +234,41 @@ class CamlBase(metaclass=abc.ABCMeta):
         if flaml_kwargs is not None:
             _flaml_kwargs.update(flaml_kwargs)
 
-        # Fit the AutoML models
-        outcome_array = outcome.execute().to_numpy().ravel()
-        features_matrix = features.execute().to_numpy()
+        if isinstance(features, list):
+            feature_matrix = features[0]
+            for feature in features[1:]:
+                try:
+                    feature_matrix = np.hstack((feature_matrix, feature))
+                except ValueError:
+                    pass
+        else:
+            feature_matrix = features
 
-        automl.fit(features_matrix, outcome_array, **_flaml_kwargs)
+        automl.fit(feature_matrix, outcome.ravel(), **_flaml_kwargs)
 
         model = automl.model.estimator
 
         return model
 
-    def _ibis_connector(
-        self,
-        custom_table_name: str | None = None,
-    ):
-        """
-        Connects the DataFrame to the Ibis backend based on the type of DataFrame.
-
-        If the DataFrame is a pyspark.sql.DataFrame, it creates a temporary view and connects to Ibis using the PySpark session.
-        If the DataFrame is a pandas.DataFrame, it connects to Ibis using the pandas DataFrame.
-        If the DataFrame is a polars.DataFrame, it connects to Ibis using the polars DataFrame.
-        If the DataFrame is an ibis.Table, it creates a new table (copy of df) on Ibis using the current Ibis connection.
-
-        This method sets the '_table_name`, '_ibis_df` and `_ibis_connection` internal attributes of the class when nonbase_df is None.
-
-        Parameters
-        ----------
-        custom_table_name:
-            The custom table name to use for the DataFrame in Ibis, by default None
-        """
-        if custom_table_name is None:
-            table_name = generate_random_string(10)
-        else:
-            table_name = custom_table_name
-
-        if _HAS_PYSPARK and isinstance(self.df, pyspark.sql.DataFrame):
-            self._spark = SparkSession.builder.getOrCreate()
-            self.df.createOrReplaceTempView(table_name)
-            ibis_connection = ibis.pyspark.connect(session=self._spark)
-            ibis_df = ibis_connection.table(table_name)
-        elif isinstance(self.df, pandas.DataFrame):
-            ibis_connection = ibis.pandas.connect({table_name: self.df})
-            ibis_df = ibis_connection.table(table_name)
+    def _dataframe_to_numpy(self):
+        if isinstance(self.df, pandas.DataFrame):
+            _Y = self.df[self.Y].to_numpy()
+            _T = self.df[self.T].to_numpy()
+            _X = self.df[self.X].to_numpy()
+            _W = self.df[self.W].to_numpy()
         elif _HAS_POLARS and isinstance(self.df, polars.DataFrame):
-            ibis_connection = ibis.polars.connect({table_name: self.df})
-            ibis_df = ibis_connection.table(table_name)
-        elif isinstance(self.df, ibis.Table):
-            ibis_connection = self.df._find_backend()
-            if isinstance(ibis_connection, ibis.backends.pyspark.Backend):
-                obj = self.df
-            else:
-                obj = self.df.execute()
-            ibis_df = ibis_connection.create_view(name=table_name, obj=obj)
+            _Y = self.df.select(self.Y).to_numpy()
+            _T = self.df.select(self.T).to_numpy()
+            _X = self.df.select(self.X).to_numpy()
+            _W = self.df.select(self.W).to_numpy()
+        elif _HAS_PYSPARK and isinstance(
+            self.df, (pyspark.sql.DataFrame, pyspark.pandas.DataFrame)
+        ):
+            _Y = self.df.select(self.Y).to_pandas().to_numpy()
+            _T = self.df.select(self.T).to_pandas().to_numpy()
+            _X = self.df.select(self.X).to_pandas().to_numpy()
+            _W = self.df.select(self.W).to_pandas().to_numpy()
+        else:
+            raise ValueError(f"Unsupported DataFrame type: {type(self.df)}")
 
-        self._table_name = table_name
-        self._ibis_df = ibis_df
-        self._ibis_connection = ibis_connection
-
-    def _create_internal_ibis_table(
-        self,
-        *,
-        data_dict: dict | None = None,
-        df: ibis.Table
-        | pyspark.sql.DataFrame
-        | pandas.DataFrame
-        | polars.DataFrame
-        | None = None,
-    ):
-        """
-        Create an internal Ibis DataFrame based on the provided data dictionary.
-
-        Parameters
-        ----------
-        data_dict : dict
-            The data dictionary to create the table from.
-        df : ibis.Table | pyspark.sql.DataFrame | pandas.DataFrame | polars.DataFrame
-            The DataFrame to create the table from.
-
-        Returns
-        -------
-        ibis_df : ibis.Table
-            The Ibis DataFrame created from the data dictionary or provided DataFrame.
-        """
-
-        table_name = generate_random_string(10)
-
-        backend = self._ibis_connection.name
-
-        if backend == "pandas":
-            if data_dict:
-                df = pandas.DataFrame(data_dict)
-            ibis_df = self._ibis_connection.create_table(name=table_name, obj=df)
-
-        elif backend == "polars":
-            if data_dict:
-                df = polars.from_dict(data_dict)
-            ibis_df = self._ibis_connection.create_table(name=table_name, obj=df)
-        elif backend == "pyspark":
-            if data_dict:
-                df = self._spark.createDataFrame(pandas.DataFrame(data_dict))
-
-            df.createOrReplaceTempView(table_name)
-            ibis_df = self._ibis_connection.table(table_name)
-
-        return ibis_df
-
-    @staticmethod
-    def _return_ibis_dataframe_to_original_backend(
-        *, ibis_df: ibis.Table, backend: str | None = None
-    ):
-        """
-        Return the Ibis DataFrame to the original backend.
-
-        Parameters
-        ----------
-        ibis_df : ibis.Table
-            The Ibis DataFrame to return to the original backend.
-        backend : str
-            The backend to return the DataFrame to. Default is None (will return to the original backend).
-
-        Returns
-        -------
-        df : pyspark.sql.DataFrame | pandas.DataFrame | polars.DataFrame
-            The DataFrame in the original backend.
-        """
-
-        if backend is None:
-            backend = ibis_df._find_backend().name
-
-        if backend == "pandas":
-            df = ibis_df.to_pandas()
-        elif backend == "polars":
-            df = ibis_df.to_polars()
-        elif backend == "pyspark":
-            spark = SparkSession.builder.getOrCreate()
-            df = spark.sql(ibis_df.compile())
-
-        return df
+        return _Y, _T, _X, _W
