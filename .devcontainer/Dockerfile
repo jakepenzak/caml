@@ -6,7 +6,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     git \
     fonts-powerline \
     ca-certificates \
-    nano \
     ssh \
     openjdk-17-jdk \
     && rm -rf /var/lib/apt/lists/*
@@ -16,25 +15,24 @@ ENV JAVA_HOME="/usr/lib/jvm/java-17-openjdk-amd64"
 ENV PATH="$JAVA_HOME/bin:$PATH"
 
 # Install uv
-ADD https://astral.sh/uv/0.4.10/install.sh /uv-installer.sh
+ADD https://astral.sh/uv/0.5.7/install.sh /uv-installer.sh
 RUN sh /uv-installer.sh && rm /uv-installer.sh
 ENV PATH="/root/.cargo/bin/:$PATH"
 ENV UV_HTTP_TIMEOUT=300
 
 # Install the project with intermediate layers
-ADD .dockerignore .
 
 # First, install the dependencies
 WORKDIR /caml
-ADD uv.lock /caml/uv.lock
-ADD pyproject.toml /caml/pyproject.toml
+COPY uv.lock /caml/uv.lock
+COPY pyproject.toml /caml/pyproject.toml
 RUN --mount=type=cache,target=/root/.cache/uv \
     uv sync --frozen --all-extras --no-install-project
-RUN  curl -sS https://starship.rs/install.sh | sh -s -- -y
-RUN echo 'eval "$(starship init bash)"' >> ~/.bashrc
+RUN bash -o pipefail -c "curl -sS https://starship.rs/install.sh | sh -s -- -y"
+RUN echo "eval \"\$(starship init bash)\"" >> ~/.bashrc
 
 # Then, install the rest of the project
-ADD . /caml
+COPY . /caml
 RUN --mount=type=cache,target=/root/.cache/uv \
     uv sync --all-extras --frozen
 
