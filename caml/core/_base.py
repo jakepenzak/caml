@@ -5,7 +5,6 @@ import logging
 from typing import TYPE_CHECKING
 
 import numpy as np
-import pandas
 from flaml import AutoML
 from sklearn.model_selection import train_test_split
 
@@ -16,14 +15,14 @@ logger = logging.getLogger(__name__)
 
 # Optional dependencies
 try:
-    import polars
+    import polars  # noqa: F401
 
     _HAS_POLARS = True
 except ImportError:
     _HAS_POLARS = False
 
 try:
-    import pyspark
+    import pyspark  # noqa: F401
     # from pyspark.sql import SparkSession
 
     _HAS_PYSPARK = True
@@ -31,8 +30,7 @@ except ImportError:
     _HAS_PYSPARK = False
 
 if TYPE_CHECKING:
-    import polars
-    import pyspark
+    pass
 
 
 @cls_typechecked
@@ -45,10 +43,17 @@ class CamlBase(metaclass=abc.ABCMeta):
 
     def __init__(self, verbose: int = 1):
         setup_logging(verbose)
-
-    @property
-    def dataframe(self):
-        return self.df
+        self.df = None
+        self._validation_estimator = None
+        self._final_estimator = None
+        self.Y = None
+        self.T = None
+        self.X = None
+        self.W = None
+        self._Y = None
+        self._T = None
+        self._X = None
+        self._W = None
 
     @property
     def validation_estimator(self):
@@ -86,10 +91,6 @@ class CamlBase(metaclass=abc.ABCMeta):
 
     @abc.abstractmethod
     def predict(self):
-        pass
-
-    @abc.abstractmethod
-    def rank_order(self):
         pass
 
     @abc.abstractmethod
@@ -251,19 +252,17 @@ class CamlBase(metaclass=abc.ABCMeta):
         return model
 
     def _dataframe_to_numpy(self):
-        if isinstance(self.df, pandas.DataFrame):
+        if self._data_backend == "pandas":
             _Y = self.df[self.Y].to_numpy()
             _T = self.df[self.T].to_numpy()
             _X = self.df[self.X].to_numpy()
             _W = self.df[self.W].to_numpy()
-        elif _HAS_POLARS and isinstance(self.df, polars.DataFrame):
+        elif self._data_backend == "polars":
             _Y = self.df.select(self.Y).to_numpy()
             _T = self.df.select(self.T).to_numpy()
             _X = self.df.select(self.X).to_numpy()
             _W = self.df.select(self.W).to_numpy()
-        elif _HAS_PYSPARK and isinstance(
-            self.df, (pyspark.sql.DataFrame, pyspark.pandas.DataFrame)
-        ):
+        elif self._data_backend == "pyspark":
             _Y = self.df.select(self.Y).to_pandas().to_numpy()
             _T = self.df.select(self.T).to_pandas().to_numpy()
             _X = self.df.select(self.X).to_pandas().to_numpy()

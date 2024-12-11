@@ -27,3 +27,11 @@ devcontainer.json
 
 # Experimental notebooks
 notebooks/dev/experimental/
+
+# Quarto Rendering
+*_files/
+*.html
+!docs/*.html
+
+# Jupyer
+.ipynb_checkpoints

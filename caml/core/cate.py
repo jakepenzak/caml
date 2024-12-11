@@ -4,7 +4,6 @@ import copy
 import logging
 from typing import TYPE_CHECKING
 
-import ibis
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas
@@ -13,12 +12,11 @@ from econml._ortho_learner import _OrthoLearner
 from econml.dml import LinearDML
 from econml.score import EnsembleCateEstimator, RScorer
 from econml.validate.drtester import DRTester
-from ibis.common.exceptions import IbisTypeError
 from joblib import Parallel, delayed
 
 from ..utils import cls_typechecked
-from . import model_bank
 from ._base import CamlBase
+from .utils import model_bank
 
 logger = logging.getLogger(__name__)
 
@@ -141,11 +139,11 @@ class CamlCATE(CamlBase):
         The fitted EconML estimator object on the entire dataset after validation.
     dataframe : pandas.DataFrame | polars.DataFrame | pyspark.sql.DataFrame | ibis.Table
         The input DataFrame with any modifications (e.g., predictions or rank orderings) made by the class returned to the original backend.
-    model_Y_X: sklearn.base.BaseEstimator
+    model_Y_X_W: sklearn.base.BaseEstimator
         The fitted nuisance function for the outcome variable.
-    model_Y_X_T: sklearn.base.BaseEstimator
+    model_Y_X_W_T: sklearn.base.BaseEstimator
         The fitted nuisance function for the outcome variable with treatment variable.
-    model_T_X: sklearn.base.BaseEstimator
+    model_T_X_W: sklearn.base.BaseEstimator
         The fitted nuisance function for the treatment variable.
     _Y: ibis.Table
         The outcome variable data as ibis table.
@@ -215,11 +213,22 @@ class CamlCATE(CamlBase):
         self.discrete_outcome = discrete_outcome
         self.seed = seed
 
+        self._data_backend = (
+            "pandas"
+            if isinstance(self.df, pandas.DataFrame)
+            else "polars"
+            if _HAS_POLARS and isinstance(self.df, polars.DataFrame)
+            else "pyspark"
+            if _HAS_PYSPARK
+            and isinstance(self.df, (pyspark.sql.DataFrame, pyspark.pandas.DataFrame))
+            else "unknown"
+        )
         self._Y, self._T, self._X, self._W = self._dataframe_to_numpy()
 
         self._nuisances_fitted = False
         self._validation_estimator = None
         self._final_estimator = None
+        self._cate_predictions = {}
 
         if not self.discrete_treatment:
             logger.warning("Validation for continuous treatments is not supported yet.")
@@ -238,7 +247,7 @@ class CamlCATE(CamlBase):
         """
         Automatically finds the optimal nuisance functions for estimating EconML estimators.
 
-        Sets the `model_Y_X`, `model_Y_X_T`, and `model_T_X` internal attributes to the fitted nuisance functions.
+        Sets the `model_Y_X_W`, `model_Y_X_W_T`, and `model_T_X_W` internal attributes to the fitted nuisance functions.
 
         Parameters
         ----------
@@ -418,8 +427,8 @@ class CamlCATE(CamlBase):
             )
 
         validator = DRTester(
-            model_regression=self.model_Y_X_T,
-            model_propensity=self.model_T_X,
+            model_regression=self.model_Y_X_W_T,
+            model_propensity=self.model_T_X_W,
             cate=estimator,
             cv=3,
         )
@@ -435,23 +444,6 @@ class CamlCATE(CamlBase):
             self._data_splits["T_train"],
             self._data_splits["Y_train"],
         )
-
-        if Y_test.shape[1] == 1:
-            Y_test = Y_test.to_numpy().ravel()
-            Y_train = Y_train.to_numpy().ravel()
-        else:
-            Y_test = Y_test.to_numpy()
-            Y_train = Y_train.to_numpy()
-
-        if T_test.shape[1] == 1:
-            T_test = T_test.to_numpy().ravel()
-            T_train = T_train.to_numpy().ravel()
-        else:
-            T_test = T_test.to_numpy()
-            T_train = T_train.to_numpy()
-
-        X_test = X_test.to_numpy()
-        X_train = X_train.to_numpy()
 
         validator.fit_nuisance(
             X_test, T_test.astype(int), Y_test, X_train, T_train.astype(int), Y_train
@@ -499,242 +491,86 @@ class CamlCATE(CamlBase):
 
         self._final_estimator = copy.deepcopy(self._validation_estimator)
 
-        Y, T, X = self._Y.execute(), self._T.execute(), self._X.execute()
-
-        if Y.shape[1] == 1:
-            Y = Y.to_numpy().ravel()
-
-        if T.shape[1] == 1:
-            T = T.to_numpy().ravel()
+        Y, T, X = self._Y, self._T, self._X
 
         if isinstance(self._final_estimator, EnsembleCateEstimator):
             for estimator in self._final_estimator._cate_models:
                 estimator.fit(
                     Y=Y,
                     T=T,
-                    X=X.to_numpy(),
+                    X=X,
                 )
         else:
             self._final_estimator.fit(
                 Y=Y,
                 T=T,
-                X=X.to_numpy(),
+                X=X,
             )
 
     def predict(
         self,
         *,
-        out_of_sample_df: pandas.DataFrame
-        | polars.DataFrame
-        | pyspark.sql.DataFrame
-        | ibis.Table
-        | None = None,
-        out_of_sample_uuid: str | None = None,
-        return_predictions: bool = False,
-        join_predictions: bool = True,
+        X: pandas.DataFrame | polars.DataFrame | pyspark.sql.DataFrame = None,
         T0: int = 0,
         T1: int = 1,
     ):
         """
-        Predicts the CATE based on the fitted final estimator for either the internal dataframe or an out-of-sample dataframe.
+        Predicts the CATE based on the fitted final estimator for either the internal dataset or provided Data.
 
         For binary treatments, the CATE is the estimated effect of the treatment and for a continuous treatment, the CATE is the estimated effect of a one-unit increase in the treatment.
         This can be modified by setting the T0 and T1 parameters to the desired treatment levels.
 
         Parameters
         ----------
-        out_of_sample_df: pandas.DataFrame | polars.DataFrame | pyspark.sql.DataFrame | ibis.Table | None
-            The out-of-sample DataFrame to make predictions on.
-        out_of_sample_uuid: str | None
-            The column name for the universal identifier code (eg, ehhn) in the out-of-sample DataFrame.
-        return_predictions: bool
-            A boolean indicating whether to return the predicted CATE.
-        join_predictions: bool
-            A boolean indicating whether to join the predicted CATE to the original DataFrame within the class.
-        T0: int
+        X : pandas.DataFrame | polars.DataFrame | pyspark.sql.DataFrame
+            The DataFrame containing the features (X) for which CATE needs to be predicted.
+            If not provided, defaults to the internal dataset.
+        T0 : int
             Base treatment for each sample.
-        T1: int
+        T1 : int
             Target treatment for each sample.
 
         Returns
         -------
-        np.ndarray | DataFrame
+        np.ndarray
             The predicted CATE values if return_predictions is set to True.
 
         Examples
         --------
-        >>> caml.predict(join_predictions=True) # Joins the predicted CATE values to the original DataFrame.
-        >>> caml.dataframe # Returns the DataFrame to original backend with the predicted CATE values joined.
+        >>> caml.predict(return_as_dataframe=True)
         """
-
-        assert (
-            return_predictions or join_predictions
-        ), "Either return_predictions or join_predictions must be set to True."
 
         assert self._final_estimator, "The final estimator must be fitted first before making predictions. Please run the fit() method with final_estimator=True."
 
-        if out_of_sample_df is None:
-            X = self._X.execute()
-            uuids = self._ibis_df[self.uuid].execute()
-            uuid_col = self.uuid
+        if X is None:
+            _X = self._X
         else:
-            input_df = self._create_internal_ibis_table(df=out_of_sample_df)
-            if join_predictions:
-                if out_of_sample_uuid is None:
-                    try:
-                        uuids = input_df[self.uuid].execute()
-                        uuid_col = self.uuid
-                    except IbisTypeError:
-                        raise ValueError(
-                            "The `uuid` column must be provided in the out-of-sample DataFrame to join predictions and the `out_of_sample_uuid` argument must be set to the string name of the column."
-                        )
-                else:
-                    uuids = input_df[out_of_sample_uuid].execute()
-                    uuid_col = out_of_sample_uuid
-            X = input_df.select(self.X).execute()
+            _X = X
 
-        if self.discrete_treatment:
-            num_categories = self._T.distinct().count().execute()
-            data_dict = {}
-            for c in range(1, num_categories):
-                data_dict[f"cate_predictions_{c}"] = self._final_estimator.effect(
-                    X, T0=0, T1=c
-                )
+        cate_predictions = self._final_estimator.effect(_X, T0=T0, T1=T1)
 
-            if join_predictions:
-                data_dict[uuid_col] = uuids
-                results_df = self._create_internal_ibis_table(data_dict=data_dict)
-                if out_of_sample_df is None:
-                    self._ibis_df = self._ibis_df.join(
-                        results_df, predicates=uuid_col, how="inner"
-                    )
-                else:
-                    final_df = input_df.join(
-                        results_df, predicates=uuid_col, how="inner"
-                    )
-                    return self._return_ibis_dataframe_to_original_backend(
-                        ibis_df=final_df, backend=input_df._find_backend().name
-                    )
+        if X is None:
+            self._cate_predictions[f"cate_predictions_{T0}_{T1}"] = cate_predictions
 
-            if return_predictions:
-                return data_dict
-        else:
-            cate_predictions = self._final_estimator.effect(X, T0=T0, T1=T1)
-
-            data_dict = {"cate_predictions_1": cate_predictions}
-
-            if join_predictions:
-                data_dict[uuid_col] = uuids
-                results_df = self._create_internal_ibis_table(data_dict=data_dict)
-                if out_of_sample_df is None:
-                    self._ibis_df = self._ibis_df.join(
-                        results_df, predicates=uuid_col, how="inner"
-                    )
-                else:
-                    final_df = input_df.join(
-                        results_df, predicates=uuid_col, how="inner"
-                    )
-                    return self._return_ibis_dataframe_to_original_backend(
-                        ibis_df=final_df, backend=input_df._find_backend().name
-                    )
-
-            if return_predictions:
-                return data_dict
-
-    def rank_order(
-        self,
-        *,
-        out_of_sample_df: pandas.DataFrame
-        | polars.DataFrame
-        | pyspark.sql.DataFrame
-        | ibis.Table
-        | None = None,
-        return_rank_order: bool = False,
-        join_rank_order: bool = True,
-        treatment_category: int = 1,
-    ):
-        """
-        Ranks orders households based on the predicted CATE values for either the internal dataframe or an out-of-sample dataframe.
-
-        Parameters
-        ----------
-        out_of_sample_df: pandas.DataFrame | polars.DataFrame | pyspark.sql.DataFrame | ibis.Table | None
-            The out-of-sample DataFrame to rank order.
-        return_rank_order: bool
-            A boolean indicating whether to return the rank ordering.
-        join_rank_order: bool
-            A boolean indicating whether to join the rank ordering to the original DataFrame within the class.
-        treatment_category: int
-            The treatment category, in the case of categorical treatments, to rank order the households based on. Default implies the first category.
-
-        Returns
-        -------
-        np.ndarray | DataFrame
-            The rank ordering values if return_rank_order is set to True.
-
-        Examples
-        --------
-        >>> caml.rank_order(join_rank_order=True) # Joins the rank ordering to the original DataFrame.
-        >>> caml.dataframe # Returns the DataFrame to original backend with the rank ordering values joined.
-        """
-
-        assert (
-            return_rank_order or join_rank_order
-        ), "Either return_rank_order or join_rank_order must be set to True."
-        assert (
-            self._ibis_connection.name != "polars"
-        ), "Rank ordering is not supported for polars DataFrames."
-
-        if out_of_sample_df is None:
-            df = self._ibis_df
-        else:
-            df = self._create_internal_ibis_table(df=out_of_sample_df)
-
-        assert (
-            "cate_predictions" in c for c in df.columns
-        ), "CATE predictions must be present in the DataFrame to rank order. Please call the predict() method first with join_predictions=True."
-
-        window = ibis.window(
-            order_by=ibis.desc(df[f"cate_predictions_{treatment_category}"])
-        )
-        df = df.mutate(cate_ranking=ibis.row_number().over(window))
-
-        if return_rank_order:
-            return df.select("cate_ranking").execute().to_numpy()
-
-        elif join_rank_order:
-            if out_of_sample_df is None:
-                self._ibis_df = df.order_by("cate_ranking")
-            else:
-                final_df = self._return_ibis_dataframe_to_original_backend(
-                    ibis_df=df.order_by("cate_ranking"),
-                    backend=df._find_backend().name,
-                )
-                return final_df
+        return cate_predictions
 
     def summarize(
         self,
         *,
-        out_of_sample_df: pandas.DataFrame
-        | polars.DataFrame
-        | pyspark.sql.DataFrame
-        | ibis.Table
-        | None = None,
-        treatment_category: int = 1,
+        cate_predictions: np.ndarray | None = None,
     ):
         """
-        Provides population summary statistics for the CATE predictions for either the internal dataframe or an out-of-sample dataframe.
+        Provides population summary statistics for the CATE predictions for either the internal results or provided results.
 
         Parameters
         ----------
-        out_of_sample_df: pandas.DataFrame | polars.DataFrame | pyspark.sql.DataFrame | ibis.Table | None
-            The out-of-sample DataFrame to summarize.
-        treatment_category: int
-            The treatment level, in the case of categorical treatments, to summarize the CATE predictions for. Default implies the first category.
+        cate_predictions : np.ndarray | None
+            The CATE predictions for which summary statistics will be generated.
+            If not provided, defaults to internal CATE predictions genered by `predict()` method with X=None.
 
         Returns
         -------
-        pandas.DataFrame | polars.DataFrame | pyspark.sql.DataFrame | ibis.Table
+        pandas.DataFrame | pandas.Series
             The summary statistics for the CATE predictions.
 
         Examples
@@ -742,31 +578,16 @@ class CamlCATE(CamlBase):
         >>> caml.summarize() # Summarizes the CATE predictions for the internal DataFrame.
         """
 
-        if out_of_sample_df is None:
-            df = self._ibis_df
+        if cate_predictions is None:
+            _cate_predictions = self._cate_predictions
+            cate_predictions_df = pandas.DataFrame.from_dict(_cate_predictions)
         else:
-            df = self._create_internal_ibis_table(df=out_of_sample_df)
+            _cate_predictions = cate_predictions
+            cate_predictions_df = pandas.DataFrame(
+                cate_predictions, columns=["cate_predictions"]
+            )
 
-        assert (
-            "cate_predictions" in c for c in df.columns
-        ), "CATE predictions must be present in the DataFrame to summarize. Please call the predict() method first with join_predictions=True."
-
-        column = df[f"cate_predictions_{treatment_category}"]
-
-        cate_summary_statistics = df.aggregate(
-            [
-                column.mean().name("cate_mean"),
-                column.sum().name("cate_sum"),
-                column.std().name("cate_std"),
-                column.min().name("cate_min"),
-                column.max().name("cate_max"),
-                column.count().name("count"),
-            ]
-        )
-
-        return self._return_ibis_dataframe_to_original_backend(
-            ibis_df=cate_summary_statistics
-        )
+        return cate_predictions_df.describe()
 
     def _get_cate_models(
         self,
@@ -847,14 +668,6 @@ class CamlCATE(CamlBase):
             self._data_splits["W_val"],
         )
 
-        if Y_train.shape[1] == 1:
-            Y_train = Y_train.ravel()
-            Y_val = Y_val.ravel()
-
-        if T_train.shape[1] == 1:
-            T_train = T_train.ravel()
-            T_val = T_val.ravel()
-
         def fit_model(name, model, use_ray=False, ray_remote_func_options_kwargs={}):
             if isinstance(model, _OrthoLearner):
                 model.use_ray = use_ray
@@ -897,7 +710,7 @@ class CamlCATE(CamlBase):
             **base_rscorer_settings,
         )
 
-        rscorer.fit(Y=Y_val, T=T_val, X=X_val, discrete_outcome=self.discrete_outcome)
+        rscorer.fit(y=Y_val, T=T_val, X=X_val, discrete_outcome=self.discrete_outcome)
 
         ensemble_estimator, ensemble_score, estimator_scores = rscorer.ensemble(
             [mdl for _, mdl in models], return_scores=True
@@ -955,19 +768,9 @@ class CamlCATE(CamlBase):
             A string containing information about the CamlCATE object, including data backend, number of observations, UUID, outcome variable, discrete outcome, treatment variable, discrete treatment, features/confounders, random seed, nuissance models (if fitted), and final estimator (if available).
         """
 
-        data_backend = (
-            "pandas"
-            if isinstance(self.df, pandas.DataFrame)
-            else "polars"
-            if isinstance(self.df, polars.DataFrame)
-            else "pyspark"
-            if isinstance(self.df, (pyspark.sql.DataFrame, pyspark.pandas.DataFrame))
-            else "unknown"
-        )
-
         summary = (
             "================== CamlCATE Object ==================\n"
-            + f"Data Backend: {data_backend}\n"
+            + f"Data Backend: {self._data_backend}\n"
             + f"No. of Observations: {self._Y.shape[0]}\n"
             + f"Outcome Variable: {self.Y}\n"
             + f"Discrete Outcome: {self.discrete_outcome}\n"
@@ -980,9 +783,9 @@ class CamlCATE(CamlBase):
 
         if self._nuisances_fitted:
             summary += (
-                f"Nuissance Model Y_X: {self.model_Y_X}\n"
-                + f"Propensity/Nuissance Model T_X: {self.model_T_X}\n"
-                + f"Regression Model Y_X_T: {self.model_Y_X_T}\n"
+                f"Nuissance Model Y_X: {self.model_Y_X_W}\n"
+                + f"Propensity/Nuissance Model T_X: {self.model_T_X_W}\n"
+                + f"Regression Model Y_X_T: {self.model_Y_X_W_T}\n"
             )
 
         if self._final_estimator is not None:
@@ -993,7 +796,7 @@ class CamlCATE(CamlBase):
 
 # Monkey patching Rscorer
 def patched_fit(
-    self, Y, T, X=None, W=None, sample_weight=None, groups=None, discrete_outcome=False
+    self, y, T, X=None, W=None, sample_weight=None, groups=None, discrete_outcome=False
 ):
     if X is None:
         raise ValueError("X cannot be None for the RScorer!")
@@ -1010,7 +813,7 @@ def patched_fit(
         mc_agg=self.mc_agg,
     )
     self.lineardml_.fit(
-        Y,
+        y,
         T,
         X=None,
         W=np.hstack([v for v in [X, W] if v is not None]),

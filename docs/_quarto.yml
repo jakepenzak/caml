@@ -2,7 +2,7 @@ project:
   type: website
   output-dir: _site
   preview:
-    port: 8000
+    port: 4848
 
 format:
   html:
@@ -29,12 +29,12 @@ website:
     search: true
     border: true
     tools:
-    - icon: github
-      menu:
-        - text: Source code
-          url: https://github.com/jakepenzak/caml
-        - text: Report Issue
-          url: https://github.com/jakepenzak/caml/issues/new
+      - icon: github
+        menu:
+          - text: Source code
+            url: https://github.com/jakepenzak/caml
+          - text: Report Issue
+            url: https://github.com/jakepenzak/caml/issues/new
 
     left:
       - sidebar:Home
@@ -101,8 +101,8 @@ quartodoc:
         - cate_histogram_plot
         - cate_line_plot
         - cate_true_vs_estimated_plot
-    -  title: Developer Tools
-       contents:
+    - title: Developer Tools
+      contents:
         - utils.generate_random_string
         - utils.cls_typechecked
         - logging.setup_logging
