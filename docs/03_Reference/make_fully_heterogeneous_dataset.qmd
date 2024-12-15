@@ -55,7 +55,14 @@ flowchart TD;
 
 ## Examples
 
-```python
->>> from caml.extensions.synthetic_data import make_fully_hetereogenous_dataset
->>> df, true_cates, true_ate = make_fully_hetereogenous_dataset(n_obs=1000, n_confounders=5, theta=4.0, seed=1)
+```{python}
+from caml.extensions.synthetic_data import make_fully_heterogeneous_dataset
+df, true_cates, true_ate = make_fully_heterogeneous_dataset(n_obs=1000,
+                                                            n_confounders=5,
+                                                            theta=4.0,
+                                                            seed=1)
+
+print(f"True CATEs: {true_cates[:5]}")
+print(f"True ATE: {true_ate}")
+print(df.head())
 ```

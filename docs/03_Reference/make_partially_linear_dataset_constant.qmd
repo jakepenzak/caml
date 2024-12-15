@@ -52,7 +52,15 @@ flowchart TD;
 
 ## Examples
 
-```python
->>> from caml.extensions.synthetic_data import make_partially_linear_dataset_constant
->>> df, true_ate = make_partially_linear_dataset_constant(n_obs=1000, ate=4.0, n_confounders=10, dgp="make_plr_CCDDHNR2018", seed=1)
+```{python}
+from caml.extensions.synthetic_data import make_partially_linear_dataset_constant
+df, true_cates, true_ate = make_partially_linear_dataset_constant(n_obs=1000,
+                                                    ate=4.0,
+                                                    n_confounders=10,
+                                                    dgp="make_plr_CCDDHNR2018",
+                                                    seed=1)
+
+print(f"True CATES: {true_cates[:5]}")
+print(f"True ATE: {true_ate}")
+print(df.head())
 ```

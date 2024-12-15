@@ -57,7 +57,21 @@ flowchart TD;
 
 ## Examples
 
-```python
->>> from caml.extensions.synthetic_data import make_dowhy_linear_dataset
->>> df, true_cates, true_ate = make_dowhy_linear_dataset(beta=2.0, n_obs=1000, n_confounders=10, n_discrete_confounders=0, n_effect_modifiers=5, n_discrete_effect_modifiers=0, n_treatments=1, binary_treatment=False, categorical_treatment=False, binary_outcome=False, seed=1)
+```{python}
+from caml.extensions.synthetic_data import make_dowhy_linear_dataset
+df, true_cates, true_ate = make_dowhy_linear_dataset(beta=2.0,
+                                                    n_obs=1000,
+                                                    n_confounders=10,
+                                                    n_discrete_confounders=0,
+                                                    n_effect_modifiers=5,
+                                                    n_discrete_effect_modifiers=0,
+                                                    n_treatments=1,
+                                                    binary_treatment=False,
+                                                    categorical_treatment=False,
+                                                    binary_outcome=False,
+                                                    seed=1)
+
+print(f"True CATEs: {true_cates['d1'][:5]}")
+print(f"True ATE: {true_ate}")
+print(df.head())
 ```

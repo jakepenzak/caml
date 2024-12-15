@@ -1,4 +1,5 @@
 import math
+from typing import Callable
 
 import numpy as np
 import pandas as pd
@@ -10,6 +11,485 @@ from doubleml.datasets import (
 from numpy.random import choice
 from scipy.linalg import toeplitz
 from typeguard import typechecked
+
+from ..utils import cls_typechecked
+
+
+@cls_typechecked
+class CamlSyntheticDataGenerator:
+    def __init__(
+        self,
+        n_obs: int = 1000,
+        n_cont_outcomes: int = 1,
+        n_binary_outcomes: int = 1,
+        n_cont_treatments: int = 1,
+        n_binary_treatments: int = 0,
+        n_discrete_treatments: int = 0,
+        n_cont_confounders: int = 2,
+        n_binary_confounders: int = 2,
+        n_discrete_confounders: int = 0,
+        n_cont_heterogeneity_covariates: int = 2,
+        n_binary_heterogeneity_covariates: int = 2,
+        n_discrete_heterogeneity_covariates: int = 0,
+        n_heterogeneity_confounders: int = 0,
+        stddev_outcome_noise: int = 1,
+        stddev_treatment_noise: int = 1,
+        causal_model_functional_form: str = "partially_linear",
+        seed: int | None = None,
+    ):
+        valid_functional_forms = [
+            "partially_linear",
+            "fully_non_linear",
+            "fully_linear",
+        ]
+
+        assert (
+            causal_model_functional_form in valid_functional_forms
+        ), f"Invalid functional form. Must be choice of {valid_functional_forms}."
+
+        self.n_obs = n_obs
+        self.n_cont_outcomes = n_cont_outcomes
+        self.n_binary_outcomes = n_binary_outcomes
+        self.n_cont_treatments = n_cont_treatments
+        self.n_binary_treatments = n_binary_treatments
+        self.n_discrete_treatments = n_discrete_treatments
+        self.n_cont_confounders = n_cont_confounders
+        self.n_binary_confounders = n_binary_confounders
+        self.n_discrete_confounders = n_discrete_confounders
+        self.n_cont_heterogeneity_covariates = n_cont_heterogeneity_covariates
+        self.n_binary_heterogeneity_covariates = n_binary_heterogeneity_covariates
+        self.n_discrete_heterogeneity_covariates = n_discrete_heterogeneity_covariates
+        self.n_heterogeneity_confounders = n_heterogeneity_confounders
+        self.stddev_outcome_noise = stddev_outcome_noise
+        self.stddev_treatment_noise = stddev_treatment_noise
+        self.causal_model_functional_form = causal_model_functional_form
+        self.seed = seed
+        self._seed = seed
+
+    @property
+    def _seed_incrementer(self):
+        current_value = self._seed
+        if self._seed is not None:
+            self._seed += 1
+        return current_value
+
+    @_seed_incrementer.setter
+    def _seed_incrementer(self, value):
+        self._seed = value
+
+    def __call__(self):
+        return self.generate_data()
+
+    def generate_data(self):
+        # Generate confounders
+        confounders = self._generate_confounder_variables()
+
+        # Generate heterogeneity variables
+        heterogeneity_variables = self._generate_heterogenous_variables()
+
+        # Generate treatment variables
+        treatments = self._generate_treatment_variables(
+            confounders=confounders,
+            heterogeneity_variables=heterogeneity_variables,
+        )
+
+        # Generate outcome variables
+        outcomes, cates = self._generate_outcome_variables(
+            confounders=confounders,
+            heterogeneity_variables=heterogeneity_variables,
+            treatments=treatments,
+        )
+
+        # Combine variables into single dataframe
+        synthetic_data = pd.concat(
+            [confounders, heterogeneity_variables, treatments, outcomes], axis=1
+        )
+
+        # Prettify CATEs and ATEs report
+        cate_df, ate_df = self._treatment_effect_report(cates)
+
+        self._seed_incrementer = self.seed
+
+        return synthetic_data, cate_df, ate_df
+
+    def _generate_confounder_variables(self) -> pd.DataFrame:
+        """Generate confounder variables."""
+
+        confounders = {}
+
+        for i in range(self.n_cont_confounders):
+            confounders[f"W{i+1}_continuous"] = self._generate_random_variable(
+                n_obs=self.n_obs,
+                var_type="continuous",
+                seed=self._seed_incrementer,
+            )
+        for i in range(self.n_binary_confounders):
+            confounders[f"W{i+1}_binary"] = self._generate_random_variable(
+                n_obs=self.n_obs,
+                var_type="binary",
+                seed=self._seed_incrementer,
+            )
+        for i in range(self.n_discrete_confounders):
+            confounders[f"W{i+1}_discrete"] = self._generate_random_variable(
+                n_obs=self.n_obs,
+                var_type="discrete",
+                seed=self._seed_incrementer,
+            )
+
+        return pd.DataFrame(confounders)
+
+    def _generate_heterogenous_variables(self) -> pd.DataFrame:
+        """Generate treatment heterogeneity inducing covariates variables."""
+
+        heterogeneity_variables = {}
+
+        for i in range(self.n_cont_heterogeneity_covariates):
+            heterogeneity_variables[f"X{i+1}_continuous"] = (
+                self._generate_random_variable(
+                    n_obs=self.n_obs,
+                    var_type="continuous",
+                    seed=self._seed_incrementer,
+                )
+            )
+        for i in range(self.n_binary_heterogeneity_covariates):
+            heterogeneity_variables[f"X{i+1}_binary"] = self._generate_random_variable(
+                n_obs=self.n_obs,
+                var_type="binary",
+                seed=self._seed_incrementer,
+            )
+        for i in range(self.n_discrete_heterogeneity_covariates):
+            heterogeneity_variables[f"X{i+1}_discrete"] = (
+                self._generate_random_variable(
+                    n_obs=self.n_obs,
+                    var_type="discrete",
+                    seed=self._seed_incrementer,
+                )
+            )
+
+        return pd.DataFrame(heterogeneity_variables)
+
+    def _generate_treatment_variables(
+        self, confounders: pd.DataFrame, heterogeneity_variables: pd.DataFrame
+    ) -> pd.DataFrame:
+        """Generate the treatment variables"""
+
+        treatments = {}
+
+        subset_heterogeneity = heterogeneity_variables.sample(
+            n=self.n_heterogeneity_confounders, axis=1, random_state=self.seed
+        )
+
+        all_confounders = pd.concat([confounders, subset_heterogeneity], axis=1)
+
+        if self.causal_model_functional_form == "fully_linear":
+            for i in range(self.n_cont_treatments):
+                treatments[f"T{i+1}_continuous"] = self._linear_dgp(
+                    covariates=all_confounders,
+                    stddev_err=self.stddev_treatment_noise,
+                    n_obs=self.n_obs,
+                    dep_type="continuous",
+                    seed=self._seed_incrementer,
+                )
+            for i in range(self.n_binary_treatments):
+                treatments[f"T{i+1}_binary"] = self._linear_dgp(
+                    covariates=all_confounders,
+                    stddev_err=self.stddev_treatment_noise,
+                    n_obs=self.n_obs,
+                    dep_type="binary",
+                    seed=self._seed_incrementer,
+                )
+            for i in range(self.n_discrete_treatments):
+                treatments[f"T{i+1}_discrete"] = self._linear_dgp(
+                    covariates=all_confounders,
+                    stddev_err=self.stddev_treatment_noise,
+                    n_obs=self.n_obs,
+                    dep_type="discrete",
+                    seed=self._seed_incrementer,
+                )
+        else:
+            pass
+
+        return pd.DataFrame(treatments)
+
+    def _generate_outcome_variables(
+        self,
+        confounders: pd.DataFrame,
+        heterogeneity_variables: pd.DataFrame,
+        treatments: pd.DataFrame,
+    ) -> tuple[pd.DataFrame, dict]:
+        outcomes = {}
+        cates = {}
+
+        if self.causal_model_functional_form in ["fully_linear", "partially_linear"]:
+            # Generate Interaction terms
+            interactions_np = (
+                treatments.to_numpy()[:, :, None]
+                * heterogeneity_variables.to_numpy()[:, None, :]
+            ).reshape(self.n_obs, -1)
+            interactions = pd.DataFrame(
+                interactions_np,
+                columns=[
+                    f"Int_{t}_{x}"
+                    for t in treatments.columns
+                    for x in heterogeneity_variables.columns
+                ],
+            )
+            all_features = pd.concat(
+                [confounders, heterogeneity_variables, treatments, interactions], axis=1
+            )
+            if self.causal_model_functional_form == "fully_linear":
+                for i in range(self.n_cont_outcomes):
+                    outcomes[f"Y{i+1}_continuous"], cates[f"Y{i+1}_continuous"] = (
+                        self._linear_dgp(
+                            covariates=all_features,
+                            stddev_err=self.stddev_outcome_noise,
+                            n_obs=self.n_obs,
+                            dep_type="continuous",
+                            seed=self._seed_incrementer,
+                            return_treatment_effects=True,
+                        )
+                    )
+            else:
+                pass
+        else:
+            pass
+
+        return pd.DataFrame(outcomes), cates
+
+    @staticmethod
+    def _generate_random_variable(
+        n_obs: int, var_type: str, seed: int | None
+    ) -> np.ndarray:
+        """Generate random variable from multiple distributions."""
+
+        valid_types = ["continuous", "binary", "discrete"]
+        assert (
+            var_type in valid_types
+        ), f"Invalid type: {var_type}. Choose from {valid_types}."
+
+        np.random.seed(seed)
+
+        if var_type == "continuous":
+            distributions = [
+                "normal",
+                "uniform",
+                "exponential",
+                "gamma",
+                "beta",
+                "laplace",
+            ]
+
+            dist = np.random.choice(distributions)
+
+            if dist == "normal":
+                mean, std = np.random.uniform(-5, 5), np.random.uniform(0.5, 2)
+                res = np.random.normal(mean, std, n_obs)
+            elif dist == "uniform":
+                low, high = np.random.uniform(-10, 0), np.random.uniform(0, 10)
+                res = np.random.uniform(low, high, n_obs)
+            elif dist == "exponential":
+                scale = np.random.uniform(1, 3)
+                res = np.random.exponential(scale, n_obs)
+            elif dist == "gamma":
+                shape, scale = np.random.uniform(1, 3), np.random.uniform(1, 3)
+                res = np.random.gamma(shape, scale, n_obs)
+            elif dist == "beta":
+                a, b = np.random.uniform(1, 3), np.random.uniform(1, 3)
+                res = np.random.beta(a, b, n_obs)
+            elif dist == "laplace":
+                loc, scale = np.random.uniform(-5, 5), np.random.uniform(0.5, 2)
+                res = np.random.laplace(loc, scale, n_obs)
+            else:
+                raise ValueError("Invalid distribution")
+
+        elif var_type == "binary":
+            p = np.random.uniform(0.1, 0.9)
+            res = np.random.binomial(1, p, n_obs)
+
+        elif var_type == "discrete":
+            distributions = ["poisson", "geometric", "multinomial", "uniform"]
+
+            dist = np.random.choice(distributions)
+
+            if dist == "poisson":
+                lam = np.random.uniform(1, 10)
+                res = np.random.poisson(lam, n_obs)
+
+            elif dist == "geometric":
+                p = np.random.uniform(0.1, 0.9)
+                res = np.random.geometric(p, n_obs)
+
+            elif dist == "multinomial":
+                n_categories = np.random.randint(2, 6)
+                probs = np.random.dirichlet(np.ones(n_categories))
+                res = np.random.choice(range(n_categories), size=n_obs, p=probs)
+
+            elif dist == "uniform":
+                n_categories = np.random.randint(2, 6)
+                res = np.random.randint(0, n_categories, size=n_obs)
+            else:
+                raise ValueError("Invalid distribution")
+
+        else:
+            raise ValueError("Invalid variable type.")
+
+        return res
+
+    def _linear_dgp(
+        self,
+        covariates: pd.DataFrame,
+        stddev_err: float,
+        n_obs: int,
+        dep_type: str,
+        seed: int | None,
+        return_treatment_effects: bool = False,
+    ) -> np.ndarray | tuple[np.ndarray, dict]:
+        """Generate linear DGP"""
+
+        valid_types = ["continuous", "binary", "discrete"]
+        assert (
+            dep_type in valid_types
+        ), f"Invalid type: {dep_type}. Choose from {valid_types}."
+
+        np.random.seed(seed)
+
+        n_features = covariates.shape[1]
+
+        if dep_type == "continuous":
+            params = np.random.uniform(low=-3, high=3, size=n_features)
+            noise = np.random.normal(0, stddev_err, size=n_obs)
+
+            def f(x):
+                return x @ params + noise
+
+            dep = f(covariates.values)
+            if return_treatment_effects:
+                cates = {}
+                for t in [c for c in covariates.columns if "T" in c and "Int" not in c]:
+                    if "continuous" in t:
+                        cates[t] = self._approx_derivative(f, covariates, t)
+                    elif "binary" in t:
+                        cates[t] = self._compute_potential_outcome_differences(
+                            f, covariates, t, levels=[1]
+                        )
+                    elif "discrete" in t:
+                        distinct_levels = covariates[t].unique().tolist()
+                        cates[t] = self._compute_potential_outcome_differences(
+                            f, covariates, t, levels=distinct_levels
+                        )
+
+        elif dep_type == "binary":
+            params = np.random.uniform(low=-3, high=3, size=n_features)
+            noise = np.random.normal(0, stddev_err, size=n_obs)
+            linear_scores = covariates.values @ params + noise
+            cutoff = np.percentile(linear_scores, np.random.uniform(low=10, high=90))
+            dep = (linear_scores > cutoff).astype(int)
+        elif dep_type == "discrete":
+            n_categories = np.random.randint(3, 6)
+            params = np.random.uniform(low=-3, high=3, size=(n_features, n_categories))
+            noise = np.random.normal(0, stddev_err, size=(n_obs, n_categories))
+            linear_scores = covariates.values @ params + noise
+            cutoffs = np.percentile(
+                linear_scores, np.random.uniform(low=10, high=90), axis=0
+            )
+            masked_linear_scores = np.where(
+                linear_scores >= cutoffs, linear_scores, -np.inf
+            )
+            dep = np.argmax(masked_linear_scores, axis=1)
+        else:
+            raise ValueError("Invalid dependent variable type.")
+
+        if return_treatment_effects:
+            return dep, cates
+        return dep
+
+    @staticmethod
+    def _compute_potential_outcome_differences(
+        f: Callable, data: pd.DataFrame, wrt: str, levels: list
+    ) -> dict[str, np.ndarray] | np.ndarray:
+        """Compute potential outcome differences."""
+
+        cates = {}
+        for lev in levels:
+            if lev == 0:
+                pass
+            else:
+                data_treat = data.copy()
+                data_control = data.copy()
+
+                data_treat[wrt] = lev
+                data_control[wrt] = 0
+
+                for interaction in [c for c in data.columns if wrt in c and "Int" in c]:
+                    covariate = interaction.split(f"{wrt}_")[1]
+                    data_treat[interaction] = data_treat[covariate] * data_treat[wrt]
+                    data_control[interaction] = (
+                        data_control[covariate] * data_control[wrt]
+                    )
+
+                cates[f"{lev}_v_0"] = f(data_treat.values) - f(data_control.values)
+
+        if len(cates) == 1:
+            return list(cates.values())[0]
+        else:
+            return cates
+
+    @staticmethod
+    def _approx_derivative(f: Callable, data: pd.DataFrame, wrt: str) -> np.ndarray:
+        """Approximate the derivative of a function."""
+        eps = 1e-6
+        data_plus_eps = data.copy()
+        data_minus_eps = data.copy()
+
+        data_plus_eps[wrt] = data_plus_eps[wrt] + eps
+        data_minus_eps[wrt] = data_minus_eps[wrt] - eps
+
+        for interaction in [c for c in data.columns if wrt in c and "Int" in c]:
+            covariate = interaction.split(f"{wrt}_")[1]
+            data_plus_eps[interaction] = data_plus_eps[covariate] * data_plus_eps[wrt]
+            data_minus_eps[interaction] = (
+                data_minus_eps[covariate] * data_minus_eps[wrt]
+            )
+
+        approx_derivative = (f(data_plus_eps.values) - f(data_minus_eps.values)) / (
+            2 * eps
+        )
+
+        return approx_derivative
+
+    @staticmethod
+    def _treatment_effect_report(
+        cates: dict[str, dict],
+    ) -> tuple[pd.DataFrame, pd.DataFrame]:
+        """Generate a report on treatment effects."""
+
+        dict_effects = {}
+        for outcome, effects in cates.items():
+            for treatment, values in effects.items():
+                var = f"CATE_of_{treatment}_on_{outcome}"
+                if isinstance(values, dict):
+                    for levels, results in values.items():
+                        var_lev = var + f"_level_{levels}"
+                        dict_effects[var_lev] = results
+                else:
+                    dict_effects[var] = values
+
+        cate_df = pd.DataFrame(dict_effects)
+
+        ate_df = cate_df.mean().reset_index()
+        ate_df.columns = ["Treatment", "ATE"]
+        ate_df["Treatment"] = ate_df["Treatment"].str.replace("CATE_of_", "")
+
+        return cate_df, ate_df
+
+    @staticmethod
+    def _sigmoid(x):
+        return 1 / (1 + np.exp(-x))
+
+    @staticmethod
+    def _softmax(x):
+        e_x = np.exp(x - np.max(x))
+        return e_x / e_x.sum()
 
 
 @typechecked
@@ -86,8 +566,18 @@ def make_partially_linear_dataset_simple(
 
     Examples
     --------
-    >>> from caml.extensions.synthetic_data import make_partially_linear_dataset_simple
-    >>> df, true_cates, true_ate = make_partially_linear_simple_dataset(n_obs=1000, n_confounders=5, dim_heterogeneity=2, binary_treatment=True, seed=1)
+    ```{python}
+    from caml.extensions.synthetic_data import make_partially_linear_dataset_simple
+    df, true_cates, true_ate = make_partially_linear_dataset_simple(n_obs=1000,
+                                                                    n_confounders=5,
+                                                                    dim_heterogeneity=2,
+                                                                    binary_treatment=True,
+                                                                    seed=1)
+
+    print(f"True CATES: {true_cates[:5]}")
+    print(f"True ATE: {true_ate}")
+    print(df.head())
+    ```
     """
 
     if dim_heterogeneity not in [1, 2]:
@@ -175,8 +665,18 @@ def make_partially_linear_dataset_constant(
 
     Examples
     --------
-    >>> from caml.extensions.synthetic_data import make_partially_linear_dataset_constant
-    >>> df, true_ate = make_partially_linear_dataset_constant(n_obs=1000, ate=4.0, n_confounders=10, dgp="make_plr_CCDDHNR2018", seed=1)
+    ```{python}
+    from caml.extensions.synthetic_data import make_partially_linear_dataset_constant
+    df, true_cates, true_ate = make_partially_linear_dataset_constant(n_obs=1000,
+                                                        ate=4.0,
+                                                        n_confounders=10,
+                                                        dgp="make_plr_CCDDHNR2018",
+                                                        seed=1)
+
+    print(f"True CATES: {true_cates[:5]}")
+    print(f"True ATE: {true_ate}")
+    print(df.head())
+    ```
     """
 
     np.random.seed(seed)
@@ -276,8 +776,17 @@ def make_fully_heterogeneous_dataset(
 
     Examples
     --------
-    >>> from caml.extensions.synthetic_data import make_fully_hetereogenous_dataset
-    >>> df, true_cates, true_ate = make_fully_hetereogenous_dataset(n_obs=1000, n_confounders=5, theta=4.0, seed=1)
+    ```{python}
+    from caml.extensions.synthetic_data import make_fully_heterogeneous_dataset
+    df, true_cates, true_ate = make_fully_heterogeneous_dataset(n_obs=1000,
+                                                                n_confounders=5,
+                                                                theta=4.0,
+                                                                seed=1)
+
+    print(f"True CATEs: {true_cates[:5]}")
+    print(f"True ATE: {true_ate}")
+    print(df.head())
+    ```
     """
 
     np.random.seed(seed)
@@ -410,8 +919,24 @@ def make_dowhy_linear_dataset(
 
     Examples
     --------
-    >>> from caml.extensions.synthetic_data import make_dowhy_linear_dataset
-    >>> df, true_cates, true_ate = make_dowhy_linear_dataset(beta=2.0, n_obs=1000, n_confounders=10, n_discrete_confounders=0, n_effect_modifiers=5, n_discrete_effect_modifiers=0, n_treatments=1, binary_treatment=False, categorical_treatment=False, binary_outcome=False, seed=1)
+    ```{python}
+    from caml.extensions.synthetic_data import make_dowhy_linear_dataset
+    df, true_cates, true_ate = make_dowhy_linear_dataset(beta=2.0,
+                                                        n_obs=1000,
+                                                        n_confounders=10,
+                                                        n_discrete_confounders=0,
+                                                        n_effect_modifiers=5,
+                                                        n_discrete_effect_modifiers=0,
+                                                        n_treatments=1,
+                                                        binary_treatment=False,
+                                                        categorical_treatment=False,
+                                                        binary_outcome=False,
+                                                        seed=1)
+
+    print(f"True CATEs: {true_cates['d1'][:5]}")
+    print(f"True ATE: {true_ate}")
+    print(df.head())
+    ```
     """
     np.random.seed(seed)
 

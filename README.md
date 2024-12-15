@@ -10,15 +10,28 @@
 
 CaML = **Ca**usal **M**achine **L**earning
 
-CaML provides a high-level API for an *opinionated* framework in performing Causal ML to estimate Average Treatment Effects (ATEs), Group Average Treatment Effects (GATEs), and Conditional Average Treatment Effects (CATEs), and to provide mechanisms to utilize these models for out of sample prediction & policy prescription.
+CaML provides a high-level API for an _opinionated_ framework in performing Causal ML to estimate Average Treatment Effects (ATEs), Group Average Treatment Effects (GATEs), and Conditional Average Treatment Effects (CATEs), and to provide mechanisms to utilize these models for out of sample prediction & policy prescription.
 
 The codebase is comprised primarily of extensions & abstractions over top of [EconML](https://github.com/py-why/EconML) & [DoubleML](https://docs.doubleml.org/stable/api/generated/doubleml.datasets.make_confounded_irm_data.html#doubleml.datasets.make_confounded_irm_data) with techniques motivated heavily by [Causal ML Book](https://causalml-book.org/) and additional research.
 
 ## Background
-The origins of CaML are rooted in a desire to develop a set of helper tools to abstract and streamline techniques & best pratices in Causal ML/Econometrics for estimating ATEs, GATEs, and CATEs, along with policy prescription.
 
-As we began working on these helper tools, we begun to see the value in reformulating this framework into a reusable package for wider use amongst the community and to provide an opinionated framework that can be integrated into productionalized systems, particularly experimentation platforms, for efficient estimation of causal parameters for reporting & decision-making purposes.
+The origins of CaML are rooted in a desire to develop a set of helper tools to abstract and streamline techniques
+& best pratices in Causal ML/Econometrics for estimating ATEs, GATEs, and CATEs, along with policy prescription.
 
-Admittedly, we were tempted to include the term "Auto" in the name of this package (e.g., AutoCATE, AutoCausal, etc.), but we quickly realized the potential for misapplication & naive usage that could arise from that type of "branding." Indeed, the misapplication of many Causal AI/ML techniques is all too commonplace in the data science community. **All of the standard assumptions for causal inference still apply in order for these tools & techniques to provide unbiased inference.**
+As we began working on these helper tools, we begun to see the value in reformulating this framework into a reusable
+package for wider use amongst the community and to provide an opinionated framework that can be integrated into productionalized
+systems, particularly experimentation platforms, for efficient estimation of causal parameters for reporting & decision-making
+purposes.
 
-Given a key motivation is to provide a tool for productionalized systems, we are building this package with interoperability and extensibility as core values - a key motivation for using [Ibis](https://ibis-project.org/) to ensure we are backend agnostic for end users (e.g., instantiate with a pyspark dataframe and get a pyspark dataframe back). The degree of interoperability will be limited in scope at first, but we hope to expand this as the code base develops. As of now, the tools utilized still rely on in-memory datasets for estimation (via [EconML](https://github.com/py-why/EconML) for causal models & [flaml](https://microsoft.github.io/FLAML/) for AutoML of nuissance functions), but we leverage Ray & Spark for distributing certain processes where appropriate.
+Admittedly, we were tempted to include the term "Auto" in the name of this package (e.g., AutoCATE, AutoCausal, etc.),
+but we quickly realized the potential for misapplication & naive usage that could arise from that type of "branding."
+Indeed, the misapplication of many Causal AI/ML techniques is all too commonplace in the data science community.
+**All of the standard assumptions for causal inference still apply in order for these tools & techniques to provide
+unbiased inference.**
+
+Given a key motivation is to provide a tool for productionalized systems, we are building this package with interoperability
+and extensibility as core values. The degree of interoperability will be limited in scope at first, but we hope to expand this as the code base develops. As of now, the tools
+utilized still rely on in-memory datasets for estimation (via [EconML](https://github.com/py-why/EconML) for causal models &
+[flaml](https://microsoft.github.io/FLAML/) for AutoML of nuissance functions), but we leverage Ray & Spark for distributing
+certain processes where appropriate and if available for the user.

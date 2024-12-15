@@ -3,7 +3,6 @@ authors = [{name = "jakepenzak", email = "jakepzak@gmail.com"}]
 dependencies = [
     "econml>=0.15.1",
     "flaml>=2.2.0",
-    "ibis-framework[pandas]>=9.3.0",
     "typeguard>=4.3.0",
     "doubleml>=0.8.0",
     "matplotlib>=3.9.2",
@@ -22,13 +21,13 @@ classifiers = [
 
 [project.optional-dependencies]
 pyspark = [
-    "ibis-framework[pyspark]>=9.3.0",
     "flaml[spark]>=2.2.0",
     "optuna>=3.6.1",
+    "pyspark>=3.5.2",
     "ray>=2.35.0",
 ]
 polars = [
-    "ibis-framework[polars]>=9.3.0",
+    "polars>=1.17.1",
 ]
 
 [build-system]

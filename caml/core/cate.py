@@ -63,13 +63,12 @@ class CamlCATE(CamlBase):
     The primary workflow for the CamlCATE class is as follows:
 
     1. Initialize the class with the input DataFrame and the necessary columns.
-    2. Utilize AutoML to find the optimal nuisance functions or propensity/regression models to be utilized in the EconML estimators.
-    3. Fit the CATE models on the training set and evaluate based on the validation set, then select the top performer/ensemble.
+    2. Utilize [flaml](https://microsoft.github.io/FLAML/) AutoML to find nuisance functions or propensity/regression models to be utilized in the EconML estimators.
+    3. Fit the CATE models on the training set and evaluate based on the validation set, then select the top performer/ensemble based on chosen scorer.
     4. Validate the fitted CATE model on the test set to check for generalization performance.
     5. Fit the final estimator on the entire dataset, after validation and testing.
-    6. Predict the CATE based on the fitted final estimator for either the internal dataframe or an out-of-sample dataframe.
-    7. Rank orders households based on the predicted CATE values for either the internal dataframe or an out-of-sample dataframe.
-    8. Summarize population summary statistics for the CATE predictions for either the internal dataframe or an out-of-sample dataframe.
+    6. Predict the CATE based on the fitted final estimator for either the internal dataset or an out-of-sample dataset.
+    8. Summarize population summary statistics for the CATE predictions for either the internal dataset or out-of-sample predictions.
 
 
     For technical details on conditional average treatment effects, see:
@@ -84,9 +83,9 @@ class CamlCATE(CamlBase):
 
     | Outcome     | Treatment   | Support     | Missing    |
     | ----------- | ----------- | ----------- | ---------- |
-    | Continuous  | Binary      | ✅Full      | None       |
-    | Continuous  | Continuous  | 🟡Partial   | Validation |
-    | Continuous  | Categorical | ✅Full      | None       |
+    | Continuous  | Binary      | ✅Full      |            |
+    | Continuous  | Continuous  | 🟡Partial   | validate() |
+    | Continuous  | Categorical | ✅Full      |            |
     | Binary      | Binary      | ❌Not yet   |            |
     | Binary      | Continuous  | ❌Not yet   |            |
     | Binary      | Categorical | ❌Not yet   |            |
@@ -172,21 +171,31 @@ class CamlCATE(CamlBase):
     --------
     >>> from caml.core.cate import CamlCATE
     >>> from caml.extensions.synthetic_data import make_fully_heterogeneous_dataset
+    >>>
+    >>> # Generate synthetic dataset
     >>> df, true_cates, true_ate = make_fully_heterogeneous_dataset(n_obs=1000, n_confounders=10, theta=10, seed=1)
-    >>> df['uuid'] = df.index
-    >>>  caml_obj= CamlCATE(df=df, Y="y", T="d", X=[c for c in df.columns if "X" in c], uuid="uuid", discrete_treatment=True, discrete_outcome=False, seed=1)
+    >>>
+    >>> # Instantiate CamlCATE class
+    >>> caml_obj= CamlCATE(df=df,
+    ...                    Y="y",
+    ...                    T="d",
+    ...                    X=[c for c in df.columns if "X" in c],
+    ...                    W=[c for c in df.columns if "W" in c],
+    ...                    discrete_treatment=True,
+    ...                    discrete_outcome=True,
+    ...                    seed=0,
+    ...                    verbose=1)
     >>>
     >>> # Standard pipeline
     >>> caml_obj.auto_nuisance_functions()
     >>> caml_obj.fit_validator()
-    >>> caml_obj.validate(print_full_report=True)
+    >>> caml_obj.validate()
     >>> caml_obj.fit_final()
-    >>> caml_obj.predict(join_predictions=True)
-    >>> caml_obj.rank_order(join_rank_order=True)
-    >>> caml_obj.summarize()
+    >>> predictions = caml_obj.predict()
+    >>> summarized_predictions = caml_obj.summarize()
     >>>
-    >>> end_of_pipeline_results = caml_obj.dataframe
-    >>> final_estimator = caml_obj.final_estimator # Can be saved for future inference.
+    >>> # Access final model (can be saved for future inference)
+    >>> final_estimator = caml_obj.final_estimator
     """
 
     def __init__(
@@ -195,7 +204,7 @@ class CamlCATE(CamlBase):
         Y: str,
         T: str,
         X: str | list[str],
-        W: str | list[str],
+        W: str | list[str] | None = None,
         *,
         discrete_treatment: bool = True,
         discrete_outcome: bool = False,
@@ -208,7 +217,7 @@ class CamlCATE(CamlBase):
         self.Y = Y
         self.T = T
         self.X = X
-        self.W = W
+        self.W = W if W else []
         self.discrete_treatment = discrete_treatment
         self.discrete_outcome = discrete_outcome
         self.seed = seed
@@ -245,7 +254,7 @@ class CamlCATE(CamlBase):
         use_spark: bool = False,
     ):
         """
-        Automatically finds the optimal nuisance functions for estimating EconML estimators.
+        Leverages AutoML to find optimal nuisance functions/regression & propensity models for use in EconML CATE estimators.
 
         Sets the `model_Y_X_W`, `model_Y_X_W_T`, and `model_T_X_W` internal attributes to the fitted nuisance functions.
 
@@ -364,7 +373,7 @@ class CamlCATE(CamlBase):
         >>> caml_obj.fit_validator(subset_cate_models=subset_cate_models, additional_cate_models=additional_cate_models, rscorer_kwargs=rscorer_kwargs)
         """
 
-        assert self._nuisances_fitted, "find_nuissance_functions() method must be called first to find optimal nussiance functions for estimating CATE models."
+        assert self._nuisances_fitted, "find_nuissance_functions() method must be called prior to estimating CATE models."
 
         if use_ray:
             assert _HAS_RAY, "Ray is not installed. Please install Ray to use it for parallel processing."
@@ -500,12 +509,18 @@ class CamlCATE(CamlBase):
                     T=T,
                     X=X,
                 )
+                estimator._input_names["feature_names"] = self.X
+                estimator._input_names["output_names"] = self.Y
+                estimator._input_names["treatment_names"] = self.T
         else:
             self._final_estimator.fit(
                 Y=Y,
                 T=T,
                 X=X,
             )
+            self._final_estimator._input_names["feature_names"] = self.X
+            self._final_estimator._input_names["output_names"] = self.Y
+            self._final_estimator._input_names["treatment_names"] = self.T
 
     def predict(
         self,
@@ -771,7 +786,7 @@ class CamlCATE(CamlBase):
         summary = (
             "================== CamlCATE Object ==================\n"
             + f"Data Backend: {self._data_backend}\n"
-            + f"No. of Observations: {self._Y.shape[0]}\n"
+            + f"No. of Observations: {self._Y.shape[0]:,}\n"
             + f"Outcome Variable: {self.Y}\n"
             + f"Discrete Outcome: {self.discrete_outcome}\n"
             + f"Treatment Variable: {self.T}\n"

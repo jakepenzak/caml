@@ -63,7 +63,15 @@ flowchart TD;
 
 ## Examples
 
-```python
->>> from caml.extensions.synthetic_data import make_partially_linear_dataset_simple
->>> df, true_cates, true_ate = make_partially_linear_simple_dataset(n_obs=1000, n_confounders=5, dim_heterogeneity=2, binary_treatment=True, seed=1)
+```{python}
+from caml.extensions.synthetic_data import make_partially_linear_dataset_simple
+df, true_cates, true_ate = make_partially_linear_dataset_simple(n_obs=1000,
+                                                                n_confounders=5,
+                                                                dim_heterogeneity=2,
+                                                                binary_treatment=True,
+                                                                seed=1)
+
+print(f"True CATES: {true_cates[:5]}")
+print(f"True ATE: {true_ate}")
+print(df.head())
 ```
