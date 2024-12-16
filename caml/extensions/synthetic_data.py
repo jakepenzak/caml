@@ -66,6 +66,16 @@ class CamlSyntheticDataGenerator:
         self.seed = seed
         self._seed = seed
 
+        if self.causal_model_functional_form in [
+            "partially_linear",
+            "fully_non_linear",
+        ]:
+            self._nonlinearity_seed = (
+                np.random.randint(0, 1000) if self.seed is None else self.seed
+            )
+
+        self._generate_data()
+
     @property
     def _seed_incrementer(self):
         current_value = self._seed
@@ -74,13 +84,10 @@ class CamlSyntheticDataGenerator:
         return current_value
 
     @_seed_incrementer.setter
-    def _seed_incrementer(self, value):
+    def _seed_incrementer(self, value: int):
         self._seed = value
 
-    def __call__(self):
-        return self.generate_data()
-
-    def generate_data(self):
+    def _generate_data(self):
         # Generate confounders
         confounders = self._generate_confounder_variables()
 
@@ -109,6 +116,10 @@ class CamlSyntheticDataGenerator:
         cate_df, ate_df = self._treatment_effect_report(cates)
 
         self._seed_incrementer = self.seed
+
+        self.df = synthetic_data
+        self.cates = cate_df
+        self.ates = ate_df
 
         return synthetic_data, cate_df, ate_df
 
@@ -183,31 +194,67 @@ class CamlSyntheticDataGenerator:
 
         if self.causal_model_functional_form == "fully_linear":
             for i in range(self.n_cont_treatments):
-                treatments[f"T{i+1}_continuous"] = self._linear_dgp(
+                treatments[f"T{i+1}_continuous"] = self._dgp(
                     covariates=all_confounders,
                     stddev_err=self.stddev_treatment_noise,
                     n_obs=self.n_obs,
                     dep_type="continuous",
+                    dgp_type="linear",
                     seed=self._seed_incrementer,
                 )
             for i in range(self.n_binary_treatments):
-                treatments[f"T{i+1}_binary"] = self._linear_dgp(
+                treatments[f"T{i+1}_binary"] = self._dgp(
                     covariates=all_confounders,
                     stddev_err=self.stddev_treatment_noise,
                     n_obs=self.n_obs,
                     dep_type="binary",
+                    dgp_type="linear",
                     seed=self._seed_incrementer,
                 )
             for i in range(self.n_discrete_treatments):
-                treatments[f"T{i+1}_discrete"] = self._linear_dgp(
+                treatments[f"T{i+1}_discrete"] = self._dgp(
                     covariates=all_confounders,
                     stddev_err=self.stddev_treatment_noise,
                     n_obs=self.n_obs,
                     dep_type="discrete",
+                    dgp_type="linear",
+                    seed=self._seed_incrementer,
+                )
+        elif self.causal_model_functional_form in [
+            "partially_linear",
+            "fully_non_linear",
+        ]:
+            for i in range(self.n_cont_treatments):
+                treatments[f"T{i+1}_continuous"] = self._dgp(
+                    covariates=all_confounders,
+                    stddev_err=self.stddev_treatment_noise,
+                    n_obs=self.n_obs,
+                    dep_type="continuous",
+                    dgp_type="nonlinear",
+                    seed=self._seed_incrementer,
+                )
+            for i in range(self.n_binary_treatments):
+                treatments[f"T{i+1}_binary"] = self._dgp(
+                    covariates=all_confounders,
+                    stddev_err=self.stddev_treatment_noise,
+                    n_obs=self.n_obs,
+                    dep_type="binary",
+                    dgp_type="nonlinear",
+                    seed=self._seed_incrementer,
+                )
+            for i in range(self.n_discrete_treatments):
+                treatments[f"T{i+1}_discrete"] = self._dgp(
+                    covariates=all_confounders,
+                    stddev_err=self.stddev_treatment_noise,
+                    n_obs=self.n_obs,
+                    dep_type="discrete",
+                    dgp_type="nonlinear",
                     seed=self._seed_incrementer,
                 )
         else:
-            pass
+            raise ValueError(
+                f"Invalid causal model functional form: {self.causal_model_functional_form}"
+            )
 
         return pd.DataFrame(treatments)
 
@@ -240,21 +287,232 @@ class CamlSyntheticDataGenerator:
             if self.causal_model_functional_form == "fully_linear":
                 for i in range(self.n_cont_outcomes):
                     outcomes[f"Y{i+1}_continuous"], cates[f"Y{i+1}_continuous"] = (
-                        self._linear_dgp(
+                        self._dgp(
                             covariates=all_features,
                             stddev_err=self.stddev_outcome_noise,
                             n_obs=self.n_obs,
                             dep_type="continuous",
+                            dgp_type="linear",
                             seed=self._seed_incrementer,
                             return_treatment_effects=True,
                         )
                     )
+                for i in range(self.n_binary_outcomes):
+                    outcomes[f"Y{i+1}_binary"], cates[f"Y{i+1}_binary"] = self._dgp(
+                        covariates=all_features,
+                        stddev_err=self.stddev_outcome_noise,
+                        n_obs=self.n_obs,
+                        dep_type="binary",
+                        dgp_type="linear",
+                        seed=self._seed_incrementer,
+                        return_treatment_effects=True,
+                    )
             else:
                 pass
+        elif self.causal_model_functional_form in ["fully_non_linear"]:
+            all_features = pd.concat(
+                [confounders, heterogeneity_variables, treatments], axis=1
+            )
+            for i in range(self.n_cont_outcomes):
+                outcomes[f"Y{i+1}_continuous"], cates[f"Y{i+1}_continuous"] = self._dgp(
+                    covariates=all_features,
+                    stddev_err=self.stddev_outcome_noise,
+                    n_obs=self.n_obs,
+                    dep_type="continuous",
+                    dgp_type="nonlinear",
+                    seed=self._seed_incrementer,
+                    return_treatment_effects=True,
+                )
+            for i in range(self.n_binary_outcomes):
+                outcomes[f"Y{i+1}_binary"], cates[f"Y{i+1}_binary"] = self._dgp(
+                    covariates=all_features,
+                    stddev_err=self.stddev_outcome_noise,
+                    n_obs=self.n_obs,
+                    dep_type="binary",
+                    dgp_type="nonlinear",
+                    seed=self._seed_incrementer,
+                    return_treatment_effects=True,
+                )
         else:
-            pass
+            raise ValueError(
+                f"Invalid causal model functional form: {self.causal_model_functional_form}"
+            )
 
         return pd.DataFrame(outcomes), cates
+
+    def _dgp(
+        self,
+        covariates: pd.DataFrame,
+        stddev_err: float,
+        n_obs: int,
+        dep_type: str,
+        seed: int | None,
+        dgp_type: str,
+        return_treatment_effects: bool = False,
+    ) -> np.ndarray | tuple[np.ndarray, dict]:
+        """DGP for treatments and outcomes"""
+
+        valid_dep_types = ["continuous", "binary", "discrete"]
+        valid_dgp_types = ["linear", "partially_linear", "nonlinear"]
+        assert (
+            dep_type in valid_dep_types
+        ), f"Invalid dep type: {dep_type}. Choose from {valid_dep_types}."
+        assert (
+            dgp_type in valid_dgp_types
+        ), f"Invalid dgp type: {dgp_type}. Choose from {valid_dgp_types}."
+
+        np.random.seed(seed)
+
+        n_features = covariates.shape[1]
+
+        if dep_type == "continuous":
+            if dgp_type == "linear":
+                params = np.random.uniform(low=-3, high=3, size=n_features)
+                noise = np.random.normal(0, stddev_err, size=n_obs)
+
+                def f(x):
+                    return x @ params + noise
+
+                linear_score = f(covariates.values)
+
+            elif dgp_type == "nonlinear":
+                transformed_covariates = self._apply_random_nonlinearities(
+                    data=covariates,
+                    n_transforms=n_features * 3,
+                    seed=self._nonlinearity_seed,
+                )
+                params = np.random.uniform(
+                    low=-3, high=3, size=transformed_covariates.shape[1]
+                )
+                noise = np.random.normal(0, stddev_err, size=n_obs)
+
+                def f(x):
+                    return x @ params + noise
+
+                linear_score = f(transformed_covariates.values)
+
+            else:
+                raise ValueError("Not ready")
+
+            dep = linear_score
+
+        elif dep_type == "binary":
+            if dgp_type == "linear":
+                params = np.random.uniform(low=-3, high=3, size=n_features)
+                noise = np.random.normal(0, stddev_err, size=n_obs)
+
+                def f(x):
+                    linear_scores = x @ params + noise
+                    return self._sigmoid(linear_scores)
+
+                probabilities = f(covariates.values)
+
+            elif dgp_type == "nonlinear":
+                transformed_covariates = self._apply_random_nonlinearities(
+                    data=covariates,
+                    n_transforms=n_features * 3,
+                    seed=self._nonlinearity_seed,
+                )
+                params = np.random.uniform(
+                    low=-3, high=3, size=transformed_covariates.shape[1]
+                )
+                noise = np.random.normal(0, stddev_err, size=n_obs)
+
+                def f(x):
+                    nonlinear_scores = x @ params + noise
+                    return self._sigmoid(nonlinear_scores)
+
+                probabilities = f(transformed_covariates.values)
+
+            else:
+                raise ValueError("Not ready")
+
+            dep = np.random.binomial(1, probabilities)
+
+        elif dep_type == "discrete":
+            if dgp_type == "linear":
+                n_categories = np.random.randint(3, 6)
+                params = np.random.uniform(
+                    low=-3, high=3, size=(n_features, n_categories)
+                )
+                noise = np.random.normal(0, stddev_err, size=(n_obs, n_categories))
+
+                def f(x):
+                    linear_scores = x @ params + noise
+                    return self._softmax(linear_scores)
+
+                probabilities = f(covariates.values)
+
+            elif dgp_type == "nonlinear":
+                transformed_covariates = self._apply_random_nonlinearities(
+                    data=covariates,
+                    n_transforms=n_features * 3,
+                    seed=self._nonlinearity_seed,
+                )
+                n_categories = np.random.randint(3, 6)
+                params = np.random.uniform(
+                    low=-3, high=3, size=(transformed_covariates.shape[1], n_categories)
+                )
+                noise = np.random.normal(0, stddev_err, size=(n_obs, n_categories))
+
+                def f(x):
+                    nonlinear_scores = x @ params + noise
+                    return self._softmax(nonlinear_scores)
+
+                probabilities = f(transformed_covariates.values)
+
+            else:
+                raise ValueError("Not ready")
+
+            dep = np.array(
+                [
+                    np.random.choice(range(n_categories), p=prob)
+                    for prob in probabilities
+                ]
+            )
+
+        else:
+            raise ValueError("Invalid dependent variable type.")
+
+        if return_treatment_effects:
+            if dgp_type in ["nonlinear"]:
+                seed = self._nonlinearity_seed
+            else:
+                seed = self.seed
+            cates = self._compute_treatment_effects(f, covariates, dgp_type, seed)
+            return dep, cates
+        return dep
+
+    def _compute_treatment_effects(
+        self, f: Callable, data: pd.DataFrame, dgp_type: str, seed: int | None
+    ) -> dict:
+        """Compute treatment effects."""
+
+        cates = {}
+        for t in [c for c in data.columns if c.count("_") == 1 and "T" in c]:
+            if "continuous" in t:
+                cates[t] = self._approx_derivative(f, data, t, dgp_type, seed)
+            elif "binary" in t:
+                cates[t] = self._compute_potential_outcome_differences(
+                    f,
+                    data,
+                    t,
+                    dgp_type,
+                    seed,
+                    levels=[1],
+                )
+            elif "discrete" in t:
+                distinct_levels = data[t].unique().tolist()
+                cates[t] = self._compute_potential_outcome_differences(
+                    f,
+                    data,
+                    t,
+                    dgp_type,
+                    seed,
+                    levels=distinct_levels,
+                )
+
+        return cates
 
     @staticmethod
     def _generate_random_variable(
@@ -335,77 +593,14 @@ class CamlSyntheticDataGenerator:
 
         return res
 
-    def _linear_dgp(
-        self,
-        covariates: pd.DataFrame,
-        stddev_err: float,
-        n_obs: int,
-        dep_type: str,
-        seed: int | None,
-        return_treatment_effects: bool = False,
-    ) -> np.ndarray | tuple[np.ndarray, dict]:
-        """Generate linear DGP"""
-
-        valid_types = ["continuous", "binary", "discrete"]
-        assert (
-            dep_type in valid_types
-        ), f"Invalid type: {dep_type}. Choose from {valid_types}."
-
-        np.random.seed(seed)
-
-        n_features = covariates.shape[1]
-
-        if dep_type == "continuous":
-            params = np.random.uniform(low=-3, high=3, size=n_features)
-            noise = np.random.normal(0, stddev_err, size=n_obs)
-
-            def f(x):
-                return x @ params + noise
-
-            dep = f(covariates.values)
-            if return_treatment_effects:
-                cates = {}
-                for t in [c for c in covariates.columns if "T" in c and "Int" not in c]:
-                    if "continuous" in t:
-                        cates[t] = self._approx_derivative(f, covariates, t)
-                    elif "binary" in t:
-                        cates[t] = self._compute_potential_outcome_differences(
-                            f, covariates, t, levels=[1]
-                        )
-                    elif "discrete" in t:
-                        distinct_levels = covariates[t].unique().tolist()
-                        cates[t] = self._compute_potential_outcome_differences(
-                            f, covariates, t, levels=distinct_levels
-                        )
-
-        elif dep_type == "binary":
-            params = np.random.uniform(low=-3, high=3, size=n_features)
-            noise = np.random.normal(0, stddev_err, size=n_obs)
-            linear_scores = covariates.values @ params + noise
-            cutoff = np.percentile(linear_scores, np.random.uniform(low=10, high=90))
-            dep = (linear_scores > cutoff).astype(int)
-        elif dep_type == "discrete":
-            n_categories = np.random.randint(3, 6)
-            params = np.random.uniform(low=-3, high=3, size=(n_features, n_categories))
-            noise = np.random.normal(0, stddev_err, size=(n_obs, n_categories))
-            linear_scores = covariates.values @ params + noise
-            cutoffs = np.percentile(
-                linear_scores, np.random.uniform(low=10, high=90), axis=0
-            )
-            masked_linear_scores = np.where(
-                linear_scores >= cutoffs, linear_scores, -np.inf
-            )
-            dep = np.argmax(masked_linear_scores, axis=1)
-        else:
-            raise ValueError("Invalid dependent variable type.")
-
-        if return_treatment_effects:
-            return dep, cates
-        return dep
-
-    @staticmethod
     def _compute_potential_outcome_differences(
-        f: Callable, data: pd.DataFrame, wrt: str, levels: list
+        self,
+        f: Callable,
+        data: pd.DataFrame,
+        wrt: str,
+        dgp_type: str,
+        seed: int | None,
+        levels: list,
     ) -> dict[str, np.ndarray] | np.ndarray:
         """Compute potential outcome differences."""
 
@@ -420,22 +615,42 @@ class CamlSyntheticDataGenerator:
                 data_treat[wrt] = lev
                 data_control[wrt] = 0
 
-                for interaction in [c for c in data.columns if wrt in c and "Int" in c]:
-                    covariate = interaction.split(f"{wrt}_")[1]
-                    data_treat[interaction] = data_treat[covariate] * data_treat[wrt]
-                    data_control[interaction] = (
-                        data_control[covariate] * data_control[wrt]
+                if dgp_type == "nonlinear":
+                    n_transforms = (
+                        len(data_treat.columns) * 3
+                    )  # Hard coded based on call from ._dgp()
+                    data_treat_transformed = self._apply_random_nonlinearities(
+                        data_treat, n_transforms, seed
+                    )
+                    data_control_transformed = self._apply_random_nonlinearities(
+                        data_control, n_transforms, seed
                     )
 
-                cates[f"{lev}_v_0"] = f(data_treat.values) - f(data_control.values)
+                    cates[f"{lev}_v_0"] = f(data_treat_transformed.values) - f(
+                        data_control_transformed.values
+                    )
+                else:
+                    for interaction in [
+                        c for c in data.columns if wrt in c and "Int" in c
+                    ]:
+                        covariate = interaction.split(f"{wrt}_")[1]
+                        data_treat[interaction] = (
+                            data_treat[covariate] * data_treat[wrt]
+                        )
+                        data_control[interaction] = (
+                            data_control[covariate] * data_control[wrt]
+                        )
+
+                    cates[f"{lev}_v_0"] = f(data_treat.values) - f(data_control.values)
 
         if len(cates) == 1:
             return list(cates.values())[0]
         else:
             return cates
 
-    @staticmethod
-    def _approx_derivative(f: Callable, data: pd.DataFrame, wrt: str) -> np.ndarray:
+    def _approx_derivative(
+        self, f: Callable, data: pd.DataFrame, wrt: str, dgp_type: str, seed: int | None
+    ) -> np.ndarray:
         """Approximate the derivative of a function."""
         eps = 1e-6
         data_plus_eps = data.copy()
@@ -444,16 +659,34 @@ class CamlSyntheticDataGenerator:
         data_plus_eps[wrt] = data_plus_eps[wrt] + eps
         data_minus_eps[wrt] = data_minus_eps[wrt] - eps
 
-        for interaction in [c for c in data.columns if wrt in c and "Int" in c]:
-            covariate = interaction.split(f"{wrt}_")[1]
-            data_plus_eps[interaction] = data_plus_eps[covariate] * data_plus_eps[wrt]
-            data_minus_eps[interaction] = (
-                data_minus_eps[covariate] * data_minus_eps[wrt]
+        if dgp_type == "nonlinear":
+            n_transforms = (
+                len(data_plus_eps.columns) * 3
+            )  # Hardcoded based on call from ._dgp()
+            data_plus_eps_transformed = self._apply_random_nonlinearities(
+                data_plus_eps, n_transforms, seed
+            )
+            data_minus_eps_transformed = self._apply_random_nonlinearities(
+                data_minus_eps, n_transforms, seed
             )
 
-        approx_derivative = (f(data_plus_eps.values) - f(data_minus_eps.values)) / (
-            2 * eps
-        )
+            approx_derivative = (
+                f(data_plus_eps_transformed.values)
+                - f(data_minus_eps_transformed.values)
+            ) / (2 * eps)
+        else:
+            for interaction in [c for c in data.columns if wrt in c and "Int" in c]:
+                covariate = interaction.split(f"{wrt}_")[1]
+                data_plus_eps[interaction] = (
+                    data_plus_eps[covariate] * data_plus_eps[wrt]
+                )
+                data_minus_eps[interaction] = (
+                    data_minus_eps[covariate] * data_minus_eps[wrt]
+                )
+
+            approx_derivative = (f(data_plus_eps.values) - f(data_minus_eps.values)) / (
+                2 * eps
+            )
 
         return approx_derivative
 
@@ -483,13 +716,73 @@ class CamlSyntheticDataGenerator:
         return cate_df, ate_df
 
     @staticmethod
+    def _apply_random_nonlinearities(
+        data: pd.DataFrame, n_transforms: int = 10, seed: int | None = None
+    ) -> pd.DataFrame:
+        """
+        Apply a random set of nonlinear transformations to the input features.
+        """
+        np.random.seed(seed)
+        transformed_data = data.copy()
+        for _ in range(n_transforms):
+            transform = np.random.choice(
+                [
+                    "sin",
+                    "cos",
+                    "square",
+                    " log",
+                    "2D-interaction",
+                    "sqrt",
+                ]
+            )
+            col_name = np.random.choice(data.columns, size=2, replace=True)
+
+            if transform == "sin":
+                transformed_data[f"sin_{col_name[0]}"] = np.sin(
+                    transformed_data[col_name[0]]
+                )
+            elif transform == "cos":
+                transformed_data[f"cos_{col_name[0]}"] = np.cos(
+                    transformed_data[col_name[0]]
+                )
+            elif transform == "square":
+                transformed_data[f"square_{col_name[0]}"] = (
+                    transformed_data[col_name[0]] ** 2
+                )
+            elif transform == "log":
+                transformed_data[f"log_{col_name[0]}"] = np.log(
+                    np.abs(transformed_data[col_name[0]]) + 1
+                )
+            elif transform == "2D-interaction":
+                transformed_data[f"2Dint_{col_name[0]}_{col_name[1]}"] = (
+                    transformed_data[col_name[0]] * transformed_data[col_name[1]]
+                )
+            elif transform == "sqrt":
+                transformed_data[f"sqrt_{col_name[0]}"] = np.sqrt(
+                    np.abs(transformed_data[col_name[0]])
+                )
+
+        return transformed_data
+
+    @staticmethod
     def _sigmoid(x):
-        return 1 / (1 + np.exp(-x))
+        """Numerically stable sigmoid"""
+
+        result = np.zeros_like(x, dtype=float)
+
+        pos_mask = x >= 0
+        neg_mask = ~pos_mask
+
+        result[pos_mask] = 1 / (1 + np.exp(-x[pos_mask]))
+        result[neg_mask] = np.exp(x[neg_mask]) / (1 + np.exp(x[neg_mask]))
+
+        return result
 
     @staticmethod
     def _softmax(x):
-        e_x = np.exp(x - np.max(x))
-        return e_x / e_x.sum()
+        """Numerically stable softmax"""
+        e_x = np.exp(x - np.max(x, axis=1, keepdims=True))
+        return e_x / np.sum(e_x, axis=1, keepdims=True)
 
 
 @typechecked
