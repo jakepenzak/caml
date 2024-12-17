@@ -48,6 +48,7 @@ dev-dependencies = [
     "quarto-cli>=1.5.57",
     "jupyter>=1.1.0",
     "pynvim>=0.5.2",
+    "marimo>=0.10.4",
 ]
 
 [tool.ruff]

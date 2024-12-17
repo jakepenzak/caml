@@ -1,0 +1,50 @@
+---
+title: Caml Synthetic Data API Usage
+jupyter: python3
+---
+
+```{python}
+#| marimo: {config: {hide_code: true}}
+import marimo as mo
+```
+
+
+
+```{python}
+from caml.extensions.synthetic_data import CamlSyntheticDataGenerator
+```
+
+```{python}
+data =  CamlSyntheticDataGenerator(n_obs=10_000,
+                                  n_cont_outcomes=1,
+                                  n_binary_outcomes=0,
+                                  n_cont_treatments=1,
+                                  n_binary_treatments=0,
+                                  n_discrete_treatments=0,
+                                  n_cont_confounders=2,
+                                  n_binary_confounders=2,
+                                  n_discrete_confounders=2,
+                                  n_cont_heterogeneity_covariates=4,
+                                  n_binary_heterogeneity_covariates=4,
+                                  n_discrete_heterogeneity_covariates=4,
+                                  n_heterogeneity_confounders=0,
+                                  stddev_outcome_noise=3,
+                                  stddev_treatment_noise=3,
+                                  causal_model_functional_form="fully_non_linear",
+                                  n_nonlinear_transformations=10,
+                                  n_nonlinear_interactions=5,
+                                  treatment_effect_weight=1,
+                                  seed=None)
+```
+
+```{python}
+data.df
+```
+
+```{python}
+data.cates
+```
+
+```{python}
+data.ates
+```

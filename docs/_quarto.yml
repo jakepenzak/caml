@@ -39,8 +39,9 @@ website:
     left:
       - sidebar:Home
       - sidebar:Concepts
+      - sidebar:Examples
       - text: "API Reference"
-        file: 03_Reference/index.qmd
+        file: 04_Reference/index.qmd
 
     right:
       - sidebar:Contributors
@@ -60,13 +61,17 @@ website:
       contents:
         - 02_Concepts/motivation.qmd
         - 02_Concepts/theory.qmd
+    - id: Examples
+      title: "Examples"
+      style: floating
+      contents: 03_Examples/*
     - id: Contributors
       title: "Contributors"
       style: floating
       contents:
-        - 04_Contributors/environment.qmd
-        - 04_Contributors/documentation.qmd
-        - 04_Contributors/testing.qmd
+        - 05_Contributors/environment.qmd
+        - 05_Contributors/documentation.qmd
+        - 05_Contributors/testing.qmd
 
   page-footer:
     border: false
@@ -76,9 +81,9 @@ website:
 
 quartodoc:
   package: caml
-  dir: 03_Reference
+  dir: 04_Reference
   title: API Reference
-  sidebar: 03_Reference/_sidebar.yml
+  sidebar: 04_Reference/_sidebar.yml
 
   sections:
     - title: CaML Core
