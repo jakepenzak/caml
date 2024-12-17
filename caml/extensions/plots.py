@@ -59,6 +59,20 @@ def cate_histogram_plot(
     if hist_kwargs is not None:
         _hist_kwargs.update(hist_kwargs)
 
+    # Determine shared bin edges
+    all_cates = (
+        np.concatenate([estimated_cates, true_cates])
+        if true_cates is not None
+        else estimated_cates
+    )
+    bins = _hist_kwargs.get("bins", 50)
+    if isinstance(bins, int):
+        # Use np.histogram_bin_edges to calculate shared bins
+        bin_edges = np.histogram_bin_edges(all_cates, bins=bins)
+        _hist_kwargs["bins"] = bin_edges  # Use shared bins
+    else:
+        bin_edges = bins  # If bins is already specified as edges
+
     fig, ax = plt.subplots(**figure_kwargs)
     if true_cates is not None:
         _hist_kwargs_true = _hist_kwargs.copy()
