@@ -38,4 +38,5 @@ def cls_typechecked(cls):
     for name, func in cls.__dict__.items():
         if callable(func):
             setattr(cls, name, typechecked(func))
+
     return cls
