@@ -14,20 +14,13 @@ from econml.score import EnsembleCateEstimator, RScorer
 from econml.validate.drtester import DRTester
 from joblib import Parallel, delayed
 
-from ..utils import cls_typechecked
+from ..generics import cls_typechecked
 from ._base import CamlBase
-from .utils import model_bank
+from .modeling import model_bank
 
 logger = logging.getLogger(__name__)
 
 # Optional dependencies
-try:
-    import polars
-
-    _HAS_POLARS = True
-except ImportError:
-    _HAS_POLARS = False
-
 try:
     import pyspark
 
@@ -86,9 +79,9 @@ class CamlCATE(CamlBase):
     | Continuous  | Binary      | ✅Full      |            |
     | Continuous  | Continuous  | 🟡Partial   | validate() |
     | Continuous  | Categorical | ✅Full      |            |
-    | Binary      | Binary      | ❌Not yet   |            |
-    | Binary      | Continuous  | ❌Not yet   |            |
-    | Binary      | Categorical | ❌Not yet   |            |
+    | Binary      | Binary      | 🟡Partial   | validate() |
+    | Binary      | Continuous  | 🟡Partial   | validate() |
+    | Binary      | Categorical | 🟡Partial   | validate() |
     | Categorical | Binary      | ❌Not yet   |            |
     | Categorical | Continuous  | ❌Not yet   |            |
     | Categorical | Categorical | ❌Not yet   |            |
@@ -144,28 +137,6 @@ class CamlCATE(CamlBase):
         The fitted nuisance function for the outcome variable with treatment variable.
     model_T_X_W: sklearn.base.BaseEstimator
         The fitted nuisance function for the treatment variable.
-    _Y: ibis.Table
-        The outcome variable data as ibis table.
-    _T: ibis.Table
-        The treatment variable data as ibis table.
-    _X: ibis.Table
-        The feature/confounder set data as ibis table.
-    _X_T: ibis.Table
-        The feature/confounder feature set and treatment variable data as ibis table.
-    _nuisances_fitted: bool
-        A boolean indicating whether the nuisance functions have been fitted.
-    _validation_estimator: econml._cate_estimator.BaseCateEstimator | econml.score.EnsembleCateEstimator
-        The fitted EconML estimator object for validation.
-    _final_estimator: econml._cate_estimator.BaseCateEstimator | econml.score.EnsembleCateEstimator
-        The fitted EconML estimator object for final predictions.
-    _validator_results: econml.validate.EvaluationResults
-        The results of the validation tests from DRTester.
-    _cate_models: list[tuple[str, econml._cate_estimator.BaseCateEstimator]]
-        The list of CATE models to fit and ensemble.
-    _data_splits: dict[str, np.ndarray]
-        The dictionary containing the training, validation, and test data splits.
-    _rscorer: econml.score.RScorer
-        The RScorer object for the validation estimator.
 
     Examples
     --------
@@ -211,9 +182,9 @@ class CamlCATE(CamlBase):
         seed: int | None = None,
         verbose: int = 1,
     ):
+        self.df = df
         super().__init__(verbose=verbose)
 
-        self.df = df
         self.Y = Y
         self.T = T
         self.X = X
@@ -222,16 +193,6 @@ class CamlCATE(CamlBase):
         self.discrete_outcome = discrete_outcome
         self.seed = seed
 
-        self._data_backend = (
-            "pandas"
-            if isinstance(self.df, pandas.DataFrame)
-            else "polars"
-            if _HAS_POLARS and isinstance(self.df, polars.DataFrame)
-            else "pyspark"
-            if _HAS_PYSPARK
-            and isinstance(self.df, (pyspark.sql.DataFrame, pyspark.pandas.DataFrame))
-            else "unknown"
-        )
         self._Y, self._T, self._X, self._W = self._dataframe_to_numpy()
 
         self._nuisances_fitted = False
@@ -525,10 +486,11 @@ class CamlCATE(CamlBase):
     def predict(
         self,
         *,
-        X: pandas.DataFrame | polars.DataFrame | pyspark.sql.DataFrame = None,
+        X: pandas.DataFrame | np.ndarray | None = None,
         T0: int = 0,
         T1: int = 1,
-    ):
+        T: pandas.DataFrame | np.ndarray | None = None,
+    ) -> np.ndarray:
         """
         Predicts the CATE based on the fitted final estimator for either the internal dataset or provided Data.
 
@@ -544,6 +506,8 @@ class CamlCATE(CamlBase):
             Base treatment for each sample.
         T1 : int
             Target treatment for each sample.
+        T:
+            Treatment vector if continuous treatment is leveraged for computing marginal effects around treatments for each individual.
 
         Returns
         -------
@@ -559,10 +523,18 @@ class CamlCATE(CamlBase):
 
         if X is None:
             _X = self._X
+            _T = self._T
         else:
             _X = X
+            _T = T
 
-        cate_predictions = self._final_estimator.effect(_X, T0=T0, T1=T1)
+        if self.discrete_treatment:
+            cate_predictions = self._final_estimator.effect(_X, T0=T0, T1=T1)
+        else:
+            cate_predictions = self._final_estimator.marginal_effect(_T, _X)
+
+        if cate_predictions.ndim > 1:
+            cate_predictions = cate_predictions.ravel()
 
         if X is None:
             self._cate_predictions[f"cate_predictions_{T0}_{T1}"] = cate_predictions
@@ -625,17 +597,19 @@ class CamlCATE(CamlBase):
 
         _cate_models = []
         for cate_model in subset_cate_models:
-            _cate_models.append(
-                model_bank.get_cate_model(
-                    cate_model,
-                    self.model_Y_X_W,
-                    self.model_T_X_W,
-                    self.model_Y_X_W_T,
-                    self.discrete_treatment,
-                    self.discrete_outcome,
-                    self.seed,
-                )
+            model_tuple = model_bank.get_cate_model(
+                cate_model,
+                self.model_Y_X_W,
+                self.model_T_X_W,
+                self.model_Y_X_W_T,
+                self.discrete_treatment,
+                self.discrete_outcome,
+                self.seed,
             )
+            if model_tuple is None:
+                pass
+            else:
+                _cate_models.append(model_tuple)
 
         return _cate_models + additional_cate_models
 
@@ -809,7 +783,7 @@ class CamlCATE(CamlBase):
         return summary
 
 
-# Monkey patching Rscorer
+# Monkey patching Rscorer (Fixed in EconML PR - https://github.com/py-why/EconML/pull/927)
 def patched_fit(
     self, y, T, X=None, W=None, sample_weight=None, groups=None, discrete_outcome=False
 ):

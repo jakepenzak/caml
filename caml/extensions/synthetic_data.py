@@ -12,7 +12,7 @@ from numpy.random import choice
 from scipy.linalg import toeplitz
 from typeguard import typechecked
 
-from ..utils import cls_typechecked
+from ..generics import cls_typechecked
 
 
 @cls_typechecked
@@ -37,12 +37,11 @@ class CamlSyntheticDataGenerator:
         causal_model_functional_form: str = "partially_linear",
         n_nonlinear_transformations: int | None = None,
         n_nonlinear_interactions: int | None = None,
-        treatment_effect_weight: int | None = None,
         seed: int | None = None,
     ):
         valid_functional_forms = [
             "partially_linear",
-            "fully_non_linear",
+            "fully_nonlinear",
             "fully_linear",
         ]
 
@@ -68,14 +67,13 @@ class CamlSyntheticDataGenerator:
         self.causal_model_functional_form = causal_model_functional_form
         self.n_nonlinear_transformations = n_nonlinear_transformations
         self.n_nonlinear_interactions = n_nonlinear_interactions
-        self.treatment_effect_weight = treatment_effect_weight
         self.seed = seed
         self.dgp = {}
         self._seed = seed
 
         if self.causal_model_functional_form in [
             "partially_linear",
-            "fully_non_linear",
+            "fully_nonlinear",
         ]:
             self._nonlinearity_seed = (
                 np.random.randint(0, 1000) if self.seed is None else self.seed
@@ -91,7 +89,7 @@ class CamlSyntheticDataGenerator:
         return current_value
 
     @_seed_incrementer.setter
-    def _seed_incrementer(self, value: int):
+    def _seed_incrementer(self, value: int | None):
         self._seed = value
 
     def _generate_data(self):
@@ -232,7 +230,7 @@ class CamlSyntheticDataGenerator:
                 )
         elif self.causal_model_functional_form in [
             "partially_linear",
-            "fully_non_linear",
+            "fully_nonlinear",
         ]:
             dgp_type = "nonlinear"
             for i in range(self.n_cont_treatments):
@@ -333,7 +331,7 @@ class CamlSyntheticDataGenerator:
                     )
             else:
                 pass
-        elif self.causal_model_functional_form in ["fully_non_linear"]:
+        elif self.causal_model_functional_form in ["fully_nonlinear"]:
             dgp_type = "nonlinear"
             all_features = pd.concat(
                 [confounders, heterogeneity_variables, treatments], axis=1
@@ -401,9 +399,6 @@ class CamlSyntheticDataGenerator:
         if dep_type == "continuous":
             if dgp_type == "linear":
                 params = np.random.uniform(low=-3, high=3, size=n_features)
-                if self.treatment_effect_weight is not None:
-                    t_indices = np.where(covariates.columns.str.contains("T"))[0]
-                    params[t_indices] = params[t_indices] * self.treatment_effect_weight
 
                 noise = np.random.normal(0, stddev_err, size=n_obs)
 
@@ -426,11 +421,6 @@ class CamlSyntheticDataGenerator:
                 params = np.random.uniform(
                     low=-3, high=3, size=transformed_covariates.shape[1]
                 )
-                if self.treatment_effect_weight is not None:
-                    t_indices = np.where(
-                        transformed_covariates.columns.str.contains("T")
-                    )[0]
-                    params[t_indices] = params[t_indices] * self.treatment_effect_weight
 
                 noise = np.random.normal(0, stddev_err, size=n_obs)
 
@@ -447,10 +437,6 @@ class CamlSyntheticDataGenerator:
         elif dep_type == "binary":
             if dgp_type == "linear":
                 params = np.random.uniform(low=-3, high=3, size=n_features)
-                if self.treatment_effect_weight is not None:
-                    t_indices = np.where(covariates.columns.str.contains("T"))[0]
-                    params[t_indices] = params[t_indices] * self.treatment_effect_weight
-
                 noise = np.random.normal(0, stddev_err, size=n_obs)
 
                 def f(x):
@@ -473,11 +459,6 @@ class CamlSyntheticDataGenerator:
                 params = np.random.uniform(
                     low=-3, high=3, size=transformed_covariates.shape[1]
                 )
-                if self.treatment_effect_weight is not None:
-                    t_indices = np.where(
-                        transformed_covariates.columns.str.contains("T")
-                    )[0]
-                    params[t_indices] = params[t_indices] * self.treatment_effect_weight
 
                 noise = np.random.normal(0, stddev_err, size=n_obs)
 
@@ -498,9 +479,6 @@ class CamlSyntheticDataGenerator:
                 params = np.random.uniform(
                     low=-3, high=3, size=(n_features, n_categories)
                 )
-                if self.treatment_effect_weight is not None:
-                    t_indices = np.where(covariates.columns.str.contains("T"))[0]
-                    params[t_indices] = params[t_indices] * self.treatment_effect_weight
                 noise = np.random.normal(0, stddev_err, size=(n_obs, n_categories))
 
                 def f(x):
@@ -524,11 +502,6 @@ class CamlSyntheticDataGenerator:
                 params = np.random.uniform(
                     low=-3, high=3, size=(transformed_covariates.shape[1], n_categories)
                 )
-                if self.treatment_effect_weight is not None:
-                    t_indices = np.where(
-                        transformed_covariates.columns.str.contains("T")
-                    )[0]
-                    params[t_indices] = params[t_indices] * self.treatment_effect_weight
                 noise = np.random.normal(0, stddev_err, size=(n_obs, n_categories))
 
                 def f(x):
@@ -575,38 +548,43 @@ class CamlSyntheticDataGenerator:
                 seed = self._nonlinearity_seed
             else:
                 seed = self.seed
-            cates = self._compute_treatment_effects(f, covariates, dgp_type, seed)
+            cates = self._compute_treatment_effects(
+                f, covariates, dep_type, dgp_type, seed
+            )
             return dep, cates, pd.DataFrame(dgp)
         return dep, pd.DataFrame(dgp)
 
     def _compute_treatment_effects(
-        self, f: Callable, data: pd.DataFrame, dgp_type: str, seed: int | None
+        self,
+        f: Callable,
+        data: pd.DataFrame,
+        dep_type: str,
+        dgp_type: str,
+        seed: int | None,
     ) -> dict:
         """Compute treatment effects."""
 
         cates = {}
         for t in [c for c in data.columns if c.count("_") == 1 and "T" in c]:
+            # if "continuous" in t: ## Using one unit change in treatment via potential outcomes, as it is more stable for binary outcomes.
+            # cates[t] = self._approx_derivative(f, data, t, dep_type, dgp_type, seed)
             if "continuous" in t:
-                cates[t] = self._approx_derivative(f, data, t, dgp_type, seed)
+                levels = ["cont"]
             elif "binary" in t:
-                cates[t] = self._compute_potential_outcome_differences(
-                    f,
-                    data,
-                    t,
-                    dgp_type,
-                    seed,
-                    levels=[1],
-                )
+                levels = [1]
             elif "discrete" in t:
-                distinct_levels = data[t].unique().tolist()
-                cates[t] = self._compute_potential_outcome_differences(
-                    f,
-                    data,
-                    t,
-                    dgp_type,
-                    seed,
-                    levels=distinct_levels,
-                )
+                levels = data[t].unique().tolist()
+            else:
+                raise ValueError("Invalid treatment type.")
+
+            cates[t] = self._compute_potential_outcome_differences(
+                f,
+                data,
+                t,
+                dgp_type,
+                seed,
+                levels=levels,
+            )
 
         return cates
 
@@ -629,8 +607,11 @@ class CamlSyntheticDataGenerator:
                 data_treat = data.copy()
                 data_control = data.copy()
 
-                data_treat[wrt] = lev
-                data_control[wrt] = 0
+                if lev == "cont":
+                    data_treat[wrt] = data_treat[wrt] + 1
+                else:
+                    data_treat[wrt] = lev
+                    data_control[wrt] = 0
 
                 if dgp_type == "nonlinear":
                     data_treat_transformed = self._apply_random_nonlinearities(
@@ -676,58 +657,67 @@ class CamlSyntheticDataGenerator:
         else:
             return cates
 
-    def _approx_derivative(
-        self, f: Callable, data: pd.DataFrame, wrt: str, dgp_type: str, seed: int | None
-    ) -> np.ndarray:
-        """Approximate the derivative of a function."""
-        eps = 1e-6
-        data_plus_eps = data.copy()
-        data_minus_eps = data.copy()
-
-        data_plus_eps[wrt] = data_plus_eps[wrt] + eps
-        data_minus_eps[wrt] = data_minus_eps[wrt] - eps
-
-        if dgp_type == "nonlinear":
-            data_plus_eps_transformed = self._apply_random_nonlinearities(
-                data_plus_eps,
-                n_transforms=self.n_nonlinear_transformations
-                if self.n_nonlinear_transformations
-                else 3 * data_plus_eps.shape[1],
-                n_interactions=self.n_nonlinear_interactions
-                if self.n_nonlinear_interactions
-                else 3,
-                seed=seed,
-            )
-            data_minus_eps_transformed = self._apply_random_nonlinearities(
-                data_minus_eps,
-                n_transforms=self.n_nonlinear_transformations
-                if self.n_nonlinear_transformations
-                else 3 * data_plus_eps.shape[1],
-                n_interactions=self.n_nonlinear_interactions
-                if self.n_nonlinear_interactions
-                else 3,
-                seed=seed,
-            )
-
-            approx_derivative = (
-                f(data_plus_eps_transformed.values)
-                - f(data_minus_eps_transformed.values)
-            ) / (2 * eps)
-        else:
-            for interaction in [c for c in data.columns if wrt in c and "int" in c]:
-                covariate = interaction.split(f"{wrt}_")[1]
-                data_plus_eps[interaction] = (
-                    data_plus_eps[covariate] * data_plus_eps[wrt]
-                )
-                data_minus_eps[interaction] = (
-                    data_minus_eps[covariate] * data_minus_eps[wrt]
-                )
-
-            approx_derivative = (f(data_plus_eps.values) - f(data_minus_eps.values)) / (
-                2 * eps
-            )
-
-        return approx_derivative
+    # def _approx_derivative(
+    #     self,
+    #     f: Callable,
+    #     data: pd.DataFrame,
+    #     wrt: str,
+    #     dep_type: str,
+    #     dgp_type: str,
+    #     seed: int | None,
+    # ) -> np.ndarray:
+    #     """Approximate the derivative of a function."""
+    #     if dep_type == "binary":
+    #         eps = 10e-5
+    #     else:
+    #         eps = 10e-5
+    #     data_plus_eps = data.copy()
+    #     data_minus_eps = data.copy()
+    #
+    #     data_plus_eps[wrt] = data_plus_eps[wrt] + eps
+    #     data_minus_eps[wrt] = data_minus_eps[wrt] - eps
+    #
+    #     if dgp_type == "nonlinear":
+    #         data_plus_eps_transformed = self._apply_random_nonlinearities(
+    #             data_plus_eps,
+    #             n_transforms=self.n_nonlinear_transformations
+    #             if self.n_nonlinear_transformations
+    #             else 3 * data_plus_eps.shape[1],
+    #             n_interactions=self.n_nonlinear_interactions
+    #             if self.n_nonlinear_interactions
+    #             else 3,
+    #             seed=seed,
+    #         )
+    #         data_minus_eps_transformed = self._apply_random_nonlinearities(
+    #             data_minus_eps,
+    #             n_transforms=self.n_nonlinear_transformations
+    #             if self.n_nonlinear_transformations
+    #             else 3 * data_plus_eps.shape[1],
+    #             n_interactions=self.n_nonlinear_interactions
+    #             if self.n_nonlinear_interactions
+    #             else 3,
+    #             seed=seed,
+    #         )
+    #
+    #         approx_derivative = (
+    #             f(data_plus_eps_transformed.values)
+    #             - f(data_minus_eps_transformed.values)
+    #         ) / (2 * eps)
+    #     else:
+    #         for interaction in [c for c in data.columns if wrt in c and "int" in c]:
+    #             covariate = interaction.split(f"{wrt}_")[1]
+    #             data_plus_eps[interaction] = (
+    #                 data_plus_eps[covariate] * data_plus_eps[wrt]
+    #             )
+    #             data_minus_eps[interaction] = (
+    #                 data_minus_eps[covariate] * data_minus_eps[wrt]
+    #             )
+    #
+    #         approx_derivative = (f(data_plus_eps.values) - f(data_minus_eps.values)) / (
+    #             2 * eps
+    #         )
+    #
+    #     return approx_derivative
 
     @staticmethod
     def _generate_random_variable(
@@ -827,7 +817,7 @@ class CamlSyntheticDataGenerator:
 
         cate_df = pd.DataFrame(dict_effects)
 
-        ate_df = cate_df.mean().reset_index()
+        ate_df = cate_df.mean(axis=0).reset_index()
         ate_df.columns = ["Treatment", "ATE"]
         ate_df["Treatment"] = ate_df["Treatment"].str.replace("CATE_of_", "")
 

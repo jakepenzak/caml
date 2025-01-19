@@ -1,6 +1,6 @@
 # CamlCATE { #caml.CamlCATE }
 
-`CamlCATE(self, df, Y, T, X, W, *, discrete_treatment=True, discrete_outcome=False, seed=None, verbose=1)`
+`CamlCATE(self, df, Y, T, X, W=None, *, discrete_treatment=True, discrete_outcome=False, seed=None, verbose=1)`
 
 The CamlCATE class represents an opinionated framework of Causal Machine Learning techniques for estimating
 highly accurate conditional average treatment effects (CATEs).
@@ -33,9 +33,9 @@ For technical details on conditional average treatment effects, see:
 
 | Outcome     | Treatment   | Support     | Missing    |
 | ----------- | ----------- | ----------- | ---------- |
-| Continuous  | Binary      | ✅Full      | None       |
-| Continuous  | Continuous  | 🟡Partial   | Validation |
-| Continuous  | Categorical | ✅Full      | None       |
+| Continuous  | Binary      | ✅Full      |            |
+| Continuous  | Continuous  | 🟡Partial   | validate() |
+| Continuous  | Categorical | ✅Full      |            |
 | Binary      | Binary      | ❌Not yet   |            |
 | Binary      | Continuous  | ❌Not yet   |            |
 | Binary      | Categorical | ❌Not yet   |            |
@@ -53,7 +53,7 @@ Multi-dimensional outcomes and treatments are not yet supported.
 | `Y`                  | str                                                           | The str representing the column name for the outcome variable.                                                                                                     | _required_ |
 | `T`                  | str                                                           | The str representing the column name(s) for the treatment variable(s).                                                                                             | _required_ |
 | `X`                  | list\[str\] \| str \| None                                    | The str (if unity) or list of feature names representing the feature set to be utilized for estimating heterogeneity/CATE.                                         | _required_ |
-| `W`                  | list\[str\] \| str \| None                                    | The str (if unity) or list of feature names representing the confounder/control feature set to be utilized only for nuisance function estimation where applicable. | _required_ |
+| `W`                  | list\[str\] \| str \| None                                    | The str (if unity) or list of feature names representing the confounder/control feature set to be utilized only for nuisance function estimation where applicable. | `None`     |
 | `discrete_treatment` | bool                                                          | A boolean indicating whether the treatment is discrete/categorical or continuous.                                                                                  | `True`     |
 | `discrete_outcome`   | bool                                                          | A boolean indicating whether the outcome is binary or continuous.                                                                                                  | `False`    |
 | `seed`               | int \| None                                                   | The seed to use for the random number generator.                                                                                                                   | `None`     |

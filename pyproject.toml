@@ -1,5 +1,5 @@
 [project]
-authors = [{name = "jakepenzak", email = "jakepzak@gmail.com"}]
+authors = [{name = "jakepenzak", email = "jacob@pieniazek.me"}]
 dependencies = [
     "econml>=0.15.1",
     "flaml>=2.2.0",
@@ -7,6 +7,7 @@ dependencies = [
     "doubleml>=0.8.0",
     "matplotlib>=3.9.2",
     "xgboost>=2.1.1",
+    "rich>=13.9.4",
 ]
 description = "Extensions & abstractions of advanced econometric techniques leveraging machine learning."
 name = "caml"
@@ -17,6 +18,28 @@ readme = "README.md"
 classifiers = [
   "Development Status :: 1 - Planning",
   "Programming Language :: Python"
+]
+
+[dependency-groups]
+test = [
+    "defusedxml>=0.7.1",
+    "genbadge>=1.1.1",
+    "pytest>=8.3.2",
+    "pytest-cov>=5.0.0",
+    "pytest-html>=4.1.1",
+    "pytest-mock>=3.14.0",
+]
+dev = [
+    "anthropic>=0.42.0",
+    "jupyter>=1.1.0",
+    "marimo>=0.10.4",
+    "pre-commit>=3.5.0",
+    "pynvim>=0.5.2",
+    "ruff>=0.6.2",
+]
+docs = [
+    "quarto-cli>=1.6.40",
+    "quartodoc>=0.9.1",
 ]
 
 [project.optional-dependencies]
@@ -33,24 +56,6 @@ polars = [
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"
-
-[tool.uv]
-dev-dependencies = [
-    "pre-commit>=3.5.0",
-    "ruff>=0.6.2",
-    "quartodoc>=0.7.6",
-    "pytest>=8.3.2",
-    "pytest-mock>=3.14.0",
-    "pytest-cov>=5.0.0",
-    "pytest-html>=4.1.1",
-    "genbadge>=1.1.1",
-    "defusedxml>=0.7.1",
-    "quarto-cli>=1.5.57",
-    "jupyter>=1.1.0",
-    "pynvim>=0.5.2",
-    "marimo>=0.10.4",
-    "anthropic>=0.42.0",
-]
 
 [tool.ruff]
 exclude = ["scripts/notebooks/",

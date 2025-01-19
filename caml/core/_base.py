@@ -5,13 +5,12 @@ import logging
 from typing import TYPE_CHECKING
 
 import numpy as np
+import pandas
 from flaml import AutoML
 from sklearn.model_selection import train_test_split
 
+from ..generics import cls_typechecked
 from ..logging import setup_logging
-from ..utils import cls_typechecked
-
-logger = logging.getLogger(__name__)
 
 # Optional dependencies
 try:
@@ -33,6 +32,9 @@ if TYPE_CHECKING:
     pass
 
 
+logger = logging.getLogger(__name__)
+
+
 @cls_typechecked
 class CamlBase(metaclass=abc.ABCMeta):
     """
@@ -43,17 +45,17 @@ class CamlBase(metaclass=abc.ABCMeta):
 
     def __init__(self, verbose: int = 1):
         setup_logging(verbose)
-        self.df = None
-        self._validation_estimator = None
-        self._final_estimator = None
-        self.Y = None
-        self.T = None
-        self.X = None
-        self.W = None
-        self._Y = None
-        self._T = None
-        self._X = None
-        self._W = None
+
+        self._data_backend = (
+            "pandas"
+            if isinstance(self.df, pandas.DataFrame)
+            else "polars"
+            if _HAS_POLARS and isinstance(self.df, polars.DataFrame)
+            else "pyspark"
+            if _HAS_PYSPARK
+            and isinstance(self.df, (pyspark.sql.DataFrame, pyspark.pandas.DataFrame))
+            else "unknown"
+        )
 
     @property
     def validation_estimator(self):

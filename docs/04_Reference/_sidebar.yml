@@ -1,25 +1,25 @@
 website:
   sidebar:
   - contents:
-    - 03_Reference/index.qmd
+    - 04_Reference/index.qmd
     - contents:
-      - 03_Reference/CamlCATE.qmd
+      - 04_Reference/CamlCATE.qmd
       section: CaML Core
     - contents:
-      - 03_Reference/make_partially_linear_dataset_simple.qmd
-      - 03_Reference/make_partially_linear_dataset_constant.qmd
-      - 03_Reference/make_fully_heterogeneous_dataset.qmd
-      - 03_Reference/make_dowhy_linear_dataset.qmd
+      - 04_Reference/make_partially_linear_dataset_simple.qmd
+      - 04_Reference/make_partially_linear_dataset_constant.qmd
+      - 04_Reference/make_fully_heterogeneous_dataset.qmd
+      - 04_Reference/make_dowhy_linear_dataset.qmd
       section: Synthetic Data Generation
     - contents:
-      - 03_Reference/cate_histogram_plot.qmd
-      - 03_Reference/cate_line_plot.qmd
-      - 03_Reference/cate_true_vs_estimated_plot.qmd
+      - 04_Reference/cate_histogram_plot.qmd
+      - 04_Reference/cate_line_plot.qmd
+      - 04_Reference/cate_true_vs_estimated_plot.qmd
       section: Plots
     - contents:
-      - 03_Reference/utils.generate_random_string.qmd
-      - 03_Reference/utils.cls_typechecked.qmd
-      - 03_Reference/logging.setup_logging.qmd
+      - 04_Reference/utils.generate_random_string.qmd
+      - 04_Reference/utils.cls_typechecked.qmd
+      - 04_Reference/logging.setup_logging.qmd
       section: Developer Tools
-    id: 03_Reference
+    id: 04_Reference
   - id: dummy-sidebar

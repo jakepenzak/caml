@@ -10,7 +10,7 @@ def _():
     return (mo,)
 
 
-@app.cell(hide_code=True)
+@app.cell
 def _(mo):
     mo.md(r"""# Caml Synthetic Data API Usage""")
     return
@@ -39,10 +39,9 @@ def _(CamlSyntheticDataGenerator):
                                       n_heterogeneity_confounders=0,
                                       stddev_outcome_noise=3,
                                       stddev_treatment_noise=3,
-                                      causal_model_functional_form="fully_non_linear",
+                                      causal_model_functional_form="fully_linear",
                                       n_nonlinear_transformations=10,
                                       n_nonlinear_interactions=5,
-                                      treatment_effect_weight=1,
                                       seed=None)
     return (data,)
 
@@ -55,8 +54,12 @@ def _(data):
 
 @app.cell
 def _(data):
-    data.cates
-    return
+    adf = data.cates.mean(axis=0).reset_index()
+    adf.columns = ["Treatment","ATE"]
+    adf["Treatment"] = adf["Treatment"].str.replace("CATE_of_","")
+
+    adf
+    return (adf,)
 
 
 @app.cell

@@ -26,9 +26,9 @@ def _():
 def _(CamlSyntheticDataGenerator):
     data =  CamlSyntheticDataGenerator(n_obs=10_000,
                                       n_cont_outcomes=1,
-                                      n_binary_outcomes=0,
+                                      n_binary_outcomes=1,
                                       n_cont_treatments=1,
-                                      n_binary_treatments=0,
+                                      n_binary_treatments=1,
                                       n_discrete_treatments=0,
                                       n_cont_confounders=2,
                                       n_binary_confounders=2,
@@ -39,10 +39,9 @@ def _(CamlSyntheticDataGenerator):
                                       n_heterogeneity_confounders=0,
                                       stddev_outcome_noise=3,
                                       stddev_treatment_noise=3,
-                                      causal_model_functional_form="fully_non_linear",
+                                      causal_model_functional_form="fully_nonlinear",
                                       n_nonlinear_transformations=10,
                                       n_nonlinear_interactions=5,
-                                      treatment_effect_weight=1,
                                       seed=None)
     return (data,)
 
@@ -55,6 +54,12 @@ def _(data):
 
 @app.cell
 def _(data):
+    data.dgp
+    return
+
+
+@app.cell
+def _(data):
     data.cates
     return
 
@@ -62,6 +67,11 @@ def _(data):
 @app.cell
 def _(data):
     data.ates
+    return
+
+
+@app.cell
+def _():
     return
 
 
