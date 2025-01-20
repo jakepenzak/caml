@@ -108,8 +108,8 @@ quartodoc:
         - cate_true_vs_estimated_plot
     - title: Developer Tools
       contents:
-        - utils.generate_random_string
-        - utils.cls_typechecked
+        - generics.generate_random_string
+        - generics.cls_typechecked
         - logging.setup_logging
 
 metadata-files:

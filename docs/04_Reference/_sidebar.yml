@@ -17,8 +17,8 @@ website:
       - 04_Reference/cate_true_vs_estimated_plot.qmd
       section: Plots
     - contents:
-      - 04_Reference/utils.generate_random_string.qmd
-      - 04_Reference/utils.cls_typechecked.qmd
+      - 04_Reference/generics.generate_random_string.qmd
+      - 04_Reference/generics.cls_typechecked.qmd
       - 04_Reference/logging.setup_logging.qmd
       section: Developer Tools
     id: 04_Reference

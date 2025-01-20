@@ -1,24 +1,32 @@
 # cate_true_vs_estimated_plot { #caml.extensions.plots.cate_true_vs_estimated_plot }
 
-`extensions.plots.cate_true_vs_estimated_plot(true_cates, estimated_cates, *, figure_kwargs={}, scatter_kwargs={})`
+```python
+extensions.plots.cate_true_vs_estimated_plot(
+    true_cates,
+    estimated_cates,
+    *,
+    figure_kwargs={},
+    scatter_kwargs={},
+)
+```
 
 Plots a scatter plot of the estimated CATEs against the true CATEs.
 
-## Parameters
+## Parameters {.doc-section .doc-section-parameters}
 
-| Name              | Type                   | Description                  | Default    |
-|-------------------|------------------------|------------------------------|------------|
-| `estimated_cates` | numpy.typing.ArrayLike | The estimated CATEs.         | _required_ |
-| `figure_kwargs`   | dict                   | Matplotlib figure arguments. | `{}`       |
-| `scatter_kwargs`  | dict                   | Matplotlib line arguments.   | `{}`       |
+| Name            | Type                   | Description                  | Default    |
+|-----------------|------------------------|------------------------------|------------|
+| estimated_cates | numpy.typing.ArrayLike | The estimated CATEs.         | _required_ |
+| figure_kwargs   | dict                   | Matplotlib figure arguments. | `{}`       |
+| scatter_kwargs  | dict                   | Matplotlib line arguments.   | `{}`       |
 
-## Returns
+## Returns {.doc-section .doc-section-returns}
 
-| Type                     | Description                  |
-|--------------------------|------------------------------|
-| matplotlib.figure.Figure | The line plot figure object. |
+| Name   | Type                     | Description                  |
+|--------|--------------------------|------------------------------|
+| fig    | matplotlib.figure.Figure | The line plot figure object. |
 
-## Examples
+## Examples {.doc-section .doc-section-examples}
 
 ```{python}
 import numpy as np

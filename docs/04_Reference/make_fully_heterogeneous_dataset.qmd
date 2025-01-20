@@ -1,6 +1,14 @@
 # make_fully_heterogeneous_dataset { #caml.extensions.synthetic_data.make_fully_heterogeneous_dataset }
 
-`extensions.synthetic_data.make_fully_heterogeneous_dataset(n_obs=1000, n_confounders=5, theta=4.0, seed=None, **doubleml_kwargs)`
+```python
+extensions.synthetic_data.make_fully_heterogeneous_dataset(
+    n_obs=1000,
+    n_confounders=5,
+    theta=4.0,
+    seed=None,
+    **doubleml_kwargs,
+)
+```
 
 Simulate data generating process from an interactive regression model with fully heterogenous treatment effects. The outcome is continuous and the treatment is binary.
 The dataset is generated using a modified version of `make_irm_data` function from the [`doubleml` package](https://docs.doubleml.org/stable/index.html).
@@ -35,25 +43,25 @@ flowchart TD;
 ```
 </div>
 
-## Parameters
+## Parameters {.doc-section .doc-section-parameters}
 
-| Name                | Type        | Description                                                                                        | Default   |
-|---------------------|-------------|----------------------------------------------------------------------------------------------------|-----------|
-| `n_obs`             | int         | The number of observations to generate.                                                            | `1000`    |
-| `n_confounders`     | int         | The number of confounders $\mathbf{X_i}$ to generate (these are utilized fully for heterogeneity). | `5`       |
-| `theta`             | float       | The base parameter for the treatment effect. Note this differs from the ATE.                       | `4.0`     |
-| `seed`              | int \| None | The seed to use for the random number generator.                                                   | `None`    |
-| `**doubleml_kwargs` |             | Additional keyword arguments to pass to the data generating process.                               | `{}`      |
+| Name              | Type        | Description                                                                                        | Default   |
+|-------------------|-------------|----------------------------------------------------------------------------------------------------|-----------|
+| n_obs             | int         | The number of observations to generate.                                                            | `1000`    |
+| n_confounders     | int         | The number of confounders $\mathbf{X_i}$ to generate (these are utilized fully for heterogeneity). | `5`       |
+| theta             | float       | The base parameter for the treatment effect. Note this differs from the ATE.                       | `4.0`     |
+| seed              | int \| None | The seed to use for the random number generator.                                                   | `None`    |
+| **doubleml_kwargs |             | Additional keyword arguments to pass to the data generating process.                               | `{}`      |
 
-## Returns
+## Returns {.doc-section .doc-section-returns}
 
-| Type             | Description                                                                                                                             |
-|------------------|-----------------------------------------------------------------------------------------------------------------------------------------|
-| pandas.DataFrame | The generated dataset where y is the outcome, d is the treatment, and X are the confounders which are fully utilized for heterogeneity. |
-| numpy.ndarray    | The true conditional average treatment effects.                                                                                         |
-| float            | The true average treatment effect.                                                                                                      |
+| Name       | Type             | Description                                                                                                                             |
+|------------|------------------|-----------------------------------------------------------------------------------------------------------------------------------------|
+| df         | pandas.DataFrame | The generated dataset where y is the outcome, d is the treatment, and X are the confounders which are fully utilized for heterogeneity. |
+| true_cates | numpy.ndarray    | The true conditional average treatment effects.                                                                                         |
+| true_ate   | float            | The true average treatment effect.                                                                                                      |
 
-## Examples
+## Examples {.doc-section .doc-section-examples}
 
 ```{python}
 from caml.extensions.synthetic_data import make_fully_heterogeneous_dataset

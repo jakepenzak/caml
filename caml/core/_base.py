@@ -215,7 +215,7 @@ class CamlBase(metaclass=abc.ABCMeta):
             "eval_method": "cv",
             "n_splits": 3,
             "starting_points": "static",
-            "estimator_list": ["rf", "xgboost", "extra_tree", "xgb_limitdepth"],
+            "estimator_list": ["rf", "lgbm", "extra_tree", "xgb_limitdepth"],
         }
 
         _flaml_kwargs = base_settings.copy()

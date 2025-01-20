@@ -1,25 +1,33 @@
 # cate_histogram_plot { #caml.extensions.plots.cate_histogram_plot }
 
-`extensions.plots.cate_histogram_plot(estimated_cates, *, true_cates=None, figure_kwargs={}, hist_kwargs={})`
+```python
+extensions.plots.cate_histogram_plot(
+    estimated_cates,
+    *,
+    true_cates=None,
+    figure_kwargs={},
+    hist_kwargs={},
+)
+```
 
 Plots a histogram the estimated CATEs.
 
-## Parameters
+## Parameters {.doc-section .doc-section-parameters}
 
-| Name              | Type                           | Description                  | Default    |
-|-------------------|--------------------------------|------------------------------|------------|
-| `estimated_cates` | numpy.typing.ArrayLike         | The estimated CATEs.         | _required_ |
-| `true_cates`      | numpy.typing.ArrayLike \| None | The true CATEs.              | `None`     |
-| `figure_kwargs`   | dict                           | Matplotlib figure arguments. | `{}`       |
-| `hist_kwargs`     | dict                           | Matplotlib hist arguments.   | `{}`       |
+| Name            | Type                           | Description                  | Default    |
+|-----------------|--------------------------------|------------------------------|------------|
+| estimated_cates | numpy.typing.ArrayLike         | The estimated CATEs.         | _required_ |
+| true_cates      | numpy.typing.ArrayLike \| None | The true CATEs.              | `None`     |
+| figure_kwargs   | dict                           | Matplotlib figure arguments. | `{}`       |
+| hist_kwargs     | dict                           | Matplotlib hist arguments.   | `{}`       |
 
-## Returns
+## Returns {.doc-section .doc-section-returns}
 
-| Type                     | Description                  |
-|--------------------------|------------------------------|
-| matplotlib.figure.Figure | The histogram figure object. |
+| Name   | Type                     | Description                  |
+|--------|--------------------------|------------------------------|
+| fig    | matplotlib.figure.Figure | The histogram figure object. |
 
-## Examples
+## Examples {.doc-section .doc-section-examples}
 
 ```{python}
 import numpy as np

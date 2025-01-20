@@ -1,0 +1,19 @@
+# generics.cls_typechecked { #caml.generics.cls_typechecked }
+
+```python
+generics.cls_typechecked(cls)
+```
+
+Class decorator to typecheck all methods of a class.
+
+## Parameters {.doc-section .doc-section-parameters}
+
+| Name   | Type   | Description            | Default    |
+|--------|--------|------------------------|------------|
+| cls    |        | The class to decorate. | _required_ |
+
+## Returns {.doc-section .doc-section-returns}
+
+| Name   | Type                      | Description   |
+|--------|---------------------------|---------------|
+|        | cls: The decorated class. |               |

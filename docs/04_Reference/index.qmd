@@ -33,6 +33,6 @@
 
 | | |
 | --- | --- |
-| [utils.generate_random_string](utils.generate_random_string.qmd#caml.utils.generate_random_string) | Function to generate a random string of ascii lowercase letters and digits of length N. |
-| [utils.cls_typechecked](utils.cls_typechecked.qmd#caml.utils.cls_typechecked) | Class decorator to typecheck all methods of a class. |
+| [generics.generate_random_string](generics.generate_random_string.qmd#caml.generics.generate_random_string) | Function to generate a random string of ascii lowercase letters and digits of length N. |
+| [generics.cls_typechecked](generics.cls_typechecked.qmd#caml.generics.cls_typechecked) | Class decorator to typecheck all methods of a class. |
 | [logging.setup_logging](logging.setup_logging.qmd#caml.logging.setup_logging) | Set up logging configuration. |

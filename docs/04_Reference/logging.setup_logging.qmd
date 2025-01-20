@@ -1,6 +1,8 @@
 # logging.setup_logging { #caml.logging.setup_logging }
 
-`logging.setup_logging(verbose=1)`
+```python
+logging.setup_logging(verbose=1)
+```
 
 Set up logging configuration.
 

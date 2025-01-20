@@ -1,11 +1,14 @@
-[![version](https://img.shields.io/pypi/v/caml.svg)](https://pypi.python.org/pypi/caml)
+<center>
+<img src="https://raw.githubusercontent.com/jakepenzak/caml/main/docs/assets/main_logo.svg"" align="center" alt="CaML Logo" height="auto" width=500px/>
+
+[![image](https://img.shields.io/pypi/v/caml.svg)](https://pypi.python.org/pypi/caml)
 [![pre-commit](https://img.shields.io/badge/pre--commit-enabled-brightgreen?logo=pre-commit&logoColor=white)](https://github.com/pre-commit/pre-commit)
 [![ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
 [![uv](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/uv/main/assets/badge/v0.json)](https://github.com/astral-sh/uv)
-![](https://img.shields.io/badge/Lifecycle-Experimental-blue?style=flat)
+![lifecycle](https://img.shields.io/badge/Lifecycle-Experimental-blue?style=flat)
+![coverage](./assets/coverage.svg)
 
-<img src="https://raw.githubusercontent.com/jakepenzak/caml/main/docs/assets/main_logo.svg" align="center" alt="CaML Logo" height="auto" width=500px/>
-
+</center>
 ## Welcome!
 
 CaML = **Ca**usal **M**achine **L**earning

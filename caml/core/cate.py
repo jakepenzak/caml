@@ -390,11 +390,11 @@ class CamlCATE(CamlBase):
         if estimator is None:
             estimator = self._validation_estimator
 
-        if not self.discrete_treatment:
-            logger.error("Validation for continuous treatments is not supported yet.")
-            raise ValueError(
-                "Validation for continuous treatments is not supported yet."
+        if not self.discrete_treatment or self.discrete_outcome:
+            logger.error(
+                "Validation for continuous treatments and/or discrete outcomes is not supported yet."
             )
+            return
 
         validator = DRTester(
             model_regression=self.model_Y_X_W_T,
@@ -661,7 +661,21 @@ class CamlCATE(CamlBase):
             if isinstance(model, _OrthoLearner):
                 model.use_ray = use_ray
                 model.ray_remote_func_options_kwargs = ray_remote_func_options_kwargs
-            return name, model.fit(Y=Y_train, T=T_train, X=X_train)
+
+            try:
+                fitted_model = model.fit(Y=Y_train, T=T_train, X=X_train)
+            except AttributeError as e:
+                if (
+                    str(e)
+                    == "This method can only be used with single-dimensional continuous treatment or binary categorical treatment."
+                ):
+                    logger.warning(
+                        f"Multi-dimensional discrete treatment is not supported for {name}. Skipping model."
+                    )
+                    fitted_model = None
+                else:
+                    raise e
+            return name, fitted_model
 
         if use_ray:
             ray.init(ignore_reinit_error=True)
@@ -681,6 +695,8 @@ class CamlCATE(CamlBase):
             models = Parallel(n_jobs=n_jobs)(
                 delayed(fit_model)(name, model) for name, model in self._cate_models
             )
+
+        models = [m for m in models if m[1] is not None]
 
         base_rscorer_settings = {
             "cv": 3,

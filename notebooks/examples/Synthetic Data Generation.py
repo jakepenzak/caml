@@ -23,32 +23,50 @@ def _():
 
 
 @app.cell
+def _(mo):
+    mo.md(r"""## Generate Data""")
+    return
+
+
+@app.cell
 def _(CamlSyntheticDataGenerator):
     data =  CamlSyntheticDataGenerator(n_obs=10_000,
                                       n_cont_outcomes=1,
                                       n_binary_outcomes=1,
                                       n_cont_treatments=1,
                                       n_binary_treatments=1,
-                                      n_discrete_treatments=0,
-                                      n_cont_confounders=2,
-                                      n_binary_confounders=2,
-                                      n_discrete_confounders=2,
-                                      n_cont_heterogeneity_covariates=4,
-                                      n_binary_heterogeneity_covariates=4,
-                                      n_discrete_heterogeneity_covariates=4,
-                                      n_heterogeneity_confounders=0,
+                                      n_discrete_treatments=1,
+                                      n_cont_confounders=1,
+                                      n_binary_confounders=1,
+                                      n_discrete_confounders=1,
+                                      n_cont_heterogeneity_covariates=1,
+                                      n_binary_heterogeneity_covariates=1,
+                                      n_discrete_heterogeneity_covariates=1,
+                                      n_heterogeneity_confounders=1,
                                       stddev_outcome_noise=3,
                                       stddev_treatment_noise=3,
                                       causal_model_functional_form="fully_nonlinear",
                                       n_nonlinear_transformations=10,
                                       n_nonlinear_interactions=5,
-                                      seed=None)
+                                      seed=15)
     return (data,)
+
+
+@app.cell
+def _(mo):
+    mo.md(r"""## Simulated Dataframe""")
+    return
 
 
 @app.cell
 def _(data):
     data.df
+    return
+
+
+@app.cell
+def _(mo):
+    mo.md(r"""## DGP""")
     return
 
 
@@ -59,24 +77,26 @@ def _(data):
 
 
 @app.cell
+def _(mo):
+    mo.md(r"""## True Conditional Average Treatment Effects (CATEs)""")
+    return
+
+
+@app.cell
 def _(data):
     data.cates
     return
 
 
 @app.cell
+def _(mo):
+    mo.md(r"""## True Average Treatment Effects (ATEs)""")
+    return
+
+
+@app.cell
 def _(data):
     data.ates
-    return
-
-
-@app.cell
-def _():
-    return
-
-
-@app.cell
-def _():
     return
 
 

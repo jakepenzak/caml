@@ -1,6 +1,14 @@
 # make_partially_linear_dataset_simple { #caml.extensions.synthetic_data.make_partially_linear_dataset_simple }
 
-`extensions.synthetic_data.make_partially_linear_dataset_simple(n_obs=1000, n_confounders=5, dim_heterogeneity=2, binary_treatment=True, seed=None)`
+```python
+extensions.synthetic_data.make_partially_linear_dataset_simple(
+    n_obs=1000,
+    n_confounders=5,
+    dim_heterogeneity=2,
+    binary_treatment=True,
+    seed=None,
+)
+```
 
 Simulate data generating process from a partially linear model with a simple 1 or 2 dimensional CATE function. The outcome is continuous and the treatment can be binary or continuous.
 The dataset is generated using the `make_heterogeneous_data` function from the [`doubleml` package](https://docs.doubleml.org/stable/index.html).
@@ -43,25 +51,25 @@ flowchart TD;
 ```
 </div>
 
-## Parameters
+## Parameters {.doc-section .doc-section-parameters}
 
-| Name                | Type        | Description                                                                  | Default   |
-|---------------------|-------------|------------------------------------------------------------------------------|-----------|
-| `n_obs`             | int         | The number of observations to generate.                                      | `1000`    |
-| `n_confounders`     | int         | The number of confounders $\mathbf{X_i}$.                                    | `5`       |
-| `dim_heterogeneity` | int         | The dimension of the heterogeneity $x_0$ or $(x_0,x_1)$. Can only be 1 or 2. | `2`       |
-| `binary_treatment`  | bool        | Whether the treatment $d_i$ is binary or continuous.                         | `True`    |
-| `seed`              | int \| None | The seed to use for the random number generator.                             | `None`    |
+| Name              | Type        | Description                                                                  | Default   |
+|-------------------|-------------|------------------------------------------------------------------------------|-----------|
+| n_obs             | int         | The number of observations to generate.                                      | `1000`    |
+| n_confounders     | int         | The number of confounders $\mathbf{X_i}$.                                    | `5`       |
+| dim_heterogeneity | int         | The dimension of the heterogeneity $x_0$ or $(x_0,x_1)$. Can only be 1 or 2. | `2`       |
+| binary_treatment  | bool        | Whether the treatment $d_i$ is binary or continuous.                         | `True`    |
+| seed              | int \| None | The seed to use for the random number generator.                             | `None`    |
 
-## Returns
+## Returns {.doc-section .doc-section-returns}
 
-| Type             | Description                                                                                                                                    |
-|------------------|------------------------------------------------------------------------------------------------------------------------------------------------|
-| pandas.DataFrame | The generated dataset where y is the outcome, d is the treatment, and X are the confounders with a 1d or 2d subset utilized for heterogeneity. |
-| numpy.ndarray    | The true conditional average treatment effects.                                                                                                |
-| float            | The true average treatment effect.                                                                                                             |
+| Name       | Type             | Description                                                                                                                                    |
+|------------|------------------|------------------------------------------------------------------------------------------------------------------------------------------------|
+| df         | pandas.DataFrame | The generated dataset where y is the outcome, d is the treatment, and X are the confounders with a 1d or 2d subset utilized for heterogeneity. |
+| true_cates | numpy.ndarray    | The true conditional average treatment effects.                                                                                                |
+| true_ate   | float            | The true average treatment effect.                                                                                                             |
 
-## Examples
+## Examples {.doc-section .doc-section-examples}
 
 ```{python}
 from caml.extensions.synthetic_data import make_partially_linear_dataset_simple

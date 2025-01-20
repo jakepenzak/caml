@@ -15,6 +15,7 @@ from typeguard import typechecked
 from ..generics import cls_typechecked
 
 
+# TODO: This class needs some serious cleaning up
 @cls_typechecked
 class CamlSyntheticDataGenerator:
     def __init__(
@@ -32,8 +33,8 @@ class CamlSyntheticDataGenerator:
         n_binary_heterogeneity_covariates: int = 2,
         n_discrete_heterogeneity_covariates: int = 0,
         n_heterogeneity_confounders: int = 0,
-        stddev_outcome_noise: int = 1,
-        stddev_treatment_noise: int = 1,
+        stddev_outcome_noise: float = 1.0,
+        stddev_treatment_noise: float = 1.0,
         causal_model_functional_form: str = "partially_linear",
         n_nonlinear_transformations: int | None = None,
         n_nonlinear_interactions: int | None = None,
@@ -412,10 +413,10 @@ class CamlSyntheticDataGenerator:
                     data=covariates,
                     n_transforms=n_nonlinear_transformations
                     if n_nonlinear_transformations
-                    else n_features * 3,
+                    else n_features,
                     n_interactions=n_nonlinear_interactions
                     if n_nonlinear_interactions
-                    else 3,
+                    else 5,
                     seed=self._nonlinearity_seed,
                 )
                 params = np.random.uniform(
@@ -450,10 +451,10 @@ class CamlSyntheticDataGenerator:
                     data=covariates,
                     n_transforms=n_nonlinear_transformations
                     if n_nonlinear_transformations
-                    else n_features * 3,
+                    else n_features,
                     n_interactions=n_nonlinear_interactions
                     if n_nonlinear_interactions
-                    else 3,
+                    else 5,
                     seed=self._nonlinearity_seed,
                 )
                 params = np.random.uniform(
@@ -492,10 +493,10 @@ class CamlSyntheticDataGenerator:
                     data=covariates,
                     n_transforms=n_nonlinear_transformations
                     if n_nonlinear_transformations
-                    else n_features * 3,
+                    else n_features,
                     n_interactions=n_nonlinear_interactions
                     if n_nonlinear_interactions
-                    else 3,
+                    else 5,
                     seed=self._nonlinearity_seed,
                 )
                 n_categories = np.random.randint(3, 6)
@@ -618,20 +619,20 @@ class CamlSyntheticDataGenerator:
                         data_treat,
                         n_transforms=self.n_nonlinear_transformations
                         if self.n_nonlinear_transformations
-                        else 3 * data_treat.shape[1],
+                        else data_treat.shape[1],
                         n_interactions=self.n_nonlinear_interactions
                         if self.n_nonlinear_interactions
-                        else 3,
+                        else 5,
                         seed=seed,
                     )
                     data_control_transformed = self._apply_random_nonlinearities(
                         data_control,
                         n_transforms=self.n_nonlinear_transformations
                         if self.n_nonlinear_transformations
-                        else 3 * data_control.shape[1],
+                        else data_control.shape[1],
                         n_interactions=self.n_nonlinear_interactions
                         if self.n_nonlinear_interactions
-                        else 3,
+                        else 5,
                         seed=seed,
                     )
 
@@ -682,20 +683,20 @@ class CamlSyntheticDataGenerator:
     #             data_plus_eps,
     #             n_transforms=self.n_nonlinear_transformations
     #             if self.n_nonlinear_transformations
-    #             else 3 * data_plus_eps.shape[1],
+    #             else data_plus_eps.shape[1],
     #             n_interactions=self.n_nonlinear_interactions
     #             if self.n_nonlinear_interactions
-    #             else 3,
+    #             else 5,
     #             seed=seed,
     #         )
     #         data_minus_eps_transformed = self._apply_random_nonlinearities(
     #             data_minus_eps,
     #             n_transforms=self.n_nonlinear_transformations
     #             if self.n_nonlinear_transformations
-    #             else 3 * data_plus_eps.shape[1],
+    #             else data_plus_eps.shape[1],
     #             n_interactions=self.n_nonlinear_interactions
     #             if self.n_nonlinear_interactions
-    #             else 3,
+    #             else 5,
     #             seed=seed,
     #         )
     #

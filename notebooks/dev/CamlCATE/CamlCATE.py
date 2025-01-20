@@ -17,128 +17,8 @@ def _(mo):
 
 
 @app.cell
-def _():
-    import os
-    import sys
-
-    os.environ["PYSPARK_PYTHON"] = sys.executable
-    os.environ["PYSPARK_DRIVER_PYTHON"] = sys.executable
-
-    datasets = [
-        "partially_linear_simple",
-        "fully_heterogenous",
-        "partially_linear_constant",
-        "dowhy_linear",
-    ]
-    backends = ["pandas", "pyspark", "polars"]
-
-    df_backend = backends[0]
-    dataset = datasets[3]
-    return backends, dataset, datasets, df_backend, os, sys
-
-
-@app.cell
 def _(mo):
     mo.md(r"""## Synthetic Data""")
-    return
-
-
-@app.cell
-def _(dataset):
-    from caml.extensions.synthetic_data import (
-        make_partially_linear_dataset_simple,
-        make_fully_heterogeneous_dataset,
-        make_partially_linear_dataset_constant,
-        make_dowhy_linear_dataset,
-    )
-
-    if dataset == "partially_linear_simple":
-        df, true_cates, true_ate = make_partially_linear_dataset_simple(
-            n_obs=5000,
-            n_confounders=5,
-            dim_heterogeneity=2,
-            binary_treatment=True,
-            seed=None,
-        )
-        df["true_cates"] = true_cates
-    elif dataset == "fully_heterogenous":
-        df, true_cates, true_ate = make_fully_heterogeneous_dataset(
-            n_obs=10_000,
-            n_confounders=10,
-            theta=4.0,
-            seed=None,
-        )
-        df["true_cates"] = true_cates
-    elif dataset == "partially_linear_constant":
-        df, true_cates, true_ate = make_partially_linear_dataset_constant(
-            n_obs=5000,
-            ate=4.0,
-            n_confounders=5,
-            dgp="make_plr_CCDDHNR2018",  # make_plr_turrell2018
-            seed=None,
-        )
-        df["true_cates"] = true_cates
-    elif dataset == "dowhy_linear":
-        df, true_cates, true_ate = make_dowhy_linear_dataset(
-            beta=2.0,
-            n_obs=10_000,
-            n_confounders=10,
-            n_discrete_confounders=3,
-            n_effect_modifiers=10,
-            n_discrete_effect_modifiers=3,
-            n_treatments=1,
-            binary_treatment=True,
-            categorical_treatment=False,
-            binary_outcome=False,
-            seed=12,
-        )
-
-        for i in range(1, len(true_cates) + 1):
-            if isinstance(true_cates[f"d{i}"], list):
-                df[f"true_cate_d{i}_1"] = true_cates[f"d{i}"][0]
-                df[f"true_cate_d{i}_2"] = true_cates[f"d{i}"][1]
-            else:
-                df[f"true_cate_d{i}"] = true_cates[f"d{i}"]
-    return (
-        df,
-        i,
-        make_dowhy_linear_dataset,
-        make_fully_heterogeneous_dataset,
-        make_partially_linear_dataset_constant,
-        make_partially_linear_dataset_simple,
-        true_ate,
-        true_cates,
-    )
-
-
-@app.cell
-def _(df, df_backend):
-    try:
-        import polars as pl
-        from pyspark.sql import SparkSession
-    except ImportError:
-        pass
-    if df_backend == 'polars':
-        df_pl = pl.from_pandas(df)
-        spark = None
-    elif df_backend == 'pandas':
-        spark = None
-        pass
-    elif df_backend == 'pyspark':
-        spark = SparkSession.builder\
-        .master('local[1]').appName('local-tests')\
-        .config('spark.executor.cores', '1')\
-        .config('spark.executor.instances', '1')\
-        .config('spark.sql.shuffle.partitions', '1')\
-        .getOrCreate()
-
-        df_spark = spark.createDataFrame(df)
-    return SparkSession, df_pl, df_spark, pl, spark
-
-
-@app.cell
-def _(df):
-    df
     return
 
 
@@ -149,22 +29,23 @@ def _():
     data = CamlSyntheticDataGenerator(n_obs=10000,
                                       n_cont_outcomes=1,
                                       n_binary_outcomes=0,
-                                      n_cont_treatments=1,
+                                      n_cont_treatments=0,
                                       n_binary_treatments=0,
-                                      n_discrete_treatments=0,
+                                      n_discrete_treatments=1,
                                       n_cont_confounders=2,
-                                      n_binary_confounders=2,
-                                      n_discrete_confounders=0,
+                                      n_binary_confounders=1,
+                                      n_discrete_confounders=1,
                                       n_cont_heterogeneity_covariates=2,
-                                      n_binary_heterogeneity_covariates=2,
-                                      n_discrete_heterogeneity_covariates=0,
-                                      n_heterogeneity_confounders=0,
-                                      stddev_outcome_noise=3,
-                                      stddev_treatment_noise=3,
-                                      causal_model_functional_form='fully_linear',
-                                      n_nonlinear_transformations=10,
-                                      n_nonlinear_interactions=5,
-                                      seed=10)
+                                      n_binary_heterogeneity_covariates=1,
+                                      n_discrete_heterogeneity_covariates=1,
+                                      n_heterogeneity_confounders=2,
+                                      stddev_outcome_noise=1,
+                                      stddev_treatment_noise=1,
+                                      causal_model_functional_form='fully_nonlinear',
+                                      n_nonlinear_transformations=None,
+                                      n_nonlinear_interactions=None,
+                                      seed=None)
+
 
     synthetic_df = data.df
     cate_df = data.cates
@@ -181,26 +62,8 @@ def _():
 
 
 @app.cell
-def _(cate_df):
-    cate_df
-    return
-
-
-@app.cell
-def _(cate_df):
-    cate_df
-    return
-
-
-@app.cell
 def _(synthetic_df):
     synthetic_df
-    return
-
-
-@app.cell
-def _(ate_df):
-    ate_df
     return
 
 
@@ -229,17 +92,19 @@ def _():
     # d_sigmoid = lambda x: _sigmoid(x)*(1-_sigmoid(x))
 
     # synthetic_df['int_T1_continuous_X1_continuous'] = synthetic_df["T1_continuous"] * synthetic_df["X1_continuous"]
+    # synthetic_df['int_T1_continuous_X2_continuous'] = synthetic_df["T1_continuous"] * synthetic_df["X2_continuous"]
+    # synthetic_df['int_T1_continuous_X1_binary'] = synthetic_df["T1_continuous"] * synthetic_df["X1_binary"]
+    # synthetic_df['int_T1_continuous_X1_discrete'] = synthetic_df["T1_continuous"] * synthetic_df["X1_discrete"]
 
     # params = np.array(dgp["Y1_binary"]["params"])
     # values = np.array(synthetic_df[[c for c in synthetic_df.columns if "W" in c or "X" in c or "T" in c]])
 
-    # cate_df['manual_estimates'] = (-2.5737803491434144-0.7576456462998822*synthetic_df['X1_continuous'])*d_sigmoid(values @ params)
-    return
-
-
-@app.cell
-def _(cate_df):
-    cate_df.describe()
+    # cate_df['manual_estimates'] = (0.21551344398776173
+    #                                +0.9578081453198197*synthetic_df['X1_continuous']
+    #                                +2.996259172939629*synthetic_df['X2_continuous']
+    #                                +1.505903561593147*synthetic_df['X1_binary']
+    #                                +0.23113322201680342*synthetic_df['X1_discrete']
+    #                               )*d_sigmoid(values @ params)
     return
 
 
@@ -265,27 +130,24 @@ def _(mo):
 def _(synthetic_df):
     from caml import CamlCATE
 
+    outcome = [c for c in synthetic_df.columns if "Y" in c][0]
+    treatment = [c for c in synthetic_df.columns if "T" in c][0]
+
     caml = CamlCATE(df=synthetic_df,
-                    Y='Y1_binary',
-                    T='T1_binary',
+                    Y=outcome,
+                    T=treatment,
                     X=[c for c in synthetic_df.columns if 'X' in c or 'W' in c],
                     W=[],
-                    discrete_treatment=True,
-                    discrete_outcome=True,
+                    discrete_treatment=True if "binary" in treatment or "discrete" in treatment else False,
+                    discrete_outcome=True if "binary" in outcome else False,
                     seed=10,
                     verbose=1)
-    return CamlCATE, caml
+    return CamlCATE, caml, outcome, treatment
 
 
 @app.cell
 def _(caml):
     print(caml)
-    return
-
-
-@app.cell
-def _(caml):
-    caml.df
     return
 
 
@@ -298,8 +160,8 @@ def _(mo):
 @app.cell
 def _(caml):
     caml.auto_nuisance_functions(
-        flaml_Y_kwargs={"time_budget": 20},
-        flaml_T_kwargs={"time_budget": 20},
+        flaml_Y_kwargs={"time_budget": 10},
+        flaml_T_kwargs={"time_budget": 10},
         use_ray=False,
         use_spark=False,
     )
@@ -319,10 +181,9 @@ def _(caml):
             "LinearDML",
             "CausalForestDML",
             "NonParamDML",
-            "AutoNonParamDML",
+            # "AutoNonParamDML",
             "SparseLinearDML-2D",
-            "DRLearner"
-            "AutoDRLearner",
+            "DRLearner",
             "ForestDRLearner",
             "LinearDRLearner",
             "SparseLinearDRLearner-2D",
@@ -354,8 +215,12 @@ def _(mo):
 
 @app.cell
 def _(caml):
+    import matplotlib.pyplot as plt
+
     caml.validate(n_groups=4,n_bootstrap=100,print_full_report=True)
-    return
+
+    plt.show()
+    return (plt,)
 
 
 @app.cell
@@ -386,16 +251,10 @@ def _(mo):
 def _(caml):
     ## "Out of sample" predictions
 
-    cate_predictions = caml.predict()
+    cate_predictions = caml.predict(T0=0,T1=1)
 
     cate_predictions
     return (cate_predictions,)
-
-
-@app.cell
-def _(caml):
-    caml._cate_predictions['cate_predictions_0_1'] = caml._cate_predictions['cate_predictions_0_1'].ravel()
-    return
 
 
 @app.cell
@@ -413,8 +272,8 @@ def _(caml):
 
 
 @app.cell
-def _(ate_df):
-    ate_df
+def _(cate_df):
+    cate_df.describe()
     return
 
 
@@ -457,13 +316,24 @@ def _(mo):
 def _(cate_df, cate_predictions, synthetic_df):
     from caml.extensions.plots import cate_histogram_plot, cate_true_vs_estimated_plot, cate_line_plot
     synthetic_df['cate_predictions'] = cate_predictions
-    synthetic_df['true_cates'] = cate_df.iloc[:, 0]
-    return cate_histogram_plot, cate_line_plot, cate_true_vs_estimated_plot
+    synthetic_df['true_cates'] = cate_df.iloc[:, 1]
+
+    lower = synthetic_df['true_cates'].quantile(0.05)
+    upper = synthetic_df['true_cates'].quantile(0.95)
+    synthetic_df_trimmed = synthetic_df[(synthetic_df['true_cates'] >= lower) & (synthetic_df['true_cates'] <= upper)]
+    return (
+        cate_histogram_plot,
+        cate_line_plot,
+        cate_true_vs_estimated_plot,
+        lower,
+        synthetic_df_trimmed,
+        upper,
+    )
 
 
 @app.cell
-def _(cate_true_vs_estimated_plot, synthetic_df):
-    cate_true_vs_estimated_plot(true_cates=synthetic_df['true_cates'], estimated_cates=synthetic_df['cate_predictions'])
+def _(cate_true_vs_estimated_plot, synthetic_df_trimmed):
+    cate_true_vs_estimated_plot(true_cates=synthetic_df_trimmed['true_cates'], estimated_cates=synthetic_df_trimmed['cate_predictions'])
     return
 
 

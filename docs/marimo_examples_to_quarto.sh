@@ -2,6 +2,7 @@
 
 # Define the directory to scan
 TARGET_DIR="notebooks/examples"
+text_to_remove="import marimo as mo"
 
 for file in "$TARGET_DIR"/*; do
   if [ -f "$file" ]; then
@@ -12,6 +13,7 @@ for file in "$TARGET_DIR"/*; do
 
     marimo export ipynb "$file" -o "docs/assets/marimo/$base_name.ipynb" && \
     quarto convert "docs/assets/marimo/$base_name.ipynb" --output "docs/03_Examples/$base_name.qmd"
+    sed -i "/$text_to_remove/d" "docs/03_Examples/$base_name.qmd"
 
     if [ $? -eq 0 ]; then
       echo "Successfully processed $file."

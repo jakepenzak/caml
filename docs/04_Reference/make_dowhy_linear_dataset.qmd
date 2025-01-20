@@ -1,6 +1,20 @@
 # make_dowhy_linear_dataset { #caml.extensions.synthetic_data.make_dowhy_linear_dataset }
 
-`extensions.synthetic_data.make_dowhy_linear_dataset(beta=2.0, n_obs=1000, n_confounders=10, n_discrete_confounders=0, n_effect_modifiers=5, n_discrete_effect_modifiers=0, n_treatments=1, binary_treatment=False, categorical_treatment=False, binary_outcome=False, seed=None)`
+```python
+extensions.synthetic_data.make_dowhy_linear_dataset(
+    beta=2.0,
+    n_obs=1000,
+    n_confounders=10,
+    n_discrete_confounders=0,
+    n_effect_modifiers=5,
+    n_discrete_effect_modifiers=0,
+    n_treatments=1,
+    binary_treatment=False,
+    categorical_treatment=False,
+    binary_outcome=False,
+    seed=None,
+)
+```
 
 Simulate a linear data generating process with flexible configurations. The outcome and treatment can take on different data types.
 The dataset is generated using a modified version of the `make_linear_data` function from the [`dowhy` package](https://www.pywhy.org/dowhy/v0.11.1/index.html).
@@ -31,31 +45,31 @@ flowchart TD;
 ```
 </div>
 
-## Parameters
+## Parameters {.doc-section .doc-section-parameters}
 
-| Name                          | Type        | Description                                                                                   | Default   |
-|-------------------------------|-------------|-----------------------------------------------------------------------------------------------|-----------|
-| `beta`                        | float       | The base effect size of the treatment. Note, this differs from the ATE with effect modifiers. | `2.0`     |
-| `n_obs`                       | int         | The number of observations to generate.                                                       | `1000`    |
-| `n_confounders`               | int         | The number of confounders $\mathbf{W_i}$ to generate.                                         | `10`      |
-| `n_discrete_confounders`      | int         | The number of discrete confounders to generate.                                               | `0`       |
-| `n_effect_modifiers`          | int         | The number of effect modifiers $\mathbf{X_i}$ to generate.                                    | `5`       |
-| `n_discrete_effect_modifiers` | int         | The number of discrete effect modifiers to generate.                                          | `0`       |
-| `n_treatments`                | int         | The number of treatments $\mathbf{D_i}$ to generate.                                          | `1`       |
-| `binary_treatment`            | bool        | Whether the treatment is binary or continuous.                                                | `False`   |
-| `categorical_treatment`       | bool        | Whether the treatment is categorical or continuous.                                           | `False`   |
-| `binary_outcome`              | bool        | Whether the outcome is binary or continuous.                                                  | `False`   |
-| `seed`                        | int \| None | The seed to use for the random number generator.                                              | `None`    |
+| Name                        | Type        | Description                                                                                   | Default   |
+|-----------------------------|-------------|-----------------------------------------------------------------------------------------------|-----------|
+| beta                        | float       | The base effect size of the treatment. Note, this differs from the ATE with effect modifiers. | `2.0`     |
+| n_obs                       | int         | The number of observations to generate.                                                       | `1000`    |
+| n_confounders               | int         | The number of confounders $\mathbf{W_i}$ to generate.                                         | `10`      |
+| n_discrete_confounders      | int         | The number of discrete confounders to generate.                                               | `0`       |
+| n_effect_modifiers          | int         | The number of effect modifiers $\mathbf{X_i}$ to generate.                                    | `5`       |
+| n_discrete_effect_modifiers | int         | The number of discrete effect modifiers to generate.                                          | `0`       |
+| n_treatments                | int         | The number of treatments $\mathbf{D_i}$ to generate.                                          | `1`       |
+| binary_treatment            | bool        | Whether the treatment is binary or continuous.                                                | `False`   |
+| categorical_treatment       | bool        | Whether the treatment is categorical or continuous.                                           | `False`   |
+| binary_outcome              | bool        | Whether the outcome is binary or continuous.                                                  | `False`   |
+| seed                        | int \| None | The seed to use for the random number generator.                                              | `None`    |
 
-## Returns
+## Returns {.doc-section .doc-section-returns}
 
-| Type                    | Description                                                                                                                                                     |
-|-------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| pandas.DataFrame        | The generated dataset where y is the outcome, d are the treatment(s), X are the covariates that are utilized for heterogeneity only, and W are the confounders. |
-| dict\[str, np.ndarray\] | The true conditional average treatment effects for each treatment.                                                                                              |
-| dict\[str, float\]      | The true average treatment effect for each treatment.                                                                                                           |
+| Name       | Type                    | Description                                                                                                                                                     |
+|------------|-------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| df         | pandas.DataFrame        | The generated dataset where y is the outcome, d are the treatment(s), X are the covariates that are utilized for heterogeneity only, and W are the confounders. |
+| true_cates | dict\[str, np.ndarray\] | The true conditional average treatment effects for each treatment.                                                                                              |
+| true_ate   | dict\[str, float\]      | The true average treatment effect for each treatment.                                                                                                           |
 
-## Examples
+## Examples {.doc-section .doc-section-examples}
 
 ```{python}
 from caml.extensions.synthetic_data import make_dowhy_linear_dataset
