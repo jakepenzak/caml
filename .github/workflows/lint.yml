@@ -11,12 +11,6 @@ jobs:
   check-linting:
     if: github.event.pull_request.draft == false
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        python-version:
-          - "3.10"
-          - "3.11"
-          - "3.12"
 
     steps:
       - name: Checkout 🛎️
@@ -26,7 +20,7 @@ jobs:
         uses: astral-sh/setup-uv@v5
         with:
           version: 0.5.23
-          python-version: ${{ matrix.python-version }}
+          python-version: .python-version
 
       - name: Create environment
         run: uv sync --all-groups --frozen

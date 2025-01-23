@@ -1,4 +1,4 @@
-name: Local Tests
+name: Caml CI/CD
 
 on:
   push:
@@ -10,13 +10,11 @@ on:
 jobs:
   run_tests:
     if: github.event.pull_request.draft == false
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        python-version:
-          - "3.10"
-          - "3.11"
-          - "3.12"
+        os: [ubuntu-latest, macos-latest, windows-latest]
+        python-version: [3.8, 3.9, 3.10, 3.11, 3.12]
 
     steps:
       - name: Checkout 🛎️
