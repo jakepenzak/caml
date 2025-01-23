@@ -249,7 +249,7 @@
     "href": "index.html#background",
     "title": "CaML - Causal ML",
     "section": "Background",
-    "text": "Background\nThe origins of CaML are rooted in a desire to develop a set of helper tools to abstract and streamline techniques & best pratices in Causal ML/Econometrics for estimating ATEs, GATEs, and CATEs, along with policy prescription.\nAs we began working on these helper tools, we begun to see the value in reformulating this framework into a reusable package for wider use amongst the community and to provide an opinionated framework that can be integrated into productionalized systems, particularly experimentation platforms, for efficient estimation of causal parameters for reporting & decision-making purposes.\nAdmittedly, we were tempted to include the term “Auto” in the name of this package (e.g., AutoCATE, AutoCausal, etc.), but we quickly realized the potential for misapplication & naive usage that could arise from that type of “branding.” Indeed, the misapplication of many Causal AI/ML techniques is all too commonplace in the data science community. All of the standard assumptions for causal inference still apply in order for these tools & techniques to provide unbiased inference.\nGiven a key motivation is to provide a tool for productionalized systems, we are building this package with interoperability and extensibility as core values. The degree of interoperability will be limited in scope at first, but we hope to expand this as the code base develops. As of now, the tools utilized still rely on in-memory datasets for estimation (via EconML for causal models & flaml for AutoML of nuissance functions), but we leverage Ray & Spark for distributing certain processes where appropriate and if available for the user.",
+    "text": "Background\nThe origins of CaML are rooted in a desire to develop a set of helper tools to abstract and streamline techniques & best pratices in Causal ML/Econometrics for estimating ATEs, GATEs, and CATEs, along with policy prescription. In addition, we seek to provide a framework for validating & scoring these models on out of sample data to help set the foundations for an AutoML framework for CATE models.\nAs we began working on these helper tools, we begun to see the value in reformulating this framework into a reusable package for wider use amongst the community and to provide an opinionated framework that can be integrated into productionalized systems, particularly experimentation platforms, for efficient estimation of causal parameters for reporting & decision-making purposes.\nThe misapplication of many Causal AI/ML techniques is all too commonplace in the data science community. All of the standard assumptions for causal inference still apply in order for these tools & techniques to provide unbiased inference. A great resource for the CausalML landscape is the CausalML book written and publicly available generously by V. Chernozhukov, C. Hansen, N. Kallus, M. Spindler, & V. Syrgkanis.\nGiven a key motivation is to provide a tool for productionalized systems, we are building this package with interoperability and extensibility as core values. As of now, the toolsutilized still rely on in-memory datasets for estimation (via EconML for causal models & flaml for AutoML of nuissance functions), but we leverage Ray & Spark for distributing certain processes where appropriate and if available for the user.",
     "crumbs": [
       "Welcome!"
     ]
@@ -668,7 +668,7 @@
     "href": "05_Contributors/documentation.html",
     "title": "Documentation",
     "section": "",
-    "text": "Note: Windows users must create environment using WSL or Docker container as Quarto requires MacOS or LinuxOS\nThis repository uses  & quartodoc for documentation. All files relating to the documentation are under the docs/ directory. Quarto & quartodoc provide very detailed documentation on usage so I will refer the reader to these resources for more details.\nTo build the documentation, run the following command from the projects root directory:\nquartodoc build --config docs/_quarto.yml\nAnd to preview the documentation, run the following command:\nquarto preview docs/\nThe documentation preview will be hosted on http://localhost:8000/. Note that the quarto preview will be checking for live updates & applying them in real-time. In some cases, the changes will not manifest until you rerun quartodoc build --config docs/_quarto.yml. In general, this will occur when you make changes to the “quartodoc:” section of the docs/_quarto.yml file or any corresponding API changes.\n\n\n\n Back to top",
+    "text": "This repository uses  & quartodoc for documentation. All files relating to the documentation are under the docs/ directory. Quarto & quartodoc provide very detailed documentation on usage so I will refer the reader to these resources for more details.\nTo build the documentation, run the following command from the projects root directory:\nquartodoc build --config docs/_quarto.yml\nAnd to preview the documentation, run the following command:\nquarto preview docs/\nThe documentation preview will be hosted on http://localhost:8000/. Note that the quarto preview will be checking for live updates & applying them in real-time. In some cases, the changes will not manifest until you rerun quartodoc build --config docs/_quarto.yml. In general, this will occur when you make changes to the “quartodoc:” section of the docs/_quarto.yml file or any corresponding API changes.\n\n\n\n Back to top",
     "crumbs": [
       "Documentation"
     ]
@@ -676,11 +676,11 @@
   {
     "objectID": "05_Contributors/environment.html",
     "href": "05_Contributors/environment.html",
-    "title": "Environment & Development",
+    "title": "Environment Setup",
     "section": "",
-    "text": "uv\nWSL (required for Windows users to utilize Quarto for docs)\nOptional: Docker",
+    "text": "To help aid in environment setup, we’ve created a VS Code devcontainer for quick, isolated, and standardized environment creation.\n\n\n\nDocker Desktop or your choice of docker engine\nVisual Studio Code\n\n\n\n\n\nEnsure docker engine is running\nOpen VSCode in cloned project directory\nInstall VSCode Dev Containers extension\nOpen the current folder in dev container",
     "crumbs": [
-      "Environment & Development"
+      "Environment Setup"
     ]
   },
   {
@@ -697,8 +697,8 @@
     "objectID": "05_Contributors/environment.html#environment-setup",
     "href": "05_Contributors/environment.html#environment-setup",
     "title": "Environment & Development",
-    "section": "Environment Setup",
-    "text": "Environment Setup\nWe primarily utilize Docker for development environment standardization & uv for project, package, and dependency management.\n\nOption 1 (recommended): Docker Development Environment\n\nInstall Docker\nClone repository\n\nWe highly recommend utilizing ssh for cloning the repository.\ngit clone git@github.com:jakepenzak/caml.git\ncd caml\n\nVS Code Users: Set up Dev Containers\n\n\nDownload Dev Containers Extension\nCopy .devcontainer-template.json as .devcontainer.json and fill out {USERNAME} & {EMAIL}\nFollow steps to open current working directory in container\nTest github access - if running into issues, copy .ssh keys into .github_access/ directory. This directory gets copied into .ssh/ directory inside container. DO NOT COMMIT anything stored under .github_access/.\nTest uv pip list to ensure environment dependencies are properly installed - you should see caml installed as an editable package.\n\n\nNon-VS Code Users: Utilize docker-run.sh\n\n\nRun source docker-run.sh with respective flags. Call --help for details. This should spin up a terminal session in docker container.\nTest github access - if running into issues, copy .ssh keys into .github_access/ directory. This directory gets copied into .ssh/ directory inside container. DO NOT COMMIT anything stored under .github_access/.\nTest uv pip list to ensure environment dependencies are properly installed - you should see caml installed as an editable package.\n\n\n\nOption 2: Virtual Environment Only\n\nInstall uv\nRun uv sync --all-extras --frozen\nActivate the .venv via source .venv/bin/activate\nTest uv pip list to ensure environment dependencies are properly installed - you should see caml installed as an editable package.\nRun pre-commit install\nOptional: Install Quarto for edits on documentation, please refer to documentation page",
+    "section": "",
+    "text": "To help aid in environment setup, we’ve created a devcontainer for quick environment creation via VS Code.\n\n\n\nDocker\nVisual Studio Code\n\n\n\n\n\nClone repository",
     "crumbs": [
       "Environment & Development"
     ]
@@ -898,7 +898,7 @@
     "href": "assets/marimo/Synthetic Data Generation.html",
     "title": "Caml Synthetic Data API Usage",
     "section": "",
-    "text": "import marimo as mo\nfrom caml.extensions.synthetic_data import CamlSyntheticDataGenerator"
+    "text": "from caml.extensions.synthetic_data import CamlSyntheticDataGenerator"
   },
   {
     "objectID": "04_Reference/generics.generate_random_string.html",
@@ -947,7 +947,7 @@
     "href": "assets/marimo/Synthetic Data Generation.html#generate-data",
     "title": "Caml Synthetic Data API Usage",
     "section": "Generate Data",
-    "text": "Generate Data\n\ndata =  CamlSyntheticDataGenerator(n_obs=10_000,\n                                  n_cont_outcomes=1,\n                                  n_binary_outcomes=1,\n                                  n_cont_treatments=1,\n                                  n_binary_treatments=1,\n                                  n_discrete_treatments=1,\n                                  n_cont_confounders=1,\n                                  n_binary_confounders=1,\n                                  n_discrete_confounders=1,\n                                  n_cont_heterogeneity_covariates=1,\n                                  n_binary_heterogeneity_covariates=1,\n                                  n_discrete_heterogeneity_covariates=1,\n                                  n_heterogeneity_confounders=1,\n                                  stddev_outcome_noise=3,\n                                  stddev_treatment_noise=3,\n                                  causal_model_functional_form=\"fully_nonlinear\",\n                                  n_nonlinear_transformations=10,\n                                  n_nonlinear_interactions=5,\n                                  seed=15)"
+    "text": "Generate Data\n\ndata = CamlSyntheticDataGenerator(\n    n_obs=10_000,\n    n_cont_outcomes=1,\n    n_binary_outcomes=1,\n    n_cont_treatments=1,\n    n_binary_treatments=1,\n    n_discrete_treatments=1,\n    n_cont_confounders=1,\n    n_binary_confounders=1,\n    n_discrete_confounders=1,\n    n_cont_heterogeneity_covariates=1,\n    n_binary_heterogeneity_covariates=1,\n    n_discrete_heterogeneity_covariates=1,\n    n_heterogeneity_confounders=1,\n    stddev_outcome_noise=3,\n    stddev_treatment_noise=3,\n    causal_model_functional_form=\"fully_nonlinear\",\n    n_nonlinear_transformations=10,\n    n_nonlinear_interactions=5,\n    seed=15,\n)"
   },
   {
     "objectID": "assets/marimo/Synthetic Data Generation.html#simulated-dataframe",
@@ -1025,6 +1025,76 @@
     "text": "True Average Treatment Effects (ATEs)\n\ndata.ates\n\n\n\n\n\n\n\n\nTreatment\nATE\n\n\n\n\n0\nT1_continuous_on_Y1_continuous\n-0.571713\n\n\n1\nT1_binary_on_Y1_continuous\n-7.879251\n\n\n2\nT1_discrete_on_Y1_continuous_level_3_v_0\n-5.084981\n\n\n3\nT1_discrete_on_Y1_continuous_level_1_v_0\n-1.470126\n\n\n4\nT1_discrete_on_Y1_continuous_level_2_v_0\n-3.488804\n\n\n5\nT1_continuous_on_Y1_binary\n-0.024643\n\n\n6\nT1_binary_on_Y1_binary\n-0.117371\n\n\n7\nT1_discrete_on_Y1_binary_level_3_v_0\n-0.141282\n\n\n8\nT1_discrete_on_Y1_binary_level_1_v_0\n-0.039714\n\n\n9\nT1_discrete_on_Y1_binary_level_2_v_0\n-0.095860",
     "crumbs": [
       "Caml Synthetic Data API Usage"
+    ]
+  },
+  {
+    "objectID": "05_Contributors/environment.html#with-vscode-devcontainers",
+    "href": "05_Contributors/environment.html#with-vscode-devcontainers",
+    "title": "Environment Setup",
+    "section": "",
+    "text": "To help aid in environment setup, we’ve created a VS Code devcontainer for quick, isolated, and standardized environment creation.\n\n\n\nDocker Desktop or your choice of docker engine\nVisual Studio Code\n\n\n\n\n\nEnsure docker engine is running\nOpen VSCode in cloned project directory\nInstall VSCode Dev Containers extension\nOpen the current folder in dev container",
+    "crumbs": [
+      "Environment Setup"
+    ]
+  },
+  {
+    "objectID": "05_Contributors/environment.html#prerequisites-1",
+    "href": "05_Contributors/environment.html#prerequisites-1",
+    "title": "Environment & Development",
+    "section": "Prerequisites",
+    "text": "Prerequisites\n\nuv\nWSL (required for Windows users to utilize Quarto for docs)\nOptional: Docker",
+    "crumbs": [
+      "Environment & Development"
+    ]
+  },
+  {
+    "objectID": "05_Contributors/getting_started.html",
+    "href": "05_Contributors/getting_started.html",
+    "title": "Contributing to CaML",
+    "section": "",
+    "text": "Welcome to the CaML contributor guide!\nWe manage out project via Github and leverage Github Flow for managing our development process. This guide will help you get started as a contributor and guide you through the process of contributing to CaML.",
+    "crumbs": [
+      "Contributing to CaML"
+    ]
+  },
+  {
+    "objectID": "05_Contributors/environment.html#environment-setup-1",
+    "href": "05_Contributors/environment.html#environment-setup-1",
+    "title": "Environment & Development",
+    "section": "Environment Setup",
+    "text": "Environment Setup\nWe primarily utilize Docker for development environment standardization & uv for project, package, and dependency management.\n\nOption 1 (recommended): Docker Development Environment\n\nInstall Docker\nClone repository\n\nWe highly recommend utilizing ssh for cloning the repository.\ngit clone git@github.com:jakepenzak/caml.git\ncd caml\n\nVS Code Users: Set up Dev Containers\n\n\nDownload Dev Containers Extension\nCopy .devcontainer-template.json as .devcontainer.json and fill out {USERNAME} & {EMAIL}\nFollow steps to open current working directory in container\nTest github access - if running into issues, copy .ssh keys into .github_access/ directory. This directory gets copied into .ssh/ directory inside container. DO NOT COMMIT anything stored under .github_access/.\nTest uv pip list to ensure environment dependencies are properly installed - you should see caml installed as an editable package.\n\n\nNon-VS Code Users: Utilize docker-run.sh\n\n\nRun source docker-run.sh with respective flags. Call --help for details. This should spin up a terminal session in docker container.\nTest github access - if running into issues, copy .ssh keys into .github_access/ directory. This directory gets copied into .ssh/ directory inside container. DO NOT COMMIT anything stored under .github_access/.\nTest uv pip list to ensure environment dependencies are properly installed - you should see caml installed as an editable package.\n\n\n\nOption 2: Virtual Environment Only\n\nInstall uv\nRun uv sync --all-extras --frozen\nActivate the .venv via source .venv/bin/activate\nTest uv pip list to ensure environment dependencies are properly installed - you should see caml installed as an editable package.\nRun pre-commit install\nOptional: Install Quarto for edits on documentation, please refer to documentation page",
+    "crumbs": [
+      "Environment & Development"
+    ]
+  },
+  {
+    "objectID": "05_Contributors/environment.html#without-devcontainers",
+    "href": "05_Contributors/environment.html#without-devcontainers",
+    "title": "Environment Setup",
+    "section": "Without Devcontainers",
+    "text": "Without Devcontainers\n\nPrerequisites\n\nuv v0.5.23\npython v3.10\n\n\n\nSetup\n\nOpen repository in ide of choice\nRun uv sync --all-groups --frozen from command line\nActivate the virtual environment via source .venv/bin/activate\nRun pre-commit install to install pre-commit hooks\n\nSee uv documentation for details on managing environment and project depencencies.",
+    "crumbs": [
+      "Environment Setup"
+    ]
+  },
+  {
+    "objectID": "05_Contributors/getting_started.html#general-contribution-guide",
+    "href": "05_Contributors/getting_started.html#general-contribution-guide",
+    "title": "Contributing to CaML",
+    "section": "General Contribution Guide",
+    "text": "General Contribution Guide\nPull requests are the best way to make changes to CaML:\n\nFork the repo amd create your branch from main branch\nClone the repository locally\nFor environment setup, see Environment Setup\nFor documentation, see Documentation\nFor testing, see Testing\nTry best to follow commit message conventions outlined here\nCreate a pull request & fill out the generated PR template\n\nAll github actions & checks will be required to complete successfully prior to merging.",
+    "crumbs": [
+      "Contributing to CaML"
+    ]
+  },
+  {
+    "objectID": "05_Contributors/getting_started.html#report-bugs-using-github-issues",
+    "href": "05_Contributors/getting_started.html#report-bugs-using-github-issues",
+    "title": "Contributing to CaML",
+    "section": "Report Bugs using Github Issues",
+    "text": "Report Bugs using Github Issues\nBugs, features, and any other feedback can be submitted using the Github issues page.",
+    "crumbs": [
+      "Contributing to CaML"
     ]
   }
 ]

@@ -2,8 +2,6 @@
 title: "Documentation"
 ---
 
-*Note: Windows users must create [environment](environment.qmd#prerequisites) using WSL or Docker container as Quarto requires MacOS or LinuxOS*
-
 This repository uses [![](../assets/external_logos/quarto.png){width=85px}](https://quarto.org/) & [quartodoc](https://machow.github.io/quartodoc/get-started/overview.html)
 for documentation. All files relating to the documentation are under the `docs/` directory.
 Quarto & quartodoc provide very detailed documentation on usage so I will refer the reader to these

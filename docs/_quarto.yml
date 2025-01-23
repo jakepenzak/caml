@@ -69,6 +69,7 @@ website:
       title: "Contributors"
       style: floating
       contents:
+        - 05_Contributors/getting_started.qmd
         - 05_Contributors/environment.qmd
         - 05_Contributors/documentation.qmd
         - 05_Contributors/testing.qmd

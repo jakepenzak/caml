@@ -1,0 +1,28 @@
+---
+title: "Contributing to CaML"
+---
+
+Welcome to the CaML contributor guide!
+
+We manage out project via [Github](https://github.com/jakepenzak/caml) and
+leverage [Github Flow](https://docs.github.com/en/get-started/using-github/github-flow)
+for managing our development process. This guide will help you get started as a contributor
+and guide you through the process of contributing to CaML.
+
+## General Contribution Guide
+
+Pull requests are the best way to make changes to CaML:
+
+1. Fork the repo amd create your branch from `main` branch
+2. Clone the repository locally
+3. For environment setup, see [Environment Setup](environment.qmd)
+4. For documentation, see [Documentation](documentation.qmd)
+5. For testing, see [Testing](testing.qmd)
+6. Try best to follow commit message conventions outlined [here](https://gist.github.com/qoomon/4dfcdf8eec66a051ecd85625518cfd13)
+6. Create a pull request & fill out the generated PR template
+
+All github actions & checks will be required to complete successfully prior to merging.
+
+## Report Bugs using Github Issues
+
+Bugs, features, and any other feedback can be submitted using the Github [issues page](https://github.com/jakepenzak/caml/issues).

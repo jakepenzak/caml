@@ -1,53 +1,32 @@
 ---
-title: "Environment & Development"
+title: "Environment Setup"
 ---
 
-## Prerequisites
-- [uv](https://docs.astral.sh/uv/)
-- [WSL](https://learn.microsoft.com/en-us/windows/wsl/install) (required for Windows users to utilize Quarto for docs)
-- Optional: [Docker](https://www.docker.com/)
 
-## Environment Setup
+## With VSCode Devcontainers
 
-We primarily utilize [Docker](https://www.docker.com/) for development environment standardization & [uv](https://docs.astral.sh/uv/) for project, package, and dependency management.
+To help aid in environment setup, we've created a [VS Code devcontainer](https://code.visualstudio.com/docs/devcontainers/containers) for quick, isolated, and standardized environment creation.
 
-### Option 1 (recommended): Docker Development Environment
+### Prerequisites
+- [Docker Desktop](https://www.docker.com/) or your choice of docker engine
+- [Visual Studio Code](https://code.visualstudio.com/)
 
-1. Install [Docker](https://www.docker.com/)
+### Setup
+1. Ensure docker engine is running
+2. Open VSCode in cloned project directory
+3. Install VSCode [Dev Containers extension](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers)
+4. Open the current folder in dev container
 
-2. Clone repository
+## Without Devcontainers
 
-We highly recommend [utilizing ssh for cloning](https://docs.github.com/en/authentication/connecting-to-github-with-ssh) the repository.
+### Prerequisites
+- [uv](https://docs.astral.sh/uv/) v0.5.23
+- [python](https://www.python.org/downloads/) v3.10
 
-```bash
-git clone git@github.com:jakepenzak/caml.git
-cd caml
-```
+### Setup
+1. Open repository in ide of choice
+2. Run `uv sync --all-groups --frozen` from command line
+3. Activate the virtual environment via `source .venv/bin/activate`
+4. Run `pre-commit install` to install pre-commit hooks
 
-3. **VS Code Users**: Set up Dev Containers
-
-a. Download [Dev Containers Extension](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers)
-b. Copy `.devcontainer-template.json` as `.devcontainer.json` and fill out {USERNAME} & {EMAIL}
-c. Follow steps to open current working directory in container
-d. Test github access - if running into issues, copy .ssh keys into `.github_access/` directory. This directory gets copied into `.ssh/` directory inside container. DO NOT COMMIT anything stored under `.github_access/`.
-e. Test `uv pip list` to ensure environment dependencies are properly installed - you should see caml installed as an editable package.
-
-4. **Non-VS Code Users**: Utilize `docker-run.sh`
-
-a. Run `source docker-run.sh` with respective flags. Call `--help` for details. This should spin up a terminal session in docker container.
-b. Test github access - if running into issues, copy .ssh keys into `.github_access/` directory. This directory gets copied into `.ssh/` directory inside container. DO NOT COMMIT anything stored under `.github_access/`.
-c. Test `uv pip list` to ensure environment dependencies are properly installed - you should see caml installed as an editable package.
-
-### Option 2: Virtual Environment Only
-
-a. Install [uv](https://docs.astral.sh/uv/)
-b. Run `uv sync --all-extras --frozen`
-c. Activate the .venv via `source .venv/bin/activate`
-d. Test `uv pip list` to ensure environment dependencies are properly installed - you should see caml installed as an editable package.
-e. Run `pre-commit install`
-f. Optional: Install Quarto for edits on documentation, please refer to [documentation page](documentation.qmd)
-
-## Committing & Pull Requests
-
-- Try best to follow commit message conventions outlined [here](https://gist.github.com/qoomon/5dfcdf8eec66a051ecd85625518cfd13)
-- On PRs, please fill out the generated PR template. All github actions & workflows will be required to complete successfully prior to merging.
+See [uv documentation](https://docs.astral.sh/uv/) for details on managing environment and project depencencies.

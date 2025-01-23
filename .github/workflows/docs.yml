@@ -1,0 +1,43 @@
+name: Build & Publish Docs
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+    types: [opened, reopened, synchronize, ready_for_review]
+    branches: ["**"]
+
+jobs:
+  build-and-publish-docs:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout 🛎️
+        uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          version: 0.5.23
+
+      - name: Create environment
+        run: uv sync --all-groups --frozen
+
+      - name: Render & Publish Docs
+        shell: bash -l {0}
+        run: |
+          source .venv/bin/activate
+          quartodoc build --config docs/_quarto.yml
+          quarto render docs/
+
+      - name: Write CNAME file
+        run: echo "caml-docs.com" > docs/_site/CNAME
+
+      - name: Upload Artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: "docs/_site"
+
+      - name: Deploy to Github Pages 🚀
+        id: deployment
+        uses: actions/deploy-pages@v4

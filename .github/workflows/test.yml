@@ -1,0 +1,38 @@
+name: Run Tests & Update Badge
+
+on:
+  push:
+    branches: ["main", "develop"]
+  pull_request:
+    types: [opened, reopened, synchronize, ready_for_review]
+    branches: ["**"]
+
+jobs:
+  run_tests:
+    if: github.event.pull_request.draft == false
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version:
+          - "3.10"
+          - "3.11"
+          - "3.12"
+          - "3.13"
+
+    steps:
+      - name: Checkout code 🛎️
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref }}
+
+      - name: Install uv & Set Python Version
+        uses: astral-sh/setup-uv@v5
+        with:
+          version: 0.5.23
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install the project
+        run: uv sync --all-extras --all-groups --frozen
+
+      - name: Run tests
+        run: uv run pytest tests

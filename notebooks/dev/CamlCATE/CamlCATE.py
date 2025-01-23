@@ -1,6 +1,6 @@
 import marimo
 
-__generated_with = "0.10.4"
+__generated_with = "0.10.15"
 app = marimo.App(width="medium")
 
 
@@ -27,21 +27,21 @@ def _():
     from caml.extensions.synthetic_data import CamlSyntheticDataGenerator
 
     data = CamlSyntheticDataGenerator(n_obs=10000,
-                                      n_cont_outcomes=1,
-                                      n_binary_outcomes=0,
-                                      n_cont_treatments=0,
+                                      n_cont_outcomes=0,
+                                      n_binary_outcomes=1,
+                                      n_cont_treatments=1,
                                       n_binary_treatments=0,
-                                      n_discrete_treatments=1,
+                                      n_discrete_treatments=0,
                                       n_cont_confounders=2,
                                       n_binary_confounders=1,
                                       n_discrete_confounders=1,
                                       n_cont_heterogeneity_covariates=2,
                                       n_binary_heterogeneity_covariates=1,
                                       n_discrete_heterogeneity_covariates=1,
-                                      n_heterogeneity_confounders=2,
+                                      n_heterogeneity_confounders=1,
                                       stddev_outcome_noise=1,
                                       stddev_treatment_noise=1,
-                                      causal_model_functional_form='fully_nonlinear',
+                                      causal_model_functional_form='fully_linear',
                                       n_nonlinear_transformations=None,
                                       n_nonlinear_interactions=None,
                                       seed=None)
@@ -160,8 +160,8 @@ def _(mo):
 @app.cell
 def _(caml):
     caml.auto_nuisance_functions(
-        flaml_Y_kwargs={"time_budget": 10},
-        flaml_T_kwargs={"time_budget": 10},
+        flaml_Y_kwargs={"time_budget": 60},
+        flaml_T_kwargs={"time_budget": 60},
         use_ray=False,
         use_spark=False,
     )
@@ -251,7 +251,7 @@ def _(mo):
 def _(caml):
     ## "Out of sample" predictions
 
-    cate_predictions = caml.predict(T0=0,T1=1)
+    cate_predictions = caml.predict(T0=0,T1=3)
 
     cate_predictions
     return (cate_predictions,)
@@ -273,6 +273,7 @@ def _(caml):
 
 @app.cell
 def _(cate_df):
+    cate_df.describe()
     cate_df.describe()
     return
 
@@ -316,7 +317,7 @@ def _(mo):
 def _(cate_df, cate_predictions, synthetic_df):
     from caml.extensions.plots import cate_histogram_plot, cate_true_vs_estimated_plot, cate_line_plot
     synthetic_df['cate_predictions'] = cate_predictions
-    synthetic_df['true_cates'] = cate_df.iloc[:, 1]
+    synthetic_df['true_cates'] = cate_df.iloc[:, 0]
 
     lower = synthetic_df['true_cates'].quantile(0.05)
     upper = synthetic_df['true_cates'].quantile(0.95)
@@ -358,11 +359,6 @@ def _(cate_line_plot, synthetic_df):
 @app.cell
 def _(cate_line_plot, synthetic_df):
     cate_line_plot(estimated_cates=synthetic_df['cate_predictions'], true_cates=synthetic_df['true_cates'], window=20)
-    return
-
-
-@app.cell
-def _():
     return
 
 

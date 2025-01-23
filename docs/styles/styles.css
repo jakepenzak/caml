@@ -1,7 +1,7 @@
 .cell {
     margin-bottom: 1rem;
   }
-  
+
 .cell > .sourceCode {
   margin-bottom: 0;
 }
@@ -37,12 +37,12 @@ div.description {
 }
 
 .navbar-logo {
-  max-height: 60px; 
+  max-height: 60px;
 }
 
 .breadcrumb {
   display: none;
-} 
+}
 
 #site-navigation {
   display: none;
@@ -67,7 +67,7 @@ td:first-child {
   text-wrap: nowrap;
   text-size-adjust: 100%;
 }
-  
+
 /* Increase the padding inside table cells */
 table th, table td {
   padding: 10px 20px; /* Adjust the values as needed */
