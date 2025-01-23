@@ -7,6 +7,11 @@ on:
     types: [opened, reopened, synchronize, ready_for_review]
     branches: ["**"]
 
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
 jobs:
   build-and-publish-docs:
     runs-on: ubuntu-latest
