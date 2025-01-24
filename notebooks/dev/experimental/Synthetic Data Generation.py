@@ -18,7 +18,7 @@ def _(mo):
 
 @app.cell
 def _():
-    from caml.extensions.synthetic_data import CamlSyntheticDataGenerator
+    from caml.extensions.synthetic_data2 import CamlSyntheticDataGenerator
     return (CamlSyntheticDataGenerator,)
 
 
@@ -54,17 +54,24 @@ def _(data):
 
 @app.cell
 def _(data):
-    adf = data.cates.mean(axis=0).reset_index()
-    adf.columns = ["Treatment","ATE"]
-    adf["Treatment"] = adf["Treatment"].str.replace("CATE_of_","")
-
-    adf
-    return (adf,)
+    data.ates
+    return
 
 
 @app.cell
 def _(data):
-    data.ates
+    data.cates
+    return
+
+
+@app.cell
+def _(data):
+    data.dgp
+    return
+
+
+@app.cell
+def _():
     return
 
 

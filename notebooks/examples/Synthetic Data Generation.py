@@ -72,8 +72,10 @@ def _(mo):
 
 @app.cell
 def _(data):
-    data.dgp
-    return
+    for k,v in data.dgp.items():
+        print(k)
+        print(v)
+    return k, v
 
 
 @app.cell
@@ -97,6 +99,11 @@ def _(mo):
 @app.cell
 def _(data):
     data.ates
+    return
+
+
+@app.cell
+def _():
     return
 
 
