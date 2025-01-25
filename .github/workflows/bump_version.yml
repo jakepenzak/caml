@@ -56,7 +56,9 @@ jobs:
 
       - name: Bump Version
         if: env.type != ''
+        shell: bash -l {0}
         run: |
+          source .venv/bin/activate
           bump-my-version bump ${{ env.type }}
 
       - name: Commit and Push Changes
