@@ -1,4 +1,5 @@
 <center>
+
 <img src="https://raw.githubusercontent.com/jakepenzak/caml/main/docs/assets/main_logo.svg"" align="center" alt="CaML Logo" height="auto" width=500px/>
 
 [![image](https://img.shields.io/pypi/v/caml.svg)](https://pypi.python.org/pypi/caml)
