@@ -136,4 +136,4 @@ values = ["dev", "rc", "final"]
 optional_value = "final"
 
 [[tool.bumpversion.files]]
-filename = "_version.py"
+filename = "caml/_version.py"
