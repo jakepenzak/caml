@@ -4,8 +4,6 @@ on:
   push:
     branches:
       - main
-  pull_request:
-    types: [closed]
 
 permissions:
   contents: write
@@ -88,4 +86,4 @@ jobs:
           title: "Draft: Bump Version $${{ env.NEW_VERSION }}"
           body: |
             Bumps version from ${{ env.OLD_VERSION }} to ${{ env.NEW_VERSION }}.
-          draft: true
+          draft: false
