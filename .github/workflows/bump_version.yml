@@ -5,8 +5,7 @@ on:
     branches:
       - main
   pull_request:
-    types: [opened, reopened, synchronize, ready_for_review]
-    branches: ["**"]
+    types: [closed]
 
 permissions:
   contents: write
@@ -16,6 +15,7 @@ permissions:
 
 jobs:
   bump_version:
+    if: github.event.pull_request.merged == true || github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
 
     steps:
@@ -60,27 +60,29 @@ jobs:
         run: |
           source .venv/bin/activate
           NEW_VERSION=$(bump-my-version bump ${{ env.type }} --dry-run -vv | grep 'New version will be' | cut -d ' ' -f7)
+          OLD__VERSION=$(bump-my-version bump pre_n --dry-run -vv | grep 'Parsing current version' | cut -d ' ' -f6)
           echo "NEW_VERSION=$NEW_VERSION" >> $GITHUB_ENV
+          echo "OLD_VERSION=$OLD__VERSION" >> $GITHUB_ENV
           bump-my-version bump ${{ env.type }}
 
-      - name: Create or Update Draft Pull Request
-        uses: peter-evans/create-pull-request@v5
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          branch: bump-version
-          base: main
-          title: "Draft: Bump Version $${{ env.NEW_VERSION }}"
-          body: |
-            Bumps version from ${{ steps.bump.outputs.previous-version }} to ${{ steps.bump.outputs.current-version }}.
-          draft: true
-
-      - name: Commit and Push Changes
-        if: env.type != ''
+      - name: Push Changes to Dynamic Branch
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
+          git checkout -b bump-version-${{ env.NEW_VERSION }}
           git add .
-          git commit -m "Bump version: ${{ env.NEW_VERSION }}"
-          git push origin main
+          git commit -m "Bump version: ${{ env.OLD_VERSION }} → ${{ env.NEW_VERSION }}"
+          git push origin bump-version-${{ env.NEW_VERSION }}
+
+      - name: Create or Update Draft Pull Request
+        uses: peter-evans/create-pull-request@v5
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          branch: bump-version-${{ env.NEW_VERSION }}
+          base: main
+          title: "Draft: Bump Version $${{ env.NEW_VERSION }}"
+          body: |
+            Bumps version from ${{ env.OLD_VERSION }} to ${{ env.NEW_VERSION }}.
+          draft: true
