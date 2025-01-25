@@ -28,7 +28,9 @@ jobs:
       - name: Render & Publish Docs
         shell: bash -l {0}
         run: |
+          set -e
           source .venv/bin/activate
+          bash docs/marimo_examples_to_quarto.sh
           quartodoc build --config docs/_quarto.yml
           quarto render docs/
 

@@ -1,6 +1,6 @@
 import marimo
 
-__generated_with = "0.10.4"
+__generated_with = "0.10.15"
 app = marimo.App(width="medium")
 
 
@@ -39,13 +39,13 @@ def _(CamlSyntheticDataGenerator):
                                       n_cont_confounders=1,
                                       n_binary_confounders=1,
                                       n_discrete_confounders=1,
-                                      n_cont_heterogeneity_covariates=1,
-                                      n_binary_heterogeneity_covariates=1,
-                                      n_discrete_heterogeneity_covariates=1,
-                                      n_heterogeneity_confounders=1,
+                                      n_cont_modifiers=1,
+                                      n_binary_modifiers=1,
+                                      n_discrete_modifiers=1,
+                                      n_confounding_modifiers=1,
                                       stddev_outcome_noise=3,
                                       stddev_treatment_noise=3,
-                                      causal_model_functional_form="fully_nonlinear",
+                                      causal_model_functional_form="linear",
                                       n_nonlinear_transformations=10,
                                       n_nonlinear_interactions=5,
                                       seed=15)
@@ -99,11 +99,6 @@ def _(mo):
 @app.cell
 def _(data):
     data.ates
-    return
-
-
-@app.cell
-def _():
     return
 
 
