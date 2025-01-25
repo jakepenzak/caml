@@ -1,0 +1,736 @@
+[
+  {
+    "objectID": "04_Reference/cate_histogram_plot.html",
+    "href": "04_Reference/cate_histogram_plot.html",
+    "title": "cate_histogram_plot",
+    "section": "",
+    "text": "cate_histogram_plot(\n    estimated_cates,\n    *,\n    true_cates=None,\n    figure_kwargs={},\n    hist_kwargs={},\n)\nPlots a histogram the estimated CATEs."
+  },
+  {
+    "objectID": "04_Reference/cate_histogram_plot.html#parameters",
+    "href": "04_Reference/cate_histogram_plot.html#parameters",
+    "title": "cate_histogram_plot",
+    "section": "Parameters",
+    "text": "Parameters\n\n\n\n\n\n\n\n\n\nName\nType\nDescription\nDefault\n\n\n\n\nestimated_cates\nArrayLike\nThe estimated CATEs.\nrequired\n\n\ntrue_cates\nArrayLike | None\nThe true CATEs.\nNone\n\n\nfigure_kwargs\ndict\nMatplotlib figure arguments.\n{}\n\n\nhist_kwargs\ndict\nMatplotlib hist arguments.\n{}"
+  },
+  {
+    "objectID": "04_Reference/cate_histogram_plot.html#returns",
+    "href": "04_Reference/cate_histogram_plot.html#returns",
+    "title": "cate_histogram_plot",
+    "section": "Returns",
+    "text": "Returns\n\n\n\nName\nType\nDescription\n\n\n\n\n\nmatplotlib.pyplot.Figure\nThe histogram figure object."
+  },
+  {
+    "objectID": "04_Reference/cate_histogram_plot.html#examples",
+    "href": "04_Reference/cate_histogram_plot.html#examples",
+    "title": "cate_histogram_plot",
+    "section": "Examples",
+    "text": "Examples\n\nimport numpy as np\nfrom caml.extensions.plots import cate_histogram_plot\n\nnp.random.seed(42)\ntrue_cates = np.random.normal(0, 1, 1000)\nestimated_cates = true_cates + np.random.normal(0, 0.5, 1000)\n\nfig = cate_histogram_plot(estimated_cates, true_cates=true_cates, hist_kwargs={'bins': 25})\nfig"
+  },
+  {
+    "objectID": "04_Reference/make_fully_heterogeneous_dataset.html",
+    "href": "04_Reference/make_fully_heterogeneous_dataset.html",
+    "title": "make_fully_heterogeneous_dataset",
+    "section": "",
+    "text": "make_fully_heterogeneous_dataset(\n    n_obs=1000,\n    n_confounders=5,\n    theta=4.0,\n    seed=None,\n    **doubleml_kwargs,\n)\nSimulate data generating process from an interactive regression model with fully heterogenous treatment effects.\nThe outcome is continuous and the treatment is binary. The dataset is generated using a modified version of make_irm_data function from the doubleml package.\nThe general form of the data generating process is:\n\\[\ny_i= g(d_i,\\mathbf{X_i})+\\epsilon_i\n\\] \\[\nd_i=f(\\mathbf{X_i})+\\eta_i\n\\]\nwhere \\(y_i\\) is the outcome, \\(d_i\\) is the treatment, \\(\\mathbf{X_i}\\) are the confounders utilized for full effect heterogeneity, \\(\\epsilon_i\\) and \\(\\eta_i\\) are the error terms, \\(g\\) is the outcome function, and \\(f\\) is the treatment function.\nSee the doubleml documentation for more details on the specific functional forms of the data generating process.\nNote that the treatment effect is fully heterogenous, thus the CATE is defined as: \\(\\\\tau = \\\\mathbb{E}[g(1,\\mathbf{X}) - g(0,\\mathbf{X})|\\mathbf{X}]\\) for any \\(\\mathbf{X}\\).\nThe ATE is defined as the average of the CATE function over all observations: \\(\\mathbb{E}[\\\\tau (\\cdot)]\\)\nAs a DAG, the data generating process can be roughly represented as:"
+  },
+  {
+    "objectID": "04_Reference/make_fully_heterogeneous_dataset.html#parameters",
+    "href": "04_Reference/make_fully_heterogeneous_dataset.html#parameters",
+    "title": "make_fully_heterogeneous_dataset",
+    "section": "Parameters",
+    "text": "Parameters\n\n\n\n\n\n\n\n\n\nName\nType\nDescription\nDefault\n\n\n\n\nn_obs\nint\nThe number of observations to generate.\n1000\n\n\nn_confounders\nint\nThe number of confounders \\(\\mathbf{X_i}\\) to generate (these are utilized fully for heterogeneity).\n5\n\n\ntheta\nfloat\nThe base parameter for the treatment effect. Note this differs from the ATE.\n4.0\n\n\nseed\nint | None\nThe seed to use for the random number generator.\nNone\n\n\n**doubleml_kwargs\n\nAdditional keyword arguments to pass to the data generating process.\n{}"
+  },
+  {
+    "objectID": "04_Reference/make_fully_heterogeneous_dataset.html#returns",
+    "href": "04_Reference/make_fully_heterogeneous_dataset.html#returns",
+    "title": "make_fully_heterogeneous_dataset",
+    "section": "Returns",
+    "text": "Returns\n\n\n\n\n\n\n\n\nName\nType\nDescription\n\n\n\n\ndf\npandas.DataFrame\nThe generated dataset where y is the outcome, d is the treatment, and X are the confounders which are fully utilized for heterogeneity.\n\n\ntrue_cates\nnumpy.ndarray\nThe true conditional average treatment effects.\n\n\ntrue_ate\nfloat\nThe true average treatment effect."
+  },
+  {
+    "objectID": "04_Reference/make_fully_heterogeneous_dataset.html#examples",
+    "href": "04_Reference/make_fully_heterogeneous_dataset.html#examples",
+    "title": "make_fully_heterogeneous_dataset",
+    "section": "Examples",
+    "text": "Examples\n\nfrom caml.extensions.synthetic_data import make_fully_heterogeneous_dataset\ndf, true_cates, true_ate = make_fully_heterogeneous_dataset(n_obs=1000,\n                                                            n_confounders=5,\n                                                            theta=4.0,\n                                                            seed=1)\n\nprint(f\"True CATEs: {true_cates[:5]}\")\nprint(f\"True ATE: {true_ate}\")\nprint(df.head())\n\nTrue CATEs: [5.10338083 5.0918794  1.93444292 4.36046179 3.89521828]\nTrue ATE: 3.9499484248360175\n         X1        X2        X3        X4        X5         y    d\n0  1.682368 -0.422572 -1.219871 -0.941586 -1.270241  5.828931  1.0\n1  0.684154  1.125168  2.601475  0.441070  0.889493  4.767675  1.0\n2 -2.035148 -1.386116 -0.770108 -0.070788 -0.524494  2.748786  1.0\n3  0.429364 -0.125604 -0.095252 -0.033939  1.243388  5.140932  1.0\n4  0.240024 -0.069628 -1.722948 -1.565808 -1.494064  2.431165  1.0"
+  },
+  {
+    "objectID": "04_Reference/cate_line_plot.html",
+    "href": "04_Reference/cate_line_plot.html",
+    "title": "cate_line_plot",
+    "section": "",
+    "text": "cate_line_plot(\n    estimated_cates,\n    *,\n    true_cates=None,\n    standard_errors=None,\n    alpha=0.05,\n    window=30,\n    figure_kwargs={},\n    line_kwargs={},\n)\nPlots a line plot of the ordered estimated CATEs as a rolling mean with optional confidence intervals."
+  },
+  {
+    "objectID": "04_Reference/cate_line_plot.html#parameters",
+    "href": "04_Reference/cate_line_plot.html#parameters",
+    "title": "cate_line_plot",
+    "section": "Parameters",
+    "text": "Parameters\n\n\n\n\n\n\n\n\n\nName\nType\nDescription\nDefault\n\n\n\n\nestimated_cates\nArrayLike\nThe estimated CATEs.\nrequired\n\n\ntrue_cates\nArrayLike | None\nThe true CATEs.\nNone\n\n\nstandard_errors\nArrayLike | None\nThe standard errors of the estimated CATEs.\nNone\n\n\nalpha\nfloat\nThe alpha level for the confidence intervals. The default is 0.05, which corresponds to 95% confidence intervals.\n0.05\n\n\nwindow\nint\nThe window size for the moving average.\n30\n\n\nfigure_kwargs\ndict\nMatplotlib figure arguments.\n{}\n\n\nline_kwargs\ndict\nMatplotlib line arguments.\n{}"
+  },
+  {
+    "objectID": "04_Reference/cate_line_plot.html#returns",
+    "href": "04_Reference/cate_line_plot.html#returns",
+    "title": "cate_line_plot",
+    "section": "Returns",
+    "text": "Returns\n\n\n\nName\nType\nDescription\n\n\n\n\n\nmatplotlib.pyplot.Figure\nThe line plot figure object."
+  },
+  {
+    "objectID": "04_Reference/cate_line_plot.html#examples",
+    "href": "04_Reference/cate_line_plot.html#examples",
+    "title": "cate_line_plot",
+    "section": "Examples",
+    "text": "Examples\n\nimport numpy as np\nfrom caml.extensions.plots import cate_line_plot\n\nnp.random.seed(42)\ntrue_cates = np.random.normal(0, 1, 100)\nestimated_cates = true_cates + np.random.normal(0, 0.5, 100)\nstandard_errors = np.abs(np.random.normal(0, 0.1, 100))\n\nfig = cate_line_plot(estimated_cates, true_cates=true_cates, standard_errors=standard_errors, window=5)\nfig"
+  },
+  {
+    "objectID": "04_Reference/make_partially_linear_dataset_constant.html",
+    "href": "04_Reference/make_partially_linear_dataset_constant.html",
+    "title": "make_partially_linear_dataset_constant",
+    "section": "",
+    "text": "make_partially_linear_dataset_constant(\n    n_obs=1000,\n    ate=4.0,\n    n_confounders=10,\n    dgp='make_plr_CCDDHNR2018',\n    seed=None,\n    **doubleml_kwargs,\n)\nSimulate a data generating process from a partially linear model with a constant treatment effect (ATE only).\nThe outcome and treatment are both continuous.The dataset is generated using the make_plr_CCDDHNR2018 or make_plr_turrell2018 function from the doubleml package.\nThe general form of the data generating process is:\n\\[\ny_i= \\tau_0 d_i + g(\\mathbf{W_i})+\\epsilon_i\n\\] \\[\nd_i=f(\\mathbf{W_i})+\\eta_i\n\\]\nwhere \\(y_i\\) is the outcome, \\(d_i\\) is the treatment, \\(\\mathbf{W_i}\\) are the confounders, \\(\\epsilon_i\\) and \\(\\eta_i\\) are the error terms, \\(\\tau_0\\) is the ATE parameter, \\(g\\) is the outcome function, and \\(f\\) is the treatment function.\nSee the doubleml documentation for more details on the specific functional forms of the data generating process.\nAs a DAG, the data generating process can be roughly represented as:"
+  },
+  {
+    "objectID": "04_Reference/make_partially_linear_dataset_constant.html#parameters",
+    "href": "04_Reference/make_partially_linear_dataset_constant.html#parameters",
+    "title": "make_partially_linear_dataset_constant",
+    "section": "Parameters",
+    "text": "Parameters\n\n\n\n\n\n\n\n\n\nName\nType\nDescription\nDefault\n\n\n\n\nn_obs\nint\nThe number of observations to generate.\n1000\n\n\nate\nfloat\nThe average treatment effect \\(\\tau_0\\).\n4.0\n\n\nn_confounders\nint\nThe number of confounders \\(\\mathbf{W_i}\\) to generate.\n10\n\n\ndgp\nstr\nThe data generating process to use. Can be “make_plr_CCDDHNR20” or “make_plr_turrell2018”.\n'make_plr_CCDDHNR2018'\n\n\nseed\nint | None\nThe seed to use for the random number generator.\nNone\n\n\n**doubleml_kwargs\n\nAdditional keyword arguments to pass to the data generating process.\n{}"
+  },
+  {
+    "objectID": "04_Reference/make_partially_linear_dataset_constant.html#returns",
+    "href": "04_Reference/make_partially_linear_dataset_constant.html#returns",
+    "title": "make_partially_linear_dataset_constant",
+    "section": "Returns",
+    "text": "Returns\n\n\n\n\n\n\n\n\nName\nType\nDescription\n\n\n\n\ndf\npandas.DataFrame\nThe generated dataset where y is the outcome, d is the treatment, and W are the confounders.\n\n\ntrue_cates\nnumpy.ndarray\nThe true conditional average treatment effects, which are all equal to the ATE here.\n\n\ntrue_ate\nfloat\nThe true average treatment effect."
+  },
+  {
+    "objectID": "04_Reference/make_partially_linear_dataset_constant.html#examples",
+    "href": "04_Reference/make_partially_linear_dataset_constant.html#examples",
+    "title": "make_partially_linear_dataset_constant",
+    "section": "Examples",
+    "text": "Examples\n\nfrom caml.extensions.synthetic_data import make_partially_linear_dataset_constant\ndf, true_cates, true_ate = make_partially_linear_dataset_constant(n_obs=1000,\n                                                    ate=4.0,\n                                                    n_confounders=10,\n                                                    dgp=\"make_plr_CCDDHNR2018\",\n                                                    seed=1)\n\nprint(f\"True CATES: {true_cates[:5]}\")\nprint(f\"True ATE: {true_ate}\")\nprint(df.head())\n\nTrue CATES: [4. 4. 4. 4. 4.]\nTrue ATE: 4.0\n         W1        W2        W3        W4        W5        W6        W7  \\\n0 -1.799808 -0.830362 -0.775800 -2.430475 -1.759428 -0.196538 -0.392579   \n1 -2.238925 -2.107779 -1.619264 -1.816121 -2.084809 -0.456936  0.118781   \n2  1.069028  1.616054  1.959420  1.398880  0.058545  0.370891  0.161045   \n3  0.497020 -0.399126 -0.019305  0.230080  0.640361  1.233185  0.906313   \n4 -1.749809 -0.315699 -0.283176  0.439451  0.819941  0.156514  0.059722   \n\n         W8        W9       W10         y         d  \n0 -0.827537 -0.735652 -1.127103 -6.074658 -1.843476  \n1  0.270647  0.199401  0.049088 -8.534573 -1.969429  \n2  0.118180  0.438721  0.280880  4.915427  0.935840  \n3  1.031123 -0.373092  0.442367 -0.037117 -0.209740  \n4  0.472781  0.030157  1.174463 -7.922597 -1.903480"
+  },
+  {
+    "objectID": "04_Reference/logging.setup_logging.html",
+    "href": "04_Reference/logging.setup_logging.html",
+    "title": "logging.setup_logging",
+    "section": "",
+    "text": "logging.setup_logging\nlogging.setup_logging(verbose=1)\nSet up logging configuration.\nThis function configures the logging module with a basic configuration. It sets the logging level to INFO and the log message format to only include the message itself. The logging handler used is rich_handler.\n\n\n\n\n Back to top"
+  },
+  {
+    "objectID": "04_Reference/utils.cls_typechecked.html",
+    "href": "04_Reference/utils.cls_typechecked.html",
+    "title": "utils.cls_typechecked",
+    "section": "",
+    "text": "utils.cls_typechecked(cls)\nClass decorator to typecheck all methods of a class.\n\n\n\n\n\nName\nType\nDescription\nDefault\n\n\n\n\ncls\n\nThe class to decorate.\nrequired\n\n\n\n\n\n\n\n\n\nType\nDescription\n\n\n\n\ncls: The decorated class."
+  },
+  {
+    "objectID": "04_Reference/utils.cls_typechecked.html#parameters",
+    "href": "04_Reference/utils.cls_typechecked.html#parameters",
+    "title": "utils.cls_typechecked",
+    "section": "",
+    "text": "Name\nType\nDescription\nDefault\n\n\n\n\ncls\n\nThe class to decorate.\nrequired"
+  },
+  {
+    "objectID": "04_Reference/utils.cls_typechecked.html#returns",
+    "href": "04_Reference/utils.cls_typechecked.html#returns",
+    "title": "utils.cls_typechecked",
+    "section": "",
+    "text": "Type\nDescription\n\n\n\n\ncls: The decorated class."
+  },
+  {
+    "objectID": "04_Reference/make_partially_linear_dataset_simple.html",
+    "href": "04_Reference/make_partially_linear_dataset_simple.html",
+    "title": "make_partially_linear_dataset_simple",
+    "section": "",
+    "text": "make_partially_linear_dataset_simple(\n    n_obs=1000,\n    n_confounders=5,\n    dim_heterogeneity=2,\n    binary_treatment=True,\n    seed=None,\n)\nSimulate data generating process from a partially linear model with a simple 1 or 2 dimensional CATE function.\nThe outcome is continuous and the treatment can be binary or continuous. The dataset is generated using the make_heterogeneous_data function from the doubleml package.\nThe general form of the data generating process is, in the case of dim_heterogeneity=1:\n\\[\ny_i= \\\\tau (x_0) d_i + g(\\mathbf{X_i})+\\epsilon_i\n\\] \\[\nd_i=f(\\mathbf{X_i})+\\eta_i\n\\]\nor, in the case of dim_heterogeneity=2:\n\\[\ny_i= \\\\tau (x_0,x_1) d_i + g(\\mathbf{X_i})+\\epsilon_i\n\\] \\[\nd_i=f(\\mathbf{X_i})+\\eta_i\n\\]\nwhere \\(y_i\\) is the outcome, \\(d_i\\) is the treatment, \\(\\mathbf{X_i}\\) are the confounders, \\(\\epsilon_i\\) and \\(\\eta_i\\) are the error terms, \\(\\\\tau\\) is the CATE function, \\(g\\) is the outcome function, and \\(f\\) is the treatment function.\nSee the doubleml documentation for more details on the specific functional forms of the data generating process.\nHere the ATE is defined as the average of the CATE function over all observations: \\(\\mathbb{E}[\\\\tau (\\cdot)]\\)\nAs a DAG, the data generating process can be roughly represented as:"
+  },
+  {
+    "objectID": "04_Reference/make_partially_linear_dataset_simple.html#parameters",
+    "href": "04_Reference/make_partially_linear_dataset_simple.html#parameters",
+    "title": "make_partially_linear_dataset_simple",
+    "section": "Parameters",
+    "text": "Parameters\n\n\n\n\n\n\n\n\n\nName\nType\nDescription\nDefault\n\n\n\n\nn_obs\nint\nThe number of observations to generate.\n1000\n\n\nn_confounders\nint\nThe number of confounders \\(X\\).\n5\n\n\ndim_heterogeneity\nint\nThe dimension of the heterogeneity \\(x_0\\) or \\((x_0,x_1)\\). Can only be 1 or 2.\n2\n\n\nbinary_treatment\nbool\nWhether the treatment \\(d\\) is binary or continuous.\nTrue\n\n\nseed\nint | None\nThe seed to use for the random number generator.\nNone"
+  },
+  {
+    "objectID": "04_Reference/make_partially_linear_dataset_simple.html#returns",
+    "href": "04_Reference/make_partially_linear_dataset_simple.html#returns",
+    "title": "make_partially_linear_dataset_simple",
+    "section": "Returns",
+    "text": "Returns\n\n\n\n\n\n\n\n\nName\nType\nDescription\n\n\n\n\ndf\npandas.DataFrame\nThe generated dataset where y is the outcome, d is the treatment, and X are the confounders with a 1d or 2d subset utilized for heterogeneity.\n\n\ntrue_cates\nnumpy.ndarray\nThe true conditional average treatment effects.\n\n\ntrue_ate\nfloat\nThe true average treatment effect."
+  },
+  {
+    "objectID": "04_Reference/make_partially_linear_dataset_simple.html#examples",
+    "href": "04_Reference/make_partially_linear_dataset_simple.html#examples",
+    "title": "make_partially_linear_dataset_simple",
+    "section": "Examples",
+    "text": "Examples\n\nfrom caml.extensions.synthetic_data import make_partially_linear_dataset_simple\ndf, true_cates, true_ate = make_partially_linear_dataset_simple(n_obs=1000,\n                                                                n_confounders=5,\n                                                                dim_heterogeneity=2,\n                                                                binary_treatment=True,\n                                                                seed=1)\n\nprint(f\"True CATES: {true_cates[:5]}\")\nprint(f\"True ATE: {true_ate}\")\nprint(df.head())\n\nTrue CATES: [5.07318438 4.22638341 4.84246206 5.02852819 7.30906609]\nTrue ATE: 4.434805144050488\n          y    d        X0        X1        X2        X3        X4\n0  5.814804  1.0  0.560647  0.182920  0.938085  0.721671  0.209634\n1  4.593199  1.0  0.113353  0.358469  0.271148  0.908152  0.497946\n2  1.489081  0.0  0.970009  0.981170  0.319852  0.034913  0.003447\n3  6.569753  1.0  0.386105  0.317130  0.339849  0.232991  0.463512\n4  8.249305  1.0  0.733222  0.360575  0.903222  0.600965  0.110013"
+  },
+  {
+    "objectID": "02_Concepts/theory.html",
+    "href": "02_Concepts/theory.html",
+    "title": "Econometric Theory",
+    "section": "",
+    "text": "Forthcoming\n\n\n\n Back to top",
+    "crumbs": [
+      "Econometric Theory"
+    ]
+  },
+  {
+    "objectID": "05_Contributors/documentation.html",
+    "href": "05_Contributors/documentation.html",
+    "title": "Documentation",
+    "section": "",
+    "text": "This repository uses  & quartodoc for documentation. All files relating to the documentation are under the docs/ directory. Quarto & quartodoc provide very detailed documentation on usage so I will refer the reader to these resources for more details.\nTo build the documentation, run the following command from the projects root directory:\nquartodoc build --config docs/_quarto.yml\nAnd to preview the documentation, run the following command:\nquarto preview docs/\nThe documentation preview will be hosted on http://localhost:8000/. Note that the quarto preview will be checking for live updates & applying them in real-time. In some cases, the changes will not manifest until you rerun quartodoc build --config docs/_quarto.yml. In general, this will occur when you make changes to the “quartodoc:” section of the docs/_quarto.yml file or any corresponding API changes.\n\n\n\n Back to top",
+    "crumbs": [
+      "Documentation"
+    ]
+  },
+  {
+    "objectID": "05_Contributors/testing.html",
+    "href": "05_Contributors/testing.html",
+    "title": "Testing",
+    "section": "",
+    "text": "We utilize marimo notebooks under the notebooks/dev/ directory for testing the api. After setting up the envionment, you can run marimo edit to host notebook server on your local machine. For any examples worth including in the documentation, we add these notebooks to the notebooks/examples/ directory.\nFeel free to go about your development process however you see fit, but for any major functionality changes, make sure any examples are updated accordingly. If you choose to develop with Jupyter notebooks, you can convert to marimo via marimo convert *.ipynb -o *.py and vice-versa.",
+    "crumbs": [
+      "Testing"
+    ]
+  },
+  {
+    "objectID": "05_Contributors/testing.html#unit-testing",
+    "href": "05_Contributors/testing.html#unit-testing",
+    "title": "Testing",
+    "section": "Unit Testing",
+    "text": "Unit Testing\nUnit tests are under the tests/caml/ directory following the same structure of the caml/ prefixed by “test_”. For example, if we wanted to write tests for cate.py, we would create a new file to build these tests tests/caml/core/test_cate.py.\nTo run unit tests, simply run pytest in terminal:\nThis will run your unit tests (with respective output printed in terminal).\nAdditionally, an html report of the coverage will be exported to tests/reports/htmlcov, which can be a useful tool for interactively evaluating the coverage of your unit tests.",
+    "crumbs": [
+      "Testing"
+    ]
+  },
+  {
+    "objectID": "05_Contributors/testing.html#advanced-testing",
+    "href": "05_Contributors/testing.html#advanced-testing",
+    "title": "Testing",
+    "section": "Advanced Testing",
+    "text": "Advanced Testing\nUnit tests are automatically run during PR process via GitHub Actions. Integration & regression testing forthcoming.",
+    "crumbs": [
+      "Testing"
+    ]
+  },
+  {
+    "objectID": "assets/marimo/Synthetic Data Generation.html",
+    "href": "assets/marimo/Synthetic Data Generation.html",
+    "title": "Caml Synthetic Data API Usage",
+    "section": "",
+    "text": "import marimo as mo\nfrom caml.extensions.synthetic_data import CamlSyntheticDataGenerator"
+  },
+  {
+    "objectID": "assets/marimo/Synthetic Data Generation.html#generate-data",
+    "href": "assets/marimo/Synthetic Data Generation.html#generate-data",
+    "title": "Caml Synthetic Data API Usage",
+    "section": "Generate Data",
+    "text": "Generate Data\n\ndata =  CamlSyntheticDataGenerator(n_obs=10_000,\n                                  n_cont_outcomes=1,\n                                  n_binary_outcomes=1,\n                                  n_cont_treatments=1,\n                                  n_binary_treatments=1,\n                                  n_discrete_treatments=1,\n                                  n_cont_confounders=1,\n                                  n_binary_confounders=1,\n                                  n_discrete_confounders=1,\n                                  n_cont_modifiers=1,\n                                  n_binary_modifiers=1,\n                                  n_discrete_modifiers=1,\n                                  n_confounding_modifiers=1,\n                                  stddev_outcome_noise=3,\n                                  stddev_treatment_noise=3,\n                                  causal_model_functional_form=\"linear\",\n                                  n_nonlinear_transformations=10,\n                                  n_nonlinear_interactions=5,\n                                  seed=15)"
+  },
+  {
+    "objectID": "assets/marimo/Synthetic Data Generation.html#simulated-dataframe",
+    "href": "assets/marimo/Synthetic Data Generation.html#simulated-dataframe",
+    "title": "Caml Synthetic Data API Usage",
+    "section": "Simulated Dataframe",
+    "text": "Simulated Dataframe\n\ndata.df"
+  },
+  {
+    "objectID": "assets/marimo/Synthetic Data Generation.html#dgp",
+    "href": "assets/marimo/Synthetic Data Generation.html#dgp",
+    "title": "Caml Synthetic Data API Usage",
+    "section": "DGP",
+    "text": "DGP\n\nfor k,v in data.dgp.items():\n    print(k)\n    print(v)"
+  },
+  {
+    "objectID": "assets/marimo/Synthetic Data Generation.html#true-conditional-average-treatment-effects-cates",
+    "href": "assets/marimo/Synthetic Data Generation.html#true-conditional-average-treatment-effects-cates",
+    "title": "Caml Synthetic Data API Usage",
+    "section": "True Conditional Average Treatment Effects (CATEs)",
+    "text": "True Conditional Average Treatment Effects (CATEs)\n\ndata.cates"
+  },
+  {
+    "objectID": "assets/marimo/Synthetic Data Generation.html#true-average-treatment-effects-ates",
+    "href": "assets/marimo/Synthetic Data Generation.html#true-average-treatment-effects-ates",
+    "title": "Caml Synthetic Data API Usage",
+    "section": "True Average Treatment Effects (ATEs)",
+    "text": "True Average Treatment Effects (ATEs)\n\ndata.ates"
+  },
+  {
+    "objectID": "01_Home/installation.html",
+    "href": "01_Home/installation.html",
+    "title": "Installation",
+    "section": "",
+    "text": "The most recent version of CamML can be install via :\npip install caml\nand pinned to a specific version via:\npip install caml=={version}\nTo install optional/extra dependencies, run:\npip install caml[extra]\nWe currently support the following extras: pyspark & polars.\nNote: CaML is in a highly experimental state and no stable release exists. Breaking changes to the API may occur at any time.\n\n\n\n Back to top",
+    "crumbs": [
+      "Installation"
+    ]
+  },
+  {
+    "objectID": "index.html",
+    "href": "index.html",
+    "title": "CaML - Causal ML",
+    "section": "",
+    "text": "Causal Machine Learning",
+    "crumbs": [
+      "Welcome!"
+    ]
+  },
+  {
+    "objectID": "index.html#welcome",
+    "href": "index.html#welcome",
+    "title": "CaML - Causal ML",
+    "section": "Welcome!",
+    "text": "Welcome!\nCaML provides a high-level API for an opinionated framework in performing Causal ML to estimate Average Treatment Effects (ATEs), Group Average Treatment Effects (GATEs), and Conditional Average Treatment Effects (CATEs), and to provide mechanisms to utilize these models for out of sample validation, prediction, & policy prescription.\nThe codebase is comprised primarily of extensions & abstractions over top of EconML & DoubleML with techniques motivated heavily by Causal ML Book and additional research.",
+    "crumbs": [
+      "Welcome!"
+    ]
+  },
+  {
+    "objectID": "index.html#background",
+    "href": "index.html#background",
+    "title": "CaML - Causal ML",
+    "section": "Background",
+    "text": "Background\nThe origins of CaML are rooted in a desire to develop a set of helper tools to abstract and streamline techniques & best pratices in Causal ML/Econometrics for estimating ATEs, GATEs, and CATEs, along with policy prescription. In addition, we seek to provide a framework for validating & scoring these models on out of sample data to help set the foundations for an AutoML framework for CATE models.\nAs we began working on these helper tools, we begun to see the value in reformulating this framework into a reusable package for wider use amongst the community and to provide an opinionated framework that can be integrated into productionalized systems, particularly experimentation platforms, for efficient estimation of causal parameters for reporting & decision-making purposes.\nAll of the standard assumptions for causal inference still apply in order for these tools & techniques to provide unbiased inference. A great resource for the CausalML landscape is the CausalML book written and publicly available generously by V. Chernozhukov, C. Hansen, N. Kallus, M. Spindler, & V. Syrgkanis.\nGiven a key motivation is to provide a tool for productionalized systems, we are building this package with interoperability and extensibility as core values. As of now, the tools utilized still rely on in-memory datasets for estimation (via EconML for causal models & flaml for AutoML of nuissance functions), but we leverage Ray & Spark for distributing certain processes where appropriate and if available for the user.",
+    "crumbs": [
+      "Welcome!"
+    ]
+  },
+  {
+    "objectID": "03_Examples/Synthetic Data Generation.html",
+    "href": "03_Examples/Synthetic Data Generation.html",
+    "title": "Caml Synthetic Data API Usage",
+    "section": "",
+    "text": "from caml.extensions.synthetic_data import CamlSyntheticDataGenerator",
+    "crumbs": [
+      "Caml Synthetic Data API Usage"
+    ]
+  },
+  {
+    "objectID": "03_Examples/Synthetic Data Generation.html#generate-data",
+    "href": "03_Examples/Synthetic Data Generation.html#generate-data",
+    "title": "Caml Synthetic Data API Usage",
+    "section": "Generate Data",
+    "text": "Generate Data\n\ndata =  CamlSyntheticDataGenerator(n_obs=10_000,\n                                  n_cont_outcomes=1,\n                                  n_binary_outcomes=1,\n                                  n_cont_treatments=1,\n                                  n_binary_treatments=1,\n                                  n_discrete_treatments=1,\n                                  n_cont_confounders=1,\n                                  n_binary_confounders=1,\n                                  n_discrete_confounders=1,\n                                  n_cont_modifiers=1,\n                                  n_binary_modifiers=1,\n                                  n_discrete_modifiers=1,\n                                  n_confounding_modifiers=1,\n                                  stddev_outcome_noise=3,\n                                  stddev_treatment_noise=3,\n                                  causal_model_functional_form=\"linear\",\n                                  n_nonlinear_transformations=10,\n                                  n_nonlinear_interactions=5,\n                                  seed=15)",
+    "crumbs": [
+      "Caml Synthetic Data API Usage"
+    ]
+  },
+  {
+    "objectID": "03_Examples/Synthetic Data Generation.html#simulated-dataframe",
+    "href": "03_Examples/Synthetic Data Generation.html#simulated-dataframe",
+    "title": "Caml Synthetic Data API Usage",
+    "section": "Simulated Dataframe",
+    "text": "Simulated Dataframe\n\ndata.df\n\n\n\n\n\n\n\n\nW1_continuous\nW2_binary\nW3_discrete\nX1_continuous\nX2_binary\nX3_discrete\nT1_continuous\nT2_binary\nT3_discrete\nY1_continuous\nY2_binary\n\n\n\n\n0\n0.706567\n1\n0\n-1.652559\n1\n1\n2.494731\n1\n1\n-25.198250\n1\n\n\n1\n3.315282\n1\n2\n-2.775285\n1\n0\n7.464238\n0\n0\n-70.792577\n1\n\n\n2\n1.908430\n1\n3\n-3.451824\n0\n1\n3.470709\n0\n1\n-43.344150\n1\n\n\n3\n3.743169\n1\n0\n-4.319313\n1\n0\n8.065827\n0\n4\n-131.063425\n1\n\n\n4\n2.781994\n1\n3\n-2.901003\n1\n0\n8.161921\n0\n4\n-107.833216\n1\n\n\n...\n...\n...\n...\n...\n...\n...\n...\n...\n...\n...\n...\n\n\n9995\n1.853102\n0\n2\n-2.369628\n0\n1\n4.856855\n0\n0\n-30.105565\n1\n\n\n9996\n1.710607\n1\n2\n-2.642743\n1\n1\n4.286633\n0\n0\n-45.993240\n1\n\n\n9997\n4.942256\n0\n0\n-2.908543\n0\n0\n12.208850\n0\n4\n-103.391312\n1\n\n\n9998\n3.125018\n1\n1\n-3.039957\n0\n3\n15.905126\n0\n4\n-165.097366\n0\n\n\n9999\n2.500979\n0\n0\n-3.320707\n0\n3\n10.460442\n0\n4\n-127.790919\n1\n\n\n\n\n10000 rows × 11 columns",
+    "crumbs": [
+      "Caml Synthetic Data API Usage"
+    ]
+  },
+  {
+    "objectID": "03_Examples/Synthetic Data Generation.html#dgp",
+    "href": "03_Examples/Synthetic Data Generation.html#dgp",
+    "title": "Caml Synthetic Data API Usage",
+    "section": "DGP",
+    "text": "DGP\n\nfor k,v in data.dgp.items():\n    print(k)\n    print(v)\n\nT1_continuous\n      covariates    params global_transformation\n0  W1_continuous  2.601096                  None\n1      W2_binary -1.214932                  None\n2    W3_discrete -0.128753                  None\n3    X3_discrete  1.605966                  None\nT2_binary\n      covariates    params global_transformation\n0  W1_continuous -1.633325               Sigmoid\n1      W2_binary  0.331532               Sigmoid\n2    W3_discrete -2.018670               Sigmoid\n3    X3_discrete  0.281986               Sigmoid\nT3_discrete\n      covariates  cat_1_params  cat_2_params global_transformation\n0  W1_continuous      1.251009     -2.752482               Softmax\n1      W2_binary     -0.364808      2.056047               Softmax\n2    W3_discrete     -0.068131      1.673660               Softmax\n3    X3_discrete      1.310578      2.357792               Softmax\nY1_continuous\n                         covariates    params global_transformation\n0                     W1_continuous -1.553833                  None\n1                         W2_binary -2.998091                  None\n2                       W3_discrete -2.915301                  None\n3                     X1_continuous -1.813285                  None\n4                         X2_binary  0.739353                  None\n5                       X3_discrete  0.082275                  None\n6                     T1_continuous -1.643250                  None\n7                         T2_binary -0.409790                  None\n8                       T3_discrete -2.571727                  None\n9   int_T1_continuous_X1_continuous  1.374265                  None\n10      int_T1_continuous_X2_binary -2.330711                  None\n11    int_T1_continuous_X3_discrete -0.588478                  None\n12      int_T2_binary_X1_continuous -1.927494                  None\n13          int_T2_binary_X2_binary -0.416015                  None\n14        int_T2_binary_X3_discrete -1.346297                  None\n15    int_T3_discrete_X1_continuous  1.974255                  None\n16        int_T3_discrete_X2_binary -0.304700                  None\n17      int_T3_discrete_X3_discrete -0.754942                  None\nY2_binary\n                         covariates    params global_transformation\n0                     W1_continuous -0.906427               Sigmoid\n1                         W2_binary -2.316021               Sigmoid\n2                       W3_discrete  0.545442               Sigmoid\n3                     X1_continuous -0.204994               Sigmoid\n4                         X2_binary  0.417902               Sigmoid\n5                       X3_discrete  2.195866               Sigmoid\n6                     T1_continuous  2.169852               Sigmoid\n7                         T2_binary -2.210767               Sigmoid\n8                       T3_discrete -2.387556               Sigmoid\n9   int_T1_continuous_X1_continuous -0.145369               Sigmoid\n10      int_T1_continuous_X2_binary -1.010015               Sigmoid\n11    int_T1_continuous_X3_discrete -1.460272               Sigmoid\n12      int_T2_binary_X1_continuous  1.614527               Sigmoid\n13          int_T2_binary_X2_binary  2.939611               Sigmoid\n14        int_T2_binary_X3_discrete -0.418421               Sigmoid\n15    int_T3_discrete_X1_continuous -2.972694               Sigmoid\n16        int_T3_discrete_X2_binary  2.586574               Sigmoid\n17      int_T3_discrete_X3_discrete -1.248249               Sigmoid",
+    "crumbs": [
+      "Caml Synthetic Data API Usage"
+    ]
+  },
+  {
+    "objectID": "03_Examples/Synthetic Data Generation.html#true-conditional-average-treatment-effects-cates",
+    "href": "03_Examples/Synthetic Data Generation.html#true-conditional-average-treatment-effects-cates",
+    "title": "Caml Synthetic Data API Usage",
+    "section": "True Conditional Average Treatment Effects (CATEs)",
+    "text": "True Conditional Average Treatment Effects (CATEs)\n\ndata.cates\n\n\n\n\n\n\n\n\nCATE_of_T1_continuous_on_Y1_continuous\nCATE_of_T2_binary_on_Y1_continuous\nCATE_of_T3_discrete_on_Y1_continuous_level_1_v_0\nCATE_of_T3_discrete_on_Y1_continuous_level_4_v_0\nCATE_of_T3_discrete_on_Y1_continuous_level_3_v_0\nCATE_of_T3_discrete_on_Y1_continuous_level_2_v_0\nCATE_of_T1_continuous_on_Y2_binary\nCATE_of_T2_binary_on_Y2_binary\nCATE_of_T3_discrete_on_Y2_binary_level_1_v_0\nCATE_of_T3_discrete_on_Y2_binary_level_4_v_0\nCATE_of_T3_discrete_on_Y2_binary_level_3_v_0\nCATE_of_T3_discrete_on_Y2_binary_level_2_v_0\n\n\n\n\n0\n-6.833492\n1.013194\n-6.893941\n-27.575765\n-20.681824\n-13.787882\n0.000000\n0.000000\n0.166471\n0.166471\n0.166471\n0.166471\n\n\n1\n-7.787938\n4.523539\n-8.355547\n-33.422188\n-25.066641\n-16.711094\n0.000000\n0.000000\n0.000000\n0.000000\n0.000000\n0.000000\n\n\n2\n-6.975448\n4.897281\n-10.141449\n-40.565795\n-30.424346\n-20.282897\n0.000000\n0.000000\n0.000000\n0.000000\n0.000000\n0.000000\n\n\n3\n-9.909840\n7.499642\n-11.403851\n-45.615403\n-34.211552\n-22.807702\n0.000000\n0.000000\n0.000000\n0.000000\n0.000000\n0.000000\n\n\n4\n-7.960707\n4.765859\n-8.603745\n-34.414982\n-25.811236\n-17.207491\n0.000000\n0.000000\n0.000000\n0.000000\n0.000000\n0.000000\n\n\n...\n...\n...\n...\n...\n...\n...\n...\n...\n...\n...\n...\n...\n\n\n9995\n-5.488225\n2.811356\n-8.004919\n-32.019678\n-24.014758\n-16.009839\n0.000000\n0.000000\n0.000000\n0.000000\n0.000000\n0.000000\n\n\n9996\n-8.194268\n2.921768\n-8.848818\n-35.395272\n-26.546454\n-17.697636\n0.000000\n0.000000\n0.000000\n0.000000\n0.000000\n0.000000\n\n\n9997\n-5.640359\n5.196408\n-8.313932\n-33.255728\n-24.941796\n-16.627864\n0.000000\n0.000000\n0.000000\n0.000000\n0.000000\n0.000000\n\n\n9998\n-7.586390\n1.410815\n-10.838203\n-43.352811\n-32.514608\n-21.676405\n0.000000\n0.000000\n0.000000\n0.000000\n0.000000\n0.000000\n\n\n9999\n-7.972215\n1.951960\n-11.392476\n-45.569903\n-34.177427\n-22.784951\n-0.347813\n-0.800617\n0.000000\n0.800617\n0.069235\n0.000000\n\n\n\n\n10000 rows × 12 columns",
+    "crumbs": [
+      "Caml Synthetic Data API Usage"
+    ]
+  },
+  {
+    "objectID": "03_Examples/Synthetic Data Generation.html#true-average-treatment-effects-ates",
+    "href": "03_Examples/Synthetic Data Generation.html#true-average-treatment-effects-ates",
+    "title": "Caml Synthetic Data API Usage",
+    "section": "True Average Treatment Effects (ATEs)",
+    "text": "True Average Treatment Effects (ATEs)\n\ndata.ates\n\n\n\n\n\n\n\n\nTreatment\nATE\n\n\n\n\n0\nT1_continuous_on_Y1_continuous\n-7.420280\n\n\n1\nT2_binary_on_Y1_continuous\n3.120486\n\n\n2\nT3_discrete_on_Y1_continuous_level_1_v_0\n-9.381688\n\n\n3\nT3_discrete_on_Y1_continuous_level_4_v_0\n-37.526754\n\n\n4\nT3_discrete_on_Y1_continuous_level_3_v_0\n-28.145065\n\n\n5\nT3_discrete_on_Y1_continuous_level_2_v_0\n-18.763377\n\n\n6\nT1_continuous_on_Y2_binary\n-0.000474\n\n\n7\nT2_binary_on_Y2_binary\n-0.109855\n\n\n8\nT3_discrete_on_Y2_binary_level_1_v_0\n0.139524\n\n\n9\nT3_discrete_on_Y2_binary_level_4_v_0\n0.247014\n\n\n10\nT3_discrete_on_Y2_binary_level_3_v_0\n0.219988\n\n\n11\nT3_discrete_on_Y2_binary_level_2_v_0\n0.186775",
+    "crumbs": [
+      "Caml Synthetic Data API Usage"
+    ]
+  },
+  {
+    "objectID": "01_Home/quickstart.html",
+    "href": "01_Home/quickstart.html",
+    "title": "Tutorial: Quick Start",
+    "section": "",
+    "text": "Forthcoming\n\n\n\n Back to top",
+    "crumbs": [
+      "Tutorial: Quick Start"
+    ]
+  },
+  {
+    "objectID": "05_Contributors/getting_started.html",
+    "href": "05_Contributors/getting_started.html",
+    "title": "Contributing to CaML",
+    "section": "",
+    "text": "Welcome to the CaML contributor guide!\nWe manage out project via Github and leverage Github Flow for managing our development process. This guide will help you get started as a contributor and guide you through the process of contributing to CaML.",
+    "crumbs": [
+      "Contributing to CaML"
+    ]
+  },
+  {
+    "objectID": "05_Contributors/getting_started.html#general-contribution-guide",
+    "href": "05_Contributors/getting_started.html#general-contribution-guide",
+    "title": "Contributing to CaML",
+    "section": "General Contribution Guide",
+    "text": "General Contribution Guide\nPull requests are the best way to make changes to CaML:\n\nFork the repo amd create your branch from main branch\nClone the repository locally\nFor environment setup, see Environment Setup\nFor documentation, see Documentation\nFor testing, see Testing\nTry best to follow commit message conventions outlined here\nCreate a pull request & fill out the generated PR template\n\nAll github actions & checks will be required to complete successfully prior to merging.",
+    "crumbs": [
+      "Contributing to CaML"
+    ]
+  },
+  {
+    "objectID": "05_Contributors/getting_started.html#report-bugs-using-github-issues",
+    "href": "05_Contributors/getting_started.html#report-bugs-using-github-issues",
+    "title": "Contributing to CaML",
+    "section": "Report Bugs using Github Issues",
+    "text": "Report Bugs using Github Issues\nBugs, features, and any other feedback can be submitted using the Github issues page.",
+    "crumbs": [
+      "Contributing to CaML"
+    ]
+  },
+  {
+    "objectID": "05_Contributors/environment.html",
+    "href": "05_Contributors/environment.html",
+    "title": "Environment Setup",
+    "section": "",
+    "text": "To help aid in environment setup, we’ve created a VS Code devcontainer for quick, isolated, and standardized environment creation.\n\n\n\nDocker Desktop or your choice of docker engine\nVisual Studio Code\n\n\n\n\n\nEnsure docker engine is running\nOpen VSCode in cloned project directory\nInstall VSCode Dev Containers extension\nOpen the current folder in dev container",
+    "crumbs": [
+      "Environment Setup"
+    ]
+  },
+  {
+    "objectID": "05_Contributors/environment.html#with-vscode-devcontainers",
+    "href": "05_Contributors/environment.html#with-vscode-devcontainers",
+    "title": "Environment Setup",
+    "section": "",
+    "text": "To help aid in environment setup, we’ve created a VS Code devcontainer for quick, isolated, and standardized environment creation.\n\n\n\nDocker Desktop or your choice of docker engine\nVisual Studio Code\n\n\n\n\n\nEnsure docker engine is running\nOpen VSCode in cloned project directory\nInstall VSCode Dev Containers extension\nOpen the current folder in dev container",
+    "crumbs": [
+      "Environment Setup"
+    ]
+  },
+  {
+    "objectID": "05_Contributors/environment.html#without-devcontainers",
+    "href": "05_Contributors/environment.html#without-devcontainers",
+    "title": "Environment Setup",
+    "section": "Without Devcontainers",
+    "text": "Without Devcontainers\n\nPrerequisites\n\nuv v0.5.23\npython v3.10\n\n\n\nSetup\n\nOpen repository in ide of choice\nRun uv sync --all-groups --frozen from command line\nActivate the virtual environment via source .venv/bin/activate\nRun pre-commit install to install pre-commit hooks\n\nSee uv documentation for details on managing environment and project depencencies.",
+    "crumbs": [
+      "Environment Setup"
+    ]
+  },
+  {
+    "objectID": "02_Concepts/motivation.html",
+    "href": "02_Concepts/motivation.html",
+    "title": "Motivation",
+    "section": "",
+    "text": "Forthcoming\n\n\n\n Back to top",
+    "crumbs": [
+      "Motivation"
+    ]
+  },
+  {
+    "objectID": "04_Reference/generics.cls_typechecked.html",
+    "href": "04_Reference/generics.cls_typechecked.html",
+    "title": "generics.cls_typechecked",
+    "section": "",
+    "text": "generics.cls_typechecked(cls)\nClass decorator to typecheck all methods of a class.\n\n\n\n\n\nName\nType\nDescription\nDefault\n\n\n\n\ncls\n\nThe class to decorate.\nrequired\n\n\n\n\n\n\n\n\n\nName\nType\nDescription\n\n\n\n\n\ncls: The decorated class."
+  },
+  {
+    "objectID": "04_Reference/generics.cls_typechecked.html#parameters",
+    "href": "04_Reference/generics.cls_typechecked.html#parameters",
+    "title": "generics.cls_typechecked",
+    "section": "",
+    "text": "Name\nType\nDescription\nDefault\n\n\n\n\ncls\n\nThe class to decorate.\nrequired"
+  },
+  {
+    "objectID": "04_Reference/generics.cls_typechecked.html#returns",
+    "href": "04_Reference/generics.cls_typechecked.html#returns",
+    "title": "generics.cls_typechecked",
+    "section": "",
+    "text": "Name\nType\nDescription\n\n\n\n\n\ncls: The decorated class."
+  },
+  {
+    "objectID": "04_Reference/index.html",
+    "href": "04_Reference/index.html",
+    "title": "API Reference",
+    "section": "",
+    "text": "from caml import *\n\n\n\nCamlCATE\nThe CamlCATE class represents an opinionated framework of Causal Machine Learning techniques for estimating highly accurate conditional average treatment effects (CATEs).\n\n\n\n\n\n\nfrom caml.extensions.synthetic_data import *\n\n\n\nCamlSyntheticDataGenerator\nGenerate highly flexible synthetic data for use in causal inference and CaML testing.\n\n\nmake_partially_linear_dataset_simple\nSimulate data generating process from a partially linear model with a simple 1 or 2 dimensional CATE function.\n\n\nmake_partially_linear_dataset_constant\nSimulate a data generating process from a partially linear model with a constant treatment effect (ATE only).\n\n\nmake_fully_heterogeneous_dataset\nSimulate data generating process from an interactive regression model with fully heterogenous treatment effects.\n\n\n\n\n\n\nfrom caml.extensions.plots import *\n\n\n\ncate_histogram_plot\nPlots a histogram the estimated CATEs.\n\n\ncate_line_plot\nPlots a line plot of the ordered estimated CATEs as a rolling mean with optional confidence intervals.\n\n\ncate_true_vs_estimated_plot\nPlots a scatter plot of the estimated CATEs against the true CATEs.\n\n\n\n\n\n\n\n\n\ngenerics.generate_random_string\nFunction to generate a random string of ascii lowercase letters and digits of length N.\n\n\ngenerics.cls_typechecked\nClass decorator to typecheck all methods of a class.\n\n\nlogging.setup_logging\nSet up logging configuration."
+  },
+  {
+    "objectID": "04_Reference/index.html#caml-core",
+    "href": "04_Reference/index.html#caml-core",
+    "title": "API Reference",
+    "section": "",
+    "text": "from caml import *\n\n\n\nCamlCATE\nThe CamlCATE class represents an opinionated framework of Causal Machine Learning techniques for estimating highly accurate conditional average treatment effects (CATEs)."
+  },
+  {
+    "objectID": "04_Reference/index.html#synthetic-data-generation",
+    "href": "04_Reference/index.html#synthetic-data-generation",
+    "title": "API Reference",
+    "section": "",
+    "text": "from caml.extensions.synthetic_data import *\n\n\n\nCamlSyntheticDataGenerator\nGenerate highly flexible synthetic data for use in causal inference and CaML testing.\n\n\nmake_partially_linear_dataset_simple\nSimulate data generating process from a partially linear model with a simple 1 or 2 dimensional CATE function.\n\n\nmake_partially_linear_dataset_constant\nSimulate a data generating process from a partially linear model with a constant treatment effect (ATE only).\n\n\nmake_fully_heterogeneous_dataset\nSimulate data generating process from an interactive regression model with fully heterogenous treatment effects."
+  },
+  {
+    "objectID": "04_Reference/index.html#plots",
+    "href": "04_Reference/index.html#plots",
+    "title": "API Reference",
+    "section": "",
+    "text": "from caml.extensions.plots import *\n\n\n\ncate_histogram_plot\nPlots a histogram the estimated CATEs.\n\n\ncate_line_plot\nPlots a line plot of the ordered estimated CATEs as a rolling mean with optional confidence intervals.\n\n\ncate_true_vs_estimated_plot\nPlots a scatter plot of the estimated CATEs against the true CATEs."
+  },
+  {
+    "objectID": "04_Reference/index.html#developer-tools",
+    "href": "04_Reference/index.html#developer-tools",
+    "title": "API Reference",
+    "section": "",
+    "text": "generics.generate_random_string\nFunction to generate a random string of ascii lowercase letters and digits of length N.\n\n\ngenerics.cls_typechecked\nClass decorator to typecheck all methods of a class.\n\n\nlogging.setup_logging\nSet up logging configuration."
+  },
+  {
+    "objectID": "04_Reference/CamlCATE.html",
+    "href": "04_Reference/CamlCATE.html",
+    "title": "CamlCATE",
+    "section": "",
+    "text": "CamlCATE(\n    self,\n    df,\n    Y,\n    T,\n    X,\n    W=None,\n    *,\n    discrete_treatment=True,\n    discrete_outcome=False,\n    seed=None,\n    verbose=1,\n)\nThe CamlCATE class represents an opinionated framework of Causal Machine Learning techniques for estimating highly accurate conditional average treatment effects (CATEs).\nThe CATE is defined formally as \\(\\mathbb{E}[\\tau|\\mathbf{X}]\\) where \\(\\tau\\) is the treatment effect and \\(\\mathbf{X}\\) is the set of covariates.\nThis class is built on top of the EconML library and provides a high-level API for fitting, validating, and making inference with CATE models, with best practices built directly into the API. The class is designed to be easy to use and understand, while still providing flexibility for advanced users. The class is designed to be used with pandas, polars, or pyspark backends, which ultimately get converted to NumPy Arrays under the hood to provide a level of extensibility & interoperability across different data processing frameworks.\nThe primary workflow for the CamlCATE class is as follows:\nFor technical details on conditional average treatment effects, see:\nNote: All the standard assumptions of Causal Inference apply to this class (e.g., exogeneity/unconfoundedness, overlap, positivity, etc.). The class does not check for these assumptions and assumes that the user has already thought through these assumptions before using the class.\nMulti-dimensional outcomes and treatments are not yet supported."
+  },
+  {
+    "objectID": "04_Reference/CamlCATE.html#parameters",
+    "href": "04_Reference/CamlCATE.html#parameters",
+    "title": "CamlCATE",
+    "section": "Parameters",
+    "text": "Parameters\n\n\n\n\n\n\n\n\n\nName\nType\nDescription\nDefault\n\n\n\n\ndf\npandas.DataFrame | polars.DataFrame | pyspark.sql.DataFrame\nThe input DataFrame representing the data for the CamlCATE instance.\nrequired\n\n\nY\nstr\nThe str representing the column name for the outcome variable.\nrequired\n\n\nT\nstr\nThe str representing the column name(s) for the treatment variable(s).\nrequired\n\n\nX\nlist[str]\nThe str (if unity) or list of feature names representing the feature set to be utilized for estimating heterogeneity/CATE.\nrequired\n\n\nW\nlist[str] | None\nThe str (if unity) or list of feature names representing the confounder/control feature set to be utilized only for nuisance function estimation. When W is passed, only Orthogonal learners will be leveraged.\nNone\n\n\ndiscrete_treatment\nbool\nA boolean indicating whether the treatment is discrete/categorical or continuous.\nTrue\n\n\ndiscrete_outcome\nbool\nA boolean indicating whether the outcome is binary or continuous.\nFalse\n\n\nseed\nint | None\nThe seed to use for the random number generator.\nNone\n\n\nverbose\nint\nThe verbosity level for logging. Default implies 1 (INFO). Set to 0 for no logging. Set to 2 for DEBUG.\n1"
+  },
+  {
+    "objectID": "04_Reference/CamlCATE.html#attributes",
+    "href": "04_Reference/CamlCATE.html#attributes",
+    "title": "CamlCATE",
+    "section": "Attributes",
+    "text": "Attributes\n\n\n\n\n\n\n\n\nName\nType\nDescription\n\n\n\n\ndf\npandas.DataFrame | polars.DataFrame | pyspark.sql.DataFrame\nThe input DataFrame representing the data for the CamlCATE instance.\n\n\nY\nstr\nThe str representing the column name for the outcome variable.\n\n\nT\nstr\nThe str representing the column name(s) for the treatment variable(s).\n\n\nX\nlist[str]\nThe str (if unity) or list/tuple of feature names representing the confounder/control feature set to be utilized for estimating heterogeneity/CATE and nuisance function estimation where applicable.\n\n\nW\nlist[str]\nThe str (if unity) or list/tuple of feature names representing the confounder/control feature set to be utilized only for nuisance function estimation, where applicable. These will be included by default in Meta-Learners.\n\n\ndiscrete_treatment\nbool\nA boolean indicating whether the treatment is discrete/categorical or continuous.\n\n\ndiscrete_outcome\nbool\nA boolean indicating whether the outcome is binary or continuous.\n\n\navailable_estimators\nstr\nA list of the available CATE estimators out of the box. Validity of estimator at runtime will depend on the outcome and treatment types and be automatically selected.\n\n\nmodel_Y_X_W\nsklearn.base.BaseEstimator\nThe fitted nuisance function for the outcome variable.\n\n\nmodel_Y_X_W_T\nsklearn.base.BaseEstimator\nThe fitted nuisance function for the outcome variable with treatment variable.\n\n\nmodel_T_X_W\nsklearn.base.BaseEstimator\nThe fitted nuisance function for the treatment variable.\n\n\ncate_estimators\ndict[str, econml._cate_estimator.BaseCateEstimator | econml.score.EnsembleCateEstimator]\nDictionary of fitted cate estimator objects.\n\n\nvalidation_estimator\neconml._cate_estimator.BaseCateEstimator | econml.score.EnsembleCateEstimator\nThe fitted EconML estimator object for validation.\n\n\nvalidator_results\neconml.validate.results.EvaluationResults\nThe validation results object.\n\n\nfinal_estimator\neconml._cate_estimator.BaseCateEstimator | econml.score.EnsembleCateEstimator\nThe fitted EconML estimator object on the entire dataset after validation.\n\n\ninput_names\ndict[str, list[str]]\nThe feature, outcome, and treatment names used in the CATE estimators."
+  },
+  {
+    "objectID": "04_Reference/CamlCATE.html#examples",
+    "href": "04_Reference/CamlCATE.html#examples",
+    "title": "CamlCATE",
+    "section": "Examples",
+    "text": "Examples\n\nfrom caml import CamlCATE\nfrom caml.extensions.synthetic_data import CamlSyntheticDataGenerator\n\ndata_generator = CamlSyntheticDataGenerator(seed=10)\ndf = data_generator.df\n\ncaml_obj = CamlCATE(\n    df = df,\n    Y=\"Y1_continuous\",\n    T=\"T1_binary\",\n    X=[c for c in df.columns if \"X\" in c or \"W\" in c],\n    discrete_treatment=True,\n    discrete_outcome=False,\n    seed=0,\n    verbose=1,\n)\n\nprint(caml_obj)\n\n[01/31/25 17:04:27] INFO     Logging has been set up.                                                 logging.py:50\n\n\n\n================== CamlCATE Object ==================\nData Backend: pandas\nNo. of Observations: 10,000\nOutcome Variable: Y1_continuous\nDiscrete Outcome: False\nTreatment Variable: T1_binary\nDiscrete Treatment: True\nFeatures/Confounders for Heterogeneity (X): ['W1_continuous', 'W2_continuous', 'X1_continuous', 'X2_continuous']\nFeatures/Confounders as Controls (W): []\nRandom Seed: 0"
+  },
+  {
+    "objectID": "04_Reference/CamlCATE.html#methods",
+    "href": "04_Reference/CamlCATE.html#methods",
+    "title": "CamlCATE",
+    "section": "Methods",
+    "text": "Methods\n\n\n\nName\nDescription\n\n\n\n\nauto_nuisance_functions\nLeverages AutoML to find optimal nuisance functions/regression & propensity models for use in EconML CATE estimators.\n\n\nfit_validator\nFits the CATE models on the training set and evaluates them & ensembles based on the validation set.\n\n\nvalidate\nValidates the fitted CATE models on the test set to check for generalization performance.\n\n\nfit_final\nFits the final estimator on the entire dataset, after validation and testing.\n\n\npredict\nPredicts the CATE based on the fitted final estimator for either the internal dataset or provided Data.\n\n\nsummarize\nProvides population summary statistics for the CATE predictions for either the internal results or provided results.\n\n\n\n\nauto_nuisance_functions\nCamlCATE.auto_nuisance_functions(\n    flaml_Y_kwargs=None,\n    flaml_T_kwargs=None,\n    use_ray=False,\n    use_spark=False,\n)\nLeverages AutoML to find optimal nuisance functions/regression & propensity models for use in EconML CATE estimators.\nSets the model_Y_X_W, model_Y_X_W_T, and model_T_X_W attributes to the fitted nuisance functions.\n\nParameters\n\n\n\n\n\n\n\n\n\nName\nType\nDescription\nDefault\n\n\n\n\nflaml_Y_kwargs\ndict | None\nThe keyword arguments for the FLAML AutoML search for the outcome model. Default implies the base parameters in CamlBase.\nNone\n\n\nflaml_T_kwargs\ndict | None\nThe keyword arguments for the FLAML AutoML search for the treatment model. Default implies the base parameters in CamlBase.\nNone\n\n\nuse_ray\nbool\nA boolean indicating whether to use Ray for parallel processing.\nFalse\n\n\nuse_spark\nbool\nA boolean indicating whether to use Spark for parallel processing.\nFalse\n\n\n\n\n\nExamples\n\nflaml_Y_kwargs = {\n    \"n_jobs\": -1,\n    \"time_budget\": 10,\n    \"verbose\": 0\n}\n\nflaml_T_kwargs = {\n    \"n_jobs\": -1,\n    \"time_budget\": 10,\n    \"verbose\": 0\n}\n\ncaml_obj.auto_nuisance_functions(\n    flaml_Y_kwargs=flaml_Y_kwargs,\n    flaml_T_kwargs=flaml_T_kwargs,\n    use_ray=False,\n    use_spark=False,\n)\n\nprint(caml_obj.model_Y_X_W)\nprint(caml_obj.model_Y_X_W_T)\nprint(caml_obj.model_T_X_W)\n\nRandomForestRegressor(max_features=0.7836065030168594, max_leaf_nodes=59,\n                      n_estimators=107, n_jobs=-1, random_state=12032022)\nRandomForestRegressor(max_features=0.7836065030168594, max_leaf_nodes=59,\n                      n_estimators=195, n_jobs=-1, random_state=12032022)\nLGBMClassifier(colsample_bytree=0.7493939654565648,\n               learning_rate=0.1810578513473099, max_bin=511,\n               min_child_samples=11, n_estimators=28, n_jobs=-1, num_leaves=4,\n               reg_alpha=0.0009765625, reg_lambda=8.009401600420933,\n               verbose=-1)\n\n\n\n\n\nfit_validator\nCamlCATE.fit_validator(\n    cate_estimators=['LinearDML', 'CausalForestDML', 'NonParamDML', 'SparseLinearDML-2D', 'DRLearner', 'ForestDRLearner', 'LinearDRLearner', 'DomainAdaptationLearner', 'SLearner', 'TLearner', 'XLearner'],\n    additional_cate_estimators=[],\n    ensemble=False,\n    rscorer_kwargs={},\n    use_ray=False,\n    ray_remote_func_options_kwargs={},\n    validation_size=0.2,\n    test_size=0.2,\n    sample_size=1.0,\n    n_jobs=-1,\n)\nFits the CATE models on the training set and evaluates them & ensembles based on the validation set.\nSets the validation_estimator attribute to the best fitted EconML estimator and cate_estimators attribute to all the fitted CATE models.\n\nParameters\n\n\n\n\n\n\n\n\n\nName\nType\nDescription\nDefault\n\n\n\n\ncate_estimators\nlist[str]\nThe list of CATE estimators to fit and ensemble. Default implies all available models as defined by class.\n['LinearDML', 'CausalForestDML', 'NonParamDML', 'SparseLinearDML-2D', 'DRLearner', 'ForestDRLearner', 'LinearDRLearner', 'DomainAdaptationLearner', 'SLearner', 'TLearner', 'XLearner']\n\n\nadditional_cate_estimators\nlist[tuple[str, BaseCateEstimator]]\nThe list of additional CATE estimators to fit and ensemble\n[]\n\n\nensemble\nbool\nThe boolean indicating whether to ensemble the CATE models & score.\nFalse\n\n\nrscorer_kwargs\ndict\nThe keyword arguments for the econml.score.RScorer object.\n{}\n\n\nuse_ray\nbool\nA boolean indicating whether to use Ray for parallel processing.\nFalse\n\n\nray_remote_func_options_kwargs\ndict\nThe keyword arguments for the Ray remote function options.\n{}\n\n\nvalidation_size\nfloat\nThe fraction of the dataset to use for model scoring via RScorer.\n0.2\n\n\ntest_size\nfloat\nThe fraction of the dataset to hold out for final evaluation in the validate() method.\n0.2\n\n\nsample_size\nfloat\nThe fraction of the datasets to use. Useful for quick testing when dataframe is large. Defaults implies full training data.\n1.0\n\n\nn_jobs\nint\nThe number of parallel jobs to run.\n-1\n\n\n\n\n\nExamples\n\nfrom econml.dr import LinearDRLearner\n\nrscorer_kwargs = {\n    \"cv\": 3,\n    \"mc_iters\": 3,\n}\ncate_estimators = [\"LinearDML\", \"NonParamDML\", \"CausalForestDML\"]\nadditional_cate_estimators = [\n    (\n        \"LinearDRLearner\",\n        LinearDRLearner(\n            model_propensity=caml_obj.model_T_X_W,\n            model_regression=caml_obj.model_Y_X_W_T,\n            discrete_outcome=caml_obj.discrete_outcome,\n            cv=3,\n            random_state=0,\n        ),\n    )\n]\n\ncaml_obj.fit_validator(\n    cate_estimators=cate_estimators,\n    additional_cate_estimators=additional_cate_estimators,\n    rscorer_kwargs=rscorer_kwargs,\n    validation_size=0.2,\n    test_size=0.2\n)\n\nprint(caml_obj.validation_estimator)\nprint(caml_obj.cate_estimators)\n\n[01/31/25 17:06:06] INFO     Best Estimator: NonParamDML                                                cate.py:867\n\n\n\n                    INFO     Estimator RScores: {'LinearDML': 0.840942998175992, 'NonParamDML':         cate.py:868\n                             0.8470802429339633, 'CausalForestDML': 0.8378924314797858,                            \n                             'LinearDRLearner': 0.8409666407644082}                                                \n\n\n\n&lt;econml.dml.dml.NonParamDML object at 0x7f3b5960a0b0&gt;\n[('LinearDML', &lt;econml.dml.dml.LinearDML object at 0x7f3c32f67eb0&gt;), ('NonParamDML', &lt;econml.dml.dml.NonParamDML object at 0x7f3b593c21d0&gt;), ('CausalForestDML', &lt;econml.dml.causal_forest.CausalForestDML object at 0x7f3b593c3310&gt;), ('LinearDRLearner', &lt;econml.dr._drlearner.LinearDRLearner object at 0x7f3c32f7d690&gt;)]\n\n\n\n\n\nvalidate\nCamlCATE.validate(\n    n_groups=4,\n    n_bootstrap=100,\n    estimator=None,\n    print_full_report=True,\n)\nValidates the fitted CATE models on the test set to check for generalization performance.\nUses the DRTester class from EconML to obtain the Best Linear Predictor (BLP), Calibration, AUTOC, and QINI. See EconML documentation for more details. In short, we are checking for the ability of the model to find statistically significant heterogeneity in a “well-calibrated” fashion.\nSets the validator_report attribute to the validation report.\n\nParameters\n\n\n\n\n\n\n\n\n\nName\nType\nDescription\nDefault\n\n\n\n\nn_groups\nint\nThe number of quantile based groups used to calculate calibration scores.\n4\n\n\nn_bootstrap\nint\nThe number of boostrap samples to run when calculating confidence bands.\n100\n\n\nestimator\nBaseCateEstimator | EnsembleCateEstimator | None\nThe estimator to validate. Default implies the best estimator from the validation set.\nNone\n\n\nprint_full_report\nbool\nA boolean indicating whether to print the full validation report.\nTrue\n\n\n\n\n\nExamples\n\ncaml_obj.validate()\n\ncaml_obj.validator_results\n\n[01/31/25 17:06:09] INFO     All validation results suggest that the model has found statistically      cate.py:513\n                             significant heterogeneity.                                                            \n\n\n\n   treatment  blp_est  blp_se  blp_pval  qini_est  qini_se  qini_pval  autoc_est  autoc_se  autoc_pval  cal_r_squared\n0          1    0.927   0.012       0.0     2.517    0.059        0.0      6.707     0.187         0.0           0.96\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nfit_final\nCamlCATE.fit_final()\nFits the final estimator on the entire dataset, after validation and testing.\nSets the input_names and final_estimator class attributes.\n\nExamples\n\ncaml_obj.fit_final()\n\nprint(caml_obj.final_estimator)\nprint(caml_obj.input_names)\n\n&lt;econml.dml.dml.NonParamDML object at 0x7f3c32f66050&gt;\n{'feature_names': ['W1_continuous', 'W2_continuous', 'X1_continuous', 'X2_continuous'], 'output_names': 'Y1_continuous', 'treatment_names': 'T1_binary'}\n\n\n\n\n\npredict\nCamlCATE.predict(X=None, T0=0, T1=1, T=None)\nPredicts the CATE based on the fitted final estimator for either the internal dataset or provided Data.\nFor binary treatments, the CATE is the estimated effect of the treatment and for a continuous treatment, the CATE is the estimated effect of a one-unit increase in the treatment. This can be modified by setting the T0 and T1 parameters to the desired treatment levels.\n\nParameters\n\n\n\n\n\n\n\n\n\nName\nType\nDescription\nDefault\n\n\n\n\nX\npandas.DataFrame | np.ndarray | None\nThe DataFrame containing the features (X) for which CATE needs to be predicted. If not provided, defaults to the internal dataset.\nNone\n\n\nT0\nint\nBase treatment for each sample.\n0\n\n\nT1\nint\nTarget treatment for each sample.\n1\n\n\nT\npandas.DataFrame | np.ndarray | None\nTreatment vector if continuous treatment is leveraged for computing marginal effects around treatments for each individual.\nNone\n\n\n\n\n\nReturns\n\n\n\n\n\n\n\n\nName\nType\nDescription\n\n\n\n\n\nnp.ndarray\nThe predicted CATE values if return_predictions is set to True.\n\n\n\n\n\nExamples\n\ncaml_obj.predict()\n\narray([-2.59687293, 12.70241333, -5.6534764 , ...,  8.76406296,\n        7.63646626, -1.57245925])\n\n\n\n\n\nsummarize\nCamlCATE.summarize(cate_predictions=None)\nProvides population summary statistics for the CATE predictions for either the internal results or provided results.\n\nParameters\n\n\n\n\n\n\n\n\n\nName\nType\nDescription\nDefault\n\n\n\n\ncate_predictions\nnp.ndarray | None\nThe CATE predictions for which summary statistics will be generated. If not provided, defaults to internal CATE predictions generated by predict() method with X=None.\nNone\n\n\n\n\n\nReturns\n\n\n\n\n\n\n\n\nName\nType\nDescription\n\n\n\n\n\npandas.DataFrame | pandas.Series\nThe summary statistics for the CATE predictions.\n\n\n\n\n\nExamples\n\ncaml_obj.summarize()\n\n\n\n\n\n\n\n\ncate_predictions_0_1\n\n\n\n\ncount\n10000.000000\n\n\nmean\n3.554357\n\n\nstd\n9.628848\n\n\nmin\n-108.358420\n\n\n25%\n-4.000168\n\n\n50%\n3.991271\n\n\n75%\n11.307939\n\n\nmax\n21.550447"
+  },
+  {
+    "objectID": "04_Reference/utils.generate_random_string.html",
+    "href": "04_Reference/utils.generate_random_string.html",
+    "title": "utils.generate_random_string",
+    "section": "",
+    "text": "utils.generate_random_string(N)\nFunction to generate a random string of ascii lowercase letters and digits of length N.\nUtilized to generate a random table name for the Ibis Tables.\n\n\n\n\n\n\n\n\n\n\n\nName\nType\nDescription\nDefault\n\n\n\n\nN\nint\nThe length of random string to generate.\nrequired\n\n\n\n\n\n\n\n\n\nType\nDescription\n\n\n\n\nstr: The random string of length N."
+  },
+  {
+    "objectID": "04_Reference/utils.generate_random_string.html#parameters",
+    "href": "04_Reference/utils.generate_random_string.html#parameters",
+    "title": "utils.generate_random_string",
+    "section": "",
+    "text": "Name\nType\nDescription\nDefault\n\n\n\n\nN\nint\nThe length of random string to generate.\nrequired"
+  },
+  {
+    "objectID": "04_Reference/utils.generate_random_string.html#returns",
+    "href": "04_Reference/utils.generate_random_string.html#returns",
+    "title": "utils.generate_random_string",
+    "section": "",
+    "text": "Type\nDescription\n\n\n\n\nstr: The random string of length N."
+  },
+  {
+    "objectID": "04_Reference/cate_true_vs_estimated_plot.html",
+    "href": "04_Reference/cate_true_vs_estimated_plot.html",
+    "title": "cate_true_vs_estimated_plot",
+    "section": "",
+    "text": "cate_true_vs_estimated_plot(\n    true_cates,\n    estimated_cates,\n    *,\n    figure_kwargs={},\n    scatter_kwargs={},\n)\nPlots a scatter plot of the estimated CATEs against the true CATEs."
+  },
+  {
+    "objectID": "04_Reference/cate_true_vs_estimated_plot.html#parameters",
+    "href": "04_Reference/cate_true_vs_estimated_plot.html#parameters",
+    "title": "cate_true_vs_estimated_plot",
+    "section": "Parameters",
+    "text": "Parameters\n\n\n\n\n\n\n\n\n\nName\nType\nDescription\nDefault\n\n\n\n\nestimated_cates\nArrayLike\nThe estimated CATEs.\nrequired\n\n\nfigure_kwargs\ndict\nMatplotlib figure arguments.\n{}\n\n\nscatter_kwargs\ndict\nMatplotlib line arguments.\n{}"
+  },
+  {
+    "objectID": "04_Reference/cate_true_vs_estimated_plot.html#returns",
+    "href": "04_Reference/cate_true_vs_estimated_plot.html#returns",
+    "title": "cate_true_vs_estimated_plot",
+    "section": "Returns",
+    "text": "Returns\n\n\n\nName\nType\nDescription\n\n\n\n\n\nmatplotlib.pyplot.Figure\nThe line plot figure object."
+  },
+  {
+    "objectID": "04_Reference/cate_true_vs_estimated_plot.html#examples",
+    "href": "04_Reference/cate_true_vs_estimated_plot.html#examples",
+    "title": "cate_true_vs_estimated_plot",
+    "section": "Examples",
+    "text": "Examples\n\nimport numpy as np\nfrom caml.extensions.plots import cate_true_vs_estimated_plot\n\nnp.random.seed(42)\ntrue_cates = np.random.normal(0, 1, 100)\nestimated_cates = true_cates + np.random.normal(0, 0.5, 100)\n\nfig = cate_true_vs_estimated_plot(true_cates, estimated_cates)\nfig"
+  },
+  {
+    "objectID": "04_Reference/generics.generate_random_string.html",
+    "href": "04_Reference/generics.generate_random_string.html",
+    "title": "generics.generate_random_string",
+    "section": "",
+    "text": "generics.generate_random_string(N)\nFunction to generate a random string of ascii lowercase letters and digits of length N.\nUtilized to generate a random table name for the Ibis Tables.\n\n\n\n\n\n\n\n\n\n\n\nName\nType\nDescription\nDefault\n\n\n\n\nN\nint\nThe length of random string to generate.\nrequired\n\n\n\n\n\n\n\n\n\nName\nType\nDescription\n\n\n\n\n\nstr: The random string of length N."
+  },
+  {
+    "objectID": "04_Reference/generics.generate_random_string.html#parameters",
+    "href": "04_Reference/generics.generate_random_string.html#parameters",
+    "title": "generics.generate_random_string",
+    "section": "",
+    "text": "Name\nType\nDescription\nDefault\n\n\n\n\nN\nint\nThe length of random string to generate.\nrequired"
+  },
+  {
+    "objectID": "04_Reference/generics.generate_random_string.html#returns",
+    "href": "04_Reference/generics.generate_random_string.html#returns",
+    "title": "generics.generate_random_string",
+    "section": "",
+    "text": "Name\nType\nDescription\n\n\n\n\n\nstr: The random string of length N."
+  },
+  {
+    "objectID": "04_Reference/CamlSyntheticDataGenerator.html",
+    "href": "04_Reference/CamlSyntheticDataGenerator.html",
+    "title": "CamlSyntheticDataGenerator",
+    "section": "",
+    "text": "CamlSyntheticDataGenerator(\n    self,\n    n_obs=10000,\n    n_cont_outcomes=1,\n    n_binary_outcomes=0,\n    n_cont_treatments=0,\n    n_binary_treatments=1,\n    n_discrete_treatments=0,\n    n_cont_confounders=2,\n    n_binary_confounders=0,\n    n_discrete_confounders=0,\n    n_cont_modifiers=2,\n    n_binary_modifiers=0,\n    n_discrete_modifiers=0,\n    n_confounding_modifiers=0,\n    stddev_outcome_noise=1.0,\n    stddev_treatment_noise=1.0,\n    causal_model_functional_form='linear',\n    n_nonlinear_transformations=None,\n    n_nonlinear_interactions=None,\n    seed=None,\n)\nGenerate highly flexible synthetic data for use in causal inference and CaML testing.\nThe general form of the data generating process is:\n\\[\n\\mathbf{Y_i} = \\tau (\\mathbf{X_i}) \\mathbf{T_i} + g(\\mathbf{W_i}, \\mathbf{X_i}) + \\mathbf{\\epsilon_i}\n\\] \\[\n\\mathbf{T}_i=f(\\mathbf{W}_i, \\mathbf{X_{i,\\mathcal{S}}})+\\mathbf{\\eta_i}\n\\]\nwhere \\(\\mathbf{Y_i}\\) are the outcome(s), \\(\\mathbf{T_i}\\) are the treatment(s), \\(\\mathbf{X_i}\\) are the effect modifiers (leveraged for treatment effect heterogeneity) with an optional random subset \\(\\mathcal{S}\\) selected as confounders, \\(\\mathbf{W_i}\\) are the confounders, \\(\\mathbf{\\epsilon_i}\\) and \\(mathbf{\\eta_i}\\) are the error terms drawn from normal distributions with optional specified standard deviation, \\(\\tau\\) is the CATE function, \\(g\\) is the linearly seperable/nuisance component of the outcome function, and \\(f\\) is the treatment function. Note in the case of no modifier variables, we obtain a purely partially linear model, with \\(\\tau\\) as a constant.\nFor linear data generating process, \\(f\\) and \\(g\\) consist of strictly linear terms and untransformed variables. \\(\\tau\\) consists linear interaction terms.\nFor nonlinear data generating process, \\(f\\) and \\(g\\) are generated via Generalized Additive Models (GAMs) with randomly selected transformations and interaction terms controlled via n_nonlinear_transformations. \\(\\tau\\) contains interaction terms with transformed modifiers controlled via n_nonlinear_interactions.\nAs a DAG, the data generating process can be roughly represented as:"
+  },
+  {
+    "objectID": "04_Reference/CamlSyntheticDataGenerator.html#parameters",
+    "href": "04_Reference/CamlSyntheticDataGenerator.html#parameters",
+    "title": "CamlSyntheticDataGenerator",
+    "section": "Parameters",
+    "text": "Parameters\n\n\n\n\n\n\n\n\n\nName\nType\nDescription\nDefault\n\n\n\n\nn_obs\nint\nNumber of observations.\n10000\n\n\nn_cont_outcomes\nint\nNumber of continuous outcomes (\\(Y\\)).\n1\n\n\nn_binary_outcomes\nint\nNumber of binary outcomes (\\(Y\\)).\n0\n\n\nn_cont_treatments\nint\nNumber of continuous treatments (\\(T\\)).\n0\n\n\nn_binary_treatments\nint\nNumber of binary treatments (\\(T\\)).\n1\n\n\nn_discrete_treatments\nint\nNumber of discrete treatments (\\(T\\)).\n0\n\n\nn_cont_confounders\nint\nNumber of continuous confounders (\\(W\\)).\n2\n\n\nn_binary_confounders\nint\nNumber of binary confounders (\\(W\\)).\n0\n\n\nn_discrete_confounders\nint\nNumber of discrete confounders (\\(W\\)).\n0\n\n\nn_cont_modifiers\nint\nNumber of continuous treatment effect modifiers (\\(X\\)).\n2\n\n\nn_binary_modifiers\nint\nNumber of binary treatment effect modifiers (\\(X\\)).\n0\n\n\nn_discrete_modifiers\nint\nNumber of discrete treatment effect modifiers (\\(X\\)).\n0\n\n\nn_confounding_modifiers\nint\nNumber of confounding treatment effect modifiers (\\(X_{\\mathcal{S}}\\)).\n0\n\n\nstddev_outcome_noise\nfloat\nStandard deviation of the outcome noise (\\(\\epsilon\\)).\n1.0\n\n\nstddev_treatment_noise\nfloat\nStandard deviation of the treatment noise (\\(\\eta\\)).\n1.0\n\n\ncausal_model_functional_form\nstr\nFunctional form of the causal model, can be “linear” or “nonlinear”.\n'linear'\n\n\nn_nonlinear_transformations\nint | None\nNumber of nonlinear transformations, only applies if causal_model_functional_form=“nonlinear”.\nNone\n\n\nn_nonlinear_interactions\nint | None\nNumber of nonlinear interactions with treatment, introducing heterogeneity, only applies if causal_model_functional_form=“nonlinear”.\nNone\n\n\nseed\nint | None\nRandom seed to use for generating the data.\nNone"
+  },
+  {
+    "objectID": "04_Reference/CamlSyntheticDataGenerator.html#attributes",
+    "href": "04_Reference/CamlSyntheticDataGenerator.html#attributes",
+    "title": "CamlSyntheticDataGenerator",
+    "section": "Attributes",
+    "text": "Attributes\n\n\n\n\n\n\n\n\nName\nType\nDescription\n\n\n\n\ndf\npandas.DataFrame\nThe data generated by the data generation process.\n\n\ncates\npandas.DataFrame\nThe true conditional average treatment effects (CATEs) of the data.\n\n\nates\npandas.DataFrame\nThe true average treatment effects (ATEs) of the data.\n\n\ndgp\ndict[str, pandas.DataFrame]\nThe true data generating processes of the treatments and outcomes."
+  },
+  {
+    "objectID": "04_Reference/CamlSyntheticDataGenerator.html#examples",
+    "href": "04_Reference/CamlSyntheticDataGenerator.html#examples",
+    "title": "CamlSyntheticDataGenerator",
+    "section": "Examples",
+    "text": "Examples\n\nfrom caml.extensions.synthetic_data import CamlSyntheticDataGenerator\n\ndata_generator = CamlSyntheticDataGenerator(seed=10)\ndata_generator.df\n\n\n\n\n\n\n\n\nW1_continuous\nW2_continuous\nX1_continuous\nX2_continuous\nT1_binary\nY1_continuous\n\n\n\n\n0\n0.354380\n-3.252276\n2.715662\n-3.578800\n1\n-11.068941\n\n\n1\n0.568499\n2.484069\n-6.402235\n-2.611815\n0\n4.742376\n\n\n2\n0.162715\n8.842902\n1.288770\n-3.788545\n0\n23.149713\n\n\n3\n0.362944\n-0.959538\n1.080988\n-3.542550\n0\n-3.390266\n\n\n4\n0.612101\n1.417536\n4.143630\n-4.112453\n1\n-0.990706\n\n\n...\n...\n...\n...\n...\n...\n...\n\n\n9995\n0.340436\n0.241095\n-6.524222\n-3.188783\n0\n-3.946413\n\n\n9996\n0.019523\n1.338152\n-2.555492\n-3.643733\n0\n3.952691\n\n\n9997\n0.325401\n1.258659\n-3.340546\n-4.255203\n1\n10.588338\n\n\n9998\n0.586715\n1.263264\n-2.826709\n-4.149383\n1\n9.652253\n\n\n9999\n0.003002\n6.723381\n1.260782\n-3.660600\n0\n19.840431\n\n\n\n\n10000 rows × 6 columns\n\n\n\n\ndata_generator.cates\n\n\n\n\n\n\n\n\nCATE_of_T1_binary_on_Y1_continuous\n\n\n\n\n0\n-2.908078\n\n\n1\n13.601348\n\n\n2\n-0.003848\n\n\n3\n0.173513\n\n\n4\n-5.154262\n\n\n...\n...\n\n\n9995\n14.346026\n\n\n9996\n7.190235\n\n\n9997\n9.228579\n\n\n9998\n8.155846\n\n\n9999\n-0.064142\n\n\n\n\n10000 rows × 1 columns\n\n\n\n\ndata_generator.ates\n\n\n\n\n\n\n\n\nTreatment\nATE\n\n\n\n\n0\nT1_binary_on_Y1_continuous\n3.912029\n\n\n\n\n\n\n\n\nfor t, df in data_generator.dgp.items():\n    print(f\"\\nDGP for {t}:\")\n    print(df)\n\n\nDGP for T1_binary:\n      covariates    params global_transformation\n0  W1_continuous  1.281740               Sigmoid\n1  W2_continuous -0.575915               Sigmoid\n\nDGP for Y1_continuous:\n                    covariates    params global_transformation\n0                W1_continuous -1.137974                  None\n1                W2_continuous  2.571330                  None\n2                X1_continuous  0.254323                  None\n3                X2_continuous -0.104112                  None\n4                    T1_binary -0.912958                  None\n5  int_T1_binary_X1_continuous -1.904831                  None\n6  int_T1_binary_X2_continuous -0.887939                  None"
+  },
+  {
+    "objectID": "04_Reference/CamlCATE.html#outcome-treatment-data-type-support-matrix",
+    "href": "04_Reference/CamlCATE.html#outcome-treatment-data-type-support-matrix",
+    "title": "CamlCATE",
+    "section": "Outcome & Treatment Data Type Support Matrix",
+    "text": "Outcome & Treatment Data Type Support Matrix\n\n\n\nOutcome\nTreatment\nSupport\nMissing\n\n\n\n\nContinuous\nBinary\n✅Full\n\n\n\nContinuous\nContinuous\n🟡Partial\nvalidate()\n\n\nContinuous\nCategorical\n✅Full\n\n\n\nBinary\nBinary\n🟡Partial\nvalidate()\n\n\nBinary\nContinuous\n🟡Partial\nvalidate()\n\n\nBinary\nCategorical\n🟡Partial\nvalidate()\n\n\nCategorical\nBinary\n❌Not yet\n\n\n\nCategorical\nContinuous\n❌Not yet\n\n\n\nCategorical\nCategorical\n❌Not yet\n\n\n\n\nMulti-dimensional outcomes and treatments are not yet supported."
+  },
+  {
+    "objectID": "04_Reference/CamlCATE.html#outcometreatment-type-support-matrix",
+    "href": "04_Reference/CamlCATE.html#outcometreatment-type-support-matrix",
+    "title": "CamlCATE",
+    "section": "Outcome/Treatment Type Support Matrix",
+    "text": "Outcome/Treatment Type Support Matrix\n\n\n\n\nOutcome\nTreatment\nSupport\nMissing\n\n\n\n\nContinuous\nBinary\n✅Full\n\n\n\nContinuous\nContinuous\n🟡Partial\nvalidate()\n\n\nContinuous\nCategorical\n✅Full\n\n\n\nBinary\nBinary\n🟡Partial\nvalidate()\n\n\nBinary\nContinuous\n🟡Partial\nvalidate()\n\n\nBinary\nCategorical\n🟡Partial\nvalidate()\n\n\nCategorical\nBinary\n❌Not yet\n\n\n\nCategorical\nContinuous\n❌Not yet\n\n\n\nCategorical\nCategorical\n❌Not yet\n\n\n\n\n\nMulti-dimensional outcomes and treatments are not yet supported."
+  },
+  {
+    "objectID": "03_Examples/CamlCATE.html",
+    "href": "03_Examples/CamlCATE.html",
+    "title": "CamlCATE API Usage",
+    "section": "",
+    "text": "Here we’ll walk through an example of generating synthetic data, running CamlCATE, and visualizing results using the ground truth as reference.",
+    "crumbs": [
+      "CamlCATE API Usage"
+    ]
+  },
+  {
+    "objectID": "03_Examples/CamlCATE.html#generate-synthetic-data",
+    "href": "03_Examples/CamlCATE.html#generate-synthetic-data",
+    "title": "CamlCATE API Usage",
+    "section": "Generate Synthetic Data",
+    "text": "Generate Synthetic Data\nHere we’ll leverage the CamlSyntheticDataGenerator class to generate a linear synthetic data generating process, with a binary treatment, continuous outcome, and a mix of confounding/mediating continuous covariates.\n\nfrom caml.extensions.synthetic_data import CamlSyntheticDataGenerator\n\ndata =  CamlSyntheticDataGenerator(n_obs=10_000,\n                                  n_cont_outcomes=1,\n                                  n_binary_treatments=1,\n                                  n_cont_confounders=2,\n                                  n_cont_modifiers=2,\n                                  n_confounding_modifiers=1,\n                                  causal_model_functional_form=\"linear\",\n                                  n_nonlinear_transformations=5,\n                                  n_nonlinear_interactions=2,\n                                  seed=1)\n\nWe can print our simulated data via:\n\ndata.df\n\n\n\n\n\n\n\n\nW1_continuous\nW2_continuous\nX1_continuous\nX2_continuous\nT1_binary\nY1_continuous\n\n\n\n\n0\n0.212951\n2.427782\n4.855579\n1.899164\n1\n-15.626184\n\n\n1\n15.593752\n7.556136\n4.087682\n-0.574265\n1\n-6.393739\n\n\n2\n1.062978\n3.644116\n4.970670\n0.091263\n1\n-13.628719\n\n\n3\n0.334657\n4.581727\n3.524831\n0.235195\n1\n-9.546798\n\n\n4\n5.221081\n3.886017\n0.487610\n-0.677476\n1\n0.070117\n\n\n...\n...\n...\n...\n...\n...\n...\n\n\n9995\n0.408012\n4.600472\n1.411209\n1.882209\n1\n-3.247035\n\n\n9996\n2.639800\n6.699876\n0.001684\n2.976786\n1\n2.582407\n\n\n9997\n1.151358\n7.453297\n1.133279\n2.428612\n1\n-0.491604\n\n\n9998\n1.073735\n8.631265\n1.431656\n2.058397\n1\n-0.964414\n\n\n9999\n0.662806\n5.282546\n0.214802\n2.999912\n1\n1.087057\n\n\n\n\n10000 rows × 6 columns\n\n\n\nTo inspect our true data generating process, we can call data.dgp. Furthermore, we will have our true CATEs and ATEs at our disposal via data.cates & data.ates, respectively. We’ll use this as our source of truth for performance evaluation of our CATE estimator.\n\nfor t, df in data.dgp.items():\n    print(f\"\\nDGP for {t}:\")\n    print(df)\n\n\nDGP for T1_binary:\n      covariates    params global_transformation\n0  W1_continuous  1.003484               Sigmoid\n1  W2_continuous  2.968150               Sigmoid\n2  X1_continuous  1.551445               Sigmoid\n\nDGP for Y1_continuous:\n                    covariates    params global_transformation\n0                W1_continuous  0.431376                  None\n1                W2_continuous  0.287855                  None\n2                X1_continuous -2.663734                  None\n3                X2_continuous  1.842291                  None\n4                    T1_binary -0.656965                  None\n5  int_T1_binary_X1_continuous -0.549627                  None\n6  int_T1_binary_X2_continuous -1.580467                  None\n\n\n\ndata.cates\n\n\n\n\n\n\n\n\nCATE_of_T1_binary_on_Y1_continuous\n\n\n\n\n0\n-6.327288\n\n\n1\n-1.996057\n\n\n2\n-3.533216\n\n\n3\n-2.966024\n\n\n4\n0.145760\n\n\n...\n...\n\n\n9995\n-4.407371\n\n\n9996\n-5.362603\n\n\n9997\n-5.118186\n\n\n9998\n-4.697070\n\n\n9999\n-5.516288\n\n\n\n\n10000 rows × 1 columns\n\n\n\n\ndata.ates\n\n\n\n\n\n\n\n\nTreatment\nATE\n\n\n\n\n0\nT1_binary_on_Y1_continuous\n-3.593735",
+    "crumbs": [
+      "CamlCATE API Usage"
+    ]
+  },
+  {
+    "objectID": "03_Examples/CamlCATE.html#running-camlcate",
+    "href": "03_Examples/CamlCATE.html#running-camlcate",
+    "title": "CamlCATE API Usage",
+    "section": "Running CamlCATE",
+    "text": "Running CamlCATE\n\nClass Instantiation\nWe can instantiate and observe our CamlCATE object via:\n\n💡 Tip: W can be leveraged if we want to use certain covariates only in our nuisance functions to control for confounding and not in the final CATE estimator. This can be useful if a confounder may be required to include, but for compliance reasons, we don’t want our CATE model to leverage this feature (e.g., gender). However, this will restrict our available CATE estimators to orthogonal learners, since metalearners necessarily include all covariates. If you don’t care about W being in the final CATE estimator, pass it as X, as done below.\n\n\nfrom caml import CamlCATE\n\ncaml_obj = CamlCATE(df=data.df,\n                Y=\"Y1_continuous\",\n                T=\"T1_binary\",\n                X=[c for c in data.df.columns if 'X' in c] + [c for c in data.df.columns if 'W' in c],\n                discrete_treatment=True,\n                discrete_outcome=False,\n                verbose=1)\n\n[01/31/25 17:02:35] INFO     Logging has been set up.                                                 logging.py:50\n\n\n\n\nprint(caml_obj)\n\n================== CamlCATE Object ==================\nData Backend: pandas\nNo. of Observations: 10,000\nOutcome Variable: Y1_continuous\nDiscrete Outcome: False\nTreatment Variable: T1_binary\nDiscrete Treatment: True\nFeatures/Confounders for Heterogeneity (X): ['X1_continuous', 'X2_continuous', 'W1_continuous', 'W2_continuous']\nFeatures/Confounders as Controls (W): []\nRandom Seed: None\n\n\n\n\n\nNuisance Function AutoML\nWe can then obtain our nuisance functions / regression & propensity models via Flaml AutoML:\n\ncaml_obj.auto_nuisance_functions(\n    flaml_Y_kwargs={\"time_budget\": 30, \"verbose\":0, \"estimator_list\":[\"rf\", \"extra_tree\", \"xgb_limitdepth\"]},\n    flaml_T_kwargs={\"time_budget\": 30, \"verbose\":0, \"estimator_list\":[\"rf\", \"extra_tree\", \"xgb_limitdepth\"]},\n)\n\n\nprint(caml_obj.model_Y_X_W)\nprint(caml_obj.model_Y_X_W_T)\nprint(caml_obj.model_T_X_W)\n\nExtraTreesRegressor(max_features=0.8120734525770129, max_leaf_nodes=877,\n                    n_estimators=344, n_jobs=-1, random_state=12032022)\nExtraTreesRegressor(max_features=0.8120734525770129, max_leaf_nodes=877,\n                    n_estimators=307, n_jobs=-1, random_state=12032022)\nExtraTreesClassifier(max_features=0.36554307127180713, max_leaf_nodes=4,\n                     n_estimators=5, n_jobs=-1, random_state=12032022)\n\n\n\n\nFit CATE Estimators\nNow that we have obtained our first-stage models, we can fit our CATE estimators via:\n\n📝 Note: The selected model defaults to the one with the highest RScore. All fitted models are still accessible via the cate_estimators attribute and if you want to change default estimator, you can run caml_obj._validation_estimator = {different_model}.\n\n\n🚀Forthcoming: Additional scoring techniques & AutoML for CATE estimators is on our roadmap.\n\n\ncaml_obj.fit_validator(\n    cate_estimators=[\n        \"LinearDML\",\n        \"CausalForestDML\",\n        \"ForestDRLearner\",\n        \"LinearDRLearner\",\n        \"DomainAdaptationLearner\",\n        \"SLearner\",\n        \"TLearner\",\n        \"XLearner\",\n    ],\n    validation_size=0.2,\n    test_size=0.2,\n    n_jobs=-1,\n)\n\n[01/31/25 17:04:17] INFO     Best Estimator: LinearDML                                                  cate.py:867\n\n\n\n                    INFO     Estimator RScores: {'LinearDML': 0.1047915269915548, 'CausalForestDML':    cate.py:868\n                             0.09972481313882897, 'ForestDRLearner': 0.09261768389146752,                          \n                             'LinearDRLearner': 0.10195428937567352, 'DomainAdaptationLearner':                    \n                             0.08965456097061719, 'SLearner': 0.07890160463551177, 'TLearner':                     \n                             0.08778507167568717, 'XLearner': 0.10001476869793402}                                 \n\n\n\n\ncaml_obj.validation_estimator\n\n&lt;econml.dml.dml.LinearDML at 0x7f37c12fce80&gt;\n\n\n\ncaml_obj.cate_estimators\n\n[('LinearDML', &lt;econml.dml.dml.LinearDML at 0x7f383cf8b8e0&gt;),\n ('CausalForestDML',\n  &lt;econml.dml.causal_forest.CausalForestDML at 0x7f389af6af20&gt;),\n ('ForestDRLearner', &lt;econml.dr._drlearner.ForestDRLearner at 0x7f389af68280&gt;),\n ('LinearDRLearner', &lt;econml.dr._drlearner.LinearDRLearner at 0x7f389af68160&gt;),\n ('DomainAdaptationLearner',\n  &lt;econml.metalearners._metalearners.DomainAdaptationLearner at 0x7f389af46dd0&gt;),\n ('SLearner', &lt;econml.metalearners._metalearners.SLearner at 0x7f389af46d40&gt;),\n ('TLearner', &lt;econml.metalearners._metalearners.TLearner at 0x7f37c12ff7f0&gt;),\n ('XLearner', &lt;econml.metalearners._metalearners.XLearner at 0x7f37c12fffd0&gt;)]\n\n\n\n\nValidate model on test hold out set\nHere we can validate our model on the test hold out set. Currently, this is only available for when continuous outcomes and binary treatments exist.\n\ncaml_obj.validate()\n\n[01/31/25 17:04:19] INFO     All validation results suggest that the model has found statistically      cate.py:513\n                             significant heterogeneity.                                                            \n\n\n\n   treatment  blp_est  blp_se  blp_pval  qini_est  qini_se  qini_pval  autoc_est  autoc_se  autoc_pval  cal_r_squared\n0          1    1.006   0.075       0.0      0.66    0.056        0.0      1.799      0.13         0.0          0.816\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nRefit our selected model on the entire dataset\nNow that we have selected our top performer and validated results on the test set, we can fit our final model on the entire dataset.\n\ncaml_obj.fit_final()\n\n\ncaml_obj.final_estimator\n\n&lt;econml.dml.dml.LinearDML at 0x7f3898d88970&gt;",
+    "crumbs": [
+      "CamlCATE API Usage"
+    ]
+  },
+  {
+    "objectID": "assets/marimo/CamlCATE.html",
+    "href": "assets/marimo/CamlCATE.html",
+    "title": "CamlCATE API Usage",
+    "section": "",
+    "text": "import marimo as mo"
+  },
+  {
+    "objectID": "assets/marimo/CamlCATE.html#generate-synthetic-data",
+    "href": "assets/marimo/CamlCATE.html#generate-synthetic-data",
+    "title": "CamlCATE API Usage",
+    "section": "Generate Synthetic Data",
+    "text": "Generate Synthetic Data\nHere we’ll leverage the CamlSyntheticDataGenerator class to generate a linear synthetic data generating process, with a binary treatment, continuous outcome, and a mix of confounding/mediating covariates.\n\nfrom caml.extensions.synthetic_data import CamlSyntheticDataGenerator\n\ndata =  CamlSyntheticDataGenerator(n_obs=10_000,\n                                  n_cont_outcomes=1,\n                                  n_binary_treatments=1,\n                                  n_cont_confounders=3,\n                                  n_binary_confounders=1,\n                                  n_cont_modifiers=3,\n                                  n_binary_modifiers=1,\n                                  n_confounding_modifiers=1,\n                                  causal_model_functional_form=\"linear\",\n                                  n_nonlinear_transformations=5,\n                                  n_nonlinear_interactions=2,\n                                  seed=0)\n\nWe can print our simulated data via:\n\ndata.df\n\nTo inspect our true data generating process, we can call data.dgp. Furthermore, we will have our true CATEs and ATEs at our disposal via data.cates & data.ates, respectively. We’ll use this as our source of truth for performance evaluation of our CATE estimator.\n\ndata.cates\n\n\ndata.ates"
+  },
+  {
+    "objectID": "assets/marimo/CamlCATE.html#running-camlcate",
+    "href": "assets/marimo/CamlCATE.html#running-camlcate",
+    "title": "CamlCATE API Usage",
+    "section": "Running CamlCATE",
+    "text": "Running CamlCATE"
+  },
+  {
+    "objectID": "03_Examples/CamlCATE.html#validating-results-with-ground-truth",
+    "href": "03_Examples/CamlCATE.html#validating-results-with-ground-truth",
+    "title": "CamlCATE API Usage",
+    "section": "Validating Results with Ground Truth",
+    "text": "Validating Results with Ground Truth\nFirst, we will obtain our predictions.\n\ncate_predictions = caml_obj.predict()\n\n\nAverage Treatment Effect (ATE)\nWe’ll use the summarize() method after obtaining our predictions above, where our the displayed mean represents our Average Treatment Effect (ATE).\n\ncaml_obj.summarize()\n\n\n\n\n\n\n\n\ncate_predictions_0_1\n\n\n\n\ncount\n10000.000000\n\n\nmean\n-3.584985\n\n\nstd\n2.413745\n\n\nmin\n-20.819570\n\n\n25%\n-5.215803\n\n\n50%\n-3.537228\n\n\n75%\n-1.733439\n\n\nmax\n1.499237\n\n\n\n\n\n\n\nNow comparing this to our ground truth, we see the model performed well the true ATE:\n\ndata.ates\n\n\n\n\n\n\n\n\nTreatment\nATE\n\n\n\n\n0\nT1_binary_on_Y1_continuous\n-3.593735\n\n\n\n\n\n\n\n\n\nConditional Average Treatment Effect (CATE)\nNow we want to see how the estimator performed in modeling the true CATEs.\nFirst, we can simply compute the Precision in Estimating Heterogeneous Effects (PEHE), which is simply the Mean Squared Error (MSE):\n\nfrom sklearn.metrics import mean_squared_error\n\ntrue_cates = data.cates.iloc[:, 0]\nmean_squared_error(true_cates,cate_predictions)\n\n0.048053612525527714\n\n\nNot bad! Now let’s use some visualization techniques:\n\nfrom caml.extensions.plots import cate_true_vs_estimated_plot\n\ncate_true_vs_estimated_plot(true_cates=true_cates, estimated_cates=cate_predictions)\n\n\n\n\n\n\n\n\n\nfrom caml.extensions.plots import cate_histogram_plot\n\ncate_histogram_plot(true_cates=true_cates, estimated_cates=cate_predictions)\n\n\n\n\n\n\n\n\n\nfrom caml.extensions.plots import cate_line_plot\n\ncate_line_plot(true_cates=true_cates, estimated_cates=cate_predictions, window=20)\n\n\n\n\n\n\n\n\nOverall, we can see the model performed remarkably well!~",
+    "crumbs": [
+      "CamlCATE API Usage"
+    ]
+  },
+  {
+    "objectID": "03_Examples/CamlCATE.html#obtaining-model-objects-artifacts-for-production-systems",
+    "href": "03_Examples/CamlCATE.html#obtaining-model-objects-artifacts-for-production-systems",
+    "title": "CamlCATE API Usage",
+    "section": "Obtaining Model Objects & Artifacts for Production Systems",
+    "text": "Obtaining Model Objects & Artifacts for Production Systems\nIn many production settings, we will want to store our model, information on the features used, etc. We provide attributes that to pull key information (more to be added later as class evolves)\nGrabbing final model object:\n\ncaml_obj.final_estimator\n\n&lt;econml.dml.dml.LinearDML at 0x7f3898d88970&gt;\n\n\nGrabbing input features:\n\ncaml_obj.input_names\n\n{'feature_names': ['X1_continuous',\n  'X2_continuous',\n  'W1_continuous',\n  'W2_continuous'],\n 'output_names': 'Y1_continuous',\n 'treatment_names': 'T1_binary'}\n\n\nGrabbing all fitted CATE estimators:\n\ncaml_obj.cate_estimators\n\n[('LinearDML', &lt;econml.dml.dml.LinearDML at 0x7f383cf8b8e0&gt;),\n ('CausalForestDML',\n  &lt;econml.dml.causal_forest.CausalForestDML at 0x7f389af6af20&gt;),\n ('ForestDRLearner', &lt;econml.dr._drlearner.ForestDRLearner at 0x7f389af68280&gt;),\n ('LinearDRLearner', &lt;econml.dr._drlearner.LinearDRLearner at 0x7f389af68160&gt;),\n ('DomainAdaptationLearner',\n  &lt;econml.metalearners._metalearners.DomainAdaptationLearner at 0x7f389af46dd0&gt;),\n ('SLearner', &lt;econml.metalearners._metalearners.SLearner at 0x7f389af46d40&gt;),\n ('TLearner', &lt;econml.metalearners._metalearners.TLearner at 0x7f37c12ff7f0&gt;),\n ('XLearner', &lt;econml.metalearners._metalearners.XLearner at 0x7f37c12fffd0&gt;)]",
+    "crumbs": [
+      "CamlCATE API Usage"
+    ]
+  },
+  {
+    "objectID": "05_Contributors/testing.html#informal-testingdevelopment",
+    "href": "05_Contributors/testing.html#informal-testingdevelopment",
+    "title": "Testing",
+    "section": "",
+    "text": "We utilize marimo notebooks under the notebooks/dev/ directory for testing the api. After setting up the envionment, you can run marimo edit to host notebook server on your local machine. For any examples worth including in the documentation, we add these notebooks to the notebooks/examples/ directory.\nFeel free to go about your development process however you see fit, but for any major functionality changes, make sure any examples are updated accordingly. If you choose to develop with Jupyter notebooks, you can convert to marimo via marimo convert *.ipynb -o *.py and vice-versa.",
+    "crumbs": [
+      "Testing"
+    ]
+  },
+  {
+    "objectID": "05_Contributors/testing.html#formal-testing",
+    "href": "05_Contributors/testing.html#formal-testing",
+    "title": "Testing",
+    "section": "Formal Testing",
+    "text": "Formal Testing\nWe utilize pytest for testing our codebase.\n\nUnit Testing\nUnit tests are under the tests/caml/ directory following the same structure of the caml/ prefixed by “test_”. For example, if we wanted to write tests for cate.py, we would create a new file to build these tests tests/caml/core/test_cate.py.\nTo run unit tests, simply run pytest in terminal:\nThis will run your unit tests (with respective output printed in terminal).\nAdditionally, an html report of the coverage will be exported to tests/reports/htmlcov, which can be a useful tool for interactively evaluating the coverage of your unit tests.\n\n\nAdvanced Testing\nUnit tests are automatically run during PR process via GitHub Actions. Integration & regression testing forthcoming.",
+    "crumbs": [
+      "Testing"
+    ]
+  }
+]

@@ -1,0 +1,366 @@
+# CamlCATE { #caml.CamlCATE }
+
+```python
+CamlCATE(
+    self,
+    df,
+    Y,
+    T,
+    X,
+    W=None,
+    *,
+    discrete_treatment=True,
+    discrete_outcome=False,
+    seed=None,
+    verbose=1,
+)
+```
+
+The CamlCATE class represents an opinionated framework of Causal Machine Learning techniques for estimating highly accurate conditional average treatment effects (CATEs).
+
+The CATE is defined formally as $\mathbb{E}[\tau|\mathbf{X}]$
+where $\tau$ is the treatment effect and $\mathbf{X}$ is the set of covariates.
+
+This class is built on top of the EconML library and provides a high-level API for fitting, validating, and making inference with CATE models,
+with best practices built directly into the API. The class is designed to be easy to use and understand, while still providing
+flexibility for advanced users. The class is designed to be used with `pandas`, `polars`, or `pyspark` backends, which ultimately get
+converted to NumPy Arrays under the hood to provide a level of extensibility & interoperability across different data processing frameworks.
+
+The primary workflow for the CamlCATE class is as follows:
+
+1. Initialize the class with the input DataFrame and the necessary columns.
+2. Utilize [flaml](https://microsoft.github.io/FLAML/) AutoML to find nuisance functions or propensity/regression models to be utilized in the EconML estimators.
+3. Fit the CATE models on the training set and select top performer based on the RScore from validation set.
+4. Validate the fitted CATE model on the test set to check for generalization performance.
+5. Fit the final estimator on the entire dataset, after validation and testing.
+6. Predict the CATE based on the fitted final estimator for either the internal dataset or an out-of-sample dataset.
+8. Summarize population summary statistics for the CATE predictions for either the internal dataset or out-of-sample predictions.
+
+For technical details on conditional average treatment effects, see:
+
+ - CaML Documentation
+ - [EconML documentation](https://econml.azurewebsites.net/)
+
+ **Note**: All the standard assumptions of Causal Inference apply to this class (e.g., exogeneity/unconfoundedness, overlap, positivity, etc.).
+    The class does not check for these assumptions and assumes that the user has already thought through these assumptions before using the class.
+
+**Outcome/Treatment Type Support Matrix**
+<center>
+| Outcome     | Treatment   | Support     | Missing    |
+| ----------- | ----------- | ----------- | ---------- |
+| Continuous  | Binary      | ✅Full      |            |
+| Continuous  | Continuous  | 🟡Partial   | validate() |
+| Continuous  | Categorical | ✅Full      |            |
+| Binary      | Binary      | 🟡Partial   | validate() |
+| Binary      | Continuous  | 🟡Partial   | validate() |
+| Binary      | Categorical | 🟡Partial   | validate() |
+| Categorical | Binary      | ❌Not yet   |            |
+| Categorical | Continuous  | ❌Not yet   |            |
+| Categorical | Categorical | ❌Not yet   |            |
+
+</center>
+Multi-dimensional outcomes and treatments are not yet supported.
+
+## Parameters {.doc-section .doc-section-parameters}
+
+| Name               | Type                                                          | Description                                                                                                                                                                                                     | Default    |
+|--------------------|---------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|------------|
+| df                 | pandas.DataFrame \| polars.DataFrame \| pyspark.sql.DataFrame | The input DataFrame representing the data for the CamlCATE instance.                                                                                                                                            | _required_ |
+| Y                  | str                                                           | The str representing the column name for the outcome variable.                                                                                                                                                  | _required_ |
+| T                  | str                                                           | The str representing the column name(s) for the treatment variable(s).                                                                                                                                          | _required_ |
+| X                  | list\[str\]                                                   | The str (if unity) or list of feature names representing the feature set to be utilized for estimating heterogeneity/CATE.                                                                                      | _required_ |
+| W                  | list\[str\] \| None                                           | The str (if unity) or list of feature names representing the confounder/control feature set to be utilized only for nuisance function estimation. When W is passed, only Orthogonal learners will be leveraged. | `None`     |
+| discrete_treatment | bool                                                          | A boolean indicating whether the treatment is discrete/categorical or continuous.                                                                                                                               | `True`     |
+| discrete_outcome   | bool                                                          | A boolean indicating whether the outcome is binary or continuous.                                                                                                                                               | `False`    |
+| seed               | int \| None                                                   | The seed to use for the random number generator.                                                                                                                                                                | `None`     |
+| verbose            | int                                                           | The verbosity level for logging. Default implies 1 (INFO). Set to 0 for no logging. Set to 2 for DEBUG.                                                                                                         | `1`        |
+
+## Attributes {.doc-section .doc-section-attributes}
+
+| Name                 | Type                                                                                        | Description                                                                                                                                                                                                                   |
+|----------------------|---------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| df                   | pandas.DataFrame \| polars.DataFrame \| pyspark.sql.DataFrame                               | The input DataFrame representing the data for the CamlCATE instance.                                                                                                                                                          |
+| Y                    | str                                                                                         | The str representing the column name for the outcome variable.                                                                                                                                                                |
+| T                    | str                                                                                         | The str representing the column name(s) for the treatment variable(s).                                                                                                                                                        |
+| X                    | list\[str\]                                                                                 | The str (if unity) or list/tuple of feature names representing the confounder/control feature set to be utilized for estimating heterogeneity/CATE and nuisance function estimation where applicable.                         |
+| W                    | list\[str\]                                                                                 | The str (if unity) or list/tuple of feature names representing the confounder/control feature set to be utilized only for nuisance function estimation, where applicable. These will be included by default in Meta-Learners. |
+| discrete_treatment   | bool                                                                                        | A boolean indicating whether the treatment is discrete/categorical or continuous.                                                                                                                                             |
+| discrete_outcome     | bool                                                                                        | A boolean indicating whether the outcome is binary or continuous.                                                                                                                                                             |
+| available_estimators | str                                                                                         | A list of the available CATE estimators out of the box. Validity of estimator at runtime will depend on the outcome and treatment types and be automatically selected.                                                        |
+| model_Y_X_W          | sklearn.base.BaseEstimator                                                                  | The fitted nuisance function for the outcome variable.                                                                                                                                                                        |
+| model_Y_X_W_T        | sklearn.base.BaseEstimator                                                                  | The fitted nuisance function for the outcome variable with treatment variable.                                                                                                                                                |
+| model_T_X_W          | sklearn.base.BaseEstimator                                                                  | The fitted nuisance function for the treatment variable.                                                                                                                                                                      |
+| cate_estimators      | dict\[str, econml._cate_estimator.BaseCateEstimator \| econml.score.EnsembleCateEstimator\] | Dictionary of fitted cate estimator objects.                                                                                                                                                                                  |
+| validation_estimator | econml._cate_estimator.BaseCateEstimator \| econml.score.EnsembleCateEstimator              | The fitted EconML estimator object for validation.                                                                                                                                                                            |
+| validator_results    | econml.validate.results.EvaluationResults                                                   | The validation results object.                                                                                                                                                                                                |
+| final_estimator      | econml._cate_estimator.BaseCateEstimator \| econml.score.EnsembleCateEstimator              | The fitted EconML estimator object on the entire dataset after validation.                                                                                                                                                    |
+| input_names          | dict\[str, list\[str\]\]                                                                    | The feature, outcome, and treatment names used in the CATE estimators.                                                                                                                                                        |
+
+## Examples {.doc-section .doc-section-examples}
+
+```{python}
+from caml import CamlCATE
+from caml.extensions.synthetic_data import CamlSyntheticDataGenerator
+
+data_generator = CamlSyntheticDataGenerator(seed=10)
+df = data_generator.df
+
+caml_obj = CamlCATE(
+    df = df,
+    Y="Y1_continuous",
+    T="T1_binary",
+    X=[c for c in df.columns if "X" in c or "W" in c],
+    discrete_treatment=True,
+    discrete_outcome=False,
+    seed=0,
+    verbose=1,
+)
+
+print(caml_obj)
+```
+
+## Methods
+
+| Name | Description |
+| --- | --- |
+| [auto_nuisance_functions](#caml.CamlCATE.auto_nuisance_functions) | Leverages AutoML to find optimal nuisance functions/regression & propensity models for use in EconML CATE estimators. |
+| [fit_validator](#caml.CamlCATE.fit_validator) | Fits the CATE models on the training set and evaluates them & ensembles based on the validation set. |
+| [validate](#caml.CamlCATE.validate) | Validates the fitted CATE models on the test set to check for generalization performance. |
+| [fit_final](#caml.CamlCATE.fit_final) | Fits the final estimator on the entire dataset, after validation and testing. |
+| [predict](#caml.CamlCATE.predict) | Predicts the CATE based on the fitted final estimator for either the internal dataset or provided Data. |
+| [summarize](#caml.CamlCATE.summarize) | Provides population summary statistics for the CATE predictions for either the internal results or provided results. |
+
+### auto_nuisance_functions { #caml.CamlCATE.auto_nuisance_functions }
+
+```python
+CamlCATE.auto_nuisance_functions(
+    flaml_Y_kwargs=None,
+    flaml_T_kwargs=None,
+    use_ray=False,
+    use_spark=False,
+)
+```
+
+Leverages AutoML to find optimal nuisance functions/regression & propensity models for use in EconML CATE estimators.
+
+Sets the `model_Y_X_W`, `model_Y_X_W_T`, and `model_T_X_W` attributes to the fitted nuisance functions.
+
+#### Parameters {.doc-section .doc-section-parameters}
+
+| Name           | Type         | Description                                                                                                                 | Default   |
+|----------------|--------------|-----------------------------------------------------------------------------------------------------------------------------|-----------|
+| flaml_Y_kwargs | dict \| None | The keyword arguments for the FLAML AutoML search for the outcome model. Default implies the base parameters in CamlBase.   | `None`    |
+| flaml_T_kwargs | dict \| None | The keyword arguments for the FLAML AutoML search for the treatment model. Default implies the base parameters in CamlBase. | `None`    |
+| use_ray        | bool         | A boolean indicating whether to use Ray for parallel processing.                                                            | `False`   |
+| use_spark      | bool         | A boolean indicating whether to use Spark for parallel processing.                                                          | `False`   |
+
+#### Examples {.doc-section .doc-section-examples}
+
+```{python}
+flaml_Y_kwargs = {
+    "n_jobs": -1,
+    "time_budget": 10,
+    "verbose": 0
+}
+
+flaml_T_kwargs = {
+    "n_jobs": -1,
+    "time_budget": 10,
+    "verbose": 0
+}
+
+caml_obj.auto_nuisance_functions(
+    flaml_Y_kwargs=flaml_Y_kwargs,
+    flaml_T_kwargs=flaml_T_kwargs,
+    use_ray=False,
+    use_spark=False,
+)
+
+print(caml_obj.model_Y_X_W)
+print(caml_obj.model_Y_X_W_T)
+print(caml_obj.model_T_X_W)
+```
+
+### fit_validator { #caml.CamlCATE.fit_validator }
+
+```python
+CamlCATE.fit_validator(
+    cate_estimators=['LinearDML', 'CausalForestDML', 'NonParamDML', 'SparseLinearDML-2D', 'DRLearner', 'ForestDRLearner', 'LinearDRLearner', 'DomainAdaptationLearner', 'SLearner', 'TLearner', 'XLearner'],
+    additional_cate_estimators=[],
+    ensemble=False,
+    rscorer_kwargs={},
+    use_ray=False,
+    ray_remote_func_options_kwargs={},
+    validation_size=0.2,
+    test_size=0.2,
+    sample_size=1.0,
+    n_jobs=-1,
+)
+```
+
+Fits the CATE models on the training set and evaluates them & ensembles based on the validation set.
+
+Sets the `validation_estimator` attribute to the best fitted EconML estimator and `cate_estimators` attribute to all the fitted CATE models.
+
+#### Parameters {.doc-section .doc-section-parameters}
+
+| Name                           | Type                                    | Description                                                                                                                 | Default                                                                                                                                                                                   |
+|--------------------------------|-----------------------------------------|-----------------------------------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| cate_estimators                | list\[str\]                             | The list of CATE estimators to fit and ensemble. Default implies all available models as defined by class.                  | `['LinearDML', 'CausalForestDML', 'NonParamDML', 'SparseLinearDML-2D', 'DRLearner', 'ForestDRLearner', 'LinearDRLearner', 'DomainAdaptationLearner', 'SLearner', 'TLearner', 'XLearner']` |
+| additional_cate_estimators     | list\[tuple\[str, BaseCateEstimator\]\] | The list of additional CATE estimators to fit and ensemble                                                                  | `[]`                                                                                                                                                                                      |
+| ensemble                       | bool                                    | The boolean indicating whether to ensemble the CATE models & score.                                                         | `False`                                                                                                                                                                                   |
+| rscorer_kwargs                 | dict                                    | The keyword arguments for the econml.score.RScorer object.                                                                  | `{}`                                                                                                                                                                                      |
+| use_ray                        | bool                                    | A boolean indicating whether to use Ray for parallel processing.                                                            | `False`                                                                                                                                                                                   |
+| ray_remote_func_options_kwargs | dict                                    | The keyword arguments for the Ray remote function options.                                                                  | `{}`                                                                                                                                                                                      |
+| validation_size                | float                                   | The fraction of the dataset to use for model scoring via RScorer.                                                           | `0.2`                                                                                                                                                                                     |
+| test_size                      | float                                   | The fraction of the dataset to hold out for final evaluation in the `validate()` method.                                    | `0.2`                                                                                                                                                                                     |
+| sample_size                    | float                                   | The fraction of the datasets to use. Useful for quick testing when dataframe is large. Defaults implies full training data. | `1.0`                                                                                                                                                                                     |
+| n_jobs                         | int                                     | The number of parallel jobs to run.                                                                                         | `-1`                                                                                                                                                                                      |
+
+#### Examples {.doc-section .doc-section-examples}
+
+```{python}
+from econml.dr import LinearDRLearner
+
+rscorer_kwargs = {
+    "cv": 3,
+    "mc_iters": 3,
+}
+cate_estimators = ["LinearDML", "NonParamDML", "CausalForestDML"]
+additional_cate_estimators = [
+    (
+        "LinearDRLearner",
+        LinearDRLearner(
+            model_propensity=caml_obj.model_T_X_W,
+            model_regression=caml_obj.model_Y_X_W_T,
+            discrete_outcome=caml_obj.discrete_outcome,
+            cv=3,
+            random_state=0,
+        ),
+    )
+]
+
+caml_obj.fit_validator(
+    cate_estimators=cate_estimators,
+    additional_cate_estimators=additional_cate_estimators,
+    rscorer_kwargs=rscorer_kwargs,
+    validation_size=0.2,
+    test_size=0.2
+)
+
+print(caml_obj.validation_estimator)
+print(caml_obj.cate_estimators)
+```
+
+### validate { #caml.CamlCATE.validate }
+
+```python
+CamlCATE.validate(
+    n_groups=4,
+    n_bootstrap=100,
+    estimator=None,
+    print_full_report=True,
+)
+```
+
+Validates the fitted CATE models on the test set to check for generalization performance.
+
+Uses the DRTester class from EconML to obtain the Best Linear Predictor (BLP), Calibration, AUTOC, and QINI.
+See [EconML documentation](https://econml.azurewebsites.net/_autosummary/econml.validate.DRTester.html) for more details.
+In short, we are checking for the ability of the model to find statistically significant heterogeneity in a "well-calibrated" fashion.
+
+Sets the `validator_report` attribute to the validation report.
+
+#### Parameters {.doc-section .doc-section-parameters}
+
+| Name              | Type                                               | Description                                                                            | Default   |
+|-------------------|----------------------------------------------------|----------------------------------------------------------------------------------------|-----------|
+| n_groups          | int                                                | The number of quantile based groups used to calculate calibration scores.              | `4`       |
+| n_bootstrap       | int                                                | The number of boostrap samples to run when calculating confidence bands.               | `100`     |
+| estimator         | BaseCateEstimator \| EnsembleCateEstimator \| None | The estimator to validate. Default implies the best estimator from the validation set. | `None`    |
+| print_full_report | bool                                               | A boolean indicating whether to print the full validation report.                      | `True`    |
+
+#### Examples {.doc-section .doc-section-examples}
+
+```{python}
+caml_obj.validate()
+
+caml_obj.validator_results
+```
+
+### fit_final { #caml.CamlCATE.fit_final }
+
+```python
+CamlCATE.fit_final()
+```
+
+Fits the final estimator on the entire dataset, after validation and testing.
+
+Sets the `input_names` and `final_estimator` class attributes.
+
+#### Examples {.doc-section .doc-section-examples}
+
+```{python}
+caml_obj.fit_final()
+
+print(caml_obj.final_estimator)
+print(caml_obj.input_names)
+```
+
+### predict { #caml.CamlCATE.predict }
+
+```python
+CamlCATE.predict(X=None, T0=0, T1=1, T=None)
+```
+
+Predicts the CATE based on the fitted final estimator for either the internal dataset or provided Data.
+
+For binary treatments, the CATE is the estimated effect of the treatment and for a continuous treatment, the CATE is the estimated effect of a one-unit increase in the treatment.
+This can be modified by setting the T0 and T1 parameters to the desired treatment levels.
+
+#### Parameters {.doc-section .doc-section-parameters}
+
+| Name   | Type                                   | Description                                                                                                                        | Default   |
+|--------|----------------------------------------|------------------------------------------------------------------------------------------------------------------------------------|-----------|
+| X      | pandas.DataFrame \| np.ndarray \| None | The DataFrame containing the features (X) for which CATE needs to be predicted. If not provided, defaults to the internal dataset. | `None`    |
+| T0     | int                                    | Base treatment for each sample.                                                                                                    | `0`       |
+| T1     | int                                    | Target treatment for each sample.                                                                                                  | `1`       |
+| T      | pandas.DataFrame \| np.ndarray \| None | Treatment vector if continuous treatment is leveraged for computing marginal effects around treatments for each individual.        | `None`    |
+
+#### Returns {.doc-section .doc-section-returns}
+
+| Name   | Type       | Description                                                     |
+|--------|------------|-----------------------------------------------------------------|
+|        | np.ndarray | The predicted CATE values if return_predictions is set to True. |
+
+#### Examples {.doc-section .doc-section-examples}
+
+```{python}
+caml_obj.predict()
+```
+
+### summarize { #caml.CamlCATE.summarize }
+
+```python
+CamlCATE.summarize(cate_predictions=None)
+```
+
+Provides population summary statistics for the CATE predictions for either the internal results or provided results.
+
+#### Parameters {.doc-section .doc-section-parameters}
+
+| Name             | Type               | Description                                                                                                                                                              | Default   |
+|------------------|--------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-----------|
+| cate_predictions | np.ndarray \| None | The CATE predictions for which summary statistics will be generated. If not provided, defaults to internal CATE predictions generated by `predict()` method with X=None. | `None`    |
+
+#### Returns {.doc-section .doc-section-returns}
+
+| Name   | Type                              | Description                                      |
+|--------|-----------------------------------|--------------------------------------------------|
+|        | pandas.DataFrame \| pandas.Series | The summary statistics for the CATE predictions. |
+
+#### Examples {.doc-section .doc-section-examples}
+
+```{python}
+caml_obj.summarize()
+```

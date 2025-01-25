@@ -1,0 +1,30 @@
+---
+title: "Testing"
+---
+
+## Informal Testing/Development
+We utilize [marimo](https://marimo.io/) notebooks under the `notebooks/dev/` directory for testing the api. After
+setting up the envionment, you can run `marimo edit` to host notebook server on your local machine. For any 
+examples worth including in the documentation, we add these notebooks to the `notebooks/examples/` directory. 
+
+Feel free to go about your development process however you see fit, but for any major functionality changes, make sure
+any examples are updated accordingly. If you choose to develop with Jupyter notebooks, you can convert to marimo via
+`marimo convert *.ipynb -o *.py` and vice-versa.
+
+## Formal Testing
+We utilize [pytest](https://docs.pytest.org/en/stable/) for testing our codebase.
+
+### Unit Testing
+Unit tests are under the `tests/caml/` directory following the same structure of the `caml/` prefixed by "test_".
+For example, if we wanted to write tests for `cate.py`, we would create a new file to build these tests
+`tests/caml/core/test_cate.py`.
+
+To run unit tests, simply run `pytest` in terminal:
+
+This will run your unit tests (with respective output printed in terminal).
+
+Additionally, an html report of the coverage will be exported to `tests/reports/htmlcov`,
+which can be a useful tool for interactively evaluating the coverage of your unit tests.
+
+### Advanced Testing
+Unit tests are automatically run during PR process via GitHub Actions. Integration & regression testing forthcoming.

@@ -1,0 +1,126 @@
+project:
+  type: website
+  output-dir: _site
+  preview:
+    port: 4848
+
+format:
+  html:
+    theme: cosmo
+    css: styles/styles.css
+    toc: true
+    table-scroll: true
+
+website:
+  title: CaML - Causal ML
+  favicon: assets/logo_no_text.svg
+  page-navigation: true
+  open-graph: true
+  back-to-top-navigation: true
+  repo-url: https://github.com/jakepenzak/caml
+  repo-actions: [edit, issue]
+  repo-branch: main
+  repo-subdir: docs
+  issue-url: https://github.com/jakepenzak/caml/issues/new
+
+  navbar:
+    logo: "assets/logo_no_text.svg"
+    title: false
+    background: "white"
+    search: true
+    border: true
+    tools:
+      - icon: github
+        menu:
+          - text: Source code
+            url: https://github.com/jakepenzak/caml
+          - text: Report Issue
+            url: https://github.com/jakepenzak/caml/issues/new
+
+    left:
+      - sidebar:Home
+      - sidebar:Concepts
+      - sidebar:Examples
+      - text: "API Reference"
+        file: 04_Reference/index.qmd
+
+    right:
+      - sidebar:Contributors
+
+  sidebar:
+    - id: ""
+    - id: Home
+      title: "Home"
+      style: floating
+      contents:
+        - index.qmd
+        - 01_Home/installation.qmd
+        - 01_Home/quickstart.qmd
+    - id: Concepts
+      title: "Concepts"
+      style: floating
+      contents:
+        - 02_Concepts/motivation.qmd
+        - 02_Concepts/theory.qmd
+    - id: Examples
+      title: "Examples"
+      style: floating
+      contents: 03_Examples/*
+    - id: Contributors
+      title: "Contributors"
+      style: floating
+      contents:
+        - 05_Contributors/getting_started.qmd
+        - 05_Contributors/environment.qmd
+        - 05_Contributors/documentation.qmd
+        - 05_Contributors/testing.qmd
+
+  page-footer:
+    border: false
+    left: "© Copyright 2024, Jacob Pieniazek"
+    right: |
+      Powered by: [![](../assets/external_logos/quarto.png){width=85px}](https://quarto.org/)
+
+quartodoc:
+  package: caml
+  dir: 04_Reference
+  title: API Reference
+  sidebar: 04_Reference/_sidebar.yml
+
+  sections:
+    - title: CaML Core
+      desc: "`from caml import *`"
+      package: caml
+      contents:
+        - name: CamlCATE
+          member_order: source
+    - title: Synthetic Data Generation
+      desc: "`from caml.extensions.synthetic_data import *`"
+      package: caml.extensions.synthetic_data
+      contents:
+        - name: CamlSyntheticDataGenerator
+          signature_name: short
+        - name: make_partially_linear_dataset_simple
+          signature_name: short
+        - name: make_partially_linear_dataset_constant
+          signature_name: short
+        - name: make_fully_heterogeneous_dataset
+          signature_name: short
+    - title: Plots
+      desc: "`from caml.extensions.plots import *`"
+      package: caml.extensions.plots
+      contents:
+        - name: cate_histogram_plot
+          signature_name: short
+        - name: cate_line_plot
+          signature_name: short
+        - name: cate_true_vs_estimated_plot
+          signature_name: short
+    - title: Developer Tools
+      contents:
+        - generics.generate_random_string
+        - generics.cls_typechecked
+        - logging.setup_logging
+
+metadata-files:
+  - _sidebar.yml

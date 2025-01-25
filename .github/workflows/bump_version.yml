@@ -1,0 +1,78 @@
+name: Bump Version
+
+on:
+  pull_request:
+    types: [closed]
+    branches:
+      - main
+
+permissions:
+  contents: write
+  packages: read
+  issues: read
+  pull-requests: write
+
+jobs:
+  bump_version:
+    if: github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout 🛎️
+        uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          version: 0.5.23
+
+      - name: Create environment
+        run: uv sync --all-groups --frozen
+
+      - name: Get Labels
+        id: get_labels
+        uses: actions-ecosystem/action-get-merged-pull-request@v1
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Determine Version Type
+        id: determine_version
+        run: |
+          if [[ "${{ steps.get_labels.outputs.labels }}" == *"bump: major"* ]]; then
+            echo "type=major" >> $GITHUB_ENV
+          elif [[ "${{ steps.get_labels.outputs.labels }}" == *"bump: minor"* ]]; then
+            echo "type=minor" >> $GITHUB_ENV
+          elif [[ "${{ steps.get_labels.outputs.labels }}" == *"bump: patch"* ]]; then
+            echo "type=patch" >> $GITHUB_ENV
+          elif [[ "${{ steps.get_labels.outputs.labels }}" == *"bump: pre_l"* ]]; then
+            echo "type=pre_l" >> $GITHUB_ENV
+          elif [[ "${{ steps.get_labels.outputs.labels }}" == *"bump: pre_n"* ]]; then
+            echo "type=pre_n" >> $GITHUB_ENV
+          elif [[ "${{ steps.get_labels.outputs.labels }}" == *"bump: skip"* ]]; then
+            echo "type=skip" >> $GITHUB_ENV
+          else
+            echo "type=skip" >> $GITHUB_ENV
+          fi
+
+      - name: Bump Version
+        if: env.type != 'skip'
+        shell: bash -l {0}
+        run: |
+          source .venv/bin/activate
+          NEW_VERSION=$(bump-my-version bump ${{ env.type }} --dry-run -vv | grep 'New version will be' | cut -d ' ' -f7 | tr -d "'")
+          OLD_VERSION=$(bump-my-version bump pre_n --dry-run -vv | grep 'Parsing current version' | cut -d ' ' -f6 | tr -d "'")
+          echo "NEW_VERSION=$NEW_VERSION" >> $GITHUB_ENV
+          echo "OLD_VERSION=$OLD_VERSION" >> $GITHUB_ENV
+          bump-my-version bump ${{ env.type }}
+
+      - name: Create or Update Draft Pull Request
+        if: env.type != 'skip'
+        uses: peter-evans/create-pull-request@v5
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          branch: bump-version-${{ env.NEW_VERSION }}
+          base: main
+          title: "Draft: Bump Version ${{ env.NEW_VERSION }}"
+          body: |
+            Bumps version from ${{ env.OLD_VERSION }} to ${{ env.NEW_VERSION }}.
+          draft: false

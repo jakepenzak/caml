@@ -1,0 +1,17 @@
+# utils.cls_typechecked { #caml.utils.cls_typechecked }
+
+`utils.cls_typechecked(cls)`
+
+Class decorator to typecheck all methods of a class.
+
+## Parameters
+
+| Name   | Type   | Description            | Default    |
+|--------|--------|------------------------|------------|
+| `cls`  |        | The class to decorate. | _required_ |
+
+## Returns
+
+| Type                      | Description   |
+|---------------------------|---------------|
+| cls: The decorated class. |               |

@@ -1,0 +1,118 @@
+# CamlSyntheticDataGenerator { #caml.extensions.synthetic_data.CamlSyntheticDataGenerator }
+
+```python
+CamlSyntheticDataGenerator(
+    self,
+    n_obs=10000,
+    n_cont_outcomes=1,
+    n_binary_outcomes=0,
+    n_cont_treatments=0,
+    n_binary_treatments=1,
+    n_discrete_treatments=0,
+    n_cont_confounders=2,
+    n_binary_confounders=0,
+    n_discrete_confounders=0,
+    n_cont_modifiers=2,
+    n_binary_modifiers=0,
+    n_discrete_modifiers=0,
+    n_confounding_modifiers=0,
+    stddev_outcome_noise=1.0,
+    stddev_treatment_noise=1.0,
+    causal_model_functional_form='linear',
+    n_nonlinear_transformations=None,
+    n_nonlinear_interactions=None,
+    seed=None,
+)
+```
+
+Generate highly flexible synthetic data for use in causal inference and CaML testing.
+
+The general form of the data generating process is:
+
+$$
+\mathbf{Y_i} = \tau (\mathbf{X_i}) \mathbf{T_i} + g(\mathbf{W_i}, \mathbf{X_i}) + \mathbf{\epsilon_i}
+$$
+$$
+\mathbf{T}_i=f(\mathbf{W}_i, \mathbf{X_{i,\mathcal{S}}})+\mathbf{\eta_i}
+$$
+
+where $\mathbf{Y_i}$ are the outcome(s), $\mathbf{T_i}$ are the treatment(s), $\mathbf{X_i}$ are the effect modifiers (leveraged for treatment effect heterogeneity)
+with an optional random subset $\mathcal{S}$ selected as confounders, $\mathbf{W_i}$ are the confounders, $\mathbf{\epsilon_i}$ and $mathbf{\eta_i}$ are the error terms drawn from
+normal distributions with optional specified standard deviation, $\tau$ is the CATE function, $g$ is the linearly seperable/nuisance component of the outcome function,
+and $f$ is the treatment function. Note in the case of no modifier variables, we obtain a purely partially linear model, with $\tau$ as a constant.
+
+For linear data generating process, $f$ and $g$ consist of strictly linear terms and untransformed variables. $\tau$ consists linear interaction terms.
+
+For nonlinear data generating process, $f$ and $g$ are generated via Generalized Additive Models (GAMs) with randomly selected transformations and interaction terms
+controlled via `n_nonlinear_transformations`. $\tau$ contains interaction terms with transformed modifiers controlled via `n_nonlinear_interactions`.
+
+As a DAG, the data generating process can be roughly represented as:
+
+<div style="text-align: center;">
+```{mermaid}
+flowchart TD;
+    X((X))-->Y((Y));
+    W((W))-->Y((Y));
+    W((W))-->T((T));
+    X((X))-->|"S"|T((T));
+    T((T))-->|"τ(X)"|Y((Y));
+
+    linkStyle 0,1,2,3,4 stroke:black,stroke-width:2px
+```
+</div>
+
+## Parameters {.doc-section .doc-section-parameters}
+
+| Name                         | Type        | Description                                                                                                                           | Default    |
+|------------------------------|-------------|---------------------------------------------------------------------------------------------------------------------------------------|------------|
+| n_obs                        | int         | Number of observations.                                                                                                               | `10000`    |
+| n_cont_outcomes              | int         | Number of continuous outcomes ($Y$).                                                                                                  | `1`        |
+| n_binary_outcomes            | int         | Number of binary outcomes ($Y$).                                                                                                      | `0`        |
+| n_cont_treatments            | int         | Number of continuous treatments ($T$).                                                                                                | `0`        |
+| n_binary_treatments          | int         | Number of binary treatments ($T$).                                                                                                    | `1`        |
+| n_discrete_treatments        | int         | Number of discrete treatments ($T$).                                                                                                  | `0`        |
+| n_cont_confounders           | int         | Number of continuous confounders ($W$).                                                                                               | `2`        |
+| n_binary_confounders         | int         | Number of binary confounders ($W$).                                                                                                   | `0`        |
+| n_discrete_confounders       | int         | Number of discrete confounders ($W$).                                                                                                 | `0`        |
+| n_cont_modifiers             | int         | Number of continuous treatment effect modifiers ($X$).                                                                                | `2`        |
+| n_binary_modifiers           | int         | Number of binary treatment effect modifiers ($X$).                                                                                    | `0`        |
+| n_discrete_modifiers         | int         | Number of discrete treatment effect modifiers ($X$).                                                                                  | `0`        |
+| n_confounding_modifiers      | int         | Number of confounding treatment effect modifiers ($X_{\mathcal{S}}$).                                                                 | `0`        |
+| stddev_outcome_noise         | float       | Standard deviation of the outcome noise ($\epsilon$).                                                                                 | `1.0`      |
+| stddev_treatment_noise       | float       | Standard deviation of the treatment noise ($\eta$).                                                                                   | `1.0`      |
+| causal_model_functional_form | str         | Functional form of the causal model, can be "linear" or "nonlinear".                                                                  | `'linear'` |
+| n_nonlinear_transformations  | int \| None | Number of nonlinear transformations, only applies if causal_model_functional_form="nonlinear".                                        | `None`     |
+| n_nonlinear_interactions     | int \| None | Number of nonlinear interactions with treatment, introducing heterogeneity, only applies if causal_model_functional_form="nonlinear". | `None`     |
+| seed                         | int \| None | Random seed to use for generating the data.                                                                                           | `None`     |
+
+## Attributes {.doc-section .doc-section-attributes}
+
+| Name   | Type                          | Description                                                         |
+|--------|-------------------------------|---------------------------------------------------------------------|
+| df     | pandas.DataFrame              | The data generated by the data generation process.                  |
+| cates  | pandas.DataFrame              | The true conditional average treatment effects (CATEs) of the data. |
+| ates   | pandas.DataFrame              | The true average treatment effects (ATEs) of the data.              |
+| dgp    | dict\[str, pandas.DataFrame\] | The true data generating processes of the treatments and outcomes.  |
+
+## Examples {.doc-section .doc-section-examples}
+
+```{python}
+from caml.extensions.synthetic_data import CamlSyntheticDataGenerator
+
+data_generator = CamlSyntheticDataGenerator(seed=10)
+data_generator.df
+```
+
+```{python}
+data_generator.cates
+```
+
+```{python}
+data_generator.ates
+```
+
+```{python}
+for t, df in data_generator.dgp.items():
+    print(f"\nDGP for {t}:")
+    print(df)
+```

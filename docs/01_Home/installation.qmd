@@ -1,0 +1,26 @@
+---
+title: "Installation"
+---
+
+The most recent version of CamML can be install via [![image](https://img.shields.io/pypi/v/caml.svg)](https://pypi.python.org/pypi/caml):
+
+```bash
+pip install caml
+```
+
+and pinned to a specific version via:
+
+```bash
+pip install caml=={version}
+```
+
+To install optional/extra dependencies, run:
+
+```bash
+pip install caml[extra]
+```
+
+We currently support the following extras: `pyspark` & `polars`.
+
+**Note:** CaML is in a highly experimental state and no stable release exists.
+Breaking changes to the API may occur at any time.

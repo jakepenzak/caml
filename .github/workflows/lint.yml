@@ -1,0 +1,33 @@
+name: Pre-Commit & Linting Checks
+
+on:
+  push:
+    branches: ["main", "develop"]
+  pull_request:
+    types: [opened, reopened, synchronize, ready_for_review]
+    branches: ["**"]
+
+jobs:
+  check-linting:
+    if: github.event.pull_request.draft == false
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout 🛎️
+        uses: actions/checkout@v4
+
+      - name: Install uv & Set Python Version
+        uses: astral-sh/setup-uv@v5
+        with:
+          version: 0.5.23
+          python-version: "3.10"
+
+      - name: Create environment
+        run: uv sync --all-groups --frozen
+
+      - name: Run pre-commit checks
+        shell: bash -l {0}
+        run: |
+          source .venv/bin/activate
+          pre-commit install
+          pre-commit run --all-files --show-diff-on-failure

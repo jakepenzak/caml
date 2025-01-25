@@ -1,0 +1,38 @@
+# API Reference {.doc .doc-index}
+
+## CaML Core
+
+`from caml import *`
+
+| | |
+| --- | --- |
+| [CamlCATE](CamlCATE.qmd#caml.CamlCATE) | The CamlCATE class represents an opinionated framework of Causal Machine Learning techniques for estimating highly accurate conditional average treatment effects (CATEs). |
+
+## Synthetic Data Generation
+
+`from caml.extensions.synthetic_data import *`
+
+| | |
+| --- | --- |
+| [CamlSyntheticDataGenerator](CamlSyntheticDataGenerator.qmd#caml.extensions.synthetic_data.CamlSyntheticDataGenerator) | Generate highly flexible synthetic data for use in causal inference and CaML testing. |
+| [make_partially_linear_dataset_simple](make_partially_linear_dataset_simple.qmd#caml.extensions.synthetic_data.make_partially_linear_dataset_simple) | Simulate data generating process from a partially linear model with a simple 1 or 2 dimensional CATE function. |
+| [make_partially_linear_dataset_constant](make_partially_linear_dataset_constant.qmd#caml.extensions.synthetic_data.make_partially_linear_dataset_constant) | Simulate a data generating process from a partially linear model with a constant treatment effect (ATE only). |
+| [make_fully_heterogeneous_dataset](make_fully_heterogeneous_dataset.qmd#caml.extensions.synthetic_data.make_fully_heterogeneous_dataset) | Simulate data generating process from an interactive regression model with fully heterogenous treatment effects. |
+
+## Plots
+
+`from caml.extensions.plots import *`
+
+| | |
+| --- | --- |
+| [cate_histogram_plot](cate_histogram_plot.qmd#caml.extensions.plots.cate_histogram_plot) | Plots a histogram the estimated CATEs. |
+| [cate_line_plot](cate_line_plot.qmd#caml.extensions.plots.cate_line_plot) | Plots a line plot of the ordered estimated CATEs as a rolling mean with optional confidence intervals. |
+| [cate_true_vs_estimated_plot](cate_true_vs_estimated_plot.qmd#caml.extensions.plots.cate_true_vs_estimated_plot) | Plots a scatter plot of the estimated CATEs against the true CATEs. |
+
+## Developer Tools
+
+| | |
+| --- | --- |
+| [generics.generate_random_string](generics.generate_random_string.qmd#caml.generics.generate_random_string) | Function to generate a random string of ascii lowercase letters and digits of length N. |
+| [generics.cls_typechecked](generics.cls_typechecked.qmd#caml.generics.cls_typechecked) | Class decorator to typecheck all methods of a class. |
+| [logging.setup_logging](logging.setup_logging.qmd#caml.logging.setup_logging) | Set up logging configuration. |

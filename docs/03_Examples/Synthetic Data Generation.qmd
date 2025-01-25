@@ -1,0 +1,65 @@
+---
+title: Caml Synthetic Data API Usage
+jupyter: python3
+---
+
+```{python}
+#| marimo: {config: {hide_code: true}}
+```
+
+
+
+```{python}
+from caml.extensions.synthetic_data import CamlSyntheticDataGenerator
+```
+
+## Generate Data
+
+```{python}
+data =  CamlSyntheticDataGenerator(n_obs=10_000,
+                                  n_cont_outcomes=1,
+                                  n_binary_outcomes=1,
+                                  n_cont_treatments=1,
+                                  n_binary_treatments=1,
+                                  n_discrete_treatments=1,
+                                  n_cont_confounders=1,
+                                  n_binary_confounders=1,
+                                  n_discrete_confounders=1,
+                                  n_cont_modifiers=1,
+                                  n_binary_modifiers=1,
+                                  n_discrete_modifiers=1,
+                                  n_confounding_modifiers=1,
+                                  stddev_outcome_noise=3,
+                                  stddev_treatment_noise=3,
+                                  causal_model_functional_form="linear",
+                                  n_nonlinear_transformations=10,
+                                  n_nonlinear_interactions=5,
+                                  seed=15)
+```
+
+## Simulated Dataframe
+
+```{python}
+data.df
+```
+
+## DGP
+
+```{python}
+for k,v in data.dgp.items():
+    print(k)
+    print(v)
+```
+
+## True Conditional Average Treatment Effects (CATEs)
+
+```{python}
+data.cates
+```
+
+## True Average Treatment Effects (ATEs)
+
+```{python}
+data.ates
+```
+

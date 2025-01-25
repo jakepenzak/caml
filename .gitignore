@@ -1,0 +1,31 @@
+# Builds
+dist/
+
+# Test
+tests/reports/
+.coverage
+.pytest_cache/
+
+# Pycache
+__pycache__/
+
+# Ruff
+.ruff_cache/
+
+# Backup
+.backup/
+
+# venv
+.venv*/
+
+# .ssh
+.github_access/*
+!.github_access/README.md
+
+# Quarto Rendering
+*_files/
+*.html
+!docs/*.html
+
+# Jupyer
+.ipynb_checkpoints

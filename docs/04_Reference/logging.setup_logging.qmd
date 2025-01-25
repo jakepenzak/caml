@@ -1,0 +1,11 @@
+# logging.setup_logging { #caml.logging.setup_logging }
+
+```python
+logging.setup_logging(verbose=1)
+```
+
+Set up logging configuration.
+
+This function configures the logging module with a basic configuration.
+It sets the logging level to INFO and the log message format to only include the message itself.
+The logging handler used is `rich_handler`.

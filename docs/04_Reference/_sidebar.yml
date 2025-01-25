@@ -1,0 +1,25 @@
+website:
+  sidebar:
+  - contents:
+    - 04_Reference/index.qmd
+    - contents:
+      - 04_Reference/CamlCATE.qmd
+      section: CaML Core
+    - contents:
+      - 04_Reference/CamlSyntheticDataGenerator.qmd
+      - 04_Reference/make_partially_linear_dataset_simple.qmd
+      - 04_Reference/make_partially_linear_dataset_constant.qmd
+      - 04_Reference/make_fully_heterogeneous_dataset.qmd
+      section: Synthetic Data Generation
+    - contents:
+      - 04_Reference/cate_histogram_plot.qmd
+      - 04_Reference/cate_line_plot.qmd
+      - 04_Reference/cate_true_vs_estimated_plot.qmd
+      section: Plots
+    - contents:
+      - 04_Reference/generics.generate_random_string.qmd
+      - 04_Reference/generics.cls_typechecked.qmd
+      - 04_Reference/logging.setup_logging.qmd
+      section: Developer Tools
+    id: 04_Reference
+  - id: dummy-sidebar
