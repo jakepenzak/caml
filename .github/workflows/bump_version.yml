@@ -1,7 +1,8 @@
 name: Bump Version
 
 on:
-  push:
+  pull_request:
+    types: [closed]
     branches:
       - main
 
@@ -13,7 +14,7 @@ permissions:
 
 jobs:
   bump_version:
-    if: github.event.pull_request.merged == true || github.ref == 'refs/heads/main'
+    if: github.event.pull_request.merged == true
     runs-on: ubuntu-latest
 
     steps:
@@ -58,8 +59,8 @@ jobs:
         shell: bash -l {0}
         run: |
           source .venv/bin/activate
-          NEW_VERSION=$(bump-my-version bump ${{ env.type }} --dry-run -vv | grep 'New version will be' | cut -d ' ' -f7)
-          OLD_VERSION=$(bump-my-version bump pre_n --dry-run -vv | grep 'Parsing current version' | cut -d ' ' -f6)
+          NEW_VERSION=$(bump-my-version bump ${{ env.type }} --dry-run -vv | grep 'New version will be' | cut -d ' ' -f7 | tr -d "'")
+          OLD_VERSION=$(bump-my-version bump pre_n --dry-run -vv | grep 'Parsing current version' | cut -d ' ' -f6 | tr -d "'")
           echo "NEW_VERSION=$NEW_VERSION" >> $GITHUB_ENV
           echo "OLD_VERSION=$OLD_VERSION" >> $GITHUB_ENV
           bump-my-version bump ${{ env.type }}
