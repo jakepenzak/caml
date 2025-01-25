@@ -16,7 +16,7 @@
 
 <br>
 
-### Welcome!
+## Welcome!
 
 CaML provides a high-level API for an _opinionated_ framework in performing Causal ML to estimate Average Treatment Effects (ATEs),
 Group Average Treatment Effects (GATEs), and Conditional Average Treatment Effects (CATEs), and to provide mechanisms to utilize these
