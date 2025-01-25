@@ -1,0 +1,21 @@
+# generics.generate_random_string { #caml.generics.generate_random_string }
+
+```python
+generics.generate_random_string(N)
+```
+
+Function to generate a random string of ascii lowercase letters and digits of length N.
+
+Utilized to generate a random table name for the Ibis Tables.
+
+## Parameters {.doc-section .doc-section-parameters}
+
+| Name   | Type   | Description                              | Default    |
+|--------|--------|------------------------------------------|------------|
+| N      | int    | The length of random string to generate. | _required_ |
+
+## Returns {.doc-section .doc-section-returns}
+
+| Name   | Type                                | Description   |
+|--------|-------------------------------------|---------------|
+|        | str: The random string of length N. |               |

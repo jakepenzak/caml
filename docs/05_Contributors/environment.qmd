@@ -1,0 +1,32 @@
+---
+title: "Environment Setup"
+---
+
+
+## With VSCode Devcontainers
+
+To help aid in environment setup, we've created a [VS Code devcontainer](https://code.visualstudio.com/docs/devcontainers/containers) for quick, isolated, and standardized environment creation.
+
+### Prerequisites
+- [Docker Desktop](https://www.docker.com/) or your choice of docker engine
+- [Visual Studio Code](https://code.visualstudio.com/)
+
+### Setup
+1. Ensure docker engine is running
+2. Open VSCode in cloned project directory
+3. Install VSCode [Dev Containers extension](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers)
+4. Open the current folder in dev container
+
+## Without Devcontainers
+
+### Prerequisites
+- [uv](https://docs.astral.sh/uv/) v0.5.23
+- [python](https://www.python.org/downloads/) v3.10
+
+### Setup
+1. Open repository in ide of choice
+2. Run `uv sync --all-groups --frozen` from command line
+3. Activate the virtual environment via `source .venv/bin/activate`
+4. Run `pre-commit install` to install pre-commit hooks
+
+See [uv documentation](https://docs.astral.sh/uv/) for details on managing environment and project depencencies.
