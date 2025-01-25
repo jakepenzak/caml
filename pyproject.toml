@@ -137,3 +137,8 @@ optional_value = "final"
 
 [[tool.bumpversion.files]]
 filename = "caml/_version.py"
+
+[[tool.bumpversion.files]]
+filename = "pyproject.toml"
+search = "{current_version}"
+replace = "{current_version}...{new_version}"
