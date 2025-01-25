@@ -12,7 +12,7 @@ dependencies = [
 description = "Extensions & abstractions of advanced econometric techniques leveraging machine learning."
 name = "caml"
 requires-python = ">= 3.10"
-version = ["dynamic"]
+version = "0.0.0-dev7"
 license = {file = "LICENSE"}
 readme = "README.md"
 classifiers = [
