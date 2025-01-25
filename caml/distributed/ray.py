@@ -7,9 +7,7 @@ from ray.util.spark import (
 
 
 def setup_ray_cluster_on_spark(**setup_ray_cluster_kwargs):
-    """
-    Setup a Ray cluster on Spark.
-    """
+    """Setup a Ray cluster on Spark."""
     try:
         shutdown_ray_cluster()
     except RuntimeError:

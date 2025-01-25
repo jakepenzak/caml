@@ -12,7 +12,7 @@ dependencies = [
 description = "Extensions & abstractions of advanced econometric techniques leveraging machine learning."
 name = "caml"
 requires-python = ">= 3.10"
-version = "0.0.0.dev7"
+version = "0.0.0-dev7"
 license = {file = "LICENSE"}
 readme = "README.md"
 classifiers = [
@@ -31,6 +31,7 @@ test = [
 ]
 dev = [
     "anthropic>=0.42.0",
+    "bump-my-version>=0.29.0",
     "jupyter>=1.1.0",
     "marimo>=0.10.4",
     "pre-commit>=3.5.0",
@@ -96,3 +97,43 @@ convention = "numpy"
 [tool.pytest.ini_options]
 filterwarnings = "ignore::DeprecationWarning"
 addopts = "--cov=caml/ --cov-report=term-missing --cov-report=html:tests/reports/htmlcov --cov-report=xml:tests/reports/coverage.xml"
+
+[tool.bumpversion]
+current_version = "0.0.0-dev7"
+parse = """(?x)
+    (?P<major>0|[1-9]\\d*)\\.
+    (?P<minor>0|[1-9]\\d*)\\.
+    (?P<patch>0|[1-9]\\d*)
+    (?:
+        -                             # dash separator for pre-release section
+        (?P<pre_l>[a-zA-Z-]+)         # pre-release label
+        (?P<pre_n>0|[1-9]\\d*)        # pre-release version number
+    )?                                # pre-release section is optional
+"""
+serialize = [
+    "{major}.{minor}.{patch}-{pre_l}{pre_n}",
+    "{major}.{minor}.{patch}",
+]
+search = "{current_version}"
+replace = "{new_version}"
+regex = false
+ignore_missing_version = false
+ignore_missing_files = false
+tag = false
+sign_tags = false
+tag_name = "v{new_version}"
+tag_message = "Bump version: {current_version} → {new_version}"
+allow_dirty = false
+commit = false
+message = "Bump version: {current_version} → {new_version}"
+commit_args = ""
+setup_hooks = []
+pre_commit_hooks = []
+post_commit_hooks = []
+
+[tool.bumpversion.parts.pre_l]
+values = ["dev", "rc", "final"]
+optional_value = "final"
+
+[[tool.bumpversion.files]]
+filename = "_version.py"
