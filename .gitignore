@@ -22,9 +22,6 @@ __pycache__/
 .github_access/*
 !.github_access/README.md
 
-# personal devcontainer.json
-devcontainer.json
-
 # Quarto Rendering
 *_files/
 *.html
