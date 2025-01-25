@@ -6,7 +6,7 @@
 
 | | |
 | --- | --- |
-| [CamlCATE](CamlCATE.qmd#caml.CamlCATE) | The CamlCATE class represents an opinionated framework of Causal Machine Learning techniques for estimating |
+| [CamlCATE](CamlCATE.qmd#caml.CamlCATE) | The CamlCATE class represents an opinionated framework of Causal Machine Learning techniques for estimating highly accurate conditional average treatment effects (CATEs). |
 
 ## Synthetic Data Generation
 

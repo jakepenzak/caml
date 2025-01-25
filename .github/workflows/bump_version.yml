@@ -49,23 +49,25 @@ jobs:
             echo "type=pre_l" >> $GITHUB_ENV
           elif [[ "${{ steps.get_labels.outputs.labels }}" == *"bump:pre_n"* ]]; then
             echo "type=pre_n" >> $GITHUB_ENV
-            echo "hit"
+          elif [[ "${{ steps.get_labels.outputs.labels }}" == *"bump:skip"* ]]; then
+            echo "type=skip" >> $GITHUB_ENV
           else
-            echo "type=pre_n" >> $GITHUB_ENV
+            echo "type=skip" >> $GITHUB_ENV
           fi
 
       - name: Bump Version
-        if: env.type != ''
+        if: env.type != 'skip'
         shell: bash -l {0}
         run: |
           source .venv/bin/activate
           NEW_VERSION=$(bump-my-version bump ${{ env.type }} --dry-run -vv | grep 'New version will be' | cut -d ' ' -f7)
-          OLD__VERSION=$(bump-my-version bump pre_n --dry-run -vv | grep 'Parsing current version' | cut -d ' ' -f6)
+          OLD_VERSION=$(bump-my-version bump pre_n --dry-run -vv | grep 'Parsing current version' | cut -d ' ' -f6)
           echo "NEW_VERSION=$NEW_VERSION" >> $GITHUB_ENV
-          echo "OLD_VERSION=$OLD__VERSION" >> $GITHUB_ENV
+          echo "OLD_VERSION=$OLD_VERSION" >> $GITHUB_ENV
           bump-my-version bump ${{ env.type }}
 
       - name: Push Changes to Dynamic Branch
+        if: env.type != 'skip'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
@@ -77,6 +79,7 @@ jobs:
           git push origin bump-version-${{ env.NEW_VERSION }}
 
       - name: Create or Update Draft Pull Request
+        if: env.type != 'skip'
         uses: peter-evans/create-pull-request@v5
         with:
           token: ${{ secrets.GITHUB_TOKEN }}

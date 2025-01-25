@@ -1,6 +1,6 @@
 .cell {
-    margin-bottom: 1rem;
-  }
+  margin-bottom: 1rem;
+}
 
 .cell > .sourceCode {
   margin-bottom: 0;
@@ -10,7 +10,9 @@
   margin-bottom: 0;
 }
 
-.cell-output > pre, .cell-output > .sourceCode > pre, .cell-output-stdout > pre {
+.cell-output > pre,
+.cell-output > .sourceCode > pre,
+.cell-output-stdout > pre {
   margin-left: 0.8rem;
   margin-top: 0;
   background: none;
@@ -54,12 +56,17 @@ div.description {
   height: auto;
 }
 
-.navbar{
+.navbar {
   text-transform: none;
   font-size: 1.1rem;
 }
 
-h1, h2, h3, h4, h5, h6 {
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
   text-transform: none;
 }
 
@@ -69,7 +76,8 @@ td:first-child {
 }
 
 /* Increase the padding inside table cells */
-table th, table td {
+table th,
+table td {
   padding: 10px 20px; /* Adjust the values as needed */
 }
 
@@ -77,7 +85,6 @@ table th, table td {
 table {
   border-spacing: 20px; /* Adjust this value as needed */
 }
-
 
 /***************************/
 /* Modifying Accent Colors */
@@ -90,7 +97,6 @@ code {
   border-radius: 4px; /* Optional: Add rounded corners */
 }
 
-
 a {
   color: #006d09; /* Replace with your desired accent color */
 }
@@ -102,12 +108,12 @@ a:hover {
 /* Change the color of navbar titles */
 .navbar-brand,
 .navbar-nav .nav-link {
-    color: #000000; /* Replace with your desired color */
+  color: #000000; /* Replace with your desired color */
 }
 
 .navbar-brand:hover,
 .navbar-nav .nav-link:hover {
-    color: #006d09; /* Optional: Darker shade on hover */
+  color: #006d09; /* Optional: Darker shade on hover */
 }
 
 .navbar-nav .nav-link.active {
@@ -128,4 +134,30 @@ a:hover {
 .dropdown-menu .dropdown-item:hover {
   background-color: #ffffff !important; /* Replace with your desired hover background color */
   color: #006d09 !important; /* Replace with your desired hover text color */
+}
+
+/* Constrain the width of all content */
+body {
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
+/* Ensure images do not overflow */
+img {
+  max-width: 100%;
+  height: auto;
+}
+
+/* Prevent code blocks from overflowing */
+pre {
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  overflow-x: auto;
+}
+
+/* Make tables responsive */
+table {
+  width: 100%;
+  overflow-x: auto;
+  display: block;
 }

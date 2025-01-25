@@ -1,4 +1,4 @@
-<center>
+<div align="center">
 
 <img src="https://raw.githubusercontent.com/jakepenzak/caml/main/docs/assets/main_logo.svg"" align="center" alt="CaML Logo" height="auto" width=500px/>
 
@@ -7,16 +7,16 @@
 [![ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
 [![uv](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/uv/main/assets/badge/v0.json)](https://github.com/astral-sh/uv)
 [![lifecycle](https://img.shields.io/badge/Lifecycle-Experimental-blue?style=flat)](https://img.shields.io/badge/Lifecycle-Experimental-blue?style=flat)
-
+<br>
 [![Caml CI/CD](https://github.com/jakepenzak/caml/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/jakepenzak/caml/actions/workflows/ci.yml)
 [![Build & Publish Docs](https://github.com/jakepenzak/caml/actions/workflows/docs.yml/badge.svg)](https://github.com/jakepenzak/caml/actions/workflows/docs.yml)
 [![Pre-Commit & Linting Checks](https://github.com/jakepenzak/caml/actions/workflows/lint.yml/badge.svg?branch=main)](https://github.com/jakepenzak/caml/actions/workflows/lint.yml)
 
-</center>
+**Ca**usal **M**achine **L**earning
+
+</div>
 
 ### Welcome!
-
-CaML = **Ca**usal **M**achine **L**earning
 
 CaML provides a high-level API for an _opinionated_ framework in performing Causal ML to estimate Average Treatment Effects (ATEs),
 Group Average Treatment Effects (GATEs), and Conditional Average Treatment Effects (CATEs), and to provide mechanisms to utilize these

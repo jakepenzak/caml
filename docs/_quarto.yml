@@ -9,6 +9,8 @@ format:
     theme: cosmo
     css: styles/styles.css
     toc: true
+    table-scroll: true
+    code-fold: true
 
 website:
   title: CaML - Causal ML

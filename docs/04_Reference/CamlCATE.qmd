@@ -16,8 +16,7 @@ CamlCATE(
 )
 ```
 
-The CamlCATE class represents an opinionated framework of Causal Machine Learning techniques for estimating
-highly accurate conditional average treatment effects (CATEs).
+The CamlCATE class represents an opinionated framework of Causal Machine Learning techniques for estimating highly accurate conditional average treatment effects (CATEs).
 
 This class is built on top of the EconML library and provides a high-level API for fitting, validating, and making inference with CATE models,
 with best practices built directly into the API. The class is designed to be easy to use and understand, while still providing
@@ -136,7 +135,7 @@ Multi-dimensional outcomes and treatments are not yet supported.
 | [fit_validator](#caml.CamlCATE.fit_validator) | Fits the CATE models on the training set and evaluates them & ensembles based on the validation set. |
 | [predict](#caml.CamlCATE.predict) | Predicts the CATE based on the fitted final estimator for either the internal dataset or provided Data. |
 | [summarize](#caml.CamlCATE.summarize) | Provides population summary statistics for the CATE predictions for either the internal results or provided results. |
-| [validate](#caml.CamlCATE.validate) | Validates the fitted CATE models on the test set to check for generalization performance. Uses the DRTester class from EconML to obtain the Best |
+| [validate](#caml.CamlCATE.validate) | Validates the fitted CATE models on the test set to check for generalization performance. |
 
 ### auto_nuisance_functions { #caml.CamlCATE.auto_nuisance_functions }
 
@@ -318,8 +317,10 @@ CamlCATE.validate(
 )
 ```
 
-Validates the fitted CATE models on the test set to check for generalization performance. Uses the DRTester class from EconML to obtain the Best
-Linear Predictor (BLP), Calibration, AUTOC, and QINI. See [EconML documentation](https://econml.azurewebsites.net/_autosummary/econml.validate.DRTester.html) for more details.
+Validates the fitted CATE models on the test set to check for generalization performance.
+
+Uses the DRTester class from EconML to obtain the Best Linear Predictor (BLP), Calibration, AUTOC, and QINI.
+See [EconML documentation](https://econml.azurewebsites.net/_autosummary/econml.validate.DRTester.html) for more details.
 In short, we are checking for the ability of the model to find statistically significant heterogeneity in a "well-calibrated" fashion.
 
 Sets the `_validator_results` internal attribute to the results of the DRTester class.
