@@ -12,9 +12,6 @@ format:
     table-scroll: true
     code-fold: true
 
-execute:
-  error: halt
-
 website:
   title: CaML - Causal ML
   favicon: assets/logo_no_text.svg

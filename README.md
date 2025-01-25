@@ -2,6 +2,8 @@
 
 <img src="docs/assets/main_logo.svg" align="center" alt="CaML Logo" height="auto" width=500px/>
 
+<br>
+
 [![image](https://img.shields.io/pypi/v/caml.svg)](https://pypi.python.org/pypi/caml)
 [![pre-commit](https://img.shields.io/badge/pre--commit-enabled-brightgreen?logo=pre-commit&logoColor=white)](https://github.com/pre-commit/pre-commit)
 [![ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
@@ -16,7 +18,7 @@
 
 </div>
 
-### Welcome!
+## Welcome!
 
 CaML provides a high-level API for an _opinionated_ framework in performing Causal ML to estimate Average Treatment Effects (ATEs),
 Group Average Treatment Effects (GATEs), and Conditional Average Treatment Effects (CATEs), and to provide mechanisms to utilize these
