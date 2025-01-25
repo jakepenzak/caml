@@ -59,7 +59,7 @@ jobs:
         shell: bash -l {0}
         run: |
           source .venv/bin/activate
-          NEW_VERSION=$(bump-my-version bump ${{ env.type }} --dry-run -vv | grep 'New version will be' | cut -d ' ' -f5)
+          NEW_VERSION=$(bump-my-version bump ${{ env.type }} --dry-run -vv | grep 'New version will be' | cut -d ' ' -f7)
           echo "NEW_VERSION=$NEW_VERSION" >> $GITHUB_ENV
           bump-my-version bump ${{ env.type }}
 
@@ -71,5 +71,5 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add .
-          git commit -m "Bump version: ${{ VERSION }}"
+          git commit -m "Bump version: ${{ env.NEW_VERSION }}"
           git push origin ${{ github.head_ref }}
