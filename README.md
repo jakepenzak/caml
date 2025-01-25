@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="docs/assets/main_logo.svg"" align="center" alt="CaML Logo" height="auto" width=500px/>
+<img src="docs/assets/main_logo.svg" align="center" alt="CaML Logo" height="auto" width=500px/>
 
 [![image](https://img.shields.io/pypi/v/caml.svg)](https://pypi.python.org/pypi/caml)
 [![pre-commit](https://img.shields.io/badge/pre--commit-enabled-brightgreen?logo=pre-commit&logoColor=white)](https://github.com/pre-commit/pre-commit)
