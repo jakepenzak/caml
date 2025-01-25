@@ -63,6 +63,17 @@ jobs:
           echo "NEW_VERSION=$NEW_VERSION" >> $GITHUB_ENV
           bump-my-version bump ${{ env.type }}
 
+      - name: Create or Update Draft Pull Request
+        uses: peter-evans/create-pull-request@v5
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          branch: bump-version
+          base: main
+          title: "Draft: Bump Version $${{ env.NEW_VERSION }}"
+          body: |
+            Bumps version from ${{ steps.bump.outputs.previous-version }} to ${{ steps.bump.outputs.current-version }}.
+          draft: true
+
       - name: Commit and Push Changes
         if: env.type != ''
         env:
@@ -72,4 +83,4 @@ jobs:
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add .
           git commit -m "Bump version: ${{ env.NEW_VERSION }}"
-          git push origin ${{ github.head_ref }}
+          git push origin main
