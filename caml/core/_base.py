@@ -203,7 +203,6 @@ class CamlBase(metaclass=abc.ABCMeta):
         model : sklearn.base.BaseEstimator
             The best nuisance model found by FLAML.
         """
-
         automl = AutoML()
 
         base_settings = {

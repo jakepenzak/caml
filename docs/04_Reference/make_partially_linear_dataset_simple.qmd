@@ -10,13 +10,14 @@ extensions.synthetic_data.make_partially_linear_dataset_simple(
 )
 ```
 
-Simulate data generating process from a partially linear model with a simple 1 or 2 dimensional CATE function. The outcome is continuous and the treatment can be binary or continuous.
-The dataset is generated using the `make_heterogeneous_data` function from the [`doubleml` package](https://docs.doubleml.org/stable/index.html).
+Simulate data generating process from a partially linear model with a simple 1 or 2 dimensional CATE function.
+
+The outcome is continuous and the treatment can be binary or continuous. The dataset is generated using the `make_heterogeneous_data` function from the [`doubleml` package](https://docs.doubleml.org/stable/index.html).
 
 The general form of the data generating process is, in the case of dim_heterogeneity=1:
 
 $$
-y_i= \tau (x_0) d_i + g(\mathbf{X_i})+\epsilon_i
+y_i= \\tau (x_0) d_i + g(\mathbf{X_i})+\epsilon_i
 $$
 $$
 d_i=f(\mathbf{X_i})+\eta_i
@@ -25,17 +26,17 @@ $$
 or, in the case of dim_heterogeneity=2:
 
 $$
-y_i= \tau (x_0,x_1) d_i + g(\mathbf{X_i})+\epsilon_i
+y_i= \\tau (x_0,x_1) d_i + g(\mathbf{X_i})+\epsilon_i
 $$
 $$
 d_i=f(\mathbf{X_i})+\eta_i
 $$
 
-where $y_i$ is the outcome, $d_i$ is the treatment, $\mathbf{X_i}$ are the confounders, $\epsilon_i$ and $\eta_i$ are the error terms, $\tau$ is the CATE function, $g$ is the outcome function, and $f$ is the treatment function.
+where $y_i$ is the outcome, $d_i$ is the treatment, $\mathbf{X_i}$ are the confounders, $\epsilon_i$ and $\eta_i$ are the error terms, $\\tau$ is the CATE function, $g$ is the outcome function, and $f$ is the treatment function.
 
 See the `doubleml` documentation for more details on the specific functional forms of the data generating process.
 
-Here the ATE is defined as the average of the CATE function over all observations: $\mathbb{E}[\tau (\cdot)]$
+Here the ATE is defined as the average of the CATE function over all observations: $\mathbb{E}[\\tau (\cdot)]$
 
 As a DAG, the data generating process can be roughly represented as:
 
@@ -56,9 +57,9 @@ flowchart TD;
 | Name              | Type        | Description                                                                  | Default   |
 |-------------------|-------------|------------------------------------------------------------------------------|-----------|
 | n_obs             | int         | The number of observations to generate.                                      | `1000`    |
-| n_confounders     | int         | The number of confounders $\mathbf{X_i}$.                                    | `5`       |
+| n_confounders     | int         | The number of confounders $X$.                                               | `5`       |
 | dim_heterogeneity | int         | The dimension of the heterogeneity $x_0$ or $(x_0,x_1)$. Can only be 1 or 2. | `2`       |
-| binary_treatment  | bool        | Whether the treatment $d_i$ is binary or continuous.                         | `True`    |
+| binary_treatment  | bool        | Whether the treatment $d$ is binary or continuous.                           | `True`    |
 | seed              | int \| None | The seed to use for the random number generator.                             | `None`    |
 
 ## Returns {.doc-section .doc-section-returns}

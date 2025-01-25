@@ -9,10 +9,7 @@ os.environ["PYARROW_IGNORE_TIMEZONE"] = "1"
 
 @pytest.fixture
 def spark(scope="session"):
-    """
-    Creates local spark object for running pytest
-    """
-
+    """Creates local spark object for running pytest."""
     os.environ["PYSPARK_PYTHON"] = sys.executable
     os.environ["PYSPARK_DRIVER_PYTHON"] = sys.executable
 
@@ -30,7 +27,5 @@ def spark(scope="session"):
 
 
 def pytest_configure(config):
-    """
-    Disable component logger logging for all tests.
-    """
+    """Disable component logger logging for all tests."""
     os.environ["COMPONENT_LOGGER_DUMMY_MODE"] = "yes"

@@ -14,10 +14,10 @@
 
 | | |
 | --- | --- |
-| [make_partially_linear_dataset_simple](make_partially_linear_dataset_simple.qmd#caml.extensions.synthetic_data.make_partially_linear_dataset_simple) | Simulate data generating process from a partially linear model with a simple 1 or 2 dimensional CATE function. The outcome is continuous and the treatment can be binary or continuous. |
-| [make_partially_linear_dataset_constant](make_partially_linear_dataset_constant.qmd#caml.extensions.synthetic_data.make_partially_linear_dataset_constant) | Simulate a data generating process from a partially linear model with a constant treatment effect (ATE only). The outcome and treatment are both continuous. |
-| [make_fully_heterogeneous_dataset](make_fully_heterogeneous_dataset.qmd#caml.extensions.synthetic_data.make_fully_heterogeneous_dataset) | Simulate data generating process from an interactive regression model with fully heterogenous treatment effects. The outcome is continuous and the treatment is binary. |
-| [make_dowhy_linear_dataset](make_dowhy_linear_dataset.qmd#caml.extensions.synthetic_data.make_dowhy_linear_dataset) | Simulate a linear data generating process with flexible configurations. The outcome and treatment can take on different data types. |
+| [CamlSyntheticDataGenerator](CamlSyntheticDataGenerator.qmd#caml.extensions.synthetic_data.CamlSyntheticDataGenerator) | Generate highly flexible synthetic data for use in causal inference and CaML testing. |
+| [make_partially_linear_dataset_simple](make_partially_linear_dataset_simple.qmd#caml.extensions.synthetic_data.make_partially_linear_dataset_simple) | Simulate data generating process from a partially linear model with a simple 1 or 2 dimensional CATE function. |
+| [make_partially_linear_dataset_constant](make_partially_linear_dataset_constant.qmd#caml.extensions.synthetic_data.make_partially_linear_dataset_constant) | Simulate a data generating process from a partially linear model with a constant treatment effect (ATE only). |
+| [make_fully_heterogeneous_dataset](make_fully_heterogeneous_dataset.qmd#caml.extensions.synthetic_data.make_fully_heterogeneous_dataset) | Simulate data generating process from an interactive regression model with fully heterogenous treatment effects. |
 
 ## Plots
 

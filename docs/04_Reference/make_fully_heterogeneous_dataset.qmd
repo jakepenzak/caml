@@ -10,8 +10,9 @@ extensions.synthetic_data.make_fully_heterogeneous_dataset(
 )
 ```
 
-Simulate data generating process from an interactive regression model with fully heterogenous treatment effects. The outcome is continuous and the treatment is binary.
-The dataset is generated using a modified version of `make_irm_data` function from the [`doubleml` package](https://docs.doubleml.org/stable/index.html).
+Simulate data generating process from an interactive regression model with fully heterogenous treatment effects.
+
+The outcome is continuous and the treatment is binary. The dataset is generated using a modified version of `make_irm_data` function from the [`doubleml` package](https://docs.doubleml.org/stable/index.html).
 
 The general form of the data generating process is:
 
@@ -26,9 +27,9 @@ where $y_i$ is the outcome, $d_i$ is the treatment, $\mathbf{X_i}$ are the confo
 
 See the `doubleml` documentation for more details on the specific functional forms of the data generating process.
 
-Note that the treatment effect is fully heterogenous, thus the CATE is defined as: $\tau = \mathbb{E}[g(1,\mathbf{X}) - g(0,\mathbf{X})|\mathbf{X}]$ for any $\mathbf{X}$.
+Note that the treatment effect is fully heterogenous, thus the CATE is defined as: $\\tau = \\mathbb{E}[g(1,\mathbf{X}) - g(0,\mathbf{X})|\mathbf{X}]$ for any $\mathbf{X}$.
 
-The ATE is defined as the average of the CATE function over all observations: $\mathbb{E}[\tau (\cdot)]$
+The ATE is defined as the average of the CATE function over all observations: $\mathbb{E}[\\tau (\cdot)]$
 
 As a DAG, the data generating process can be roughly represented as:
 

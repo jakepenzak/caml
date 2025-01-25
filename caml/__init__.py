@@ -1,5 +1,3 @@
-from .core._base import CamlBase
+"""Copyright (c) 2024 Jacob Pieniazek. All rights reserved."""
+
 from .core.cate import CamlCATE
-from .core.dml import CamlDML
-from .core.dynamic import CamlDynamic
-from .core.policy import CamlPolicy

@@ -18,21 +18,21 @@ def cate_histogram_plot(
 
     Parameters
     ----------
-    estimated_cates : numpy.typing.ArrayLike
+    estimated_cates
         The estimated CATEs.
 
-    true_cates : numpy.typing.ArrayLike | None
+    true_cates
         The true CATEs.
 
-    figure_kwargs : dict
+    figure_kwargs
         Matplotlib figure arguments.
 
-    hist_kwargs : dict
+    hist_kwargs
         Matplotlib hist arguments.
 
     Returns
     -------
-    fig : matplotlib.figure.Figure
+    matplotlib.pyplot.Figure
         The histogram figure object.
 
     Examples
@@ -49,7 +49,6 @@ def cate_histogram_plot(
     fig
     ```
     """
-
     _hist_kwargs = {
         "bins": 50,
         "color": "green",
@@ -99,18 +98,18 @@ def cate_true_vs_estimated_plot(
 
     Parameters
     ----------
-    estimated_cates : numpy.typing.ArrayLike
+    estimated_cates
         The estimated CATEs.
 
-    figure_kwargs : dict
+    figure_kwargs
         Matplotlib figure arguments.
 
-    scatter_kwargs : dict
+    scatter_kwargs
         Matplotlib line arguments.
 
     Returns
     -------
-    fig : matplotlib.figure.Figure
+    matplotlib.pyplot.Figure
         The line plot figure object.
 
     Examples
@@ -127,7 +126,6 @@ def cate_true_vs_estimated_plot(
     fig
     ```
     """
-
     _scatter_kwargs = {
         "color": "green",
         "alpha": 0.7,
@@ -170,30 +168,30 @@ def cate_line_plot(
 
     Parameters
     ----------
-    estimated_cates : numpy.typing.ArrayLike
+    estimated_cates
         The estimated CATEs.
 
-    true_cates : numpy.typing.ArrayLike | None
+    true_cates
         The true CATEs.
 
-    standard_errors : numpy.typing.ArrayLike | None
+    standard_errors
         The standard errors of the estimated CATEs.
 
-    alpha : float
+    alpha
         The alpha level for the confidence intervals. The default is 0.05, which corresponds to 95% confidence intervals.
 
-    window : int
+    window
         The window size for the moving average.
 
-    figure_kwargs : dict
+    figure_kwargs
         Matplotlib figure arguments.
 
-    line_kwargs : dict
+    line_kwargs
         Matplotlib line arguments.
 
     Returns
     -------
-    fig : matplotlib.figure.Figure
+    matplotlib.pyplot.Figure
         The line plot figure object.
 
     Examples
@@ -211,7 +209,6 @@ def cate_line_plot(
     fig
     ```
     """
-
     _line_kwargs = {
         "color": "green",
         "alpha": 0.7,
@@ -245,7 +242,7 @@ def cate_line_plot(
             cate_ma + cv * se_ma,
             color="green",
             alpha=0.2,
-            label=f"{confidence*100:.0f}% CI",
+            label=f"{confidence * 100:.0f}% CI",
         )
     else:
         cate_ma = moving_average(np.sort(estimated_cates), window)

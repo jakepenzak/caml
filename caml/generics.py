@@ -16,7 +16,7 @@ def generate_random_string(N: int) -> str:
         The length of random string to generate.
 
     Returns
-    ----------
+    -------
         str: The random string of length N.
     """
     return "".join(random.choices(string.ascii_lowercase + string.digits, k=N))
@@ -32,7 +32,7 @@ def cls_typechecked(cls):
         The class to decorate.
 
     Returns
-    ----------
+    -------
         cls: The decorated class.
     """
     for name, func in cls.__dict__.items():

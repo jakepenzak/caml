@@ -45,8 +45,7 @@ if TYPE_CHECKING:
 @cls_typechecked
 class CamlCATE(CamlBase):
     """
-    The CamlCATE class represents an opinionated framework of Causal Machine Learning techniques for estimating
-    highly accurate conditional average treatment effects (CATEs).
+    The CamlCATE class represents an opinionated framework of Causal Machine Learning techniques for estimating highly accurate conditional average treatment effects (CATEs).
 
     This class is built on top of the EconML library and provides a high-level API for fitting, validating, and making inference with CATE models,
     with best practices built directly into the API. The class is designed to be easy to use and understand, while still providing
@@ -144,18 +143,22 @@ class CamlCATE(CamlBase):
     >>> from caml.extensions.synthetic_data import make_fully_heterogeneous_dataset
     >>>
     >>> # Generate synthetic dataset
-    >>> df, true_cates, true_ate = make_fully_heterogeneous_dataset(n_obs=1000, n_confounders=10, theta=10, seed=1)
+    >>> df, true_cates, true_ate = make_fully_heterogeneous_dataset(
+    ...     n_obs=1000, n_confounders=10, theta=10, seed=1
+    ... )
     >>>
     >>> # Instantiate CamlCATE class
-    >>> caml_obj= CamlCATE(df=df,
-    ...                    Y="y",
-    ...                    T="d",
-    ...                    X=[c for c in df.columns if "X" in c],
-    ...                    W=[c for c in df.columns if "W" in c],
-    ...                    discrete_treatment=True,
-    ...                    discrete_outcome=True,
-    ...                    seed=0,
-    ...                    verbose=1)
+    >>> caml_obj = CamlCATE(
+    ...     df=df,
+    ...     Y="y",
+    ...     T="d",
+    ...     X=[c for c in df.columns if "X" in c],
+    ...     W=[c for c in df.columns if "W" in c],
+    ...     discrete_treatment=True,
+    ...     discrete_outcome=True,
+    ...     seed=0,
+    ...     verbose=1,
+    ... )
     >>>
     >>> # Standard pipeline
     >>> caml_obj.auto_nuisance_functions()
@@ -234,15 +237,16 @@ class CamlCATE(CamlBase):
         --------
         >>> flaml_Y_kwargs = {
         ...     "n_jobs": -1,
-        ...     "time_budget": 300, # in seconds
-        ...     }
+        ...     "time_budget": 300,  # in seconds
+        ... }
         >>> flaml_T_kwargs = {
         ...     "n_jobs": -1,
         ...     "time_budget": 300,
-        ...     }
-        >>> caml_obj.auto_nuisance_functions(flaml_Y_kwargs=flaml_Y_kwargs, flaml_T_kwargs=flaml_T_kwargs)
+        ... }
+        >>> caml_obj.auto_nuisance_functions(
+        ...     flaml_Y_kwargs=flaml_Y_kwargs, flaml_T_kwargs=flaml_T_kwargs
+        ... )
         """
-
         if use_ray:
             assert _HAS_RAY, "Ray is not installed. Please install Ray to use it for parallel processing."
 
@@ -328,12 +332,24 @@ class CamlCATE(CamlBase):
         >>> rscorer_kwargs = {
         ...     "cv": 3,
         ...     "mc_iters": 3,
-        ...     }
+        ... }
         >>> subset_cate_models = ["LinearDML", "NonParamDML", "CausalForestDML"]
-        >>> additional_cate_models = [("XLearner", XLearner(models=caml_obj._model_Y_X_T, cate_models=caml_obj._model_Y_X_T, propensity_model=caml._model_T_X))]
-        >>> caml_obj.fit_validator(subset_cate_models=subset_cate_models, additional_cate_models=additional_cate_models, rscorer_kwargs=rscorer_kwargs)
+        >>> additional_cate_models = [
+        ...     (
+        ...         "XLearner",
+        ...         XLearner(
+        ...             models=caml_obj._model_Y_X_T,
+        ...             cate_models=caml_obj._model_Y_X_T,
+        ...             propensity_model=caml._model_T_X,
+        ...         ),
+        ...     )
+        ... ]
+        >>> caml_obj.fit_validator(
+        ...     subset_cate_models=subset_cate_models,
+        ...     additional_cate_models=additional_cate_models,
+        ...     rscorer_kwargs=rscorer_kwargs,
+        ... )
         """
-
         assert self._nuisances_fitted, "find_nuissance_functions() method must be called prior to estimating CATE models."
 
         if use_ray:
@@ -364,8 +380,10 @@ class CamlCATE(CamlBase):
         print_full_report: bool = True,
     ):
         """
-        Validates the fitted CATE models on the test set to check for generalization performance. Uses the DRTester class from EconML to obtain the Best
-        Linear Predictor (BLP), Calibration, AUTOC, and QINI. See [EconML documentation](https://econml.azurewebsites.net/_autosummary/econml.validate.DRTester.html) for more details.
+        Validates the fitted CATE models on the test set to check for generalization performance.
+
+        Uses the DRTester class from EconML to obtain the Best Linear Predictor (BLP), Calibration, AUTOC, and QINI.
+        See [EconML documentation](https://econml.azurewebsites.net/_autosummary/econml.validate.DRTester.html) for more details.
         In short, we are checking for the ability of the model to find statistically significant heterogeneity in a "well-calibrated" fashion.
 
         Sets the `_validator_results` internal attribute to the results of the DRTester class.
@@ -383,7 +401,7 @@ class CamlCATE(CamlBase):
 
         Examples
         --------
-        >>> caml_obj.validate(print_full_report=True) # Prints the full validation report.
+        >>> caml_obj.validate(print_full_report=True)  # Prints the full validation report.
         """
         plt.style.use("ggplot")
 
@@ -452,9 +470,8 @@ class CamlCATE(CamlBase):
 
         Examples
         --------
-        >>> caml_obj.fit_final() # Fits the final estimator on the entire dataset.
+        >>> caml_obj.fit_final()  # Fits the final estimator on the entire dataset.
         """
-
         assert (
             self._validation_estimator
         ), "The best estimator must be fitted first before fitting the final estimator."
@@ -518,7 +535,6 @@ class CamlCATE(CamlBase):
         --------
         >>> caml.predict(return_as_dataframe=True)
         """
-
         assert self._final_estimator, "The final estimator must be fitted first before making predictions. Please run the fit() method with final_estimator=True."
 
         if X is None:
@@ -562,9 +578,8 @@ class CamlCATE(CamlBase):
 
         Examples
         --------
-        >>> caml.summarize() # Summarizes the CATE predictions for the internal DataFrame.
+        >>> caml.summarize()  # Summarizes the CATE predictions for the internal DataFrame.
         """
-
         if cate_predictions is None:
             _cate_predictions = self._cate_predictions
             cate_predictions_df = pandas.DataFrame.from_dict(_cate_predictions)
@@ -594,7 +609,6 @@ class CamlCATE(CamlBase):
         additional_cate_models: list[tuple[str, econml._cate_estimator.BaseCateEstimator]]
             The list of additional CATE models to fit and ensemble.
         """
-
         _cate_models = []
         for cate_model in subset_cate_models:
             model_tuple = model_bank.get_cate_model(
@@ -642,7 +656,6 @@ class CamlCATE(CamlBase):
         econml.score.RScorer
             The fitted RScorer object.
         """
-
         Y_train, T_train, X_train, W_train = (  # noqa: F841
             self._data_splits["Y_train"],
             self._data_splits["T_train"],
@@ -723,7 +736,7 @@ class CamlCATE(CamlBase):
 
         logger.info(f"Ensemble Estimator RScore: {ensemble_score}")
         logger.info(
-            f"Inidividual Estimator RScores: {dict(zip([n[0] for n in models],estimator_scores))}"
+            f"Inidividual Estimator RScores: {dict(zip([n[0] for n in models], estimator_scores, strict=False))}"
         )
 
         # Choose best estimator
@@ -742,7 +755,11 @@ class CamlCATE(CamlBase):
                     "The ensemble estimator is the best estimator, filtering out models with weights less than 0.01."
                 )
                 estimator_weight_map = dict(
-                    zip(ensemble_estimator._cate_models, ensemble_estimator._weights)
+                    zip(
+                        ensemble_estimator._cate_models,
+                        ensemble_estimator._weights,
+                        strict=False,
+                    )
                 )
                 ensemble_estimator._cate_models = [
                     k for k, v in estimator_weight_map.items() if v > 0.01
@@ -772,7 +789,6 @@ class CamlCATE(CamlBase):
         summary : str
             A string containing information about the CamlCATE object, including data backend, number of observations, UUID, outcome variable, discrete outcome, treatment variable, discrete treatment, features/confounders, random seed, nuissance models (if fitted), and final estimator (if available).
         """
-
         summary = (
             "================== CamlCATE Object ==================\n"
             + f"Data Backend: {self._data_backend}\n"

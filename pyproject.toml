@@ -70,20 +70,28 @@ extend-include = ["*.ipynb"]
 line-length = 88
 indent-width = 4
 
-target-version = "py39"
+target-version = "py310"
 
 [tool.ruff.lint.per-file-ignores]
 "__init__.py" = ["E402","F401"] # Import violations
 "**/{tests,docs,tools}/*" = ["E402"] # Import violations
 
 [tool.ruff.lint]
-select = ["E4", "E7", "E9", "F", "I"]
+select = ["E", "F", "W", "Q", "D", "I"]
+ignore = ["D401","D100","D101","D102","D103", "E501", "E203"]
 
 [tool.ruff.format]
-quote-style = "double" # Use double quotes for non-triple-quoted strings.
+quote-style = "double"
+indent-style = "space"
+line-ending = "auto"
+docstring-code-format = true
+docstring-code-line-length = 88
 
 [tool.ruff.lint.flake8-quotes]
-docstring-quotes = "single" # Use single quotes for docstrings
+docstring-quotes = "double"
+
+[tool.ruff.lint.pydocstyle]
+convention = "numpy"
 
 [tool.pytest.ini_options]
 filterwarnings = "ignore::DeprecationWarning"

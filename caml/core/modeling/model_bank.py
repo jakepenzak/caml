@@ -50,7 +50,6 @@ def get_cate_model(
     tuple[str, BaseCateEstimator] | None
         The name of the model and the model object.
     """
-
     valid_models = [
         "LinearDML",
         "CausalForestDML",

@@ -6,10 +6,10 @@ website:
       - 04_Reference/CamlCATE.qmd
       section: CaML Core
     - contents:
+      - 04_Reference/CamlSyntheticDataGenerator.qmd
       - 04_Reference/make_partially_linear_dataset_simple.qmd
       - 04_Reference/make_partially_linear_dataset_constant.qmd
       - 04_Reference/make_fully_heterogeneous_dataset.qmd
-      - 04_Reference/make_dowhy_linear_dataset.qmd
       section: Synthetic Data Generation
     - contents:
       - 04_Reference/cate_histogram_plot.qmd

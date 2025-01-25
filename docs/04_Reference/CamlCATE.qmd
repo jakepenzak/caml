@@ -98,18 +98,22 @@ Multi-dimensional outcomes and treatments are not yet supported.
 >>> from caml.extensions.synthetic_data import make_fully_heterogeneous_dataset
 >>>
 >>> # Generate synthetic dataset
->>> df, true_cates, true_ate = make_fully_heterogeneous_dataset(n_obs=1000, n_confounders=10, theta=10, seed=1)
+>>> df, true_cates, true_ate = make_fully_heterogeneous_dataset(
+...     n_obs=1000, n_confounders=10, theta=10, seed=1
+... )
 >>>
 >>> # Instantiate CamlCATE class
->>> caml_obj= CamlCATE(df=df,
-...                    Y="y",
-...                    T="d",
-...                    X=[c for c in df.columns if "X" in c],
-...                    W=[c for c in df.columns if "W" in c],
-...                    discrete_treatment=True,
-...                    discrete_outcome=True,
-...                    seed=0,
-...                    verbose=1)
+>>> caml_obj = CamlCATE(
+...     df=df,
+...     Y="y",
+...     T="d",
+...     X=[c for c in df.columns if "X" in c],
+...     W=[c for c in df.columns if "W" in c],
+...     discrete_treatment=True,
+...     discrete_outcome=True,
+...     seed=0,
+...     verbose=1,
+... )
 >>>
 >>> # Standard pipeline
 >>> caml_obj.auto_nuisance_functions()
@@ -163,13 +167,15 @@ Sets the `model_Y_X_W`, `model_Y_X_W_T`, and `model_T_X_W` internal attributes t
 ```python
 >>> flaml_Y_kwargs = {
 ...     "n_jobs": -1,
-...     "time_budget": 300, # in seconds
-...     }
+...     "time_budget": 300,  # in seconds
+... }
 >>> flaml_T_kwargs = {
 ...     "n_jobs": -1,
 ...     "time_budget": 300,
-...     }
->>> caml_obj.auto_nuisance_functions(flaml_Y_kwargs=flaml_Y_kwargs, flaml_T_kwargs=flaml_T_kwargs)
+... }
+>>> caml_obj.auto_nuisance_functions(
+...     flaml_Y_kwargs=flaml_Y_kwargs, flaml_T_kwargs=flaml_T_kwargs
+... )
 ```
 
 ### fit_final { #caml.CamlCATE.fit_final }
@@ -185,7 +191,7 @@ Sets the `_final_estimator` internal attribute to the fitted EconML estimator.
 #### Examples {.doc-section .doc-section-examples}
 
 ```python
->>> caml_obj.fit_final() # Fits the final estimator on the entire dataset.
+>>> caml_obj.fit_final()  # Fits the final estimator on the entire dataset.
 ```
 
 ### fit_validator { #caml.CamlCATE.fit_validator }
@@ -224,10 +230,23 @@ Sets the `_validation_estimator` and `_rscorer` internal attributes to the fitte
 >>> rscorer_kwargs = {
 ...     "cv": 3,
 ...     "mc_iters": 3,
-...     }
+... }
 >>> subset_cate_models = ["LinearDML", "NonParamDML", "CausalForestDML"]
->>> additional_cate_models = [("XLearner", XLearner(models=caml_obj._model_Y_X_T, cate_models=caml_obj._model_Y_X_T, propensity_model=caml._model_T_X))]
->>> caml_obj.fit_validator(subset_cate_models=subset_cate_models, additional_cate_models=additional_cate_models, rscorer_kwargs=rscorer_kwargs)
+>>> additional_cate_models = [
+...     (
+...         "XLearner",
+...         XLearner(
+...             models=caml_obj._model_Y_X_T,
+...             cate_models=caml_obj._model_Y_X_T,
+...             propensity_model=caml._model_T_X,
+...         ),
+...     )
+... ]
+>>> caml_obj.fit_validator(
+...     subset_cate_models=subset_cate_models,
+...     additional_cate_models=additional_cate_models,
+...     rscorer_kwargs=rscorer_kwargs,
+... )
 ```
 
 ### predict { #caml.CamlCATE.predict }
@@ -285,7 +304,7 @@ Provides population summary statistics for the CATE predictions for either the i
 #### Examples {.doc-section .doc-section-examples}
 
 ```python
->>> caml.summarize() # Summarizes the CATE predictions for the internal DataFrame.
+>>> caml.summarize()  # Summarizes the CATE predictions for the internal DataFrame.
 ```
 
 ### validate { #caml.CamlCATE.validate }
@@ -317,5 +336,5 @@ Sets the `_validator_results` internal attribute to the results of the DRTester 
 #### Examples {.doc-section .doc-section-examples}
 
 ```python
->>> caml_obj.validate(print_full_report=True) # Prints the full validation report.
+>>> caml_obj.validate(print_full_report=True)  # Prints the full validation report.
 ```

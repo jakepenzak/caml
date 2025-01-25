@@ -11,8 +11,9 @@ extensions.synthetic_data.make_partially_linear_dataset_constant(
 )
 ```
 
-Simulate a data generating process from a partially linear model with a constant treatment effect (ATE only). The outcome and treatment are both continuous.
-The dataset is generated using the `make_plr_CCDDHNR2018` or `make_plr_turrell2018` function from the [`doubleml` package](https://docs.doubleml.org/stable/index.html).
+Simulate a data generating process from a partially linear model with a constant treatment effect (ATE only).
+
+The outcome and treatment are both continuous.The dataset is generated using the `make_plr_CCDDHNR2018` or `make_plr_turrell2018` function from the [`doubleml` package](https://docs.doubleml.org/stable/index.html).
 
 The general form of the data generating process is:
 

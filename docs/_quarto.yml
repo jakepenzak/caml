@@ -96,10 +96,10 @@ quartodoc:
       desc: "`from caml.extensions.synthetic_data import *`"
       package: caml.extensions.synthetic_data
       contents:
+        - CamlSyntheticDataGenerator
         - make_partially_linear_dataset_simple
         - make_partially_linear_dataset_constant
         - make_fully_heterogeneous_dataset
-        - make_dowhy_linear_dataset
     - title: Plots
       desc: "`from caml.extensions.plots import *`"
       package: caml.extensions.plots

@@ -33,7 +33,6 @@ def setup_logging(verbose: int = 1):
     It sets the logging level to INFO and the log message format to only include the message itself.
     The logging handler used is `rich_handler`.
     """
-
     if verbose == 0:
         logging.basicConfig(
             level=logging.WARNING, format="%(message)s", handlers=[rich_handler]

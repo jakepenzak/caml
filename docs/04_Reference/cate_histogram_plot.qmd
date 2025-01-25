@@ -14,18 +14,18 @@ Plots a histogram the estimated CATEs.
 
 ## Parameters {.doc-section .doc-section-parameters}
 
-| Name            | Type                           | Description                  | Default    |
-|-----------------|--------------------------------|------------------------------|------------|
-| estimated_cates | numpy.typing.ArrayLike         | The estimated CATEs.         | _required_ |
-| true_cates      | numpy.typing.ArrayLike \| None | The true CATEs.              | `None`     |
-| figure_kwargs   | dict                           | Matplotlib figure arguments. | `{}`       |
-| hist_kwargs     | dict                           | Matplotlib hist arguments.   | `{}`       |
+| Name            | Type              | Description                  | Default    |
+|-----------------|-------------------|------------------------------|------------|
+| estimated_cates | ArrayLike         | The estimated CATEs.         | _required_ |
+| true_cates      | ArrayLike \| None | The true CATEs.              | `None`     |
+| figure_kwargs   | dict              | Matplotlib figure arguments. | `{}`       |
+| hist_kwargs     | dict              | Matplotlib hist arguments.   | `{}`       |
 
 ## Returns {.doc-section .doc-section-returns}
 
 | Name   | Type                     | Description                  |
 |--------|--------------------------|------------------------------|
-| fig    | matplotlib.figure.Figure | The histogram figure object. |
+|        | matplotlib.pyplot.Figure | The histogram figure object. |
 
 ## Examples {.doc-section .doc-section-examples}
 
