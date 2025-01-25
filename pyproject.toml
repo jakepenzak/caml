@@ -141,4 +141,4 @@ filename = "caml/_version.py"
 [[tool.bumpversion.files]]
 filename = "pyproject.toml"
 search = "{current_version}"
-replace = "{current_version}...{new_version}"
+replace = "{new_version}"
