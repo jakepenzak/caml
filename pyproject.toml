@@ -58,9 +58,6 @@ polars = [
 requires = ["hatchling"]
 build-backend = "hatchling.build"
 
-[tool.hatch.version]
-path = "caml/_version.py"
-
 [tool.ruff]
 exclude = ["scripts/notebooks/",
             ".git",
