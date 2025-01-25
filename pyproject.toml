@@ -12,7 +12,7 @@ dependencies = [
 description = "Extensions & abstractions of advanced econometric techniques leveraging machine learning."
 name = "caml"
 requires-python = ">= 3.10"
-version = ["dynamic"]
+version = "0.0.0-dev7"
 license = {file = "LICENSE"}
 readme = "README.md"
 classifiers = [
@@ -57,9 +57,6 @@ polars = [
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"
-
-[tool.hatch.version]
-path = "caml/_version.py"
 
 [tool.ruff]
 exclude = ["scripts/notebooks/",
@@ -140,3 +137,8 @@ optional_value = "final"
 
 [[tool.bumpversion.files]]
 filename = "caml/_version.py"
+
+[[tool.bumpversion.files]]
+filename = "pyproject.toml"
+search = 'version = "{current_version}"'
+replace = 'version = "{new_version}"'
