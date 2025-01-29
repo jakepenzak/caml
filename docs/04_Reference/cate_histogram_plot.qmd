@@ -1,7 +1,7 @@
 # cate_histogram_plot { #caml.extensions.plots.cate_histogram_plot }
 
 ```python
-extensions.plots.cate_histogram_plot(
+cate_histogram_plot(
     estimated_cates,
     *,
     true_cates=None,

@@ -1,7 +1,7 @@
 # make_fully_heterogeneous_dataset { #caml.extensions.synthetic_data.make_fully_heterogeneous_dataset }
 
 ```python
-extensions.synthetic_data.make_fully_heterogeneous_dataset(
+make_fully_heterogeneous_dataset(
     n_obs=1000,
     n_confounders=5,
     theta=4.0,

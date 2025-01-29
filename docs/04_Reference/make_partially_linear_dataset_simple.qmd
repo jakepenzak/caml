@@ -1,7 +1,7 @@
 # make_partially_linear_dataset_simple { #caml.extensions.synthetic_data.make_partially_linear_dataset_simple }
 
 ```python
-extensions.synthetic_data.make_partially_linear_dataset_simple(
+make_partially_linear_dataset_simple(
     n_obs=1000,
     n_confounders=5,
     dim_heterogeneity=2,

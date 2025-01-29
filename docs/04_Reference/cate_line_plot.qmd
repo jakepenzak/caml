@@ -1,7 +1,7 @@
 # cate_line_plot { #caml.extensions.plots.cate_line_plot }
 
 ```python
-extensions.plots.cate_line_plot(
+cate_line_plot(
     estimated_cates,
     *,
     true_cates=None,

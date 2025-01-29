@@ -1,7 +1,7 @@
 # CamlSyntheticDataGenerator { #caml.extensions.synthetic_data.CamlSyntheticDataGenerator }
 
 ```python
-extensions.synthetic_data.CamlSyntheticDataGenerator(
+CamlSyntheticDataGenerator(
     self,
     n_obs=10000,
     n_cont_outcomes=1,
