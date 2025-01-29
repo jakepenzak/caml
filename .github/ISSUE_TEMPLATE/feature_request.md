@@ -2,7 +2,7 @@
 name: Enhancement
 about: Suggest an idea for this project
 title: "[ENHANCEMENT] <INSERT_TITLE_HERE>"
-labels: enhancement, triage needed
+labels: "type: enhancement"
 assignees: ""
 ---
 
