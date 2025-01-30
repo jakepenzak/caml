@@ -1,6 +1,6 @@
 import marimo
 
-__generated_with = "0.10.15"
+__generated_with = "0.10.18"
 app = marimo.App(width="medium")
 
 
@@ -26,24 +26,24 @@ def _(mo):
 def _():
     from caml.extensions.synthetic_data import CamlSyntheticDataGenerator
 
-    data = CamlSyntheticDataGenerator(n_obs=10000,
-                                      n_cont_outcomes=0,
-                                      n_binary_outcomes=1,
-                                      n_cont_treatments=1,
-                                      n_binary_treatments=0,
+    data =  CamlSyntheticDataGenerator(n_obs=1_000,
+                                      n_cont_outcomes=1,
+                                      n_binary_outcomes=0,
+                                      n_cont_treatments=0,
+                                      n_binary_treatments=1,
                                       n_discrete_treatments=0,
-                                      n_cont_confounders=2,
+                                      n_cont_confounders=3,
                                       n_binary_confounders=1,
-                                      n_discrete_confounders=1,
-                                      n_cont_heterogeneity_covariates=2,
-                                      n_binary_heterogeneity_covariates=1,
-                                      n_discrete_heterogeneity_covariates=1,
-                                      n_heterogeneity_confounders=1,
+                                      n_discrete_confounders=0,
+                                      n_cont_modifiers=3,
+                                      n_binary_modifiers=1,
+                                      n_discrete_modifiers=0,
+                                      n_confounding_modifiers=0,
                                       stddev_outcome_noise=1,
                                       stddev_treatment_noise=1,
-                                      causal_model_functional_form='fully_linear',
-                                      n_nonlinear_transformations=None,
-                                      n_nonlinear_interactions=None,
+                                      causal_model_functional_form="linear",
+                                      n_nonlinear_transformations=5,
+                                      n_nonlinear_interactions=2,
                                       seed=None)
 
 
@@ -73,38 +73,9 @@ def _(dgp):
     return
 
 
-@app.cell(hide_code=True)
-def _():
-    # import numpy as np
-    # def _sigmoid(x):
-    #     """Numerically stable sigmoid"""
-
-    #     result = np.zeros_like(x, dtype=float)
-
-    #     pos_mask = x >= 0
-    #     neg_mask = ~pos_mask
-
-    #     result[pos_mask] = 1 / (1 + np.exp(-x[pos_mask]))
-    #     result[neg_mask] = np.exp(x[neg_mask]) / (1 + np.exp(x[neg_mask]))
-
-    #     return result
-
-    # d_sigmoid = lambda x: _sigmoid(x)*(1-_sigmoid(x))
-
-    # synthetic_df['int_T1_continuous_X1_continuous'] = synthetic_df["T1_continuous"] * synthetic_df["X1_continuous"]
-    # synthetic_df['int_T1_continuous_X2_continuous'] = synthetic_df["T1_continuous"] * synthetic_df["X2_continuous"]
-    # synthetic_df['int_T1_continuous_X1_binary'] = synthetic_df["T1_continuous"] * synthetic_df["X1_binary"]
-    # synthetic_df['int_T1_continuous_X1_discrete'] = synthetic_df["T1_continuous"] * synthetic_df["X1_discrete"]
-
-    # params = np.array(dgp["Y1_binary"]["params"])
-    # values = np.array(synthetic_df[[c for c in synthetic_df.columns if "W" in c or "X" in c or "T" in c]])
-
-    # cate_df['manual_estimates'] = (0.21551344398776173
-    #                                +0.9578081453198197*synthetic_df['X1_continuous']
-    #                                +2.996259172939629*synthetic_df['X2_continuous']
-    #                                +1.505903561593147*synthetic_df['X1_binary']
-    #                                +0.23113322201680342*synthetic_df['X1_discrete']
-    #                               )*d_sigmoid(values @ params)
+@app.cell
+def _(cate_df):
+    cate_df
     return
 
 
@@ -136,11 +107,11 @@ def _(synthetic_df):
     caml = CamlCATE(df=synthetic_df,
                     Y=outcome,
                     T=treatment,
-                    X=[c for c in synthetic_df.columns if 'X' in c or 'W' in c],
-                    W=[],
+                    X=[c for c in synthetic_df.columns if 'X' in c],
+                    W=[c for c in synthetic_df.columns if 'W' in c],
                     discrete_treatment=True if "binary" in treatment or "discrete" in treatment else False,
                     discrete_outcome=True if "binary" in outcome else False,
-                    seed=10,
+                    seed=None,
                     verbose=1)
     return CamlCATE, caml, outcome, treatment
 
@@ -160,8 +131,8 @@ def _(mo):
 @app.cell
 def _(caml):
     caml.auto_nuisance_functions(
-        flaml_Y_kwargs={"time_budget": 60},
-        flaml_T_kwargs={"time_budget": 60},
+        flaml_Y_kwargs={"time_budget": 10},
+        flaml_T_kwargs={"time_budget": 10},
         use_ray=False,
         use_spark=False,
     )
@@ -177,7 +148,7 @@ def _(mo):
 @app.cell
 def _(caml):
     caml.fit_validator(
-        subset_cate_models=[
+        cate_estimators=[
             "LinearDML",
             "CausalForestDML",
             "NonParamDML",
@@ -192,18 +163,16 @@ def _(caml):
             "TLearner",
             "XLearner",
         ],
+        additional_cate_estimators=[],
         rscorer_kwargs={},
         use_ray=False,
         ray_remote_func_options_kwargs={},
-        sample_fraction=1.0,
-        n_jobs=-1,
+        ensemble=True,
+        validation_size=0.2,
+        test_size=0.2,
+        sample_size=1.0,
+        n_jobs=2,
     )
-    return
-
-
-@app.cell
-def _(caml):
-    caml.validation_estimator
     return
 
 
@@ -251,7 +220,7 @@ def _(mo):
 def _(caml):
     ## "Out of sample" predictions
 
-    cate_predictions = caml.predict(T0=0,T1=3)
+    cate_predictions = caml.predict(T0=0,T1=1)
 
     cate_predictions
     return (cate_predictions,)
@@ -273,7 +242,6 @@ def _(caml):
 
 @app.cell
 def _(cate_df):
-    cate_df.describe()
     cate_df.describe()
     return
 
@@ -300,10 +268,10 @@ def _(caml):
     if isinstance(final_estimator, EnsembleCateEstimator):
         for mod in final_estimator._cate_models:
             print(mod)
-            print(mod._input_names)
+            print(caml.input_names)
     else:
         print(final_estimator)
-        print(final_estimator._input_names)
+        print(caml.input_names)
     return EnsembleCateEstimator, final_estimator, mod
 
 
@@ -359,6 +327,11 @@ def _(cate_line_plot, synthetic_df):
 @app.cell
 def _(cate_line_plot, synthetic_df):
     cate_line_plot(estimated_cates=synthetic_df['cate_predictions'], true_cates=synthetic_df['true_cates'], window=20)
+    return
+
+
+@app.cell
+def _():
     return
 
 

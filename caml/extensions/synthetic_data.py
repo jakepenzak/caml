@@ -111,12 +111,15 @@ class CamlSyntheticDataGenerator:
     data_generator = CamlSyntheticDataGenerator(seed=10)
     data_generator.df
     ```
+
     ```{python}
     data_generator.cates
     ```
+
     ```{python}
     data_generator.ates
     ```
+
     ```{python}
     for t, df in data_generator.dgp.items():
         print(f"\nDGP for {t}:")
