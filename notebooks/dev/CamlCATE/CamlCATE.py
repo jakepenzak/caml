@@ -171,7 +171,7 @@ def _(caml):
         validation_size=0.2,
         test_size=0.2,
         sample_size=1.0,
-        n_jobs=2,
+        n_jobs=-1,
     )
     return
 

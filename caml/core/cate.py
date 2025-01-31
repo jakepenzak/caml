@@ -46,9 +46,8 @@ class CamlCATE(CamlBase):
     r"""
     The CamlCATE class represents an opinionated framework of Causal Machine Learning techniques for estimating highly accurate conditional average treatment effects (CATEs).
 
-    The CATE is defined formally as $\mathbb{E}[\tau|\mathbf{\Gamma}]$
-    where $\tau$ is the treatment effect and $\mathbf{\Gamma}$ is the set of covariates, which can
-    be $X$ or $X$ & $W$ depending on the CATE learner.
+    The CATE is defined formally as $\mathbb{E}[\tau|\mathbf{X}]$
+    where $\tau$ is the treatment effect and $\mathbf{X}$ is the set of covariates.
 
     This class is built on top of the EconML library and provides a high-level API for fitting, validating, and making inference with CATE models,
     with best practices built directly into the API. The class is designed to be easy to use and understand, while still providing
@@ -59,12 +58,11 @@ class CamlCATE(CamlBase):
 
     1. Initialize the class with the input DataFrame and the necessary columns.
     2. Utilize [flaml](https://microsoft.github.io/FLAML/) AutoML to find nuisance functions or propensity/regression models to be utilized in the EconML estimators.
-    3. Fit the CATE models on the training set and evaluate based on the validation set, then select the top performer/ensemble based on chosen scorer.
+    3. Fit the CATE models on the training set and select top performer based on the RScore from validation set.
     4. Validate the fitted CATE model on the test set to check for generalization performance.
     5. Fit the final estimator on the entire dataset, after validation and testing.
     6. Predict the CATE based on the fitted final estimator for either the internal dataset or an out-of-sample dataset.
     8. Summarize population summary statistics for the CATE predictions for either the internal dataset or out-of-sample predictions.
-
 
     For technical details on conditional average treatment effects, see:
 
@@ -102,7 +100,7 @@ class CamlCATE(CamlBase):
     X
         The str (if unity) or list of feature names representing the feature set to be utilized for estimating heterogeneity/CATE.
     W
-        The str (if unity) or list of feature names representing the confounder/control feature set to be utilized only for nuisance function estimation where applicable.
+        The str (if unity) or list of feature names representing the confounder/control feature set to be utilized only for nuisance function estimation. When W is passed, only Orthogonal learners will be leveraged.
     discrete_treatment
         A boolean indicating whether the treatment is discrete/categorical or continuous.
     discrete_outcome
@@ -128,6 +126,8 @@ class CamlCATE(CamlBase):
         A boolean indicating whether the treatment is discrete/categorical or continuous.
     discrete_outcome : bool
         A boolean indicating whether the outcome is binary or continuous.
+    available_estimators : str
+        A list of the available CATE estimators out of the box. Validity of estimator at runtime will depend on the outcome and treatment types and be automatically selected.
     model_Y_X_W: sklearn.base.BaseEstimator
         The fitted nuisance function for the outcome variable.
     model_Y_X_W_T: sklearn.base.BaseEstimator
@@ -138,6 +138,8 @@ class CamlCATE(CamlBase):
         Dictionary of fitted cate estimator objects.
     validation_estimator : econml._cate_estimator.BaseCateEstimator | econml.score.EnsembleCateEstimator
         The fitted EconML estimator object for validation.
+    validator_results : econml.validate.results.EvaluationResults
+        The validation results object.
     final_estimator : econml._cate_estimator.BaseCateEstimator | econml.score.EnsembleCateEstimator
         The fitted EconML estimator object on the entire dataset after validation.
     input_names : dict[str,list[str]]
@@ -190,6 +192,7 @@ class CamlCATE(CamlBase):
         self.discrete_treatment = discrete_treatment
         self.discrete_outcome = discrete_outcome
         self.seed = seed
+        self.available_estimators = model_bank.valid_models
 
         self._Y, self._T, self._X, self._W = self._dataframe_to_numpy()
 
@@ -305,12 +308,10 @@ class CamlCATE(CamlBase):
             "LinearDML",
             "CausalForestDML",
             "NonParamDML",
-            "AutoNonParamDML",
             "SparseLinearDML-2D",
             "DRLearner",
             "ForestDRLearner",
             "LinearDRLearner",
-            "SparseLinearDRLearner-2D",
             "DomainAdaptationLearner",
             "SLearner",
             "TLearner",
@@ -433,6 +434,8 @@ class CamlCATE(CamlBase):
         See [EconML documentation](https://econml.azurewebsites.net/_autosummary/econml.validate.DRTester.html) for more details.
         In short, we are checking for the ability of the model to find statistically significant heterogeneity in a "well-calibrated" fashion.
 
+        Sets the `validator_report` attribute to the validation report.
+
         Parameters
         ----------
         n_groups
@@ -448,6 +451,8 @@ class CamlCATE(CamlBase):
         --------
         ```{python}
         caml_obj.validate()
+
+        caml_obj.validator_results
         ```
         """
         plt.style.use("ggplot")
@@ -517,7 +522,7 @@ class CamlCATE(CamlBase):
                     res.plot_qini(i)
                     res.plot_toc(i)
 
-        self._validator_results = res
+        self.validator_results = res
 
     def fit_final(self):
         """

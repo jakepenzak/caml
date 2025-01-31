@@ -96,7 +96,7 @@ class CamlBase(metaclass=abc.ABCMeta):
         pass
 
     def interpret(self):
-        pass
+        raise NotImplementedError
 
     def _split_data(
         self,
