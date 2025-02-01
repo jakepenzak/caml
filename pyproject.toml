@@ -11,7 +11,7 @@ dependencies = [
 description = "Extensions & abstractions of advanced econometric techniques leveraging machine learning."
 name = "caml"
 requires-python = ">= 3.10"
-version = "0.0.0-dev8"
+version = "0.0.0-dev9"
 license = {file = "LICENSE"}
 readme = "README.md"
 classifiers = [
@@ -98,7 +98,7 @@ filterwarnings = "ignore::DeprecationWarning"
 addopts = "--cov=caml/ --cov-report=term-missing --cov-report=html:tests/reports/htmlcov --cov-report=xml:tests/reports/coverage.xml"
 
 [tool.bumpversion]
-current_version = "0.0.0-dev8"
+current_version = "0.0.0-dev9"
 parse = """(?x)
     (?P<major>0|[1-9]\\d*)\\.
     (?P<minor>0|[1-9]\\d*)\\.
