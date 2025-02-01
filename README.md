@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="https://github.com/jakepenzak/caml/blob/main/docs/assets/main_logo.svg" align="center" alt="CaML Logo" height="auto" width=500px/>
+<img src="https://raw.githubusercontent.com/jakepenzak/caml/main/docs/assets/main_logo.svg" align="center" alt="CaML Logo" height="auto" width=500px/>
 
 <br>
 <br>
