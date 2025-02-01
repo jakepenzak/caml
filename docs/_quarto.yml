@@ -10,7 +10,6 @@ format:
     css: styles/styles.css
     toc: true
     table-scroll: true
-    code-fold: true
 
 website:
   title: CaML - Causal ML
@@ -93,22 +92,30 @@ quartodoc:
       desc: "`from caml import *`"
       package: caml
       contents:
-        - CamlCATE
+        - name: CamlCATE
+          member_order: source
     - title: Synthetic Data Generation
       desc: "`from caml.extensions.synthetic_data import *`"
       package: caml.extensions.synthetic_data
       contents:
-        - CamlSyntheticDataGenerator
-        - make_partially_linear_dataset_simple
-        - make_partially_linear_dataset_constant
-        - make_fully_heterogeneous_dataset
+        - name: CamlSyntheticDataGenerator
+          signature_name: short
+        - name: make_partially_linear_dataset_simple
+          signature_name: short
+        - name: make_partially_linear_dataset_constant
+          signature_name: short
+        - name: make_fully_heterogeneous_dataset
+          signature_name: short
     - title: Plots
       desc: "`from caml.extensions.plots import *`"
       package: caml.extensions.plots
       contents:
-        - cate_histogram_plot
-        - cate_line_plot
-        - cate_true_vs_estimated_plot
+        - name: cate_histogram_plot
+          signature_name: short
+        - name: cate_line_plot
+          signature_name: short
+        - name: cate_true_vs_estimated_plot
+          signature_name: short
     - title: Developer Tools
       contents:
         - generics.generate_random_string

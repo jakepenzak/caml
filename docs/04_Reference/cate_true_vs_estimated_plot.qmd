@@ -1,7 +1,7 @@
 # cate_true_vs_estimated_plot { #caml.extensions.plots.cate_true_vs_estimated_plot }
 
 ```python
-extensions.plots.cate_true_vs_estimated_plot(
+cate_true_vs_estimated_plot(
     true_cates,
     estimated_cates,
     *,

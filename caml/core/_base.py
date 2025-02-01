@@ -60,7 +60,6 @@ class CamlBase(metaclass=abc.ABCMeta):
     @property
     def validation_estimator(self):
         if self._validation_estimator is not None:
-            logger.info("The validation estimator has been fit and will be returned.")
             return self._validation_estimator
         else:
             raise ValueError(
@@ -70,9 +69,6 @@ class CamlBase(metaclass=abc.ABCMeta):
     @property
     def final_estimator(self):
         if self._final_estimator is not None:
-            logger.info(
-                "The final estimator has been fit on the entire dataset and will be returned."
-            )
             return self._final_estimator
         else:
             raise ValueError(
@@ -100,12 +96,12 @@ class CamlBase(metaclass=abc.ABCMeta):
         pass
 
     def interpret(self):
-        pass
+        raise NotImplementedError
 
     def _split_data(
         self,
         *,
-        validation_size: float | None = None,
+        validation_size: float = 0.2,
         test_size: float = 0.2,
         sample_fraction: float = 1.0,
     ):
@@ -116,17 +112,21 @@ class CamlBase(metaclass=abc.ABCMeta):
 
         Parameters
         ----------
-        validation_size:
+        validation_size
             The size of the validation set. Default is None.
-        test_size:
+        test_size
             The size of the test set. Default is 0.2.
-        sample_fraction:
+        sample_fraction
             The size of the sample to use for training. Default is 1.0.
+
         """
         X = self._X
         W = self._W
         Y = self._Y
         T = self._T
+
+        validation_size = int(validation_size * X.shape[0])
+        test_size = int(test_size * X.shape[0])
 
         if sample_fraction != 1.0:
             X = X.sample(frac=sample_fraction, random_state=self.seed)
@@ -185,22 +185,22 @@ class CamlBase(metaclass=abc.ABCMeta):
 
         Parameters
         ----------
-        outcome : numpy.ndarray
+        outcome
             The outcome variable.
-        features : numpy.ndarray
+        features
             The features matrix/matrices.
-        discrete_outcome : bool
+        discrete_outcome
             Whether the outcome is discrete or continuous.
-        flaml_kwargs : dict
+        flaml_kwargs
             The keyword arguments to pass to FLAML.
-        use_ray : bool
+        use_ray
             Whether to use Ray for parallel processing.
-        use_spark : bool
+        use_spark
             Whether to use Spark for parallel processing.
 
         Returns
         -------
-        model : sklearn.base.BaseEstimator
+        sklearn.base.BaseEstimator
             The best nuisance model found by FLAML.
         """
         automl = AutoML()

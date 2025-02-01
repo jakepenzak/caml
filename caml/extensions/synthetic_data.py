@@ -111,12 +111,15 @@ class CamlSyntheticDataGenerator:
     data_generator = CamlSyntheticDataGenerator(seed=10)
     data_generator.df
     ```
+
     ```{python}
     data_generator.cates
     ```
+
     ```{python}
     data_generator.ates
     ```
+
     ```{python}
     for t, df in data_generator.dgp.items():
         print(f"\nDGP for {t}:")
@@ -133,10 +136,10 @@ class CamlSyntheticDataGenerator:
         n_binary_treatments: int = 1,
         n_discrete_treatments: int = 0,
         n_cont_confounders: int = 2,
-        n_binary_confounders: int = 2,
+        n_binary_confounders: int = 0,
         n_discrete_confounders: int = 0,
         n_cont_modifiers: int = 2,
-        n_binary_modifiers: int = 2,
+        n_binary_modifiers: int = 0,
         n_discrete_modifiers: int = 0,
         n_confounding_modifiers: int = 0,
         stddev_outcome_noise: float = 1.0,

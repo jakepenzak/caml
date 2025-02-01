@@ -2,7 +2,7 @@
 name: Question
 about: Ask a specific question related to camper
 title: "[QUESTION] <INSERT_TITLE_HERE>"
-labels: question, triage needed
+labels: "type: question"
 assignees: ""
 ---
 

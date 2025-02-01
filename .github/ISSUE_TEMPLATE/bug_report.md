@@ -2,7 +2,7 @@
 name: Report Bug
 about: Report a bug that should be fixed to help us improve
 title: "[BUG]"
-labels: bug, triage needed
+labels: "type: bug"
 assignees: ""
 ---
 

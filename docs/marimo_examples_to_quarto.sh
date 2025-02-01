@@ -23,4 +23,6 @@ for file in "$TARGET_DIR"/*; do
   fi
 done
 
+rm docs/assets/marimo/*.ipynb 
+
 echo "All files processed!"

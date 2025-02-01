@@ -1,7 +1,7 @@
 # CamlSyntheticDataGenerator { #caml.extensions.synthetic_data.CamlSyntheticDataGenerator }
 
 ```python
-extensions.synthetic_data.CamlSyntheticDataGenerator(
+CamlSyntheticDataGenerator(
     self,
     n_obs=10000,
     n_cont_outcomes=1,
@@ -10,10 +10,10 @@ extensions.synthetic_data.CamlSyntheticDataGenerator(
     n_binary_treatments=1,
     n_discrete_treatments=0,
     n_cont_confounders=2,
-    n_binary_confounders=2,
+    n_binary_confounders=0,
     n_discrete_confounders=0,
     n_cont_modifiers=2,
-    n_binary_modifiers=2,
+    n_binary_modifiers=0,
     n_discrete_modifiers=0,
     n_confounding_modifiers=0,
     stddev_outcome_noise=1.0,
@@ -72,10 +72,10 @@ flowchart TD;
 | n_binary_treatments          | int         | Number of binary treatments ($T$).                                                                                                    | `1`        |
 | n_discrete_treatments        | int         | Number of discrete treatments ($T$).                                                                                                  | `0`        |
 | n_cont_confounders           | int         | Number of continuous confounders ($W$).                                                                                               | `2`        |
-| n_binary_confounders         | int         | Number of binary confounders ($W$).                                                                                                   | `2`        |
+| n_binary_confounders         | int         | Number of binary confounders ($W$).                                                                                                   | `0`        |
 | n_discrete_confounders       | int         | Number of discrete confounders ($W$).                                                                                                 | `0`        |
 | n_cont_modifiers             | int         | Number of continuous treatment effect modifiers ($X$).                                                                                | `2`        |
-| n_binary_modifiers           | int         | Number of binary treatment effect modifiers ($X$).                                                                                    | `2`        |
+| n_binary_modifiers           | int         | Number of binary treatment effect modifiers ($X$).                                                                                    | `0`        |
 | n_discrete_modifiers         | int         | Number of discrete treatment effect modifiers ($X$).                                                                                  | `0`        |
 | n_confounding_modifiers      | int         | Number of confounding treatment effect modifiers ($X_{\mathcal{S}}$).                                                                 | `0`        |
 | stddev_outcome_noise         | float       | Standard deviation of the outcome noise ($\epsilon$).                                                                                 | `1.0`      |
@@ -102,12 +102,15 @@ from caml.extensions.synthetic_data import CamlSyntheticDataGenerator
 data_generator = CamlSyntheticDataGenerator(seed=10)
 data_generator.df
 ```
+
 ```{python}
 data_generator.cates
 ```
+
 ```{python}
 data_generator.ates
 ```
+
 ```{python}
 for t, df in data_generator.dgp.items():
     print(f"\nDGP for {t}:")
