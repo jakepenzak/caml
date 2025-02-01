@@ -6,7 +6,6 @@
 [![ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
 [![uv](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/uv/main/assets/badge/v0.json)](https://github.com/astral-sh/uv)
 [![lifecycle](https://img.shields.io/badge/Lifecycle-Experimental-blue?style=flat)](https://img.shields.io/badge/Lifecycle-Experimental-blue?style=flat)
-
 [![Caml CI/CD](https://github.com/jakepenzak/caml/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/jakepenzak/caml/actions/workflows/ci.yml)
 [![Build & Publish Docs](https://github.com/jakepenzak/caml/actions/workflows/docs.yml/badge.svg)](https://github.com/jakepenzak/caml/actions/workflows/docs.yml)
 [![Pre-Commit & Linting Checks](https://github.com/jakepenzak/caml/actions/workflows/lint.yml/badge.svg?branch=main)](https://github.com/jakepenzak/caml/actions/workflows/lint.yml)
