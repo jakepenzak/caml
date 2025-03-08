@@ -4,7 +4,7 @@ __generated_with = "0.10.18"
 app = marimo.App(width="medium")
 
 
-@app.cell(hide_code=True)
+@app.cell
 def _():
     import marimo as mo
     return (mo,)
@@ -12,13 +12,13 @@ def _():
 
 @app.cell
 def _(mo):
-    mo.md(r"""# Caml API Usage""")
+    mo.md("# Caml API Usage")
     return
 
 
 @app.cell
 def _(mo):
-    mo.md(r"""## Synthetic Data""")
+    mo.md("## Synthetic Data")
     return
 
 
@@ -81,19 +81,19 @@ def _(cate_df):
 
 @app.cell
 def _(mo):
-    mo.md(r"""## Core API""")
+    mo.md("## Core API")
     return
 
 
 @app.cell
 def _(mo):
-    mo.md(r"""### CamlCATE""")
+    mo.md("### CamlCATE")
     return
 
 
 @app.cell
 def _(mo):
-    mo.md(r"""#### Class Instantiation""")
+    mo.md("#### Class Instantiation")
     return
 
 
@@ -124,7 +124,7 @@ def _(caml):
 
 @app.cell
 def _(mo):
-    mo.md(r"""#### Nuissance Function AutoML""")
+    mo.md("#### Nuissance Function AutoML")
     return
 
 
@@ -141,7 +141,7 @@ def _(caml):
 
 @app.cell
 def _(mo):
-    mo.md(r"""#### Fit and ensemble CATE models""")
+    mo.md("#### Fit and ensemble CATE models")
     return
 
 
@@ -178,7 +178,7 @@ def _(caml):
 
 @app.cell
 def _(mo):
-    mo.md(r"""#### CATE Validation""")
+    mo.md("#### CATE Validation")
     return
 
 
@@ -194,7 +194,7 @@ def _(caml):
 
 @app.cell
 def _(mo):
-    mo.md(r"""#### Refit best estimator on full dataset""")
+    mo.md("#### Refit best estimator on full dataset")
     return
 
 
@@ -212,7 +212,7 @@ def _(caml):
 
 @app.cell
 def _(mo):
-    mo.md(r"""#### Predict CATEs""")
+    mo.md("#### Predict CATEs")
     return
 
 
@@ -248,7 +248,7 @@ def _(cate_df):
 
 @app.cell
 def _(mo):
-    mo.md(r"""#### Access my dataframe, estimator object, and get string representation of class""")
+    mo.md("#### Access my dataframe, estimator object, and get string representation of class")
     return
 
 
@@ -277,7 +277,7 @@ def _(caml):
 
 @app.cell
 def _(mo):
-    mo.md(r"""# Plots""")
+    mo.md("# Plots")
     return
 
 
