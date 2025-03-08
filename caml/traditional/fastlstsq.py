@@ -1,6 +1,9 @@
+import timeit
+
 import flatdict
 import pandas as pd
 import patsy
+from joblib import Parallel, delayed
 
 try:
     import jax
@@ -45,29 +48,40 @@ class FastLSTSQ:
         self.formula = self._create_formula(self.Y, self.T, self.G, self.X)
         self._fitted = False
 
-    def fit_and_estimate(self, data):
+    def fit_and_estimate(self, data, parallel=False):
         pd_df = self.convert_dataframe_to_pandas(data)
+        for col in self.G or []:
+            pd_df[col] = pd_df[col].astype("category")
         self.fit(pd_df)
         diff_matrix = self._create_diff_matrix(pd_df)
         self.estimate_ates(pd_df, diff_matrix)
-        self.estimate_gates(pd_df, diff_matrix)
+        self.estimate_gates(pd_df, diff_matrix, parallel)
 
     def fit(self, data):
         data = self.convert_dataframe_to_pandas(data)
 
-        print("Fitting regression model...")
-
         self.results = flatdict.FlatDict({})
 
+        start_time = timeit.default_timer()
+        print("Converting data to design matrix...")
         y, X = patsy.dmatrices(self.formula, data=data)
         self._X_design_info = X.design_info
+        end_time = timeit.default_timer()
+        print(f"Done. Time: {end_time - start_time}")
 
+        print("Putting data onto device...")
+        start_time = timeit.default_timer()
         if _HAS_JAX:
             y = jnp.array(y, device=jax.devices(self.engine)[0])
             X = jnp.array(X, device=jax.devices(self.engine)[0])
         else:
             y = jnp.array(y)
             X = jnp.array(X)
+        end_time = timeit.default_timer()
+        print(f"Done. Time: {end_time - start_time}")
+
+        print("Fitting regression model...")
+        start_time = timeit.default_timer()
 
         @jax.jit
         def compute_params(X, y):
@@ -76,7 +90,6 @@ class FastLSTSQ:
             rss = jnp.sum(y_resid**2, axis=0)
             sigma_squared_hat = rss / (X.shape[0] - X.shape[1])
             XtX_inv = jnp.linalg.pinv(X.T @ X)
-
             vcv = (
                 sigma_squared_hat[:, jnp.newaxis, jnp.newaxis]
                 * XtX_inv[jnp.newaxis, :, :]
@@ -85,7 +98,8 @@ class FastLSTSQ:
 
         params, vcv = compute_params(X, y)
 
-        #            vcv = self._compute_vcv_matrix(y, X, params)
+        # params, _, _, _ = jnp.linalg.lstsq(X, y, rcond=None)
+        # vcv = self._compute_vcv_matrix(y, X, params)
 
         self.results["params"] = params
         self.results["vcv"] = vcv
@@ -93,6 +107,8 @@ class FastLSTSQ:
         self.results["treatment_effects"] = {}
 
         self._fitted = True
+        end_time = timeit.default_timer()
+        print(f"Done. Time: {end_time - start_time}")
 
     def estimate_ates(self, data, diff_matrix: jnp.ndarray | None = None):
         if not self._fitted:
@@ -100,25 +116,29 @@ class FastLSTSQ:
 
         data = self.convert_dataframe_to_pandas(data)
 
-        print("Estimating Average Treatment Effects (ATEs)...")
-
         if diff_matrix is None:
             diff_matrix = self._create_diff_matrix(data)
 
+        print("Estimating Average Treatment Effects (ATEs)...")
+        start_time = timeit.default_timer()
         treated_mask = jnp.array(data[self.T] == 1)
         statistics = self._compute_statistics(
             diff_matrix=diff_matrix,
             params=self.results["params"],
             vcv=self.results["vcv"],
-            treated=diff_matrix[treated_mask],
+            n_treated=diff_matrix[treated_mask].shape[0],
         )
 
         self.results["treatment_effects"]["overall"] = {}
         self.results["treatment_effects"]["overall"].update(
             {key: statistics[key] for key in statistics.keys()}
         )
+        end_time = timeit.default_timer()
+        print(f"Done. Time: {end_time - start_time}")
 
-    def estimate_gates(self, data, diff_matrix: jnp.ndarray | None = None):
+    def estimate_gates(
+        self, data, diff_matrix: jnp.ndarray | None = None, parallel=False
+    ):
         if not self._fitted:
             raise RuntimeError("You must call .fit() prior to calling this method.")
 
@@ -127,43 +147,94 @@ class FastLSTSQ:
         if self.G is None:
             print("Note: No groups passed, therefore not GATEs will be estimated.")
         else:
-            print("Estimating Group Average Treatment Effects (GATEs)...")
             if diff_matrix is None:
                 diff_matrix = self._create_diff_matrix(data)
 
+            print("Estimating Group Average Treatment Effects (GATEs)...")
+            start_time = timeit.default_timer()
             groups = {group: data[group].unique() for group in self.G}
-            group_treated_masks = {
-                (group, membership): (
-                    jnp.array(data[group] == membership),
-                    jnp.array(data[data[group] == membership][self.T] == 1),
-                )
-                for group in groups
-                for membership in groups[group]
-            }
 
-            for group, membership in group_treated_masks.keys():
-                diff_matrix_filtered = diff_matrix[
-                    group_treated_masks[(group, membership)][0]
-                ]
-                treated_mask = group_treated_masks[(group, membership)][1]
-                statistics = self._compute_statistics(
-                    diff_matrix=diff_matrix_filtered,
-                    params=self.results["params"],
-                    vcv=self.results["vcv"],
-                    treated=diff_matrix_filtered[treated_mask],
+            #################################################
+            if parallel:
+                group_info = []
+                for group in groups:
+                    for membership in groups[group]:
+                        mask = jnp.array(data[group] == membership)
+                        treated_mask = jnp.array(
+                            data[data[group] == membership][self.T] == 1
+                        )
+                        group_key = f"{group}-{membership}"
+                        group_info.append(
+                            (group_key, group, membership, mask, treated_mask)
+                        )
+
+                params = self.results["params"]
+                vcv = self.results["vcv"]
+
+                # Process each group in parallel
+                def process_group(group_key, mask, treated_mask):
+                    diff_matrix_filtered = diff_matrix[mask]
+                    n_treated = diff_matrix_filtered[treated_mask].shape[0]
+                    statistics = self._compute_statistics(
+                        diff_matrix=diff_matrix_filtered,
+                        params=params,
+                        vcv=vcv,
+                        n_treated=n_treated,
+                    )
+                    return group_key, statistics
+
+                # Run parallel processing
+                results = Parallel(n_jobs=-1, prefer="threads")(
+                    delayed(process_group)(group_key, mask, treated_mask)
+                    for group_key, _, _, mask, treated_mask in group_info
                 )
 
-                self.results["treatment_effects"][f"{group}-{membership}"] = {}
-                self.results["treatment_effects"][f"{group}-{membership}"].update(
-                    {key: statistics[key] for key in statistics.keys()}
-                )
+                # Update results dictionary
+                for group_key, statistics in results:
+                    self.results["treatment_effects"][group_key] = {}
+                    self.results["treatment_effects"][group_key].update(
+                        {key: statistics[key] for key in statistics.keys()}
+                    )
+            ###############################################
+            else:
+                group_treated_masks = {
+                    (group, membership): (
+                        jnp.array(data[group] == membership),
+                        jnp.array(data[data[group] == membership][self.T] == 0),
+                    )
+                    for group in groups
+                    for membership in groups[group]
+                }
+                for group, membership in group_treated_masks.keys():
+                    diff_matrix_filtered = diff_matrix[
+                        group_treated_masks[(group, membership)][0]
+                    ]
+                    treated_mask = group_treated_masks[(group, membership)][1]
+                    statistics = self._compute_statistics(
+                        diff_matrix=diff_matrix_filtered,
+                        params=self.results["params"],
+                        vcv=self.results["vcv"],
+                        n_treated=diff_matrix_filtered[treated_mask].shape[0],
+                    )
+
+                    self.results["treatment_effects"][f"{group}-{membership}"] = {}
+                    self.results["treatment_effects"][f"{group}-{membership}"].update(
+                        {key: statistics[key] for key in statistics.keys()}
+                    )
+
+            end_time = timeit.default_timer()
+            print(f"Done. Time: {end_time - start_time}")
 
     def estimate_cates(self):
         raise NotImplementedError("The estimate_cates method is not yet implemented.")
 
     def _create_diff_matrix(self, data) -> jnp.ndarray:
-        X1 = patsy.dmatrix(self._X_design_info, data=data.assign(**{f"{self.T}": 1}))
-        X0 = patsy.dmatrix(self._X_design_info, data=data.assign(**{f"{self.T}": 0}))
+        print("Creating treatment difference matrix...")
+        start_time = timeit.default_timer()
+        data[f"{self.T}"] = 1
+        X1 = patsy.dmatrix(self._X_design_info, data=data)
+        data[f"{self.T}"] = 0
+        X0 = patsy.dmatrix(self._X_design_info, data=data)
 
         if _HAS_JAX:
             X1 = jnp.array(X1, device=jax.devices(self.engine)[0])
@@ -173,7 +244,8 @@ class FastLSTSQ:
             X0 = jnp.array(X0)
 
         diff = X1 - X0
-
+        end_time = timeit.default_timer()
+        print(f"Done. Time: {end_time - start_time}")
         return diff
 
     @staticmethod
@@ -181,7 +253,7 @@ class FastLSTSQ:
         diff_matrix: jnp.ndarray,
         params: jnp.ndarray,
         vcv: jnp.array,
-        treated: jnp.array,
+        n_treated: jnp.array,
     ) -> dict:
         diff_mean = jnp.mean(diff_matrix, axis=0)
 
@@ -190,7 +262,6 @@ class FastLSTSQ:
         t_stat = jnp.where(std_err > 0, ate / std_err, 0)
         pval = 2 * (1 - jstats.norm.cdf(t_stat))
         n = diff_matrix.shape[0]
-        n_treated = treated.shape[0]
         n_control = n - n_treated
 
         return {
@@ -204,7 +275,6 @@ class FastLSTSQ:
         }
 
     @staticmethod
-    #        @jax.jit
     def _compute_vcv_matrix(
         y: jnp.ndarray, X: jnp.ndarray, params: jnp.ndarray
     ) -> jnp.ndarray:
@@ -224,7 +294,6 @@ class FastLSTSQ:
         Y: list[str], T: str, G: list[str], X: list[str] | None = None
     ) -> str:
         formula = ""
-
         for y in Y:
             formula += f"{y} "
             if y == Y[-1]:

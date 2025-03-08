@@ -1,0 +1,556 @@
+{
+  "version": "1",
+  "metadata": {
+    "marimo_version": "0.11.17"
+  },
+  "cells": [
+    {
+      "id": "Hbol",
+      "code_hash": "1d0db38904205bec4d6f6f6a1f6cec3e",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/plain": ""
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "MJUe",
+      "code_hash": "d230cf55f71ba8ce8584d861549b442c",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/html": "<span class=\"markdown prose dark:prose-invert\"><h1 id=\"fastlstsq-api-usage\">FastLSTSQ API Usage</h1></span>"
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "vblA",
+      "code_hash": "f996e43b4d675efd1d55377fcca98b88",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/plain": ""
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "bkHC",
+      "code_hash": "f9425d084c8b2bfb7150195636d7a075",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/plain": ""
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "lEQa",
+      "code_hash": "023cf4bcf644961387fc8169d30b22f4",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/plain": ""
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "PKri",
+      "code_hash": "9b5f3a15e341e7033518e2d7e571a793",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/plain": ""
+          }
+        }
+      ],
+      "console": [
+        {
+          "type": "stream",
+          "name": "stdout",
+          "text": "Converting data to design matrix...\n"
+        },
+        {
+          "type": "stream",
+          "name": "stdout",
+          "text": "Done. Time: 2.1114905360154808\nPutting data onto device...\n"
+        },
+        {
+          "type": "stream",
+          "name": "stdout",
+          "text": "Done. Time: 0.2182115870527923\nFitting regression model...\n"
+        },
+        {
+          "type": "stream",
+          "name": "stdout",
+          "text": "Done. Time: 0.08888357097748667\nCreating treatment difference matrix...\n"
+        },
+        {
+          "type": "stream",
+          "name": "stdout",
+          "text": "Done. Time: 4.33927302795928\nEstimating Average Treatment Effects (ATEs)...\n"
+        },
+        {
+          "type": "stream",
+          "name": "stdout",
+          "text": "Done. Time: 0.42374588397797197\nEstimating Group Average Treatment Effects (GATEs)...\n"
+        },
+        {
+          "type": "stream",
+          "name": "stdout",
+          "text": "Done. Time: 1.023946693050675\n"
+        }
+      ]
+    },
+    {
+      "id": "Xref",
+      "code_hash": "ceb7b90ad7cbd80f358d99f7a458d6c8",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/html": "<pre style='font-size: 12px'>Array([ 0.00089379,  0.00093653, -0.00361062], dtype=float32)</pre>"
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "SFPL",
+      "code_hash": "6e414ce984ede562ff7c0049bb167aa6",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/plain": ""
+          }
+        }
+      ],
+      "console": [
+        {
+          "type": "stream",
+          "name": "stdout",
+          "text": "Converting data to design matrix...\n"
+        },
+        {
+          "type": "stream",
+          "name": "stdout",
+          "text": "Done. Time: 2.432771024061367\nPutting data onto device...\n"
+        },
+        {
+          "type": "stream",
+          "name": "stdout",
+          "text": "Done. Time: 0.03754179389216006\nFitting regression model...\n"
+        },
+        {
+          "type": "stream",
+          "name": "stdout",
+          "text": "Done. Time: 0.04351722099818289\nCreating treatment difference matrix...\n"
+        },
+        {
+          "type": "stream",
+          "name": "stdout",
+          "text": "Done. Time: 4.31522023701109\nEstimating Average Treatment Effects (ATEs)...\n"
+        },
+        {
+          "type": "stream",
+          "name": "stdout",
+          "text": "Done. Time: 0.01475229999050498\nEstimating Group Average Treatment Effects (GATEs)...\n"
+        },
+        {
+          "type": "stream",
+          "name": "stdout",
+          "text": "Done. Time: 0.6917715721065179\nConverting data to design matrix...\n"
+        },
+        {
+          "type": "stream",
+          "name": "stdout",
+          "text": "Done. Time: 2.144502925919369\nPutting data onto device...\n"
+        },
+        {
+          "type": "stream",
+          "name": "stdout",
+          "text": "Done. Time: 0.03275365603622049\nFitting regression model...\n"
+        },
+        {
+          "type": "stream",
+          "name": "stdout",
+          "text": "Done. Time: 0.03604773397091776\nCreating treatment difference matrix...\n"
+        },
+        {
+          "type": "stream",
+          "name": "stdout",
+          "text": "Done. Time: 4.3465533290291205\nEstimating Average Treatment Effects (ATEs)...\nDone. Time: 0.0044673040974885225\nEstimating Group Average Treatment Effects (GATEs)...\n"
+        },
+        {
+          "type": "stream",
+          "name": "stdout",
+          "text": "Done. Time: 0.42015333101153374\nConverting data to design matrix...\n"
+        },
+        {
+          "type": "stream",
+          "name": "stdout",
+          "text": "Done. Time: 2.112968924921006\nPutting data onto device...\n"
+        },
+        {
+          "type": "stream",
+          "name": "stdout",
+          "text": "Done. Time: 0.03256186400540173\nFitting regression model...\n"
+        },
+        {
+          "type": "stream",
+          "name": "stdout",
+          "text": "Done. Time: 0.04179501300677657\nCreating treatment difference matrix...\n"
+        },
+        {
+          "type": "stream",
+          "name": "stdout",
+          "text": "Done. Time: 4.3171406670007855\nEstimating Average Treatment Effects (ATEs)...\nDone. Time: 0.004619125043973327\nEstimating Group Average Treatment Effects (GATEs)...\n"
+        },
+        {
+          "type": "stream",
+          "name": "stdout",
+          "text": "Done. Time: 0.4434216700028628\n"
+        },
+        {
+          "type": "stream",
+          "name": "stdout",
+          "text": "Converting data to design matrix...\n"
+        },
+        {
+          "type": "stream",
+          "name": "stdout",
+          "text": "Done. Time: 2.097043314948678\nPutting data onto device...\n"
+        },
+        {
+          "type": "stream",
+          "name": "stdout",
+          "text": "Done. Time: 0.033401219989173114\nFitting regression model...\n"
+        },
+        {
+          "type": "stream",
+          "name": "stdout",
+          "text": "Done. Time: 0.03656112006865442\nCreating treatment difference matrix...\n"
+        },
+        {
+          "type": "stream",
+          "name": "stdout",
+          "text": "Done. Time: 4.338915345957503\nEstimating Average Treatment Effects (ATEs)...\nDone. Time: 0.006140419980511069\nEstimating Group Average Treatment Effects (GATEs)...\n"
+        },
+        {
+          "type": "stream",
+          "name": "stdout",
+          "text": "Done. Time: 0.42290449899155647\n"
+        },
+        {
+          "type": "stream",
+          "name": "stdout",
+          "text": "Converting data to design matrix...\n"
+        },
+        {
+          "type": "stream",
+          "name": "stdout",
+          "text": "Done. Time: 2.1112578709144145\nPutting data onto device...\n"
+        },
+        {
+          "type": "stream",
+          "name": "stdout",
+          "text": "Done. Time: 0.03397660900373012\nFitting regression model...\n"
+        },
+        {
+          "type": "stream",
+          "name": "stdout",
+          "text": "Done. Time: 0.0370895880041644\nCreating treatment difference matrix...\n"
+        },
+        {
+          "type": "stream",
+          "name": "stdout",
+          "text": "Done. Time: 4.304369860095903\nEstimating Average Treatment Effects (ATEs)...\nDone. Time: 0.004341345047578216\nEstimating Group Average Treatment Effects (GATEs)...\n"
+        },
+        {
+          "type": "stream",
+          "name": "stdout",
+          "text": "Done. Time: 0.45420176803600043\nConverting data to design matrix...\n"
+        },
+        {
+          "type": "stream",
+          "name": "stdout",
+          "text": "Done. Time: 2.0891714399913326\nPutting data onto device...\n"
+        },
+        {
+          "type": "stream",
+          "name": "stdout",
+          "text": "Done. Time: 0.0335136519279331\nFitting regression model...\n"
+        },
+        {
+          "type": "stream",
+          "name": "stdout",
+          "text": "Done. Time: 0.040648176916874945\nCreating treatment difference matrix...\n"
+        },
+        {
+          "type": "stream",
+          "name": "stdout",
+          "text": "Done. Time: 4.290984919993207\nEstimating Average Treatment Effects (ATEs)...\nDone. Time: 0.004699019016698003\nEstimating Group Average Treatment Effects (GATEs)...\n"
+        },
+        {
+          "type": "stream",
+          "name": "stdout",
+          "text": "Done. Time: 0.4315140329999849\nConverting data to design matrix...\n"
+        },
+        {
+          "type": "stream",
+          "name": "stdout",
+          "text": "Done. Time: 2.1203156489646062\nPutting data onto device...\n"
+        },
+        {
+          "type": "stream",
+          "name": "stdout",
+          "text": "Done. Time: 0.12017246102914214\nFitting regression model...\n"
+        },
+        {
+          "type": "stream",
+          "name": "stdout",
+          "text": "Done. Time: 0.2765535159269348\nCreating treatment difference matrix...\n"
+        },
+        {
+          "type": "stream",
+          "name": "stdout",
+          "text": "Done. Time: 4.291692983941175\nEstimating Average Treatment Effects (ATEs)...\n"
+        },
+        {
+          "type": "stream",
+          "name": "stdout",
+          "text": "Done. Time: 0.5288308140588924\nEstimating Group Average Treatment Effects (GATEs)...\n"
+        },
+        {
+          "type": "stream",
+          "name": "stdout",
+          "text": "Done. Time: 1.6766992529155686\nConverting data to design matrix...\n"
+        },
+        {
+          "type": "stream",
+          "name": "stdout",
+          "text": "Done. Time: 2.1174393510445952\nPutting data onto device...\n"
+        },
+        {
+          "type": "stream",
+          "name": "stdout",
+          "text": "Done. Time: 0.041832734015770257\nFitting regression model...\n"
+        },
+        {
+          "type": "stream",
+          "name": "stdout",
+          "text": "Done. Time: 0.15941616403870285\nCreating treatment difference matrix...\n"
+        },
+        {
+          "type": "stream",
+          "name": "stdout",
+          "text": "Done. Time: 4.246905534062535\nEstimating Average Treatment Effects (ATEs)...\n"
+        },
+        {
+          "type": "stream",
+          "name": "stdout",
+          "text": "Done. Time: 0.015436358051374555\nEstimating Group Average Treatment Effects (GATEs)...\n"
+        },
+        {
+          "type": "stream",
+          "name": "stdout",
+          "text": "Done. Time: 0.3140547110233456\nConverting data to design matrix...\n"
+        },
+        {
+          "type": "stream",
+          "name": "stdout",
+          "text": "Done. Time: 2.1412196189630777\nPutting data onto device...\n"
+        },
+        {
+          "type": "stream",
+          "name": "stdout",
+          "text": "Done. Time: 0.042617678991518915\nFitting regression model...\n"
+        },
+        {
+          "type": "stream",
+          "name": "stdout",
+          "text": "Done. Time: 0.16015893407166004\nCreating treatment difference matrix...\n"
+        },
+        {
+          "type": "stream",
+          "name": "stdout",
+          "text": "Done. Time: 4.320929170004092\nEstimating Average Treatment Effects (ATEs)...\n"
+        },
+        {
+          "type": "stream",
+          "name": "stdout",
+          "text": "Done. Time: 0.01514583092648536\nEstimating Group Average Treatment Effects (GATEs)...\n"
+        },
+        {
+          "type": "stream",
+          "name": "stdout",
+          "text": "Done. Time: 0.30710003001149744\nConverting data to design matrix...\n"
+        },
+        {
+          "type": "stream",
+          "name": "stdout",
+          "text": "Done. Time: 2.122846793034114\nPutting data onto device...\n"
+        },
+        {
+          "type": "stream",
+          "name": "stdout",
+          "text": "Done. Time: 0.042169032036326826\nFitting regression model...\n"
+        },
+        {
+          "type": "stream",
+          "name": "stdout",
+          "text": "Done. Time: 0.1589567509945482\nCreating treatment difference matrix...\n"
+        },
+        {
+          "type": "stream",
+          "name": "stdout",
+          "text": "Done. Time: 4.230994404060766\nEstimating Average Treatment Effects (ATEs)...\n"
+        },
+        {
+          "type": "stream",
+          "name": "stdout",
+          "text": "Done. Time: 0.014920066925697029\nEstimating Group Average Treatment Effects (GATEs)...\n"
+        },
+        {
+          "type": "stream",
+          "name": "stdout",
+          "text": "Done. Time: 0.30648193892557174\nConverting data to design matrix...\n"
+        },
+        {
+          "type": "stream",
+          "name": "stdout",
+          "text": "Done. Time: 2.118708668043837\nPutting data onto device...\n"
+        },
+        {
+          "type": "stream",
+          "name": "stdout",
+          "text": "Done. Time: 0.04087699099909514\nFitting regression model...\n"
+        },
+        {
+          "type": "stream",
+          "name": "stdout",
+          "text": "Done. Time: 0.17106717894785106\nCreating treatment difference matrix...\n"
+        },
+        {
+          "type": "stream",
+          "name": "stdout",
+          "text": "Done. Time: 4.302189767011441\nEstimating Average Treatment Effects (ATEs)...\n"
+        },
+        {
+          "type": "stream",
+          "name": "stdout",
+          "text": "Done. Time: 0.01552013901527971\nEstimating Group Average Treatment Effects (GATEs)...\n"
+        },
+        {
+          "type": "stream",
+          "name": "stdout",
+          "text": "Done. Time: 0.3031117470236495\nConverting data to design matrix...\n"
+        },
+        {
+          "type": "stream",
+          "name": "stdout",
+          "text": "Done. Time: 2.112606187001802\nPutting data onto device...\n"
+        },
+        {
+          "type": "stream",
+          "name": "stdout",
+          "text": "Done. Time: 0.04340984404552728\nFitting regression model...\n"
+        },
+        {
+          "type": "stream",
+          "name": "stdout",
+          "text": "Done. Time: 0.16027053899597377\nCreating treatment difference matrix...\n"
+        },
+        {
+          "type": "stream",
+          "name": "stdout",
+          "text": "Done. Time: 4.284593757940456\nEstimating Average Treatment Effects (ATEs)...\n"
+        },
+        {
+          "type": "stream",
+          "name": "stdout",
+          "text": "Done. Time: 0.015368873020634055\nEstimating Group Average Treatment Effects (GATEs)...\n"
+        },
+        {
+          "type": "stream",
+          "name": "stdout",
+          "text": "Done. Time: 0.3030208230484277\nCPU times: [6.991064056986943, 6.965875233057886, 6.954468592070043, 6.968924185959622, 6.8994426330318674]\nGPU times: [6.897968625999056, 6.9900723999598995, 6.879226343007758, 6.9544789280043915, 6.922514448990114]\nAverage CPU time: 6.9560 seconds\nAverage GPU time: 6.9289 seconds\n"
+        }
+      ]
+    },
+    {
+      "id": "BYtC",
+      "code_hash": null,
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/html": "<pre style='font-size: 12px'>Array([ 0.00089379,  0.00093653, -0.00361062], dtype=float32)</pre>"
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "RGSE",
+      "code_hash": null,
+      "outputs": [],
+      "console": []
+    },
+    {
+      "id": "jLrB",
+      "code_hash": null,
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/html": "<pre style='font-size: 12px'>&#x27;Y1+Y2+Y3&#x27;</pre>"
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "meDl",
+      "code_hash": null,
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/html": "<pre style='font-size: 12px'>Array([-0.00093673, -0.00193968,  0.00231742], dtype=float32)</pre>"
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "Kclp",
+      "code_hash": null,
+      "outputs": [],
+      "console": []
+    },
+    {
+      "id": "emfo",
+      "code_hash": null,
+      "outputs": [],
+      "console": []
+    }
+  ]
+}
