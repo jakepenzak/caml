@@ -1,5 +1,5 @@
 from functools import wraps
-from typing import Iterable
+from typing import Any, Iterable
 
 import pandas as pd
 import patsy
@@ -23,6 +23,9 @@ except ImportError:
     _HAS_JAX = False
 
 
+DataFrameLike = Any
+
+
 @experimental
 @typechecked
 class FastLeastSquares:
@@ -32,6 +35,9 @@ class FastLeastSquares:
     and provides estimates for the Average Treatment Effects (ATEs) and Group Average Treatment Effects (GATEs) out of the box. Additionally,
     methods are provided for estimating a specific Conditional Average Treatment Effect (CATE), as well as individual Conditional Average Treatment
     Effects (CATEs) for a group of observations.
+
+    This class leverages JAX for fast numerical computations, which can be installed using `pip install caml[jax]`, defaulting to NumPy if JAX is not
+    available. For GPU acceleration, install JAX with GPU support using `pip install caml[jax-gpu]`.
 
     **Outcome/Treatment Type Support Matrix**
     <center>
@@ -132,7 +138,20 @@ class FastLeastSquares:
         self._fitted = False
         self.results = {}
 
-    def fit(self, data, n_jobs: int | None = None):
+    def fit(self, data: DataFrameLike, n_jobs: int = -1):
+        """
+        Fits the regression model on the provided data and estimates ATEs and GATEs.
+
+        Parameters
+        ----------
+        data
+            Input data to fit the model on. Supported formats:
+            pandas DataFrame, PySpark DataFrame, Polars DataFrame, or Any object with toPandas() or to_pandas() method
+
+        n_jobs
+            The number of jobs to use for parallel processing in the estimation of GATEs. Defaults to -1, which uses all available processors.
+            If getting OOM errors, try setting n_jobs to a lower value.
+        """
         pd_df = self.convert_dataframe_to_pandas(data, self.G)
         y, X = self._create_design_matrix(pd_df)
         self._fit(X, y)
@@ -160,15 +179,48 @@ class FastLeastSquares:
             n_treated=n_treated,
         )
 
-        results = {"outcomes": self.Y}
+        results = {"outcome": self.Y}
         results.update({key: statistics[key] for key in statistics.keys()})
 
         return results
 
-    def estimate_cates(self, data) -> dict:
+    def estimate_cates(self) -> dict:
         raise NotImplementedError(
             f"{self.__class__.__name__} does not support estimate_cates method yet."
         )
+
+    def prettify_treatment_effects(self) -> pd.DataFrame:
+        effects = self.results["treatment_effects"]
+        n_outcomes = len(self.Y)
+
+        final_results = {}
+        for i, k in enumerate(effects.keys()):
+            try:
+                group = k.split("-")[0]
+                membership = k.split("-")[1]
+            except IndexError:
+                group = k
+                membership = None
+            if i == 0:
+                final_results["group"] = [group] * n_outcomes
+                final_results["membership"] = [membership] * n_outcomes
+                for stat, value in effects[k].items():
+                    if isinstance(value, list) or isinstance(value, jnp.ndarray):
+                        final_results[stat] = value.copy()
+                    elif isinstance(value, int):
+                        final_results[stat] = [value] * n_outcomes
+            else:
+                final_results["group"] += [group] * n_outcomes
+                final_results["membership"] += [membership] * n_outcomes
+                for stat, value in effects[k].items():
+                    if isinstance(value, list):
+                        final_results[stat] += value
+                    elif isinstance(value, jnp.ndarray):
+                        final_results[stat] = jnp.hstack([final_results[stat], value])
+                    elif isinstance(value, int):
+                        final_results[stat] += [value] * n_outcomes
+
+        return pd.DataFrame(final_results)
 
     @timer("Model Fitting")
     def _fit(self, X: jnp.ndarray, y: jnp.ndarray):
@@ -208,7 +260,7 @@ class FastLeastSquares:
             n_treated=n_treated,
         )
 
-        self.results["treatment_effects"]["overall"] = {"outcomes": self.Y}
+        self.results["treatment_effects"]["overall"] = {"outcome": self.Y}
         self.results["treatment_effects"]["overall"].update(
             {key: statistics[key] for key in statistics.keys()}
         )
@@ -258,7 +310,7 @@ class FastLeastSquares:
         )
 
         for group_key, statistics in results:
-            self.results["treatment_effects"][group_key] = {"outcomes": self.Y}
+            self.results["treatment_effects"][group_key] = {"outcome": self.Y}
             self.results["treatment_effects"][group_key].update(
                 {key: statistics[key] for key in statistics.keys()}
             )

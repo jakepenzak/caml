@@ -465,7 +465,7 @@
     "href": "04_Reference/index.html",
     "title": "API Reference",
     "section": "",
-    "text": "from caml import *\n\n\n\nCamlCATE\nThe CamlCATE class represents an opinionated framework of Causal Machine Learning techniques for estimating highly accurate conditional average treatment effects (CATEs).\n\n\n\n\n\n\nfrom caml.extensions.synthetic_data import *\n\n\n\nCamlSyntheticDataGenerator\nGenerate highly flexible synthetic data for use in causal inference and CaML testing.\n\n\nmake_partially_linear_dataset_simple\nSimulate data generating process from a partially linear model with a simple 1 or 2 dimensional CATE function.\n\n\nmake_partially_linear_dataset_constant\nSimulate a data generating process from a partially linear model with a constant treatment effect (ATE only).\n\n\nmake_fully_heterogeneous_dataset\nSimulate data generating process from an interactive regression model with fully heterogenous treatment effects.\n\n\n\n\n\n\nfrom caml.extensions.plots import *\n\n\n\ncate_histogram_plot\nPlots a histogram the estimated CATEs.\n\n\ncate_line_plot\nPlots a line plot of the ordered estimated CATEs as a rolling mean with optional confidence intervals.\n\n\ncate_true_vs_estimated_plot\nPlots a scatter plot of the estimated CATEs against the true CATEs.\n\n\n\n\n\n\n\n\n\ngenerics.generate_random_string\nFunction to generate a random string of ascii lowercase letters and digits of length N.\n\n\ngenerics.experimental\nDecorator to mark functions or classes as experimental.\n\n\nlogging.configure_logging\nConfigure logging for the entire application.\n\n\nlogging.set_log_level\nChange the logging level after initial configuration."
+    "text": "from caml import *\n\n\n\nCamlCATE\nThe CamlCATE class represents an opinionated framework of Causal Machine Learning techniques for estimating highly accurate conditional average treatment effects (CATEs).\n\n\n\n\n\n\nfrom caml import *\n\n\n\nFastLeastSquares\nFastLeastSquares is a fast implementation of the Least Squares estimator designed specifically with Causal Inference in mind.\n\n\n\n\n\n\nfrom caml.extensions.synthetic_data import *\n\n\n\nCamlSyntheticDataGenerator\nGenerate highly flexible synthetic data for use in causal inference and CaML testing.\n\n\nmake_partially_linear_dataset_simple\nSimulate data generating process from a partially linear model with a simple 1 or 2 dimensional CATE function.\n\n\nmake_partially_linear_dataset_constant\nSimulate a data generating process from a partially linear model with a constant treatment effect (ATE only).\n\n\nmake_fully_heterogeneous_dataset\nSimulate data generating process from an interactive regression model with fully heterogenous treatment effects.\n\n\n\n\n\n\nfrom caml.extensions.plots import *\n\n\n\ncate_histogram_plot\nPlots a histogram the estimated CATEs.\n\n\ncate_line_plot\nPlots a line plot of the ordered estimated CATEs as a rolling mean with optional confidence intervals.\n\n\ncate_true_vs_estimated_plot\nPlots a scatter plot of the estimated CATEs against the true CATEs.\n\n\n\n\n\n\n\n\n\ngenerics.generate_random_string\nFunction to generate a random string of ascii lowercase letters and digits of length N.\n\n\ngenerics.experimental\nDecorator to mark functions or classes as experimental.\n\n\ngenerics.timer\nDecorator to measure the execution time of a function or method, logged at DEBUG level.\n\n\nlogging.configure_logging\nConfigure logging for the entire application.\n\n\nlogging.set_log_level\nChange the logging level after initial configuration."
   },
   {
     "objectID": "04_Reference/index.html#caml-core",
@@ -493,7 +493,7 @@
     "href": "04_Reference/index.html#developer-tools",
     "title": "API Reference",
     "section": "",
-    "text": "generics.generate_random_string\nFunction to generate a random string of ascii lowercase letters and digits of length N.\n\n\ngenerics.experimental\nDecorator to mark functions or classes as experimental.\n\n\nlogging.configure_logging\nConfigure logging for the entire application.\n\n\nlogging.set_log_level\nChange the logging level after initial configuration."
+    "text": "generics.generate_random_string\nFunction to generate a random string of ascii lowercase letters and digits of length N.\n\n\ngenerics.experimental\nDecorator to mark functions or classes as experimental.\n\n\ngenerics.timer\nDecorator to measure the execution time of a function or method, logged at DEBUG level.\n\n\nlogging.configure_logging\nConfigure logging for the entire application.\n\n\nlogging.set_log_level\nChange the logging level after initial configuration."
   },
   {
     "objectID": "04_Reference/CamlCATE.html",
@@ -781,5 +781,61 @@
     "title": "generics.experimental",
     "section": "",
     "text": "Name\nType\nDescription\n\n\n\n\n\nUnion[type, callable]\nThe decorated class or function"
+  },
+  {
+    "objectID": "04_Reference/FastLeastSquares.html",
+    "href": "04_Reference/FastLeastSquares.html",
+    "title": "FastLeastSquares",
+    "section": "",
+    "text": "FastLeastSquares(\n    self,\n    Y,\n    T,\n    G=None,\n    X=None,\n    W=None,\n    *,\n    discrete_treatment=True,\n    engine='cpu',\n)\nFastLeastSquares is a fast implementation of the Least Squares estimator designed specifically with Causal Inference in mind.\nThis estimator estimates a standard linear regression model for any number of continuous or binary outcomes and a single binary treatment, and provides estimates for the Average Treatment Effects (ATEs) and Group Average Treatment Effects (GATEs) out of the box. Additionally, methods are provided for estimating a specific Conditional Average Treatment Effect (CATE), as well as individual Conditional Average Treatment Effects (CATEs) for a group of observations.\nThis class leverages JAX for fast numerical computations, which can be installed using pip install caml[jax], defaulting to NumPy if JAX is not available. For GPU acceleration, install JAX with GPU support using pip install caml[jax-gpu].\nOutcome/Treatment Type Support Matrix\n\n\n\n\nOutcome\nTreatment\nSupport\nMissing\n\n\n\n\nContinuous\nBinary\n✅Full\n\n\n\nContinuous\nContinuous\n❌Not yet\n\n\n\nContinuous\nCategorical\n❌Not yet\n\n\n\nBinary\nBinary\n✅Full\n\n\n\nBinary\nContinuous\n❌Not yet\n\n\n\nBinary\nCategorical\n❌Not yet\n\n\n\nCategorical\nBinary\n❌Not yet\n\n\n\nCategorical\nContinuous\n❌Not yet\n\n\n\nCategorical\nCategorical\n❌Not yet\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nName\nType\nDescription\nDefault\n\n\n\n\nY\nIterable[str]\nA list of outcome variable names.\nrequired\n\n\nT\nstr\nThe treatment variable name.\nrequired\n\n\nG\nIterable[str] | None\nA list of group variable names, by default None. These will be the groups for which GATEs will be estimated.\nNone\n\n\nX\nIterable[str] | None\nA list of covariate variable names, by default None. These will be the covariates for which heterogeneity/CATEs can be estimated.\nNone\n\n\nW\nIterable[str] | None\nA list of instrument variable names, by default None. These will be the additional covariates not used for modeling heterogeneity/CATEs.\nNone\n\n\ndiscrete_treatment\nbool\nWhether the treatment is discrete, by default True\nTrue\n\n\nengine\nstr\nThe engine to use for computation, by default “cpu”. Can be “cpu” or “gpu”. Note “gpu” requires JAX to be installed, which can be installed via pip install caml[jax-gpu].\n'cpu'\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nName\nType\nDescription\n\n\n\n\nY\n\nA list of outcome variable names.\n\n\nT\n\nThe treatment variable name.\n\n\nG\n\nA list of group variable names, by default None. These will be the groups for which GATEs will be estimated.\n\n\nX\n\nA list of covariate variable names, by default None. These will be the covariates for which heterogeneity/CATEs can be estimated.\n\n\nW\n\nA list of instrument variable names, by default None. These will be the additional covariates not used for modeling heterogeneity/CATEs.\n\n\ndiscrete_treatment\n\nWhether the treatment is discrete, by default True\n\n\nengine\n\nThe engine to use for computation, by default “cpu”. Can be “cpu” or “gpu”. Note “gpu” requires JAX to be installed, which can be installed via pip install caml[jax-gpu]\n\n\nformula\n\nThe formula leveraged for design matrix creation via Patsy.\n\n\nresults\n\nA dictionary containing the results of the fitted model & estimated ATEs/GATEs.\n\n\n\n\n\n\n\n\n\nName\nDescription\n\n\n\n\nfit\nFits the regression model on the provided data and estimates ATEs and GATEs.\n\n\n\n\n\nFastLeastSquares.fit(data, n_jobs=-1)\nFits the regression model on the provided data and estimates ATEs and GATEs.\n\n\n\n\n\n\n\n\n\n\n\nName\nType\nDescription\nDefault\n\n\n\n\ndata\nDataFrameLike\nInput data to fit the model on. Supported formats: pandas DataFrame, PySpark DataFrame, Polars DataFrame, or Any object with toPandas() or to_pandas() method\nrequired\n\n\nn_jobs\nint\nThe number of jobs to use for parallel processing in the estimation of GATEs. Defaults to -1, which uses all available processors. If getting OOM errors, try setting n_jobs to a lower value.\n-1"
+  },
+  {
+    "objectID": "04_Reference/FastLeastSquares.html#parameters",
+    "href": "04_Reference/FastLeastSquares.html#parameters",
+    "title": "FastLeastSquares",
+    "section": "",
+    "text": "Name\nType\nDescription\nDefault\n\n\n\n\nY\nIterable[str]\nA list of outcome variable names.\nrequired\n\n\nT\nstr\nThe treatment variable name.\nrequired\n\n\nG\nIterable[str] | None\nA list of group variable names, by default None. These will be the groups for which GATEs will be estimated.\nNone\n\n\nX\nIterable[str] | None\nA list of covariate variable names, by default None. These will be the covariates for which heterogeneity/CATEs can be estimated.\nNone\n\n\nW\nIterable[str] | None\nA list of instrument variable names, by default None. These will be the additional covariates not used for modeling heterogeneity/CATEs.\nNone\n\n\ndiscrete_treatment\nbool\nWhether the treatment is discrete, by default True\nTrue\n\n\nengine\nstr\nThe engine to use for computation, by default “cpu”. Can be “cpu” or “gpu”. Note “gpu” requires JAX to be installed, which can be installed via pip install caml[jax-gpu].\n'cpu'"
+  },
+  {
+    "objectID": "04_Reference/FastLeastSquares.html#attributes",
+    "href": "04_Reference/FastLeastSquares.html#attributes",
+    "title": "FastLeastSquares",
+    "section": "",
+    "text": "Name\nType\nDescription\n\n\n\n\nY\n\nA list of outcome variable names.\n\n\nT\n\nThe treatment variable name.\n\n\nG\n\nA list of group variable names, by default None. These will be the groups for which GATEs will be estimated.\n\n\nX\n\nA list of covariate variable names, by default None. These will be the covariates for which heterogeneity/CATEs can be estimated.\n\n\nW\n\nA list of instrument variable names, by default None. These will be the additional covariates not used for modeling heterogeneity/CATEs.\n\n\ndiscrete_treatment\n\nWhether the treatment is discrete, by default True\n\n\nengine\n\nThe engine to use for computation, by default “cpu”. Can be “cpu” or “gpu”. Note “gpu” requires JAX to be installed, which can be installed via pip install caml[jax-gpu]\n\n\nformula\n\nThe formula leveraged for design matrix creation via Patsy.\n\n\nresults\n\nA dictionary containing the results of the fitted model & estimated ATEs/GATEs."
+  },
+  {
+    "objectID": "04_Reference/index.html#traditional-estimators",
+    "href": "04_Reference/index.html#traditional-estimators",
+    "title": "API Reference",
+    "section": "",
+    "text": "from caml import *\n\n\n\nFastLeastSquares\nFastLeastSquares is a fast implementation of the Least Squares estimator designed specifically with Causal Inference in mind."
+  },
+  {
+    "objectID": "04_Reference/generics.timer.html",
+    "href": "04_Reference/generics.timer.html",
+    "title": "generics.timer",
+    "section": "",
+    "text": "generics.timer(operation_name=None)\nDecorator to measure the execution time of a function or method, logged at DEBUG level.\n\n\n\n\n\n\n\n\n\n\n\nName\nType\nDescription\nDefault\n\n\n\n\noperation_name\n\nThe name of the operation to be timed. If None, the name of the function or method will be used.\nNone\n\n\n\n\n\n\n\n\n\nName\nType\nDescription\n\n\n\n\n\ncallable\nThe decorated function or method"
+  },
+  {
+    "objectID": "04_Reference/generics.timer.html#parameters",
+    "href": "04_Reference/generics.timer.html#parameters",
+    "title": "generics.timer",
+    "section": "",
+    "text": "Name\nType\nDescription\nDefault\n\n\n\n\noperation_name\n\nThe name of the operation to be timed. If None, the name of the function or method will be used.\nNone"
+  },
+  {
+    "objectID": "04_Reference/generics.timer.html#returns",
+    "href": "04_Reference/generics.timer.html#returns",
+    "title": "generics.timer",
+    "section": "",
+    "text": "Name\nType\nDescription\n\n\n\n\n\ncallable\nThe decorated function or method"
+  },
+  {
+    "objectID": "04_Reference/FastLeastSquares.html#methods",
+    "href": "04_Reference/FastLeastSquares.html#methods",
+    "title": "FastLeastSquares",
+    "section": "",
+    "text": "Name\nDescription\n\n\n\n\nfit\nFits the regression model on the provided data and estimates ATEs and GATEs.\n\n\n\n\n\nFastLeastSquares.fit(data, n_jobs=-1)\nFits the regression model on the provided data and estimates ATEs and GATEs.\n\n\n\n\n\n\n\n\n\n\n\nName\nType\nDescription\nDefault\n\n\n\n\ndata\nDataFrameLike\nInput data to fit the model on. Supported formats: pandas DataFrame, PySpark DataFrame, Polars DataFrame, or Any object with toPandas() or to_pandas() method\nrequired\n\n\nn_jobs\nint\nThe number of jobs to use for parallel processing in the estimation of GATEs. Defaults to -1, which uses all available processors. If getting OOM errors, try setting n_jobs to a lower value.\n-1"
   }
 ]

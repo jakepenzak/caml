@@ -119,8 +119,7 @@ def _(data):
                     X=[c for c in data.df.columns if 'X' in c]
                         + [c for c in data.df.columns if 'W' in c],
                     discrete_treatment=True,
-                    discrete_outcome=False,
-                    verbose=1)
+                    discrete_outcome=False)
     return CamlCATE, caml_obj
 
 

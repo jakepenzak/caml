@@ -8,6 +8,14 @@
 | --- | --- |
 | [CamlCATE](CamlCATE.qmd#caml.CamlCATE) | The CamlCATE class represents an opinionated framework of Causal Machine Learning techniques for estimating highly accurate conditional average treatment effects (CATEs). |
 
+## Traditional Estimators
+
+`from caml import *`
+
+| | |
+| --- | --- |
+| [FastLeastSquares](FastLeastSquares.qmd#caml.FastLeastSquares) | FastLeastSquares is a fast implementation of the Least Squares estimator designed specifically with Causal Inference in mind. |
+
 ## Synthetic Data Generation
 
 `from caml.extensions.synthetic_data import *`
@@ -35,5 +43,6 @@
 | --- | --- |
 | [generics.generate_random_string](generics.generate_random_string.qmd#caml.generics.generate_random_string) | Function to generate a random string of ascii lowercase letters and digits of length N. |
 | [generics.experimental](generics.experimental.qmd#caml.generics.experimental) | Decorator to mark functions or classes as experimental. |
+| [generics.timer](generics.timer.qmd#caml.generics.timer) | Decorator to measure the execution time of a function or method, logged at DEBUG level. |
 | [logging.configure_logging](logging.configure_logging.qmd#caml.logging.configure_logging) | Configure logging for the entire application. |
 | [logging.set_log_level](logging.set_log_level.qmd#caml.logging.set_log_level) | Change the logging level after initial configuration. |

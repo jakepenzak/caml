@@ -59,6 +59,20 @@ def experimental(obj):
 
 
 def timer(operation_name=None):
+    """
+    Decorator to measure the execution time of a function or method, logged at DEBUG level.
+
+    Parameters
+    ----------
+    operation_name
+        The name of the operation to be timed. If None, the name of the function or method will be used.
+
+    Returns
+    -------
+    callable
+        The decorated function or method
+    """
+
     def decorator(func):
         @wraps(func)
         def wrapper(*args, **kwargs):

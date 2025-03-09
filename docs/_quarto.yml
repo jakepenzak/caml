@@ -126,6 +126,7 @@ quartodoc:
       contents:
         - generics.generate_random_string
         - generics.experimental
+        - generics.timer
         - logging.configure_logging
         - logging.set_log_level
 
