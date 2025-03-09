@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import copy
-import logging
 from typing import TYPE_CHECKING
 
 import matplotlib.pyplot as plt
@@ -14,11 +13,10 @@ from econml.score import EnsembleCateEstimator, RScorer
 from econml.validate.drtester import DRTester
 from joblib import Parallel, delayed
 
-from ..generics import cls_typechecked
+from ..generics import cls_typechecked, experimental
+from ..logging import ERROR, INFO, WARNING
 from ._base import CamlBase
 from .modeling import model_bank
-
-logger = logging.getLogger(__name__)
 
 # Optional dependencies
 try:
@@ -41,6 +39,7 @@ if TYPE_CHECKING:
     import ray
 
 
+@experimental
 @cls_typechecked
 class CamlCATE(CamlBase):
     r"""
@@ -107,8 +106,6 @@ class CamlCATE(CamlBase):
         A boolean indicating whether the outcome is binary or continuous.
     seed
         The seed to use for the random number generator.
-    verbose
-        The verbosity level for logging. Default implies 1 (INFO). Set to 0 for no logging. Set to 2 for DEBUG.
 
     Attributes
     ----------
@@ -162,7 +159,6 @@ class CamlCATE(CamlBase):
         discrete_treatment=True,
         discrete_outcome=False,
         seed=0,
-        verbose=1,
     )
 
     print(caml_obj)
@@ -180,10 +176,9 @@ class CamlCATE(CamlBase):
         discrete_treatment: bool = True,
         discrete_outcome: bool = False,
         seed: int | None = None,
-        verbose: int = 1,
     ):
         self.df = df
-        super().__init__(verbose=verbose)
+        super().__init__()
 
         self.Y = Y
         self.T = T
@@ -202,13 +197,13 @@ class CamlCATE(CamlBase):
         self._cate_predictions = {}
 
         if not self.discrete_treatment:
-            logger.warning("Validation for continuous treatments is not supported yet.")
+            WARNING("Validation for continuous treatments is not supported yet.")
 
         if self.discrete_outcome:
-            logger.warning("Binary outcomes are experimental and bugs may exist.")
+            WARNING("Binary outcomes are experimental and bugs may exist.")
 
         if len(self.W) > 0:
-            logger.warning(
+            WARNING(
                 "Only Orthogonal Learners are currently supported with 'W', as Meta-Learners neccesitate 'W' in final CATE learner. "
                 "If you don't care about 'W' features being used in final CATE model, add it to 'X' argument insead."
             )
@@ -461,7 +456,7 @@ class CamlCATE(CamlBase):
             estimator = self._validation_estimator
 
         if not self.discrete_treatment or self.discrete_outcome:
-            logger.error(
+            ERROR(
                 "Validation for continuous treatments and/or discrete outcomes is not supported yet."
             )
             return
@@ -506,11 +501,11 @@ class CamlCATE(CamlBase):
         # Check for insignificant results & warn user
         summary = res.summary()
         if np.array(summary[[c for c in summary.columns if "pval" in c]] > 0.1).any():
-            logger.warning(
+            WARNING(
                 "Some of the validation results suggest that the model may not have found statistically significant heterogeneity. Please closely look at the validation results and consider retraining with new configurations."
             )
         else:
-            logger.info(
+            INFO(
                 "All validation results suggest that the model has found statistically significant heterogeneity."
             )
 
@@ -782,7 +777,7 @@ class CamlCATE(CamlBase):
                     )
                 else:
                     if len(self.W) > 0:
-                        logger.warning(
+                        WARNING(
                             f"Non-Orthogonal Learners ({name}) are not supported with 'W'. Skipping model."
                         )
                         fitted_model = None
@@ -793,7 +788,7 @@ class CamlCATE(CamlBase):
                     str(e)
                     == "This method can only be used with single-dimensional continuous treatment or binary categorical treatment."
                 ):
-                    logger.warning(
+                    WARNING(
                         f"Multi-dimensional discrete treatment is not supported for {name}. Skipping model."
                     )
                     fitted_model = None
@@ -864,8 +859,8 @@ class CamlCATE(CamlBase):
         )
         best_estimator = models[np.nanargmax(estimator_scores)][0]
 
-        logger.info(f"Best Estimator: {best_estimator}")
-        logger.info(f"Estimator RScores: {estimator_score_dict}")
+        INFO(f"Best Estimator: {best_estimator}")
+        INFO(f"Estimator RScores: {estimator_score_dict}")
 
         return models[np.nanargmax(estimator_scores)][1], rscorer
 

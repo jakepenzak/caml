@@ -20,53 +20,72 @@ def _(mo):
 def _():
     import pandas as pd
     import numpy as np
-    from caml import FastLSTSQ
-    return FastLSTSQ, np, pd
+    from caml import FastLeastSquares
+    from caml.logging import configure_logging
+    import logging
+
+    configure_logging(level=logging.DEBUG)
+    return FastLeastSquares, configure_logging, logging, np, pd
 
 
 @app.cell
 def _(np, pd):
-    np.random.seed(10)
+    np.random.seed(11)
 
-    df = pd.DataFrame({'Y1': np.random.normal(size=2_500_000),
-                       'Y2': np.random.normal(size=2_500_000),
-                       'Y3': np.random.normal(size=2_500_000),
-                       'T':  np.random.randint(0,2,size=2_500_000),
-                       'G1': np.random.randint(0,5,size=2_500_000).astype('str'),
-                       'G2': np.random.randint(0,5,size=2_500_000).astype('str'),
-                       'G3': np.random.randint(0,5,size=2_500_000).astype('str'),
-                       'G4': np.random.randint(0,5,size=2_500_000).astype('str'),
-                       'G5': np.random.randint(0,5,size=2_500_000).astype('str'),
-                       'G6': np.random.randint(0,5,size=2_500_000).astype('str'),
-                       'G7': np.random.randint(0,5,size=2_500_000).astype('str'),
-                       'G8': np.random.randint(0,5,size=2_500_000).astype('str'),
-                       'X1': np.random.normal(size=2_500_000),
-                       'X2': np.random.normal(size=2_500_000),
-                       'X3': np.random.normal(size=2_500_000),
-                       'X4': np.random.normal(size=2_500_000),
-                       'X5': np.random.normal(size=2_500_000),
-                       'X6': np.random.normal(size=2_500_000),
-                       'X7': np.random.normal(size=2_500_000),
-                       'X8': np.random.normal(size=2_500_000),
-                       'X9': np.random.normal(size=2_500_000),
-                       'product_group': np.random.choice(['total','produce'],size=2_500_000),
-                       'modality': np.random.choice(['all','online'],size=2_500_000)})
+    df = pd.DataFrame({'Y1': np.random.normal(size=1_000_000),
+                       'Y2': np.random.normal(size=1_000_000),
+                       'Y3': np.random.normal(size=1_000_000),
+                       'T':  np.random.randint(0,2,size=1_000_000),
+                       'G1': np.random.randint(0,5,size=1_000_000).astype('str'),
+                       'G2': np.random.randint(0,5,size=1_000_000).astype('str'),
+                       'G3': np.random.randint(0,5,size=1_000_000).astype('str'),
+                       'G4': np.random.randint(0,5,size=1_000_000).astype('str'),
+                       'G5': np.random.randint(0,5,size=1_000_000).astype('str'),
+                       'G6': np.random.randint(0,5,size=1_000_000).astype('str'),
+                       'G7': np.random.randint(0,5,size=1_000_000).astype('str'),
+                       'G8': np.random.randint(0,5,size=1_000_000).astype('str'),
+                       'X1': np.random.normal(size=1_000_000),
+                       'X2': np.random.normal(size=1_000_000),
+                       'X3': np.random.normal(size=1_000_000),
+                       'W1': np.random.normal(size=1_000_000),
+                       'W2': np.random.normal(size=1_000_000),
+                       'W3': np.random.normal(size=1_000_000),
+                       'W4': np.random.normal(size=1_000_000),
+                       'W5': np.random.normal(size=1_000_000),
+                       'W6': np.random.normal(size=1_000_000),
+                       'product_group': np.random.choice(['total','produce'],size=1_000_000),
+                       'modality': np.random.choice(['all','online'],size=1_000_000)})
     return (df,)
 
 
 @app.cell
-def _(FastLSTSQ, df):
-    fu = FastLSTSQ(Y=[c for c in df.columns if "Y" in c],
+def _(FastLeastSquares, df):
+    fu = FastLeastSquares(Y=[c for c in df.columns if "Y" in c],
                     T="T",
                     G=[c for c in df.columns if "G" in c],
                     X=[c for c in df.columns if "X" in c],
+                    W=[c for c in df.columns if "W" in c],
                     engine='cpu')
     return (fu,)
 
 
 @app.cell
 def _(df, fu):
-    fu.fit_and_estimate(data=df, parallel=True)
+    fu.fit(data=df, n_jobs=-1)
+    return
+
+
+@app.cell
+def _(df, fu):
+    df2 = df.query("G1 == '1' & G2 == '2' & X1 > 0").copy()
+
+    fu.estimate_single_cate(data=df2)
+    return (df2,)
+
+
+@app.cell
+def _(mo):
+    mo.md(r"""## Performance Measurement""")
     return
 
 

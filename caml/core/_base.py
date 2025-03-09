@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import abc
-import logging
 from typing import TYPE_CHECKING
 
 import numpy as np
@@ -10,7 +9,6 @@ from flaml import AutoML
 from sklearn.model_selection import train_test_split
 
 from ..generics import cls_typechecked
-from ..logging import setup_logging
 
 # Optional dependencies
 try:
@@ -32,9 +30,6 @@ if TYPE_CHECKING:
     pass
 
 
-logger = logging.getLogger(__name__)
-
-
 @cls_typechecked
 class CamlBase(metaclass=abc.ABCMeta):
     """
@@ -43,9 +38,7 @@ class CamlBase(metaclass=abc.ABCMeta):
     This class contains the shared methods and properties for the Caml classes.
     """
 
-    def __init__(self, verbose: int = 1):
-        setup_logging(verbose)
-
+    def __init__(self):
         self._data_backend = (
             "pandas"
             if isinstance(self.df, pandas.DataFrame)
