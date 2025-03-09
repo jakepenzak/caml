@@ -34,5 +34,6 @@
 | | |
 | --- | --- |
 | [generics.generate_random_string](generics.generate_random_string.qmd#caml.generics.generate_random_string) | Function to generate a random string of ascii lowercase letters and digits of length N. |
-| [generics.cls_typechecked](generics.cls_typechecked.qmd#caml.generics.cls_typechecked) | Class decorator to typecheck all methods of a class. |
-| [logging.setup_logging](logging.setup_logging.qmd#caml.logging.setup_logging) | Set up logging configuration. |
+| [generics.experimental](generics.experimental.qmd#caml.generics.experimental) | Decorator to mark functions or classes as experimental. |
+| [logging.configure_logging](logging.configure_logging.qmd#caml.logging.configure_logging) | Configure logging for the entire application. |
+| [logging.set_log_level](logging.set_log_level.qmd#caml.logging.set_log_level) | Change the logging level after initial configuration. |

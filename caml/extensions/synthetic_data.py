@@ -10,10 +10,11 @@ from doubleml.datasets import (
 from scipy.linalg import toeplitz
 from typeguard import typechecked
 
-from ..generics import cls_typechecked
+from ..generics import experimental
 
 
-@cls_typechecked
+@experimental
+@typechecked
 class CamlSyntheticDataGenerator:
     r"""Generate highly flexible synthetic data for use in causal inference and CaML testing.
 

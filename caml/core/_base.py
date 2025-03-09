@@ -7,8 +7,7 @@ import numpy as np
 import pandas
 from flaml import AutoML
 from sklearn.model_selection import train_test_split
-
-from ..generics import cls_typechecked
+from typeguard import typechecked
 
 # Optional dependencies
 try:
@@ -30,7 +29,7 @@ if TYPE_CHECKING:
     pass
 
 
-@cls_typechecked
+@typechecked
 class CamlBase(metaclass=abc.ABCMeta):
     """
     Base ABC class for core Caml classes.

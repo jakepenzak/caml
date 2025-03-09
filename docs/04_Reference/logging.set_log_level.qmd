@@ -1,0 +1,13 @@
+# logging.set_log_level { #caml.logging.set_log_level }
+
+```python
+logging.set_log_level(level)
+```
+
+Change the logging level after initial configuration.
+
+## Parameters {.doc-section .doc-section-parameters}
+
+| Name   | Type   | Description                   | Default    |
+|--------|--------|-------------------------------|------------|
+| level  | int    | The new logging level to use. | _required_ |

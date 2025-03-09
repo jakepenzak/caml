@@ -94,6 +94,12 @@ quartodoc:
       contents:
         - name: CamlCATE
           member_order: source
+    - title: Traditional Estimators
+      desc: "`from caml import *`"
+      package: caml
+      contents:
+        - name: FastLeastSquares
+          member_order: source
     - title: Synthetic Data Generation
       desc: "`from caml.extensions.synthetic_data import *`"
       package: caml.extensions.synthetic_data
@@ -119,8 +125,9 @@ quartodoc:
     - title: Developer Tools
       contents:
         - generics.generate_random_string
-        - generics.cls_typechecked
-        - logging.setup_logging
+        - generics.experimental
+        - logging.configure_logging
+        - logging.set_log_level
 
 metadata-files:
   - _sidebar.yml

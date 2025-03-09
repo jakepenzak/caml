@@ -18,8 +18,9 @@ website:
       section: Plots
     - contents:
       - 04_Reference/generics.generate_random_string.qmd
-      - 04_Reference/generics.cls_typechecked.qmd
-      - 04_Reference/logging.setup_logging.qmd
+      - 04_Reference/generics.experimental.qmd
+      - 04_Reference/logging.configure_logging.qmd
+      - 04_Reference/logging.set_log_level.qmd
       section: Developer Tools
     id: 04_Reference
   - id: dummy-sidebar

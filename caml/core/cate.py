@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import copy
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Iterable
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -12,8 +12,9 @@ from econml.dml import LinearDML
 from econml.score import EnsembleCateEstimator, RScorer
 from econml.validate.drtester import DRTester
 from joblib import Parallel, delayed
+from typeguard import typechecked
 
-from ..generics import cls_typechecked, experimental
+from ..generics import experimental
 from ..logging import ERROR, INFO, WARNING
 from ._base import CamlBase
 from .modeling import model_bank
@@ -40,7 +41,7 @@ if TYPE_CHECKING:
 
 
 @experimental
-@cls_typechecked
+@typechecked
 class CamlCATE(CamlBase):
     r"""
     The CamlCATE class represents an opinionated framework of Causal Machine Learning techniques for estimating highly accurate conditional average treatment effects (CATEs).
@@ -170,8 +171,8 @@ class CamlCATE(CamlBase):
         df: pandas.DataFrame | polars.DataFrame | pyspark.sql.DataFrame,
         Y: str,
         T: str,
-        X: list[str],
-        W: list[str] | None = None,
+        X: Iterable[str],
+        W: Iterable[str] | None = None,
         *,
         discrete_treatment: bool = True,
         discrete_outcome: bool = False,
@@ -299,7 +300,7 @@ class CamlCATE(CamlBase):
     def fit_validator(
         self,
         *,
-        cate_estimators: list[str] = [
+        cate_estimators: Iterable[str] = [
             "LinearDML",
             "CausalForestDML",
             "NonParamDML",

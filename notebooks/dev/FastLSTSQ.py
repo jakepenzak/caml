@@ -1,6 +1,6 @@
 import marimo
 
-__generated_with = "0.11.17"
+__generated_with = "0.10.18"
 app = marimo.App(width="medium")
 
 
@@ -32,29 +32,29 @@ def _():
 def _(np, pd):
     np.random.seed(11)
 
-    df = pd.DataFrame({'Y1': np.random.normal(size=1_000_000),
-                       'Y2': np.random.normal(size=1_000_000),
-                       'Y3': np.random.normal(size=1_000_000),
-                       'T':  np.random.randint(0,2,size=1_000_000),
-                       'G1': np.random.randint(0,5,size=1_000_000).astype('str'),
-                       'G2': np.random.randint(0,5,size=1_000_000).astype('str'),
-                       'G3': np.random.randint(0,5,size=1_000_000).astype('str'),
-                       'G4': np.random.randint(0,5,size=1_000_000).astype('str'),
-                       'G5': np.random.randint(0,5,size=1_000_000).astype('str'),
-                       'G6': np.random.randint(0,5,size=1_000_000).astype('str'),
-                       'G7': np.random.randint(0,5,size=1_000_000).astype('str'),
-                       'G8': np.random.randint(0,5,size=1_000_000).astype('str'),
-                       'X1': np.random.normal(size=1_000_000),
-                       'X2': np.random.normal(size=1_000_000),
-                       'X3': np.random.normal(size=1_000_000),
-                       'W1': np.random.normal(size=1_000_000),
-                       'W2': np.random.normal(size=1_000_000),
-                       'W3': np.random.normal(size=1_000_000),
-                       'W4': np.random.normal(size=1_000_000),
-                       'W5': np.random.normal(size=1_000_000),
-                       'W6': np.random.normal(size=1_000_000),
-                       'product_group': np.random.choice(['total','produce'],size=1_000_000),
-                       'modality': np.random.choice(['all','online'],size=1_000_000)})
+    df = pd.DataFrame({'Y1': np.random.normal(size=500_000),
+                       'Y2': np.random.normal(size=500_000),
+                       'Y3': np.random.normal(size=500_000),
+                       'T':  np.random.randint(0,2,size=500_000),
+                       'G1': np.random.randint(0,5,size=500_000).astype('str'),
+                       'G2': np.random.randint(0,5,size=500_000).astype('str'),
+                       'G3': np.random.randint(0,5,size=500_000).astype('str'),
+                       'G4': np.random.randint(0,5,size=500_000).astype('str'),
+                       'G5': np.random.randint(0,5,size=500_000).astype('str'),
+                       'G6': np.random.randint(0,5,size=500_000).astype('str'),
+                       'G7': np.random.randint(0,5,size=500_000).astype('str'),
+                       'G8': np.random.randint(0,5,size=500_000).astype('str'),
+                       'X1': np.random.normal(size=500_000),
+                       'X2': np.random.normal(size=500_000),
+                       'X3': np.random.normal(size=500_000),
+                       'W1': np.random.normal(size=500_000),
+                       'W2': np.random.normal(size=500_000),
+                       'W3': np.random.normal(size=500_000),
+                       'W4': np.random.normal(size=500_000),
+                       'W5': np.random.normal(size=500_000),
+                       'W6': np.random.normal(size=500_000),
+                       'product_group': np.random.choice(['total','produce'],size=500_000),
+                       'modality': np.random.choice(['all','online'],size=500_000)})
     return (df,)
 
 
@@ -65,7 +65,7 @@ def _(FastLeastSquares, df):
                     G=[c for c in df.columns if "G" in c],
                     X=[c for c in df.columns if "X" in c],
                     W=[c for c in df.columns if "W" in c],
-                    engine='cpu')
+                    engine='gpu')
     return (fu,)
 
 

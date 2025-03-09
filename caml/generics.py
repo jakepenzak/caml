@@ -1,10 +1,9 @@
 import random
 import string
+import timeit
 from functools import wraps
 
-from typeguard import typechecked
-
-from .logging import WARNING
+from .logging import DEBUG, WARNING
 
 
 def generate_random_string(N: int) -> str:
@@ -24,27 +23,6 @@ def generate_random_string(N: int) -> str:
         The random string of length N.
     """
     return "".join(random.choices(string.ascii_lowercase + string.digits, k=N))
-
-
-def cls_typechecked(cls):
-    """
-    Class decorator to typecheck all methods of a class.
-
-    Parameters
-    ----------
-    cls
-        The class to decorate.
-
-    Returns
-    -------
-    cls
-        The decorated class.
-    """
-    for name, func in cls.__dict__.items():
-        if callable(func):
-            setattr(cls, name, typechecked(func))
-
-    return cls
 
 
 def experimental(obj):
@@ -78,3 +56,19 @@ def experimental(obj):
         return obj(*args, **kwargs)
 
     return wrapper
+
+
+def timer(operation_name=None):
+    def decorator(func):
+        @wraps(func)
+        def wrapper(*args, **kwargs):
+            name = operation_name or func.__name__
+            start = timeit.default_timer()
+            result = func(*args, **kwargs)
+            end = timeit.default_timer()
+            DEBUG(f"{name} completed in {end - start:.2f} seconds")
+            return result
+
+        return wrapper
+
+    return decorator if operation_name else decorator(operation_name)

@@ -1,13 +1,12 @@
-import timeit
 from functools import wraps
 from typing import Iterable
 
 import pandas as pd
 import patsy
-import psutil
-from joblib import Parallel, cpu_count, delayed
+from joblib import Parallel, delayed
+from typeguard import typechecked
 
-from ..generics import cls_typechecked, experimental
+from ..generics import experimental, timer
 from ..logging import DEBUG, ERROR, INFO, WARNING
 
 try:
@@ -25,9 +24,70 @@ except ImportError:
 
 
 @experimental
-@cls_typechecked
+@typechecked
 class FastLeastSquares:
-    """FastLeastSquares is a fast implementation of the LSTSQ estimator."""
+    r"""FastLeastSquares is a fast implementation of the Least Squares estimator designed specifically with Causal Inference in mind.
+
+    This estimator estimates a standard linear regression model for any number of continuous or binary outcomes and a single binary treatment,
+    and provides estimates for the Average Treatment Effects (ATEs) and Group Average Treatment Effects (GATEs) out of the box. Additionally,
+    methods are provided for estimating a specific Conditional Average Treatment Effect (CATE), as well as individual Conditional Average Treatment
+    Effects (CATEs) for a group of observations.
+
+    **Outcome/Treatment Type Support Matrix**
+    <center>
+    | Outcome     | Treatment   | Support     | Missing    |
+    | ----------- | ----------- | ----------- | ---------- |
+    | Continuous  | Binary      | ✅Full      |            |
+    | Continuous  | Continuous  | ❌Not yet   |            |
+    | Continuous  | Categorical | ❌Not yet   |            |
+    | Binary      | Binary      | ✅Full      |            |
+    | Binary      | Continuous  | ❌Not yet   |            |
+    | Binary      | Categorical | ❌Not yet   |            |
+    | Categorical | Binary      | ❌Not yet   |            |
+    | Categorical | Continuous  | ❌Not yet   |            |
+    | Categorical | Categorical | ❌Not yet   |            |
+    </center>
+
+    Parameters
+    ----------
+    Y
+        A list of outcome variable names.
+    T
+        The treatment variable name.
+    G
+        A list of group variable names, by default None. These will be the groups for which GATEs will be estimated.
+    X
+        A list of covariate variable names, by default None. These will be the covariates for which heterogeneity/CATEs can be estimated.
+    W
+        A list of instrument variable names, by default None. These will be the additional covariates not used for modeling heterogeneity/CATEs.
+    discrete_treatment
+        Whether the treatment is discrete, by default True
+    engine
+        The engine to use for computation, by default "cpu". Can be "cpu" or "gpu". Note "gpu" requires JAX to be installed, which can be installed
+        via `pip install caml[jax-gpu]`.
+
+    Attributes
+    ----------
+    Y
+        A list of outcome variable names.
+    T
+        The treatment variable name.
+    G
+        A list of group variable names, by default None. These will be the groups for which GATEs will be estimated.
+    X
+        A list of covariate variable names, by default None. These will be the covariates for which heterogeneity/CATEs can be estimated.
+    W
+        A list of instrument variable names, by default None. These will be the additional covariates not used for modeling heterogeneity/CATEs.
+    discrete_treatment
+        Whether the treatment is discrete, by default True
+    engine
+        The engine to use for computation, by default "cpu". Can be "cpu" or "gpu". Note "gpu" requires JAX to be installed, which can be installed
+        via `pip install caml[jax-gpu]`
+    formula
+        The formula leveraged for design matrix creation via Patsy.
+    results
+        A dictionary containing the results of the fitted model & estimated ATEs/GATEs.
+    """
 
     def __init__(
         self,
@@ -72,19 +132,22 @@ class FastLeastSquares:
         self._fitted = False
         self.results = {}
 
-    def fit(self, data, n_jobs: int | None = None, memory_limit: float = 0.8):
+    def fit(self, data, n_jobs: int | None = None):
         pd_df = self.convert_dataframe_to_pandas(data, self.G)
-        self._fit(pd_df)
-        diff_matrix = self._create_diff_matrix(pd_df)
+        y, X = self._create_design_matrix(pd_df)
+        self._fit(X, y)
+        diff_matrix = self._create_design_matrix(pd_df, create_diff_matrix=True)
         self._estimate_ates(pd_df, diff_matrix)
-        self._estimate_gates(pd_df, diff_matrix, n_jobs, memory_limit)
+        self._estimate_gates(pd_df, diff_matrix, n_jobs)
+        self._fitted = True
 
+    @timer("Single CATE Estimation")
     def estimate_single_cate(self, data) -> dict:
         if not self._fitted:
             raise RuntimeError("You must call .fit() prior to calling this method.")
 
         data = self.convert_dataframe_to_pandas(data, self.G)
-        diff_matrix = self._create_diff_matrix(data)
+        diff_matrix = self._create_design_matrix(data, create_diff_matrix=True)
 
         INFO("Estimating single Conditional Average Treatment Effect (CATE)...")
 
@@ -107,32 +170,9 @@ class FastLeastSquares:
             f"{self.__class__.__name__} does not support estimate_cates method yet."
         )
 
-    def _fit(self, data):
-        data = self.convert_dataframe_to_pandas(data, self.G)
-
-        start_time = timeit.default_timer()
-        INFO("Converting data to design matrix...")
-        y, X = patsy.dmatrices(self.formula, data=data)
-        self._X_design_info = X.design_info
-        end_time = timeit.default_timer()
-        DEBUG(
-            f"Design matrix conversion completed in {end_time - start_time:.2f} seconds"
-        )
-
-        DEBUG(f"Moving data to {self.engine}")
-        start_time = timeit.default_timer()
-        if _HAS_JAX:
-            y = jnp.array(y, device=jax.devices(self.engine)[0])
-            X = jnp.array(X, device=jax.devices(self.engine)[0])
-            DEBUG(f"Data shape - X: {X.shape}, y: {y.shape}")
-        else:
-            y = jnp.array(y)
-            X = jnp.array(X)
-        end_time = timeit.default_timer()
-        DEBUG(f"Data transfer completed in {end_time - start_time:.2f} seconds")
-
+    @timer("Model Fitting")
+    def _fit(self, X: jnp.ndarray, y: jnp.ndarray):
         INFO("Fitting regression model...")
-        start_time = timeit.default_timer()
 
         @maybe_jit
         def fit(X, y):
@@ -154,22 +194,9 @@ class FastLeastSquares:
         self.results["std_err"] = jnp.sqrt(jnp.diagonal(vcv, axis1=1, axis2=2))
         self.results["treatment_effects"] = {}
 
-        self._fitted = True
-        end_time = timeit.default_timer()
-        DEBUG(f"Model fitting completed in {end_time - start_time:.2f} seconds")
-
+    @timer("ATE Estimation")
     def _estimate_ates(self, data, diff_matrix: jnp.ndarray | None = None):
-        if not self._fitted:
-            ERROR("Attempting to estimate ATEs before model is fitted")
-            raise RuntimeError("You must call .fit() prior to calling this method.")
-
-        data = self.convert_dataframe_to_pandas(data, self.G)
-
-        if diff_matrix is None:
-            diff_matrix = self._create_diff_matrix(data)
-
         INFO("Estimating Average Treatment Effects (ATEs)...")
-        start_time = timeit.default_timer()
 
         treated_mask = jnp.array(data[self.T] == 1)
         n_treated = int(treated_mask.sum())
@@ -186,50 +213,20 @@ class FastLeastSquares:
             {key: statistics[key] for key in statistics.keys()}
         )
 
-        end_time = timeit.default_timer()
-        DEBUG(f"ATE estimation completed in {end_time - start_time:.2f} seconds")
-
+    @timer("GATE Estimation")
     def _estimate_gates(
         self,
         data,
         diff_matrix: jnp.ndarray | None = None,
         n_jobs: int | None = None,
-        memory_limit: float = 0.8,
     ):
-        if not self._fitted:
-            ERROR("Attempting to estimate GATEs before model is fitted")
-            raise RuntimeError("You must call .fit() prior to calling this method.")
-
-        data = self.convert_dataframe_to_pandas(data, self.G)
-
         if self.G is None:
-            DEBUG("No groups specified for GATE estimation")
+            DEBUG("No groups specified for GATE estimation. Skipping.")
             return
 
-        if diff_matrix is None:
-            diff_matrix = self._create_diff_matrix(data)
-
         INFO("Estimating Group Average Treatment Effects (GATEs)...")
-        start_time = timeit.default_timer()
 
         groups = {group: data[group].unique() for group in self.G}
-
-        total_combinations = sum(len(vals) for vals in groups.values())
-
-        # Calculate optimal number of jobs if not specified
-        if n_jobs is None:
-            sample_size = data.shape[0]
-            bytes_per_float = 8  # 64-bit floats
-            estimated_memory_per_group = (
-                sample_size * bytes_per_float * 3  # For mask, treated_mask, and results
-                + diff_matrix.nbytes
-                / total_combinations  # Portion of diff_matrix needed
-            )
-            n_jobs = self._calculate_optimal_jobs(
-                memory_per_job=estimated_memory_per_group,
-                total_memory_limit=memory_limit,
-            )
-            DEBUG(f"Using {n_jobs} parallel jobs")
 
         # Prepare groups for processing
         group_info = []
@@ -266,33 +263,43 @@ class FastLeastSquares:
                 {key: statistics[key] for key in statistics.keys()}
             )
 
-        end_time = timeit.default_timer()
-        DEBUG(f"GATE estimation completed in {end_time - start_time:.2f} seconds")
+    @timer("Design Matrix Creation")
+    def _create_design_matrix(
+        self, data: pd.DataFrame, create_diff_matrix: bool = False
+    ) -> jnp.ndarray | tuple[jnp.ndarray, jnp.ndarray]:
+        if create_diff_matrix:
+            DEBUG("Creating treatment difference matrix...")
+            original_t = data[self.T].copy()
+            data[self.T] = 1
+            X1 = patsy.dmatrix(self._X_design_info, data=data)
+            data[self.T] = 0
+            X0 = patsy.dmatrix(self._X_design_info, data=data)
+            data[self.T] = original_t
 
-    def _create_diff_matrix(self, data) -> jnp.ndarray:
-        DEBUG("Creating treatment difference matrix")
-        start_time = timeit.default_timer()
+            if _HAS_JAX:
+                X1 = jnp.array(X1, device=jax.devices(self.engine)[0])
+                X0 = jnp.array(X0, device=jax.devices(self.engine)[0])
+            else:
+                X1 = jnp.array(X1)
+                X0 = jnp.array(X0)
 
-        original_t = data[self.T].copy()
-        data[self.T] = 1
-        X1 = patsy.dmatrix(self._X_design_info, data=data)
-        data[self.T] = 0
-        X0 = patsy.dmatrix(self._X_design_info, data=data)
-        data[self.T] = original_t
+            diff = X1 - X0
 
-        if _HAS_JAX:
-            X1 = jnp.array(X1, device=jax.devices(self.engine)[0])
-            X0 = jnp.array(X0, device=jax.devices(self.engine)[0])
+            return diff
         else:
-            X1 = jnp.array(X1)
-            X0 = jnp.array(X0)
+            DEBUG("Creating model matrix...")
+            y, X = patsy.dmatrices(self.formula, data=data)
 
-        diff = X1 - X0
-        end_time = timeit.default_timer()
-        DEBUG(
-            f"Difference matrix created in {end_time - start_time:.2f} seconds. Shape: {diff.shape}"
-        )
-        return diff
+            self._X_design_info = X.design_info
+
+            if _HAS_JAX:
+                y = jnp.array(y, device=jax.devices(self.engine)[0])
+                X = jnp.array(X, device=jax.devices(self.engine)[0])
+            else:
+                y = jnp.array(y)
+                X = jnp.array(X)
+
+            return y, X
 
     @staticmethod
     def convert_dataframe_to_pandas(dataframe, groups) -> pd.DataFrame:
@@ -364,32 +371,6 @@ class FastLeastSquares:
             formula += f" + {w}"
 
         return formula
-
-    @staticmethod
-    def _calculate_optimal_jobs(
-        memory_per_job: float, total_memory_limit: float = 0.8
-    ) -> int:
-        cpu_cores = cpu_count()
-        available_memory = psutil.virtual_memory().available
-        memory_limit = int(available_memory * total_memory_limit)
-
-        # Calculate jobs based on memory constraint
-        memory_based_jobs = max(1, int(memory_limit // memory_per_job))
-
-        # Calculate jobs based on CPU cores, leaving one core free
-        cpu_based_jobs = max(1, cpu_cores - 1)
-
-        # Take the minimum of memory and CPU constraints
-        optimal_jobs = min(memory_based_jobs, cpu_based_jobs)
-
-        DEBUG(
-            f"Optimal jobs calculation: "
-            f"memory_based={memory_based_jobs}, "
-            f"cpu_based={cpu_based_jobs}, "
-            f"selected={optimal_jobs}"
-        )
-
-        return optimal_jobs
 
 
 def maybe_jit(func=None, **jit_kwargs):
