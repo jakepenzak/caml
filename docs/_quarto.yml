@@ -124,9 +124,9 @@ quartodoc:
           signature_name: short
     - title: Developer Tools
       contents:
-        - generics.generate_random_string
-        - generics.experimental
-        - generics.timer
+        - _generics.generate_random_string
+        - _generics.experimental
+        - _generics.timer
         - logging.configure_logging
         - logging.set_log_level
 

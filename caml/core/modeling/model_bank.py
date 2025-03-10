@@ -41,19 +41,19 @@ def get_cate_model(
 
     Parameters
     ----------
-    model
+    model : str
         The name of the CATE model to use. Options are: LinearDML, CausalForestDML, NonParamDML, AutoNonParamDML, SparseLinearDML-2D, DRLearner, ForestDRLearner, LinearDRLearner, SparseLinearDRLearner-2D, DomainAdaptationLearner, SLearner, TLearner, XLearner
-    mod_Y_X
+    mod_Y_X : BaseEstimator
         The model for Y|X.
-    mod_T_X
+    mod_T_X : BaseEstimator
         The model for T|X.
-    mod_Y_X_T
+    mod_Y_X_T : BaseEstimator
         The model for Y|X,T.
-    discrete_treatment
+    discrete_treatment : bool
         Whether the treatment is discrete.
-    discrete_outcome
+    discrete_outcome : bool
         Whether the outcome is discrete.
-    random_state
+    random_state : int | None
         The random state to use.
 
     Returns

@@ -1,6 +1,6 @@
 import string
 
-from caml.generics import generate_random_string
+from caml._generics import generate_random_string
 
 
 class TestGenerateRandomString:

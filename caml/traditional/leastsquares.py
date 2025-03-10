@@ -6,7 +6,7 @@ import patsy
 from joblib import Parallel, delayed
 from typeguard import typechecked
 
-from ..generics import experimental, timer
+from .._generics import experimental, timer
 from ..logging import DEBUG, ERROR, INFO, WARNING
 
 try:
@@ -56,42 +56,42 @@ class FastLeastSquares:
 
     Parameters
     ----------
-    Y
+    Y : Iterable[str]
         A list of outcome variable names.
-    T
+    T : str
         The treatment variable name.
-    G
+    G : Iterable[str] | None
         A list of group variable names, by default None. These will be the groups for which GATEs will be estimated.
-    X
+    X : Iterable[str] | None
         A list of covariate variable names, by default None. These will be the covariates for which heterogeneity/CATEs can be estimated.
-    W
+    W : Iterable[str] | None
         A list of instrument variable names, by default None. These will be the additional covariates not used for modeling heterogeneity/CATEs.
-    discrete_treatment
+    discrete_treatment : bool
         Whether the treatment is discrete, by default True
-    engine
+    engine : str
         The engine to use for computation, by default "cpu". Can be "cpu" or "gpu". Note "gpu" requires JAX to be installed, which can be installed
         via `pip install caml[jax-gpu]`.
 
     Attributes
     ----------
-    Y
+    Y : Iterable[str]
         A list of outcome variable names.
-    T
+    T : str
         The treatment variable name.
-    G
+    G : Iterable[str] | None
         A list of group variable names, by default None. These will be the groups for which GATEs will be estimated.
-    X
+    X : Iterable[str] | None
         A list of covariate variable names, by default None. These will be the covariates for which heterogeneity/CATEs can be estimated.
-    W
+    W : Iterable[str] | None
         A list of instrument variable names, by default None. These will be the additional covariates not used for modeling heterogeneity/CATEs.
-    discrete_treatment
+    discrete_treatment : bool
         Whether the treatment is discrete, by default True
-    engine
+    engine : str
         The engine to use for computation, by default "cpu". Can be "cpu" or "gpu". Note "gpu" requires JAX to be installed, which can be installed
         via `pip install caml[jax-gpu]`
-    formula
+    formula : str
         The formula leveraged for design matrix creation via Patsy.
-    results
+    results : dict
         A dictionary containing the results of the fitted model & estimated ATEs/GATEs.
     """
 
@@ -144,11 +144,11 @@ class FastLeastSquares:
 
         Parameters
         ----------
-        data
+        data : DataFrameLike
             Input data to fit the model on. Supported formats:
             pandas DataFrame, PySpark DataFrame, Polars DataFrame, or Any object with toPandas() or to_pandas() method
 
-        n_jobs
+        n_jobs : int
             The number of jobs to use for parallel processing in the estimation of GATEs. Defaults to -1, which uses all available processors.
             If getting OOM errors, try setting n_jobs to a lower value.
         """
