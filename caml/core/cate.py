@@ -116,10 +116,10 @@ class CamlCATE(CamlBase):
         The str representing the column name for the outcome variable.
     T : str
         The str representing the column name(s) for the treatment variable(s).
-    X : list[str]
-        The str (if unity) or list/tuple of feature names representing the confounder/control feature set to be utilized for estimating heterogeneity/CATE and nuisance function estimation where applicable.
-    W : list[str] | None
-        The str (if unity) or list/tuple of feature names representing the confounder/control feature set to be utilized only for nuisance function estimation, where applicable. These will be included by default in Meta-Learners.
+    X : Iterable[str]
+        The str (if unity) or list of variable names representing the confounder/control feature set to be utilized for estimating heterogeneity/CATE and nuisance function estimation where applicable.
+    W : Iterable[str] | None
+        The str (if unity) or list of variable names representing the confounder/control feature set to be utilized only for nuisance function estimation, where applicable. These will be included by default in Meta-Learners.
     discrete_treatment : bool
         A boolean indicating whether the treatment is discrete/categorical or continuous.
     discrete_outcome : bool

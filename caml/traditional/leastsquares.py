@@ -44,10 +44,10 @@ class FastLeastSquares:
     | Outcome     | Treatment   | Support     | Missing    |
     | ----------- | ----------- | ----------- | ---------- |
     | Continuous  | Binary      | ✅Full      |            |
-    | Continuous  | Continuous  | ❌Not yet   |            |
+    | Continuous  | Continuous  | ✅Full      |            |
     | Continuous  | Categorical | ❌Not yet   |            |
     | Binary      | Binary      | ✅Full      |            |
-    | Binary      | Continuous  | ❌Not yet   |            |
+    | Binary      | Continuous  | ✅Full   |            |
     | Binary      | Categorical | ❌Not yet   |            |
     | Categorical | Binary      | ❌Not yet   |            |
     | Categorical | Continuous  | ❌Not yet   |            |
@@ -79,11 +79,11 @@ class FastLeastSquares:
     T : str
         The treatment variable name.
     G : Iterable[str] | None
-        A list of group variable names, by default None. These will be the groups for which GATEs will be estimated.
+        The list of group variable names, by default None. These will be the groups for which GATEs will be estimated.
     X : Iterable[str] | None
-        A list of covariate variable names, by default None. These will be the covariates for which heterogeneity/CATEs can be estimated.
+        The list of variable names representing the confounder/control feature set to be utilized for estimating heterogeneity/CATEs, that are in addition to G.
     W : Iterable[str] | None
-        A list of instrument variable names, by default None. These will be the additional covariates not used for modeling heterogeneity/CATEs.
+        The list of variable names representing the confounder/control feature **not** utilized for estimating heterogeneity/CATEs.
     discrete_treatment : bool
         Whether the treatment is discrete, by default True
     engine : str
@@ -138,7 +138,7 @@ class FastLeastSquares:
         self._fitted = False
         self.results = {}
 
-    def fit(self, data: DataFrameLike, n_jobs: int = -1):
+    def fit(self, data: DataFrameLike, n_jobs: int = -1, estimate_gates: bool = True):
         """
         Fits the regression model on the provided data and estimates ATEs and GATEs.
 
@@ -151,17 +151,21 @@ class FastLeastSquares:
         n_jobs : int
             The number of jobs to use for parallel processing in the estimation of GATEs. Defaults to -1, which uses all available processors.
             If getting OOM errors, try setting n_jobs to a lower value.
+
+        estimate_gates : bool
+            Whether to estimate Group Average Treatment Effects (GATEs).
         """
         pd_df = self.convert_dataframe_to_pandas(data, self.G)
         y, X = self._create_design_matrix(pd_df)
         self._fit(X, y)
         diff_matrix = self._create_design_matrix(pd_df, create_diff_matrix=True)
         self._estimate_ates(pd_df, diff_matrix)
-        self._estimate_gates(pd_df, diff_matrix, n_jobs)
+        if estimate_gates:
+            self._estimate_gates(pd_df, diff_matrix, n_jobs)
         self._fitted = True
 
     @timer("Single CATE Estimation")
-    def estimate_single_cate(self, data) -> dict:
+    def estimate_single_cate(self, data: DataFrameLike) -> dict:
         if not self._fitted:
             raise RuntimeError("You must call .fit() prior to calling this method.")
 
@@ -247,11 +251,11 @@ class FastLeastSquares:
         self.results["treatment_effects"] = {}
 
     @timer("ATE Estimation")
-    def _estimate_ates(self, data, diff_matrix: jnp.ndarray | None = None):
+    def _estimate_ates(self, data, diff_matrix: jnp.ndarray):
         INFO("Estimating Average Treatment Effects (ATEs)...")
 
-        treated_mask = jnp.array(data[self.T] == 1)
-        n_treated = int(treated_mask.sum())
+        treated_mask = jnp.array(data[self.T] == 1) if self.discrete_treatment else None
+        n_treated = int(treated_mask.sum()) if self.discrete_treatment else None
 
         statistics = self._compute_statistics(
             diff_matrix=diff_matrix,
@@ -269,7 +273,7 @@ class FastLeastSquares:
     def _estimate_gates(
         self,
         data,
-        diff_matrix: jnp.ndarray | None = None,
+        diff_matrix: jnp.ndarray,
         n_jobs: int | None = None,
     ):
         if self.G is None:
@@ -285,7 +289,11 @@ class FastLeastSquares:
         for group in groups:
             for membership in groups[group]:
                 mask = jnp.array(data[group] == membership)
-                treated_mask = jnp.array(data[data[group] == membership][self.T] == 1)
+                treated_mask = (
+                    jnp.array(data[data[group] == membership][self.T] == 1)
+                    if self.discrete_treatment
+                    else None
+                )
                 group_key = f"{group}-{membership}"
                 group_info.append((group_key, group, membership, mask, treated_mask))
 
@@ -294,7 +302,7 @@ class FastLeastSquares:
 
         def process_group(group_key, mask, treated_mask):
             diff_matrix_filtered = diff_matrix[mask]
-            n_treated = int(treated_mask.sum())
+            n_treated = int(treated_mask.sum()) if self.discrete_treatment else None
             statistics = self._compute_statistics(
                 diff_matrix=diff_matrix_filtered,
                 params=params,
@@ -304,7 +312,7 @@ class FastLeastSquares:
             return group_key, statistics
 
         DEBUG(f"Starting parallel processing with {n_jobs} jobs")
-        results = Parallel(n_jobs=n_jobs, prefer="threads")(
+        results: Iterable = Parallel(n_jobs=n_jobs, prefer="threads")(
             delayed(process_group)(group_key, mask, treated_mask)
             for group_key, _, _, mask, treated_mask in group_info
         )
@@ -322,10 +330,17 @@ class FastLeastSquares:
         if create_diff_matrix:
             DEBUG("Creating treatment difference matrix...")
             original_t = data[self.T].copy()
-            data[self.T] = 1
-            X1 = patsy.dmatrix(self._X_design_info, data=data)
-            data[self.T] = 0
-            X0 = patsy.dmatrix(self._X_design_info, data=data)
+
+            if self.discrete_treatment:
+                data[self.T] = 0
+                X0 = patsy.dmatrix(self._X_design_info, data=data)
+                data[self.T] = 1
+                X1 = patsy.dmatrix(self._X_design_info, data=data)
+            else:
+                X0 = patsy.dmatrix(self._X_design_info, data=data)
+                data[self.T] = data[self.T] + 1
+                X1 = patsy.dmatrix(self._X_design_info, data=data)
+
             data[self.T] = original_t
 
             if _HAS_JAX:
@@ -381,16 +396,19 @@ class FastLeastSquares:
         diff_matrix: jnp.ndarray,
         params: jnp.ndarray,
         vcv: jnp.ndarray,
-        n_treated: int,
+        n_treated: int | None,
     ) -> dict:
         diff_mean = jnp.mean(diff_matrix, axis=0)
 
         ate = diff_mean @ params
         std_err = jnp.sqrt(diff_mean @ vcv @ diff_mean.T)
         t_stat = jnp.where(std_err > 0, ate / std_err, 0)
-        pval = 2 * (1 - jstats.norm.cdf(t_stat))
+        pval = 2 * (1 - jstats.norm.cdf(jnp.abs(t_stat)))
         n = diff_matrix.shape[0]
-        n_control = n - n_treated
+        if n_treated is not None:
+            n_control = n - n_treated
+        else:
+            n_control = None
 
         return {
             "ate": ate,
@@ -404,11 +422,11 @@ class FastLeastSquares:
 
     @staticmethod
     def _create_formula(
-        Y: list[str],
+        Y: Iterable[str],
         T: str,
-        G: list[str] | None,
-        X: list[str] | None = None,
-        W: list[str] | None = None,
+        G: Iterable[str] | None,
+        X: Iterable[str] | None = None,
+        W: Iterable[str] | None = None,
     ) -> str:
         formula = " + ".join(Y)
         formula += f" ~ {T}"

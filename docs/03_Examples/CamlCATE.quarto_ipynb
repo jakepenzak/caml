@@ -1,0 +1,489 @@
+{
+  "cells": [
+    {
+      "cell_type": "markdown",
+      "metadata": {},
+      "source": [
+        "---\n",
+        "title: CamlCATE API Usage\n",
+        "jupyter: python3\n",
+        "---"
+      ],
+      "id": "acf1ebfd"
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {},
+      "source": [
+        "Here we'll walk through an example of generating synthetic data, running CamlCATE, and visualizing results using the ground truth as reference.\n",
+        "\n",
+        "\n",
+        "## Generate Synthetic Data\n",
+        "\n",
+        "Here we'll leverage the [`CamlSyntheticDataGenerator`](../04_Reference/CamlSyntheticDataGenerator.qmd) class to generate a linear synthetic data generating process, with a binary treatment, continuous outcome, and a mix of confounding/mediating continuous covariates.\n"
+      ],
+      "id": "d556140c"
+    },
+    {
+      "cell_type": "code",
+      "metadata": {},
+      "source": [
+        "from caml.extensions.synthetic_data import CamlSyntheticDataGenerator\n",
+        "\n",
+        "data =  CamlSyntheticDataGenerator(n_obs=10_000,\n",
+        "                                  n_cont_outcomes=1,\n",
+        "                                  n_binary_treatments=1,\n",
+        "                                  n_cont_confounders=2,\n",
+        "                                  n_cont_modifiers=2,\n",
+        "                                  n_confounding_modifiers=1,\n",
+        "                                  causal_model_functional_form=\"linear\",\n",
+        "                                  n_nonlinear_transformations=5,\n",
+        "                                  n_nonlinear_interactions=2,\n",
+        "                                  seed=1)"
+      ],
+      "id": "5f4fc929",
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {},
+      "source": [
+        "We can print our simulated data via:\n"
+      ],
+      "id": "b5862892"
+    },
+    {
+      "cell_type": "code",
+      "metadata": {},
+      "source": [
+        "data.df"
+      ],
+      "id": "ecf862a7",
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {},
+      "source": [
+        "To inspect our true data generating process, we can call `data.dgp`. Furthermore, we will have our true CATEs and ATEs at our disposal via `data.cates` & `data.ates`, respectively. We'll use this as our source of truth for performance evaluation of our CATE estimator.\n"
+      ],
+      "id": "1a5d0dd5"
+    },
+    {
+      "cell_type": "code",
+      "metadata": {},
+      "source": [
+        "for t, df in data.dgp.items():\n",
+        "    print(f\"\\nDGP for {t}:\")\n",
+        "    print(df)"
+      ],
+      "id": "3c6cfa88",
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "metadata": {},
+      "source": [
+        "data.cates"
+      ],
+      "id": "010680e6",
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "metadata": {},
+      "source": [
+        "data.ates"
+      ],
+      "id": "d537e5d8",
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {},
+      "source": [
+        "## Running CamlCATE\n",
+        "\n",
+        "### Class Instantiation\n",
+        "\n",
+        "We can instantiate and observe our CamlCATE object via:\n",
+        "\n",
+        "> 💡 **Tip:** `W` can be leveraged if we want to use certain covariates only in our nuisance functions to control for confounding and not in the final CATE estimator. This can be useful if a confounder may be required to include, but for compliance reasons, we don't want our CATE model to leverage this feature (e.g., gender). However, this will restrict our available CATE estimators to orthogonal learners, since metalearners necessarily include all covariates. If you don't care about `W` being in the final CATE estimator, pass it as `X`, as done below.\n"
+      ],
+      "id": "b1870573"
+    },
+    {
+      "cell_type": "code",
+      "metadata": {},
+      "source": [
+        "from caml import CamlCATE\n",
+        "\n",
+        "caml_obj = CamlCATE(df=data.df,\n",
+        "                Y=\"Y1_continuous\",\n",
+        "                T=\"T1_binary\",\n",
+        "                X=[c for c in data.df.columns if 'X' in c] + [c for c in data.df.columns if 'W' in c],\n",
+        "                discrete_treatment=True,\n",
+        "                discrete_outcome=False,\n",
+        "                verbose=1)"
+      ],
+      "id": "3af6f7fd",
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "metadata": {},
+      "source": [
+        "print(caml_obj)"
+      ],
+      "id": "25b14e7b",
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {},
+      "source": [
+        "### Nuisance Function AutoML\n",
+        "\n",
+        "We can then obtain our nuisance functions / regression & propensity models via Flaml AutoML:\n"
+      ],
+      "id": "80d36d3a"
+    },
+    {
+      "cell_type": "code",
+      "metadata": {},
+      "source": [
+        "caml_obj.auto_nuisance_functions(\n",
+        "    flaml_Y_kwargs={\"time_budget\": 30, \"verbose\":0, \"estimator_list\":[\"rf\", \"extra_tree\", \"xgb_limitdepth\"]},\n",
+        "    flaml_T_kwargs={\"time_budget\": 30, \"verbose\":0, \"estimator_list\":[\"rf\", \"extra_tree\", \"xgb_limitdepth\"]},\n",
+        ")"
+      ],
+      "id": "f4a211aa",
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "metadata": {},
+      "source": [
+        "print(caml_obj.model_Y_X_W)\n",
+        "print(caml_obj.model_Y_X_W_T)\n",
+        "print(caml_obj.model_T_X_W)"
+      ],
+      "id": "ff02e039",
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {},
+      "source": [
+        "### Fit CATE Estimators\n",
+        "\n",
+        "Now that we have obtained our first-stage models, we can fit our CATE estimators via:\n",
+        "\n",
+        "> 📝 **Note:** The selected model defaults to the one with the highest [RScore](https://econml.azurewebsites.net/_autosummary/econml.score.RScorer.html#econml.score.RScorer). All fitted models are still accessible via the `cate_estimators` attribute and if you want to change default estimator, you can run `caml_obj._validation_estimator = {different_model}`.\n",
+        "\n",
+        "> 🚀**Forthcoming:** Additional scoring techniques & AutoML for CATE estimators is on our roadmap.\n"
+      ],
+      "id": "aa656c28"
+    },
+    {
+      "cell_type": "code",
+      "metadata": {},
+      "source": [
+        "caml_obj.fit_validator(\n",
+        "    cate_estimators=[\n",
+        "        \"LinearDML\",\n",
+        "        \"CausalForestDML\",\n",
+        "        \"ForestDRLearner\",\n",
+        "        \"LinearDRLearner\",\n",
+        "        \"DomainAdaptationLearner\",\n",
+        "        \"SLearner\",\n",
+        "        \"TLearner\",\n",
+        "        \"XLearner\",\n",
+        "    ],\n",
+        "    validation_size=0.2,\n",
+        "    test_size=0.2,\n",
+        "    n_jobs=-1,\n",
+        ")"
+      ],
+      "id": "fd4d3a45",
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "metadata": {},
+      "source": [
+        "caml_obj.validation_estimator"
+      ],
+      "id": "d0d501db",
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "metadata": {},
+      "source": [
+        "caml_obj.cate_estimators"
+      ],
+      "id": "09fe0b0a",
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {},
+      "source": [
+        "### Validate model on test hold out set\n",
+        "\n",
+        "Here we can validate our model on the test hold out set. Currently, this is only available for when continuous outcomes and binary treatments exist.\n"
+      ],
+      "id": "7fe01260"
+    },
+    {
+      "cell_type": "code",
+      "metadata": {},
+      "source": [
+        "caml_obj.validate()"
+      ],
+      "id": "415de6af",
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {},
+      "source": [
+        "### Refit our selected model on the entire dataset\n",
+        "\n",
+        "Now that we have selected our top performer and validated results on the test set, we can fit our final model on the entire dataset.\n"
+      ],
+      "id": "41464bb2"
+    },
+    {
+      "cell_type": "code",
+      "metadata": {},
+      "source": [
+        "caml_obj.fit_final()"
+      ],
+      "id": "c490b456",
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "metadata": {},
+      "source": [
+        "caml_obj.final_estimator"
+      ],
+      "id": "7ccf4b2b",
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {},
+      "source": [
+        "## Validating Results with Ground Truth\n",
+        "\n",
+        "First, we will obtain our predictions.\n"
+      ],
+      "id": "8f586e28"
+    },
+    {
+      "cell_type": "code",
+      "metadata": {},
+      "source": [
+        "cate_predictions = caml_obj.predict()"
+      ],
+      "id": "ecd64bc3",
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {},
+      "source": [
+        "### Average Treatment Effect (ATE)\n",
+        "\n",
+        "We'll use the `summarize()` method after obtaining our predictions above, where our the displayed mean represents our Average Treatment Effect (ATE).\n"
+      ],
+      "id": "7bc92132"
+    },
+    {
+      "cell_type": "code",
+      "metadata": {},
+      "source": [
+        "caml_obj.summarize()"
+      ],
+      "id": "c7543ea1",
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {},
+      "source": [
+        "Now comparing this to our ground truth, we see the model performed well the true ATE:\n"
+      ],
+      "id": "23d8ecbd"
+    },
+    {
+      "cell_type": "code",
+      "metadata": {},
+      "source": [
+        "data.ates"
+      ],
+      "id": "8984c722",
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {},
+      "source": [
+        "### Conditional Average Treatment Effect (CATE)\n",
+        "\n",
+        "Now we want to see how the estimator performed in modeling the true CATEs.\n",
+        "\n",
+        "First, we can simply compute the Precision in Estimating Heterogeneous Effects (PEHE), which is simply the Mean Squared Error (MSE):\n"
+      ],
+      "id": "d30c933d"
+    },
+    {
+      "cell_type": "code",
+      "metadata": {},
+      "source": [
+        "from sklearn.metrics import mean_squared_error\n",
+        "\n",
+        "true_cates = data.cates.iloc[:, 0]\n",
+        "mean_squared_error(true_cates,cate_predictions)"
+      ],
+      "id": "aea27375",
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {},
+      "source": [
+        "Not bad! Now let's use some visualization techniques:\n"
+      ],
+      "id": "e1b91d62"
+    },
+    {
+      "cell_type": "code",
+      "metadata": {},
+      "source": [
+        "from caml.extensions.plots import cate_true_vs_estimated_plot\n",
+        "\n",
+        "cate_true_vs_estimated_plot(true_cates=true_cates, estimated_cates=cate_predictions)"
+      ],
+      "id": "44dbf70e",
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "metadata": {},
+      "source": [
+        "from caml.extensions.plots import cate_histogram_plot\n",
+        "\n",
+        "cate_histogram_plot(true_cates=true_cates, estimated_cates=cate_predictions)"
+      ],
+      "id": "b81b230e",
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "metadata": {},
+      "source": [
+        "from caml.extensions.plots import cate_line_plot\n",
+        "\n",
+        "cate_line_plot(true_cates=true_cates, estimated_cates=cate_predictions, window=20)"
+      ],
+      "id": "712a87cf",
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {},
+      "source": [
+        "Overall, we can see the model performed remarkably well!~\n",
+        "\n",
+        "## Obtaining Model Objects & Artifacts for Production Systems\n",
+        "\n",
+        "In many production settings, we will want to store our model, information on the features used, etc. We provide attributes that to pull key information (more to be added later as class evolves)\n",
+        "\n",
+        "Grabbing final model object:\n"
+      ],
+      "id": "a5a9c2d4"
+    },
+    {
+      "cell_type": "code",
+      "metadata": {},
+      "source": [
+        "caml_obj.final_estimator"
+      ],
+      "id": "79823da2",
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {},
+      "source": [
+        "Grabbing input features:\n"
+      ],
+      "id": "7e3575f5"
+    },
+    {
+      "cell_type": "code",
+      "metadata": {},
+      "source": [
+        "caml_obj.input_names"
+      ],
+      "id": "1f02184c",
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {},
+      "source": [
+        "Grabbing all fitted CATE estimators:\n"
+      ],
+      "id": "186a8576"
+    },
+    {
+      "cell_type": "code",
+      "metadata": {},
+      "source": [
+        "caml_obj.cate_estimators"
+      ],
+      "id": "bfc96340",
+      "execution_count": null,
+      "outputs": []
+    }
+  ],
+  "metadata": {
+    "kernelspec": {
+      "name": "python3",
+      "language": "python",
+      "display_name": "Python 3 (ipykernel)",
+      "path": "/home/jakep/projects/caml/.venv/share/jupyter/kernels/python3"
+    }
+  },
+  "nbformat": 4,
+  "nbformat_minor": 5
+}
