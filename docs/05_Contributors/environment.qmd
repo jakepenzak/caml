@@ -20,7 +20,7 @@ To help aid in environment setup, we've created a [VS Code devcontainer](https:/
 ## Without Devcontainers
 
 ### Prerequisites
-- [uv](https://docs.astral.sh/uv/) v0.5.23
+- [uv](https://docs.astral.sh/uv/) v0.6.10
 - [python](https://www.python.org/downloads/) v3.10
 
 ### Setup
@@ -29,4 +29,6 @@ To help aid in environment setup, we've created a [VS Code devcontainer](https:/
 3. Activate the virtual environment via `source .venv/bin/activate`
 4. Run `pre-commit install` to install pre-commit hooks
 
-See [uv documentation](https://docs.astral.sh/uv/) for details on managing environment and project depencencies.
+## Project & Package Dependency Management
+
+We use [uv](https://docs.astral.sh/uv/) for dependency & project management. See docs for details.
