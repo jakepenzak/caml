@@ -12,8 +12,6 @@ jobs:
       contents: read
       pull-requests: write
     runs-on: ubuntu-latest
-    outputs:
-      INVALID_TITLE: ${{ steps.validate_pr_title.outputs.INVALID_TITLE }}
     env:
       PR_TITLE_RAW: ${{ github.event.pull_request.title }}
     if: github.event_name != 'pull_request_review' || github.event.review.state == 'approved'
@@ -29,11 +27,9 @@ jobs:
         run: |
           if [[ ! "$PR_TITLE" =~ ^(build|chore|ci|docs|feat|fix|perf|refactor|revert|style|test|release)(.+)?(!)?:\ .+ ]]; then
             echo "INVALID_TITLE=true" >> $GITHUB_ENV
-            echo "INVALID_TITLE=true" >> $GITHUB_OUTPUT
             echo "PR title does not follow the required format: `<type>[optional scope]: description`"
           else
             echo "INVALID_TITLE=false" >> $GITHUB_ENV
-            echo "INVALID_TITLE=false" >> $GITHUB_OUTPUT
             echo "PR title is valid."
           fi
         shell: bash
@@ -65,8 +61,7 @@ jobs:
       contents: read
       pull-requests: write
     runs-on: ubuntu-latest
-    needs: check-PR-title
-    if: (github.event_name != 'pull_request_review' || github.event.review.state == 'approved') && needs.check-PR-title.outputs.INVALID_TITLE == 'false'
+    if: github.event_name != 'pull_request_review' || github.event.review.state == 'approved'
     steps:
       - uses: grafana/pr-labeler-action@50737759cb150f5d312de1a45559027156db8bab
         with:
