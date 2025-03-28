@@ -20,7 +20,7 @@ jobs:
       - name: Install uv
         uses: astral-sh/setup-uv@v5
         with:
-          version: 0.5.23
+          version: ${{ vars.UV_VERSION }}
 
       - name: Create environment
         run: uv sync --all-groups --frozen

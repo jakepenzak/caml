@@ -3,7 +3,7 @@
 ARG VARIANT="3.10-bullseye"
 FROM mcr.microsoft.com/devcontainers/python:${VARIANT}
 
-ARG UV_VERSION=0.5.23
+ARG UV_VERSION=0.6.10
 
 # Install some base dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
