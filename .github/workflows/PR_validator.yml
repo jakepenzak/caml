@@ -12,12 +12,16 @@ jobs:
       contents: read
       pull-requests: write
     runs-on: ubuntu-latest
+    outputs:
+      INVALID_TITLE: ${{ steps.check_title.outputs.validate_pr_title }}
+    env:
+      PR_TITLE_RAW: ${{ github.event.pull_request.title }}
     if: github.event != 'pull_request_review' || github.event.review.state == 'approved'
 
     steps:
       - name: Get PR Title
         id: pr_title
-        run: echo "PR_TITLE=${{ github.event.pull_request.title }}" >> $GITHUB_ENV
+        run: echo "PR_TITLE=$PR_TITLE_RAW" >> $GITHUB_ENV
         shell: bash
 
       - name: Validate PR Title
@@ -34,7 +38,7 @@ jobs:
 
       - name: Comment on PR if invalid
         if: ${{ env.INVALID_TITLE == 'true' }}
-        uses: peter-evans/create-or-update-comment@v4
+        uses: peter-evans/create-or-update-comment@71345be0265236311c031f5c7866368bd1eff043
         with:
           issue-number: ${{ github.event.pull_request.number }}
           body: |
@@ -59,10 +63,10 @@ jobs:
       contents: read
       pull-requests: write
     runs-on: ubuntu-latest
-    if: (github.event != 'pull_request_review' || github.event.review.state == 'approved') && env.INVALID_TITLE == 'false'
-
+    needs: check-PR-title
+    if: (github.event != 'pull_request_review' || github.event.review.state == 'approved') && needs.check-PR-title.outputs.INVALID_TITLE == 'false'
     steps:
-      - uses: grafana/pr-labeler-action@v0.1.0
+      - uses: grafana/pr-labeler-action@50737759cb150f5d312de1a45559027156db8bab
         with:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
           configuration-path: .github/pr-labeler.yml
