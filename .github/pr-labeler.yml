@@ -14,18 +14,4 @@ label-mapping: # Label to array of types for mapping
   "type: revert": ["revert"]
   "type: chore": ["chore"]
   "type: release": ["release"]
-  "generic: invalid":
-    [
-      "!build",
-      "!ci",
-      "!docs",
-      "!feat",
-      "!fix",
-      "!perf",
-      "!refactor",
-      "!style",
-      "!test",
-      "!revert",
-      "!chore",
-      "!release",
-    ]
+  "generic: invalid": default
