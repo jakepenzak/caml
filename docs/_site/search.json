@@ -384,7 +384,7 @@
     "href": "05_Contributors/getting_started.html#general-contribution-guide",
     "title": "Contributing to CaML",
     "section": "General Contribution Guide",
-    "text": "General Contribution Guide\nPull requests are the best way to make changes to CaML:\n\nFork the repo and create your branch from main branch\nClone the repository\nFor environment setup, see Environment Setup\nFor documentation, see Documentation\nFor testing, see Testing\nCreate a pull request & fill out the generated PR template\n\n\nWe follow conventional commits for our PR titles, see here for more details.\n\nAll github actions & checks will be required to complete successfully prior to merging.",
+    "text": "General Contribution Guide\nPull requests are the best way to make changes to CaML:\n\nFork the repo and create your branch from main branch\nClone the repository\nFor environment setup, see Environment Setup\nFor documentation, see Documentation\nFor testing, see Testing\nCreate a pull request & fill out the generated PR template\n\nCaML follows conventional commits for our PR titles, see here for more details.\nAll github actions & checks will be required to complete successfully prior to merging.",
     "crumbs": [
       "Contributing to CaML"
     ]
@@ -424,7 +424,7 @@
     "href": "05_Contributors/environment.html#without-devcontainers",
     "title": "Environment Setup",
     "section": "Without Devcontainers",
-    "text": "Without Devcontainers\n\nPrerequisites\n\nuv v0.5.23\npython v3.10\n\n\n\nSetup\n\nOpen repository in ide of choice\nRun uv sync --all-groups --frozen from command line\nActivate the virtual environment via source .venv/bin/activate\nRun pre-commit install to install pre-commit hooks\n\nSee uv documentation for details on managing environment and project depencencies.",
+    "text": "Without Devcontainers\n\nPrerequisites\n\nuv v0.6.10\npython v3.10\n\n\n\nSetup\n\nOpen repository in ide of choice\nRun uv sync --all-groups --frozen from command line\nActivate the virtual environment via source .venv/bin/activate\nRun pre-commit install to install pre-commit hooks",
     "crumbs": [
       "Environment Setup"
     ]
@@ -741,6 +741,16 @@
     "text": "This project uses conventional commits for Pull Request titles, as they are used as the commit names on the main branch. What are conventional commits? In the words of the official documentation:\n\nThe Conventional Commits specification is a lightweight convention on top of commit messages. It provides an easy set of rules for creating an explicit commit history; which makes it easier to write automated tools on top of.\n\nThe PR titles should thus take the general form:\n&lt;type&gt;[optional scope]: &lt;description&gt;\nAn example would be:\nfix(types): make all floats double\nValid types for Caml are as follows:\n\nbuild: Changes that affect the build system or external dependencies\nci: Changes to our CI/CD configuration files and scripts\ndocs: Documentation only changes\nfeat: A new feature\nfix: A bug fix\nperf: A code change that improves performance\nrefactor: A code change that neither fixes a bug nor adds a feature\nstyle: Changes that do not affect the meaning of the code (white-space, formatting, missing semi-colons, etc)\ntest: Adding missing tests or correcting existing tests\nrevert: Reverting code changes to a previous state\nchore: Routine tasks that don’t fit in any of the above\n\nWe use the following regex to validate PR titles (test it!:\n^(build|chore|ci|docs|feat|fix|perf|refactor|revert|style|test|release)(.+)?(!)?:\\ .+\n\n\n\n Back to top",
     "crumbs": [
       "Conventional Commits"
+    ]
+  },
+  {
+    "objectID": "05_Contributors/environment.html#project-package-dependency-management",
+    "href": "05_Contributors/environment.html#project-package-dependency-management",
+    "title": "Environment Setup",
+    "section": "Project & Package Dependency Management",
+    "text": "Project & Package Dependency Management\nWe use uv for dependency & project management. See docs for details.",
+    "crumbs": [
+      "Environment Setup"
     ]
   }
 ]
