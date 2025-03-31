@@ -5,6 +5,7 @@
 <br>
 <br>
 
+[![Codacy Badge](https://api.codacy.com/project/badge/Grade/e50f8f6d548d4e419fb2bd9622abeec8)](https://app.codacy.com/gh/jakepenzak/caml?utm_source=github.com&utm_medium=referral&utm_content=jakepenzak/caml&utm_campaign=Badge_Grade)
 [![image](https://img.shields.io/pypi/v/caml.svg)](https://pypi.python.org/pypi/caml)
 [![pre-commit](https://img.shields.io/badge/pre--commit-enabled-brightgreen?logo=pre-commit&logoColor=white)](https://github.com/pre-commit/pre-commit)
 [![ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
