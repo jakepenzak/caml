@@ -11,7 +11,7 @@
 [![ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
 [![uv](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/uv/main/assets/badge/v0.json)](https://github.com/astral-sh/uv)
 [![Codacy Badge](https://app.codacy.com/project/badge/Grade/cd6cc54c704e4a7aafe20f851bc39236)](https://app.codacy.com/gh/jakepenzak/caml/dashboard?utm_source=gh&utm_medium=referral&utm_content=&utm_campaign=Badge_grade)
-
+[![Codacy Badge](https://app.codacy.com/project/badge/Coverage/cd6cc54c704e4a7aafe20f851bc39236)](https://app.codacy.com/gh/jakepenzak/caml/dashboard?utm_source=gh&utm_medium=referral&utm_content=&utm_campaign=Badge_coverage)
 <br>
 [![Caml CI/CD](https://github.com/jakepenzak/caml/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/jakepenzak/caml/actions/workflows/ci.yml)
 [![Build & Publish Docs](https://github.com/jakepenzak/caml/actions/workflows/docs.yml/badge.svg)](https://github.com/jakepenzak/caml/actions/workflows/docs.yml)
