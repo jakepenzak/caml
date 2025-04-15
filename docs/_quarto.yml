@@ -74,6 +74,7 @@ website:
         - 05_Contributors/environment.qmd
         - 05_Contributors/documentation.qmd
         - 05_Contributors/testing.qmd
+        - 05_Contributors/conventional_commits.qmd
 
   page-footer:
     border: false
