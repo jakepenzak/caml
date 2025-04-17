@@ -66,10 +66,10 @@ from caml import CamlCATE
 caml_obj = CamlCATE(df=data.df,
                 Y="Y1_continuous",
                 T="T1_binary",
-                X=[c for c in data.df.columns if 'X' in c] + [c for c in data.df.columns if 'W' in c],
+                X=[c for c in data.df.columns if 'X' in c]
+                    + [c for c in data.df.columns if 'W' in c],
                 discrete_treatment=True,
-                discrete_outcome=False,
-                verbose=1)
+                discrete_outcome=False)
 ```
 
 ```{python}
@@ -82,8 +82,12 @@ We can then obtain our nuisance functions / regression & propensity models via F
 
 ```{python}
 caml_obj.auto_nuisance_functions(
-    flaml_Y_kwargs={"time_budget": 30, "verbose":0, "estimator_list":["rf", "extra_tree", "xgb_limitdepth"]},
-    flaml_T_kwargs={"time_budget": 30, "verbose":0, "estimator_list":["rf", "extra_tree", "xgb_limitdepth"]},
+    flaml_Y_kwargs={"time_budget": 30,
+                    "verbose":0,
+                    "estimator_list":["rf", "extra_tree", "xgb_limitdepth"]},
+    flaml_T_kwargs={"time_budget": 30,
+                    "verbose":0,
+                    "estimator_list":["rf", "extra_tree", "xgb_limitdepth"]},
 )
 ```
 

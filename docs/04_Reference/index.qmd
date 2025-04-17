@@ -6,7 +6,7 @@
 
 | | |
 | --- | --- |
-| [CamlCATE](CamlCATE.qmd#caml.CamlCATE) | The CamlCATE class represents an opinionated framework of Causal Machine Learning techniques for estimating highly accurate conditional average treatment effects (CATEs). |
+| [CamlCATE](CamlCATE.qmd#caml.CamlCATE) | **CamlCATE is experimental and may change significantly in future versions.** |
 
 ## Traditional Estimators
 
@@ -14,7 +14,7 @@
 
 | | |
 | --- | --- |
-| [FastLeastSquares](FastLeastSquares.qmd#caml.FastLeastSquares) | FastLeastSquares is a fast implementation of the Least Squares estimator designed specifically with Causal Inference in mind. |
+| [FastLeastSquares](FastLeastSquares.qmd#caml.FastLeastSquares) | **FastLeastSquares is experimental and may change significantly in future versions.** |
 
 ## Synthetic Data Generation
 
@@ -22,7 +22,7 @@
 
 | | |
 | --- | --- |
-| [CamlSyntheticDataGenerator](CamlSyntheticDataGenerator.qmd#caml.extensions.synthetic_data.CamlSyntheticDataGenerator) | Generate highly flexible synthetic data for use in causal inference and CaML testing. |
+| [CamlSyntheticDataGenerator](CamlSyntheticDataGenerator.qmd#caml.extensions.synthetic_data.CamlSyntheticDataGenerator) | **CamlSyntheticDataGenerator is experimental and may change significantly in future versions.** |
 | [make_partially_linear_dataset_simple](make_partially_linear_dataset_simple.qmd#caml.extensions.synthetic_data.make_partially_linear_dataset_simple) | Simulate data generating process from a partially linear model with a simple 1 or 2 dimensional CATE function. |
 | [make_partially_linear_dataset_constant](make_partially_linear_dataset_constant.qmd#caml.extensions.synthetic_data.make_partially_linear_dataset_constant) | Simulate a data generating process from a partially linear model with a constant treatment effect (ATE only). |
 | [make_fully_heterogeneous_dataset](make_fully_heterogeneous_dataset.qmd#caml.extensions.synthetic_data.make_fully_heterogeneous_dataset) | Simulate data generating process from an interactive regression model with fully heterogenous treatment effects. |
@@ -41,8 +41,7 @@
 
 | | |
 | --- | --- |
-| [generics.generate_random_string](generics.generate_random_string.qmd#caml.generics.generate_random_string) | Function to generate a random string of ascii lowercase letters and digits of length N. |
-| [generics.experimental](generics.experimental.qmd#caml.generics.experimental) | Decorator to mark functions or classes as experimental. |
-| [generics.timer](generics.timer.qmd#caml.generics.timer) | Decorator to measure the execution time of a function or method, logged at DEBUG level. |
+| [_generics.experimental](_generics.experimental.qmd#caml._generics.experimental) | Decorator to mark functions or classes as experimental. |
+| [_generics.timer](_generics.timer.qmd#caml._generics.timer) | Decorator to measure the execution time of a function or method, logged at DEBUG level. |
 | [logging.configure_logging](logging.configure_logging.qmd#caml.logging.configure_logging) | Configure logging for the entire application. |
 | [logging.set_log_level](logging.set_log_level.qmd#caml.logging.set_log_level) | Change the logging level after initial configuration. |

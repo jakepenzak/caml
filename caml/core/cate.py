@@ -43,8 +43,9 @@ if TYPE_CHECKING:
 @experimental
 @typechecked
 class CamlCATE(CamlBase):
-    r"""
-    The CamlCATE class represents an opinionated framework of Causal Machine Learning techniques for estimating highly accurate conditional average treatment effects (CATEs).
+    r"""The CamlCATE class represents an opinionated framework of Causal Machine Learning techniques for estimating highly accurate conditional average treatment effects (CATEs).
+
+    **CamlCATE is experimental and may change significantly in future versions.**
 
     The CATE is defined formally as $\mathbb{E}[\tau|\mathbf{X}]$
     where $\tau$ is the treatment effect and $\mathbf{X}$ is the set of covariates.
@@ -72,22 +73,7 @@ class CamlCATE(CamlBase):
      **Note**: All the standard assumptions of Causal Inference apply to this class (e.g., exogeneity/unconfoundedness, overlap, positivity, etc.).
         The class does not check for these assumptions and assumes that the user has already thought through these assumptions before using the class.
 
-    **Outcome/Treatment Type Support Matrix**
-    <center>
-    | Outcome     | Treatment   | Support     | Missing    |
-    | ----------- | ----------- | ----------- | ---------- |
-    | Continuous  | Binary      | ✅Full      |            |
-    | Continuous  | Continuous  | 🟡Partial   | validate() |
-    | Continuous  | Categorical | ✅Full      |            |
-    | Binary      | Binary      | 🟡Partial   | validate() |
-    | Binary      | Continuous  | 🟡Partial   | validate() |
-    | Binary      | Categorical | 🟡Partial   | validate() |
-    | Categorical | Binary      | ❌Not yet   |            |
-    | Categorical | Continuous  | ❌Not yet   |            |
-    | Categorical | Categorical | ❌Not yet   |            |
-
-    </center>
-    Multi-dimensional outcomes and treatments are not yet supported.
+    For outcome/treatment support, see [matrix](support_matrix.qmd).
 
     Parameters
     ----------

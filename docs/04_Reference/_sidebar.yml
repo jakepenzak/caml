@@ -20,9 +20,8 @@ website:
       - 04_Reference/cate_true_vs_estimated_plot.qmd
       section: Plots
     - contents:
-      - 04_Reference/generics.generate_random_string.qmd
-      - 04_Reference/generics.experimental.qmd
-      - 04_Reference/generics.timer.qmd
+      - 04_Reference/_generics.experimental.qmd
+      - 04_Reference/_generics.timer.qmd
       - 04_Reference/logging.configure_logging.qmd
       - 04_Reference/logging.set_log_level.qmd
       section: Developer Tools

@@ -1,0 +1,21 @@
+---
+title: "Outcome/Treatment Type Support Matrix"
+---
+
+| Outcome     | Treatment   | [FastLeastSquares](FastLeastSquares.qmd) | [CamlCATE](CamlCATE.qmd)    |
+| ----------- | ----------- | ----------- | ---------- |
+| Continuous  | Binary      | ✅Full      | ✅Full     |
+| Continuous  | Continuous  | ✅Full      | 🟡Partial[^validate]   |
+| Continuous  | Categorical | ❌Not yet   | ✅Full     |
+| Binary      | Binary      | ✅Full      | 🟡Partial[^validate]  |
+| Binary      | Continuous  | ✅Full      | 🟡Partial[^validate]   |
+| Binary      | Categorical | ❌Not yet   | 🟡Partial[^validate]   |
+| Categorical | Binary      | ❌Not yet   | ❌Not yet  |
+| Categorical | Continuous  | ❌Not yet   | ❌Not yet  |
+| Categorical | Categorical | ❌Not yet   | ❌Not yet   |
+
+*Notes: Multi-dimensional outcomes and treatments are not yet supported, with the
+exception of multi-dimensional outcomes in FastLeastSquares.*
+
+
+[^validate]: Missing `validate` method.

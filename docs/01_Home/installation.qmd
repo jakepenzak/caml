@@ -17,7 +17,7 @@ pip install caml=={version}
 To install optional/extra dependencies, run:
 
 ```bash
-pip install caml[extra]
+pip install 'caml[extra]'
 ```
 
 We currently support the following extras: `pyspark` & `polars`.

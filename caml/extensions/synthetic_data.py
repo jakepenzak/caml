@@ -18,6 +18,8 @@ from .._generics import experimental
 class CamlSyntheticDataGenerator:
     r"""Generate highly flexible synthetic data for use in causal inference and CaML testing.
 
+    **CamlSyntheticDataGenerator is experimental and may change significantly in future versions.**
+
     The general form of the data generating process is:
 
     $$

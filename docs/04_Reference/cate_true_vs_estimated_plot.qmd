@@ -14,17 +14,17 @@ Plots a scatter plot of the estimated CATEs against the true CATEs.
 
 ## Parameters {.doc-section .doc-section-parameters}
 
-| Name            | Type      | Description                  | Default    |
-|-----------------|-----------|------------------------------|------------|
-| estimated_cates | ArrayLike | The estimated CATEs.         | _required_ |
-| figure_kwargs   | dict      | Matplotlib figure arguments. | `{}`       |
-| scatter_kwargs  | dict      | Matplotlib line arguments.   | `{}`       |
+| Name            | Type      | Description                   | Default    |
+|-----------------|-----------|-------------------------------|------------|
+| estimated_cates | ArrayLike | The estimated CATEs.          | _required_ |
+| figure_kwargs   | dict      | Matplotlib figure arguments.  | `{}`       |
+| scatter_kwargs  | dict      | Matplotlib scatter arguments. | `{}`       |
 
 ## Returns {.doc-section .doc-section-returns}
 
-| Name   | Type                     | Description                  |
-|--------|--------------------------|------------------------------|
-|        | matplotlib.pyplot.Figure | The line plot figure object. |
+| Name   | Type                     | Description                     |
+|--------|--------------------------|---------------------------------|
+|        | matplotlib.pyplot.Figure | The scatter plot figure object. |
 
 ## Examples {.doc-section .doc-section-examples}
 

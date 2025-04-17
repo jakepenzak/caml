@@ -41,8 +41,7 @@ website:
       - sidebar:Home
       - sidebar:Concepts
       - sidebar:Examples
-      - text: "API Reference"
-        file: 04_Reference/index.qmd
+      - sidebar:API_Reference
 
     right:
       - sidebar:Contributors
@@ -66,6 +65,12 @@ website:
       title: "Examples"
       style: floating
       contents: 03_Examples/*
+    - id: API_Reference
+      title: "Reference"
+      style: floating
+      contents:
+        - 04_Reference/index.qmd
+        - 04_Reference/support_matrix.qmd
     - id: Contributors
       title: "Contributors"
       style: floating
@@ -125,7 +130,6 @@ quartodoc:
           signature_name: short
     - title: Developer Tools
       contents:
-        - _generics.generate_random_string
         - _generics.experimental
         - _generics.timer
         - logging.configure_logging

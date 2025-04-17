@@ -31,6 +31,8 @@ DataFrameLike = Any
 class FastLeastSquares:
     r"""FastLeastSquares is a fast implementation of the Least Squares estimator designed specifically with Causal Inference in mind.
 
+    **FastLeastSquares is experimental and may change significantly in future versions.**
+
     This estimator estimates a standard linear regression model for any number of continuous or binary outcomes and a single binary treatment,
     and provides estimates for the Average Treatment Effects (ATEs) and Group Average Treatment Effects (GATEs) out of the box. Additionally,
     methods are provided for estimating a specific Conditional Average Treatment Effect (CATE), as well as individual Conditional Average Treatment
@@ -39,20 +41,7 @@ class FastLeastSquares:
     This class leverages JAX for fast numerical computations, which can be installed using `pip install caml[jax]`, defaulting to NumPy if JAX is not
     available. For GPU acceleration, install JAX with GPU support using `pip install caml[jax-gpu]`.
 
-    **Outcome/Treatment Type Support Matrix**
-    <center>
-    | Outcome     | Treatment   | Support     | Missing    |
-    | ----------- | ----------- | ----------- | ---------- |
-    | Continuous  | Binary      | ✅Full      |            |
-    | Continuous  | Continuous  | ✅Full      |            |
-    | Continuous  | Categorical | ❌Not yet   |            |
-    | Binary      | Binary      | ✅Full      |            |
-    | Binary      | Continuous  | ✅Full   |            |
-    | Binary      | Categorical | ❌Not yet   |            |
-    | Categorical | Binary      | ❌Not yet   |            |
-    | Categorical | Continuous  | ❌Not yet   |            |
-    | Categorical | Categorical | ❌Not yet   |            |
-    </center>
+    For outcome/treatment support, see [matrix](support_matrix.qmd).
 
     Parameters
     ----------

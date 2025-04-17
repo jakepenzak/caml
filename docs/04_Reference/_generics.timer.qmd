@@ -1,0 +1,19 @@
+# _generics.timer { #caml._generics.timer }
+
+```python
+_generics.timer(operation_name=None)
+```
+
+Decorator to measure the execution time of a function or method, logged at DEBUG level.
+
+## Parameters {.doc-section .doc-section-parameters}
+
+| Name           | Type   | Description                                                                                      | Default   |
+|----------------|--------|--------------------------------------------------------------------------------------------------|-----------|
+| operation_name |        | The name of the operation to be timed. If None, the name of the function or method will be used. | `None`    |
+
+## Returns {.doc-section .doc-section-returns}
+
+| Name   | Type     | Description                      |
+|--------|----------|----------------------------------|
+|        | callable | The decorated function or method |

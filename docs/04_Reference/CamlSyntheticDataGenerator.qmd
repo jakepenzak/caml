@@ -25,6 +25,8 @@ CamlSyntheticDataGenerator(
 )
 ```
 
+**CamlSyntheticDataGenerator is experimental and may change significantly in future versions.**
+
 Generate highly flexible synthetic data for use in causal inference and CaML testing.
 
 The general form of the data generating process is:
