@@ -6,7 +6,7 @@ website:
       - 04_Reference/CamlCATE.qmd
       section: CaML Core
     - contents:
-      - 04_Reference/FastLeastSquares.qmd
+      - 04_Reference/FastOLS.qmd
       section: Traditional Estimators
     - contents:
       - 04_Reference/CamlSyntheticDataGenerator.qmd

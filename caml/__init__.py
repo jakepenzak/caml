@@ -2,4 +2,4 @@
 
 from ._version import __version__
 from .core.cate import CamlCATE
-from .traditional.leastsquares import FastLeastSquares
+from .traditional.ols import FastOLS

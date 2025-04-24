@@ -6,7 +6,7 @@
 
 | | |
 | --- | --- |
-| [CamlCATE](CamlCATE.qmd#caml.CamlCATE) | **CamlCATE is experimental and may change significantly in future versions.** |
+| [CamlCATE](CamlCATE.qmd#caml.CamlCATE) | The CamlCATE class represents an opinionated framework of Causal Machine Learning techniques for estimating highly accurate conditional average treatment effects (CATEs). |
 
 ## Traditional Estimators
 
@@ -14,7 +14,7 @@
 
 | | |
 | --- | --- |
-| [FastLeastSquares](FastLeastSquares.qmd#caml.FastLeastSquares) | **FastLeastSquares is experimental and may change significantly in future versions.** |
+| [FastOLS](FastOLS.qmd#caml.FastOLS) | FastOLS is a fast implementation of the Least Squares estimator designed specifically with Causal Inference in mind. |
 
 ## Synthetic Data Generation
 
@@ -22,7 +22,7 @@
 
 | | |
 | --- | --- |
-| [CamlSyntheticDataGenerator](CamlSyntheticDataGenerator.qmd#caml.extensions.synthetic_data.CamlSyntheticDataGenerator) | **CamlSyntheticDataGenerator is experimental and may change significantly in future versions.** |
+| [CamlSyntheticDataGenerator](CamlSyntheticDataGenerator.qmd#caml.extensions.synthetic_data.CamlSyntheticDataGenerator) | Generate highly flexible synthetic data for use in causal inference and CaML testing. |
 | [make_partially_linear_dataset_simple](make_partially_linear_dataset_simple.qmd#caml.extensions.synthetic_data.make_partially_linear_dataset_simple) | Simulate data generating process from a partially linear model with a simple 1 or 2 dimensional CATE function. |
 | [make_partially_linear_dataset_constant](make_partially_linear_dataset_constant.qmd#caml.extensions.synthetic_data.make_partially_linear_dataset_constant) | Simulate a data generating process from a partially linear model with a constant treatment effect (ATE only). |
 | [make_fully_heterogeneous_dataset](make_fully_heterogeneous_dataset.qmd#caml.extensions.synthetic_data.make_fully_heterogeneous_dataset) | Simulate data generating process from an interactive regression model with fully heterogenous treatment effects. |

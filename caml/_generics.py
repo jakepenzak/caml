@@ -3,6 +3,14 @@ from functools import wraps
 
 from .logging import DEBUG, WARNING
 
+try:
+    import jax
+
+    jax.config.update("jax_enable_x64", True)
+    _HAS_JAX = True
+except ImportError:
+    _HAS_JAX = False
+
 
 def experimental(obj):
     """
@@ -65,3 +73,19 @@ def timer(operation_name=None):
         return wrapper
 
     return decorator if operation_name else decorator(operation_name)
+
+
+def maybe_jit(func=None, **jit_kwargs):
+    def maybe_jit_inner(func):
+        @wraps(func)
+        def wrapper(*args, **kwargs):
+            if _HAS_JAX:
+                return jax.jit(func, **jit_kwargs)(*args, **kwargs)
+            return func(*args, **kwargs)
+
+        return wrapper
+
+    if func is None:
+        return maybe_jit_inner
+
+    return maybe_jit_inner(func)

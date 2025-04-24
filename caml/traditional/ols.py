@@ -1,12 +1,11 @@
-from functools import wraps
-from typing import Any, Iterable
+from typing import Any, Collection, Iterable
 
 import pandas as pd
 import patsy
 from joblib import Parallel, delayed
 from typeguard import typechecked
 
-from .._generics import experimental, timer
+from .._generics import experimental, maybe_jit, timer
 from ..logging import DEBUG, ERROR, INFO, WARNING
 
 try:
@@ -22,16 +21,15 @@ except ImportError:
 
     _HAS_JAX = False
 
-
 DataFrameLike = Any
 
 
 @experimental
 @typechecked
-class FastLeastSquares:
-    r"""FastLeastSquares is a fast implementation of the Least Squares estimator designed specifically with Causal Inference in mind.
+class FastOLS:
+    r"""FastOLS is a fast implementation of the Least Squares estimator designed specifically with treatment effect estimation in mind.
 
-    **FastLeastSquares is experimental and may change significantly in future versions.**
+    **FastOLS is experimental and may change significantly in future versions.**
 
     This estimator estimates a standard linear regression model for any number of continuous or binary outcomes and a single binary treatment,
     and provides estimates for the Average Treatment Effects (ATEs) and Group Average Treatment Effects (GATEs) out of the box. Additionally,
@@ -45,15 +43,15 @@ class FastLeastSquares:
 
     Parameters
     ----------
-    Y : Iterable[str]
+    Y : Collection[str]
         A list of outcome variable names.
     T : str
         The treatment variable name.
-    G : Iterable[str] | None
+    G : Collection[str] | None
         A list of group variable names, by default None. These will be the groups for which GATEs will be estimated.
-    X : Iterable[str] | None
+    X : Collection[str] | None
         A list of covariate variable names, by default None. These will be the covariates for which heterogeneity/CATEs can be estimated.
-    W : Iterable[str] | None
+    W : Collection[str] | None
         A list of instrument variable names, by default None. These will be the additional covariates not used for modeling heterogeneity/CATEs.
     discrete_treatment : bool
         Whether the treatment is discrete, by default True
@@ -63,15 +61,15 @@ class FastLeastSquares:
 
     Attributes
     ----------
-    Y : Iterable[str]
+    Y : Collection[str]
         A list of outcome variable names.
     T : str
         The treatment variable name.
-    G : Iterable[str] | None
+    G : Collection[str] | None
         The list of group variable names, by default None. These will be the groups for which GATEs will be estimated.
-    X : Iterable[str] | None
+    X : Collection[str] | None
         The list of variable names representing the confounder/control feature set to be utilized for estimating heterogeneity/CATEs, that are in addition to G.
-    W : Iterable[str] | None
+    W : Collection[str] | None
         The list of variable names representing the confounder/control feature **not** utilized for estimating heterogeneity/CATEs.
     discrete_treatment : bool
         Whether the treatment is discrete, by default True
@@ -86,11 +84,11 @@ class FastLeastSquares:
 
     def __init__(
         self,
-        Y: Iterable[str],
+        Y: Collection[str],
         T: str,
-        G: Iterable[str] | None = None,
-        X: Iterable[str] | None = None,
-        W: Iterable[str] | None = None,
+        G: Collection[str] | None = None,
+        X: Collection[str] | None = None,
+        W: Collection[str] | None = None,
         *,
         discrete_treatment: bool = True,
         engine: str = "cpu",
@@ -127,7 +125,14 @@ class FastLeastSquares:
         self._fitted = False
         self.results = {}
 
-    def fit(self, data: DataFrameLike, n_jobs: int = -1, estimate_gates: bool = True):
+    def fit(
+        self,
+        data: DataFrameLike,
+        *,
+        n_jobs: int = -1,
+        estimate_effects: bool = True,
+        robust_vcv: bool = False,
+    ):
         """
         Fits the regression model on the provided data and estimates ATEs and GATEs.
 
@@ -141,29 +146,41 @@ class FastLeastSquares:
             The number of jobs to use for parallel processing in the estimation of GATEs. Defaults to -1, which uses all available processors.
             If getting OOM errors, try setting n_jobs to a lower value.
 
-        estimate_gates : bool
-            Whether to estimate Group Average Treatment Effects (GATEs).
+        estimate_effects : bool
+            Whether to estimate Average Treatment Effects (ATEs) and Group Average Treatment Effects (GATEs).
+
+        robust_vcv : bool
+            Whether to use heteroskedasticity-robust (white) variance-covariance matrix and standard errors.
         """
-        pd_df = self.convert_dataframe_to_pandas(data, self.G)
+        pd_df = self._convert_dataframe_to_pandas(data, self.G)
         y, X = self._create_design_matrix(pd_df)
-        self._fit(X, y)
-        diff_matrix = self._create_design_matrix(pd_df, create_diff_matrix=True)
-        self._estimate_ates(pd_df, diff_matrix)
-        if estimate_gates:
-            self._estimate_gates(pd_df, diff_matrix, n_jobs)
+        self._fit(X, y, robust_vcv=robust_vcv)
+        if estimate_effects:
+            diff_matrix = self._create_design_matrix(pd_df, create_diff_matrix=True)
+            self.results["treatment_effects"] = self.estimate_ate(
+                pd_df, _diff_matrix=diff_matrix, group="overall", membership=""
+            )
+            self._estimate_gates(pd_df, _diff_matrix=diff_matrix, n_jobs=n_jobs)
         self._fitted = True
 
-    @timer("Single CATE Estimation")
-    def estimate_single_cate(self, data: DataFrameLike) -> dict:
-        if not self._fitted:
-            raise RuntimeError("You must call .fit() prior to calling this method.")
+    @timer("ATE Estimation")
+    def estimate_ate(
+        self,
+        data: DataFrameLike,
+        *,
+        group: str = "Custom Group",
+        membership: str | None = None,
+        _diff_matrix: jnp.ndarray | None = None,
+    ) -> dict:
+        INFO("Estimating Average Treatment Effects (ATEs)...")
 
-        data = self.convert_dataframe_to_pandas(data, self.G)
-        diff_matrix = self._create_design_matrix(data, create_diff_matrix=True)
+        if _diff_matrix is None:
+            data = self._convert_dataframe_to_pandas(data, self.G)
+            diff_matrix = self._create_design_matrix(data, create_diff_matrix=True)
+        else:
+            diff_matrix = _diff_matrix
 
-        INFO("Estimating single Conditional Average Treatment Effect (CATE)...")
-
-        n_treated = int(data[self.T].sum())
+        n_treated = int(data[self.T].sum()) if self.discrete_treatment else None
 
         statistics = self._compute_statistics(
             diff_matrix=diff_matrix,
@@ -172,18 +189,25 @@ class FastLeastSquares:
             n_treated=n_treated,
         )
 
-        results = {"outcome": self.Y}
-        results.update({key: statistics[key] for key in statistics.keys()})
-
+        results = {}
+        results[f"{group}-{membership}"] = {"outcome": self.Y}
+        results[f"{group}-{membership}"].update(
+            {key: statistics[key] for key in statistics.keys()}
+        )
         return results
 
-    def estimate_cates(self) -> dict:
+    @timer("CATE Estimation")
+    def estimate_cate(self) -> jnp.ndarray:
         raise NotImplementedError(
             f"{self.__class__.__name__} does not support estimate_cates method yet."
         )
 
-    def prettify_treatment_effects(self) -> pd.DataFrame:
-        effects = self.results["treatment_effects"]
+    def predict(self) -> jnp.ndarray:
+        return self.estimate_cate()
+
+    def prettify_treatment_effects(self, effects: dict | None = None) -> pd.DataFrame:
+        if effects is None:
+            effects = self.results["treatment_effects"]
         n_outcomes = len(self.Y)
 
         final_results = {}
@@ -216,20 +240,23 @@ class FastLeastSquares:
         return pd.DataFrame(final_results)
 
     @timer("Model Fitting")
-    def _fit(self, X: jnp.ndarray, y: jnp.ndarray):
+    def _fit(self, X: jnp.ndarray, y: jnp.ndarray, robust_vcv: bool = False):
         INFO("Fitting regression model...")
 
         @maybe_jit
         def fit(X, y):
             params, _, _, _ = jnp.linalg.lstsq(X, y, rcond=None)
             y_resid = y - X @ params
-            rss = jnp.sum(y_resid**2, axis=0)
-            sigma_squared_hat = rss / (X.shape[0] - X.shape[1])
             XtX_inv = jnp.linalg.pinv(X.T @ X)
-            vcv = (
-                sigma_squared_hat[:, jnp.newaxis, jnp.newaxis]
-                * XtX_inv[jnp.newaxis, :, :]
-            )
+            if robust_vcv:
+                E = y_resid**2
+                XEX = jnp.einsum("ni,nj,no->oij", X, X, E)
+                vcv = XtX_inv @ XEX @ XtX_inv
+            else:
+                rss = jnp.sum(y_resid**2, axis=0)
+                sigma_squared_hat = rss / (X.shape[0] - X.shape[1])
+                XtX_inv = jnp.linalg.pinv(X.T @ X)
+                vcv = jnp.einsum("o,ij->oij", sigma_squared_hat, XtX_inv)
             return params, vcv
 
         params, vcv = fit(X, y)
@@ -238,79 +265,6 @@ class FastLeastSquares:
         self.results["vcv"] = vcv
         self.results["std_err"] = jnp.sqrt(jnp.diagonal(vcv, axis1=1, axis2=2))
         self.results["treatment_effects"] = {}
-
-    @timer("ATE Estimation")
-    def _estimate_ates(self, data, diff_matrix: jnp.ndarray):
-        INFO("Estimating Average Treatment Effects (ATEs)...")
-
-        treated_mask = jnp.array(data[self.T] == 1) if self.discrete_treatment else None
-        n_treated = int(treated_mask.sum()) if self.discrete_treatment else None
-
-        statistics = self._compute_statistics(
-            diff_matrix=diff_matrix,
-            params=self.results["params"],
-            vcv=self.results["vcv"],
-            n_treated=n_treated,
-        )
-
-        self.results["treatment_effects"]["overall"] = {"outcome": self.Y}
-        self.results["treatment_effects"]["overall"].update(
-            {key: statistics[key] for key in statistics.keys()}
-        )
-
-    @timer("GATE Estimation")
-    def _estimate_gates(
-        self,
-        data,
-        diff_matrix: jnp.ndarray,
-        n_jobs: int | None = None,
-    ):
-        if self.G is None:
-            DEBUG("No groups specified for GATE estimation. Skipping.")
-            return
-
-        INFO("Estimating Group Average Treatment Effects (GATEs)...")
-
-        groups = {group: data[group].unique() for group in self.G}
-
-        # Prepare groups for processing
-        group_info = []
-        for group in groups:
-            for membership in groups[group]:
-                mask = jnp.array(data[group] == membership)
-                treated_mask = (
-                    jnp.array(data[data[group] == membership][self.T] == 1)
-                    if self.discrete_treatment
-                    else None
-                )
-                group_key = f"{group}-{membership}"
-                group_info.append((group_key, group, membership, mask, treated_mask))
-
-        params = self.results["params"]
-        vcv = self.results["vcv"]
-
-        def process_group(group_key, mask, treated_mask):
-            diff_matrix_filtered = diff_matrix[mask]
-            n_treated = int(treated_mask.sum()) if self.discrete_treatment else None
-            statistics = self._compute_statistics(
-                diff_matrix=diff_matrix_filtered,
-                params=params,
-                vcv=vcv,
-                n_treated=n_treated,
-            )
-            return group_key, statistics
-
-        DEBUG(f"Starting parallel processing with {n_jobs} jobs")
-        results: Iterable = Parallel(n_jobs=n_jobs, prefer="threads")(
-            delayed(process_group)(group_key, mask, treated_mask)
-            for group_key, _, _, mask, treated_mask in group_info
-        )
-
-        for group_key, statistics in results:
-            self.results["treatment_effects"][group_key] = {"outcome": self.Y}
-            self.results["treatment_effects"][group_key].update(
-                {key: statistics[key] for key in statistics.keys()}
-            )
 
     @timer("Design Matrix Creation")
     def _create_design_matrix(
@@ -358,29 +312,6 @@ class FastLeastSquares:
             return y, X
 
     @staticmethod
-    def convert_dataframe_to_pandas(dataframe, groups) -> pd.DataFrame:
-        def convert_groups_to_categorical(df, groups):
-            for col in groups or []:
-                df[col] = df[col].astype("category")
-            return df
-
-        if isinstance(dataframe, pd.DataFrame):
-            return convert_groups_to_categorical(dataframe, groups)
-
-        DEBUG(f"Converting input dataframe of type {type(dataframe)} to pandas")
-
-        if hasattr(dataframe, "toPandas"):
-            return convert_groups_to_categorical(dataframe.toPandas(), groups)
-
-        if hasattr(dataframe, "to_pandas"):
-            return convert_groups_to_categorical(dataframe.to_pandas(), groups)
-
-        ERROR(f"Unsupported dataframe type: {type(dataframe)}")
-        raise Exception(
-            f"Pandas conversion not currently supported for {type(dataframe)}."
-        )
-
-    @staticmethod
     def _compute_statistics(
         diff_matrix: jnp.ndarray,
         params: jnp.ndarray,
@@ -409,13 +340,91 @@ class FastLeastSquares:
             "n_control": n_control,
         }
 
+    @timer("Prespecified GATE Estimation")
+    def _estimate_gates(
+        self,
+        data: DataFrameLike,
+        *,
+        n_jobs: int = -1,
+        _diff_matrix: jnp.ndarray,
+    ):
+        if self.G is None:
+            DEBUG("No groups specified for GATE estimation. Skipping.")
+            return
+
+        INFO("Estimating Group Average Treatment Effects (GATEs)...")
+
+        groups = {group: data[group].unique() for group in self.G}
+
+        # Prepare groups for processing
+        group_info = []
+        for group in groups:
+            for membership in groups[group]:
+                mask = jnp.array(data[group] == membership)
+                treated_mask = (
+                    jnp.array(data[data[group] == membership][self.T] == 1)
+                    if self.discrete_treatment
+                    else None
+                )
+                group_key = f"{group}-{membership}"
+                group_info.append((group_key, mask, treated_mask))
+
+        params = self.results["params"]
+        vcv = self.results["vcv"]
+
+        def process_group(group_key, mask, treated_mask):
+            diff_matrix_filtered = _diff_matrix[mask]
+            n_treated = int(treated_mask.sum()) if self.discrete_treatment else None
+            statistics = self._compute_statistics(
+                diff_matrix=diff_matrix_filtered,
+                params=params,
+                vcv=vcv,
+                n_treated=n_treated,
+            )
+            return group_key, statistics
+
+        DEBUG(f"Starting parallel processing with {n_jobs} jobs")
+        results: Iterable = Parallel(n_jobs=n_jobs, prefer="threads")(
+            delayed(process_group)(group_key, mask, treated_mask)
+            for group_key, mask, treated_mask in group_info
+        )
+
+        for group_key, statistics in results:
+            self.results["treatment_effects"][group_key] = {"outcome": self.Y}
+            self.results["treatment_effects"][group_key].update(
+                {key: statistics[key] for key in statistics.keys()}
+            )
+
+    @staticmethod
+    def _convert_dataframe_to_pandas(dataframe, groups) -> pd.DataFrame:
+        def convert_groups_to_categorical(df, groups):
+            for col in groups or []:
+                df[col] = df[col].astype("category")
+            return df
+
+        if isinstance(dataframe, pd.DataFrame):
+            return convert_groups_to_categorical(dataframe, groups)
+
+        DEBUG(f"Converting input dataframe of type {type(dataframe)} to pandas")
+
+        if hasattr(dataframe, "toPandas"):
+            return convert_groups_to_categorical(dataframe.toPandas(), groups)
+
+        if hasattr(dataframe, "to_pandas"):
+            return convert_groups_to_categorical(dataframe.to_pandas(), groups)
+
+        ERROR(f"Unsupported dataframe type: {type(dataframe)}")
+        raise Exception(
+            f"Pandas conversion not currently supported for {type(dataframe)}."
+        )
+
     @staticmethod
     def _create_formula(
-        Y: Iterable[str],
+        Y: Collection[str],
         T: str,
-        G: Iterable[str] | None,
-        X: Iterable[str] | None = None,
-        W: Iterable[str] | None = None,
+        G: Collection[str] | None,
+        X: Collection[str] | None = None,
+        W: Collection[str] | None = None,
     ) -> str:
         formula = " + ".join(Y)
         formula += f" ~ {T}"
@@ -430,19 +439,3 @@ class FastLeastSquares:
             formula += f" + {w}"
 
         return formula
-
-
-def maybe_jit(func=None, **jit_kwargs):
-    def maybe_jit_inner(func):
-        @wraps(func)
-        def wrapper(*args, **kwargs):
-            if _HAS_JAX:
-                return jax.jit(func, **jit_kwargs)(*args, **kwargs)
-            return func(*args, **kwargs)
-
-        return wrapper
-
-    if func is None:
-        return maybe_jit_inner
-
-    return maybe_jit_inner(func)

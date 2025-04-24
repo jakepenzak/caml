@@ -15,9 +15,9 @@ CamlCATE(
 )
 ```
 
-**CamlCATE is experimental and may change significantly in future versions.**
-
 The CamlCATE class represents an opinionated framework of Causal Machine Learning techniques for estimating highly accurate conditional average treatment effects (CATEs).
+
+**CamlCATE is experimental and may change significantly in future versions.**
 
 The CATE is defined formally as $\mathbb{E}[\tau|\mathbf{X}]$
 where $\tau$ is the treatment effect and $\mathbf{X}$ is the set of covariates.

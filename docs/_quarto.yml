@@ -104,7 +104,7 @@ quartodoc:
       desc: "`from caml import *`"
       package: caml
       contents:
-        - name: FastLeastSquares
+        - name: FastOLS
           member_order: source
     - title: Synthetic Data Generation
       desc: "`from caml.extensions.synthetic_data import *`"
