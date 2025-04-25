@@ -39,14 +39,15 @@ def _(CamlSyntheticDataGenerator):
         n_binary_outcomes=0,
         n_cont_treatments=0,
         n_binary_treatments=1,
-        n_cont_confounders=2,
-        n_cont_modifiers=2,
-        n_binary_modifiers=2,
-        n_discrete_modifiers=1,
-        stddev_outcome_noise=1,
-        stddev_treatment_noise=1,
+        n_discrete_treatments=0,
+        n_cont_confounders=1,
+        n_cont_modifiers=1,
+        n_binary_modifiers=0,
+        n_discrete_modifiers=3,
+        stddev_outcome_noise=0.1,
+        stddev_treatment_noise=0.1,
         causal_model_functional_form="linear",
-        seed=9,
+        seed=None,
     )
     return (data,)
 
@@ -80,7 +81,7 @@ def _(FastOLS, df):
         X=[c for c in df.columns if "X" in c and "cont" in c],
         W=[c for c in df.columns if "W" in c],
         engine="cpu",
-        discrete_treatment=False,
+        discrete_treatment=True,
     )
     return (fu,)
 
@@ -109,12 +110,6 @@ def _(df, fu):
         M = df[g].unique().tolist()
         for m in M:
             print(f"ATE for {g}, {m}: {df[df[f'{g}'] == m]['cates'].mean()}")
-    return
-
-
-@app.cell
-def _(df):
-    df
     return
 
 

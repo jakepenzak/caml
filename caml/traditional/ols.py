@@ -54,7 +54,7 @@ class FastOLS:
     W : Collection[str] | None
         A list of instrument variable names, by default None. These will be the additional covariates not used for modeling heterogeneity/CATEs.
     discrete_treatment : bool
-        Whether the treatment is discrete, by default True
+        Whether the treatment is discrete, by default False
     engine : str
         The engine to use for computation, by default "cpu". Can be "cpu" or "gpu". Note "gpu" requires JAX to be installed, which can be installed
         via `pip install caml[jax-gpu]`.
@@ -90,7 +90,7 @@ class FastOLS:
         X: Collection[str] | None = None,
         W: Collection[str] | None = None,
         *,
-        discrete_treatment: bool = True,
+        discrete_treatment: bool = False,
         engine: str = "cpu",
     ):
         DEBUG(
@@ -120,7 +120,9 @@ class FastOLS:
                 engine = "cpu"
 
         self.engine = engine
-        self.formula = self._create_formula(self.Y, self.T, self.G, self.X, self.W)
+        self.formula = self._create_formula(
+            self.Y, self.T, self.G, self.X, self.W, self.discrete_treatment
+        )
         DEBUG(f"Created formula: {self.formula}")
         self._fitted = False
         self.results = {}
@@ -153,6 +155,9 @@ class FastOLS:
             Whether to use heteroskedasticity-robust (white) variance-covariance matrix and standard errors.
         """
         pd_df = self._convert_dataframe_to_pandas(data, self.G)
+        if self.discrete_treatment:
+            if len(pd_df[self.T].unique()) != 2:
+                raise ValueError("Treatment variable must be binary")
         y, X = self._create_design_matrix(pd_df)
         self._fit(X, y, robust_vcv=robust_vcv)
         if estimate_effects:
@@ -422,18 +427,25 @@ class FastOLS:
     def _create_formula(
         Y: Collection[str],
         T: str,
-        G: Collection[str] | None,
+        G: Collection[str] | None = None,
         X: Collection[str] | None = None,
         W: Collection[str] | None = None,
+        discrete_treatment: bool = False,
     ) -> str:
         formula = " + ".join(Y)
-        formula += f" ~ {T}"
+
+        if discrete_treatment:
+            treatment = f"C({T})"
+        else:
+            treatment = T
+
+        formula += f" ~ {treatment}"
 
         for g in G or []:
-            formula += f" + C({g})*{T}"
+            formula += f" + C({g})*{treatment}"
 
         for x in X or []:
-            formula += f" + {x}*{T}"
+            formula += f" + {x}*{treatment}"
 
         for w in W or []:
             formula += f" + {w}"

@@ -13,8 +13,9 @@ title: "Outcome/Treatment Type Support Matrix"
 | Categorical | Binary      | ❌Not yet   | ❌Not yet  |
 | Categorical | Continuous  | ❌Not yet   | ❌Not yet  |
 | Categorical | Categorical | ❌Not yet   | ❌Not yet   |
+|Multi-Dimensional | - | ✅Full | ❌Not yet |
+| - | Multi-Dimensional | ❌Not yet | ❌Not yet |
 
-*Note: Multi-dimensional outcomes and treatments are not yet supported, with the
-exception of multi-dimensional outcomes in [FastOLS](FastOLS.qmd).*
+If you have a specific use case that is not covered by the current support matrix, please feel free to open an issue.
 
 [^validate]: Missing `validate` method.
