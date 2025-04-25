@@ -35,7 +35,9 @@ class FastOLS:
     and provides estimates for the Average Treatment Effects (ATEs) and Group Average Treatment Effects (GATEs) out of the box. Additionally,
     methods are provided for estimating & predicting Conditional Average Treatment Effects (CATEs) of individual observations and custom GATEs
     can also be estimated. Note, this method assumes linear treatment effects and heterogeneity. This is typically sufficient when primarily concerned with
-    average treatment effects.
+    ATEs and GATEs.
+
+    #TODO - Elaborate on this claim
 
     This class leverages JAX for fast numerical computations, which can be installed using `pip install caml[jax]`, defaulting to NumPy if JAX is not
     available. For GPU acceleration, install JAX with GPU support using `pip install caml[jax-gpu]`.
@@ -76,7 +78,8 @@ class FastOLS:
 
     where $\mathbf{\Theta'} = \left[\beta' \; \mathbf{\Gamma'} \; \mathbf{\Omega'} \; \mathbf{\Psi'}\right]$ is
     the horizontally concatenated matrix of transposed coefficient matrices, and
-    $\bar{d} = \mathbb{E}_n\left[D_{T=1} - D_{T=0}\right]$ is the the average difference in the design matrix for all observations.
+    $\bar{d} = \mathbb{E}_n\left[D_{T=1} - D_{T=0}\right]$ is the the average difference in the design matrix from
+    toggling the treatment variable across all observations.
 
     Furthermore, for each outcome $k \in \{1,2,...,p\}$, we can estimate the standard error of the ATE as follows:
     $$
