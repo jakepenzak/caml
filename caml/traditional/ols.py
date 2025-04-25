@@ -27,19 +27,67 @@ DataFrameLike = Any
 @experimental
 @typechecked
 class FastOLS:
-    r"""FastOLS is a fast implementation of the Least Squares estimator designed specifically with treatment effect estimation in mind.
+    r"""FastOLS is a fast implementation of the OLS estimator designed specifically with treatment effect estimation in mind.
 
     **FastOLS is experimental and may change significantly in future versions.**
 
-    This estimator estimates a standard linear regression model for any number of continuous or binary outcomes and a single binary treatment,
+    This class estimates a standard linear regression model for any number of continuous or binary outcomes and a single continuous or binary treatment,
     and provides estimates for the Average Treatment Effects (ATEs) and Group Average Treatment Effects (GATEs) out of the box. Additionally,
-    methods are provided for estimating a specific Conditional Average Treatment Effect (CATE), as well as individual Conditional Average Treatment
-    Effects (CATEs) for a group of observations.
+    methods are provided for estimating & predicting Conditional Average Treatment Effects (CATEs) of individual observations and custom GATEs
+    can also be estimated. Note, this method assumes linear treatment effects and heterogeneity. This is typically sufficient when primarily concerned with
+    average treatment effects.
 
     This class leverages JAX for fast numerical computations, which can be installed using `pip install caml[jax]`, defaulting to NumPy if JAX is not
     available. For GPU acceleration, install JAX with GPU support using `pip install caml[jax-gpu]`.
 
     For outcome/treatment support, see [matrix](support_matrix.qmd).
+
+    ## Model Specification
+
+    The model is given by:
+    $$
+    \begin{equation}
+    \mathbf{Y} = T \beta + \mathbf{Q}\mathbf{\Gamma} + \left(T \circ \mathbf{Q}\right)\mathbf{\Omega} + \mathbf{W}\mathbf{\Psi} + \mathbf{E}
+    \tag{1}
+    \end{equation}
+    $$
+
+    where $\mathbf{Y}_{n \times p}$ is the matrix of $p$ outcomes, $T_{n \times 1}$ is the treatment variable,
+    $\mathbf{Q}_{n \times (j+l)} = \bigl[\mathbf{X} \; \mathbf{G} \bigr]$ is the horizontal stack matrix of $j$ covariates and $l$ group variables,
+    $\mathbf{W}_{n \times m}$ is the matrix of $m$ control covariates, $\beta_{1 \times p}$ is the vector of coefficients on $T$,
+    $\mathbf{\Gamma}_{(j+l) \times p}$ is the matrix of coefficients on $\mathbf{Q}$, $\mathbf{\Omega}_{(j+l) \times p}$ is the matrix
+    of coefficients on the interaction terms between $T$ and $\mathbf{Q}$, $\mathbf{\Psi}_{m \times p}$ is the matrix of
+    coefficients on $\mathbf{W}$, and $\mathbf{E}_{n \times p}$ is the error term matrix.
+
+    $\mathbf{Q}$ contains the covariates and group variables used to model treatment effect heterogeneity via interaction terms.
+
+    #### Treatment Effect Estimation & Inference
+
+    Our average treatment effect (ATE) $\tau$ for a binary treatment variable $T$ is defined as:
+
+    $$
+    \tau = \mathbb{E}_n\left[\mathbb{E}\left[\mathbf{Y} \mid T = 1\right] - \mathbb{E}\left[\mathbf{Y} \mid T = 0\right]\right]
+    $$
+
+    Let $D$ denote the design matrix for (1), then assuming exogeneity in $T$, the ATEs are identified and can be estimated as follows:
+    $$
+    \mathbf{\tau} = \mathbf{\Theta'}\bar{d}
+    $$
+
+    where $\mathbf{\Theta'} = \left[\beta' \; \mathbf{\Gamma'} \; \mathbf{\Omega'} \; \mathbf{\Psi'}\right]$ is
+    the horizontally concatenated matrix of transposed coefficient matrices, and
+    $\bar{d} = \mathbb{E}_n\left[D_{T=1} - D_{T=0}\right]$ is the the average difference in the design matrix for all observations.
+
+    Furthermore, for each outcome $k \in \{1,2,...,p\}$, we can estimate the standard error of the ATE as follows:
+    $$
+    \text{SE}(\tau_k) = \sqrt{\bar{d}'\text{VCV}(\mathbf{\Theta}_k)\bar{d}}
+    $$
+
+    where $\text{VCV}(\mathbf{\Theta}_k)$ is the variance-covariance matrix of the estimated coefficients for the $k$-th outcome.
+
+    This logic extends naturally to the estimation of GATEs and CATEs, where $\bar{d} = \mathbb{E}_n\left[D_{T=1} - D_{T=0} | \mathbf{G}=g\right]$
+    $\bar{d} = \mathbb{E}_n\left[D_{T=1} - D_{T=0} | \mathbf{G}=g, \mathbf{X}=x\right]$, $\dots$, etc. and to continuous treatments
+    $\bar{d} = \mathbb{E}_n\left[D_{T=t+1} - D_{T=t}\right]$, $\dots$, etc.
 
     Parameters
     ----------
@@ -52,7 +100,7 @@ class FastOLS:
     X : Collection[str] | None
         A list of covariate variable names, by default None. These will be the covariates for which heterogeneity/CATEs can be estimated.
     W : Collection[str] | None
-        A list of instrument variable names, by default None. These will be the additional covariates not used for modeling heterogeneity/CATEs.
+        A list of additional covariate variable names to be used as controls, by default None. These will be the additional covariates not used for modeling heterogeneity/CATEs.
     discrete_treatment : bool
         Whether the treatment is discrete, by default False
     engine : str

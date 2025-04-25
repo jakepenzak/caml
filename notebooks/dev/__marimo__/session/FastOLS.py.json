@@ -45,13 +45,13 @@
         {
           "type": "stream",
           "name": "stdout",
-          "text": "[04/25/25 09:18:04] DEBUG    Logging configured with level: DEBUG                                                                                                  logging.py:70\n"
+          "text": "[04/25/25 12:02:41] DEBUG    Logging configured with level: DEBUG                                                                                     logging.py:70\n"
         }
       ]
     },
     {
       "id": "bkHC",
-      "code_hash": "71cf17640c1370d4330199b7496a185b",
+      "code_hash": "1e2204d81f04d4957d94b945925dcb21",
       "outputs": [
         {
           "type": "data",
@@ -60,16 +60,22 @@
           }
         }
       ],
-      "console": []
+      "console": [
+        {
+          "type": "stream",
+          "name": "stdout",
+          "text": "                    WARNING  CamlSyntheticDataGenerator is experimental and may change in future versions.                                          _generics.py:41\n"
+        }
+      ]
     },
     {
       "id": "lEQa",
-      "code_hash": "46d9dfeca5bddff0e966605a73687869",
+      "code_hash": "8bbd05c1ca4cf6a5b9b4910e7fe0fc45",
       "outputs": [
         {
           "type": "data",
           "data": {
-            "text/html": "<marimo-ui-element object-id='lEQa-0' random-id='a00a570e-8e2e-57c4-20bd-40297d66264c'><marimo-table data-initial-value='[]' data-label='null' data-data='&quot;./@file/64-29159-8WzsSfmW.json&quot;' data-total-rows='1' data-total-columns='2' data-banner-text='&quot;&quot;' data-pagination='true' data-page-size='10' data-field-types='[[&quot;Treatment&quot;, [&quot;string&quot;, &quot;object&quot;]], [&quot;ATE&quot;, [&quot;number&quot;, &quot;float64&quot;]]]' data-show-filters='true' data-show-download='true' data-show-column-summaries='false' data-row-headers='[]' data-has-stable-row-id='false' data-lazy='false' data-preload='false'></marimo-table></marimo-ui-element>"
+            "text/html": "<marimo-ui-element object-id='lEQa-0' random-id='1caba67c-1b17-5391-7420-48328d32a787'><marimo-table data-initial-value='[]' data-label='null' data-data='&quot;./@file/1775-26020-YdZurFOm.json&quot;' data-total-rows='100000' data-total-columns='8' data-banner-text='&quot;&quot;' data-pagination='true' data-page-size='10' data-field-types='[[&quot;W1_continuous&quot;, [&quot;number&quot;, &quot;float64&quot;]], [&quot;X1_continuous&quot;, [&quot;number&quot;, &quot;float64&quot;]], [&quot;X2_binary&quot;, [&quot;integer&quot;, &quot;int64&quot;]], [&quot;X3_binary&quot;, [&quot;integer&quot;, &quot;int64&quot;]], [&quot;X4_discrete&quot;, [&quot;integer&quot;, &quot;int64&quot;]], [&quot;T1_binary&quot;, [&quot;integer&quot;, &quot;int64&quot;]], [&quot;Y1_continuous&quot;, [&quot;number&quot;, &quot;float64&quot;]], [&quot;Y2_continuous&quot;, [&quot;number&quot;, &quot;float64&quot;]]]' data-show-filters='true' data-show-download='true' data-show-column-summaries='true' data-row-headers='[]' data-has-stable-row-id='false' data-lazy='false' data-preload='false'></marimo-table></marimo-ui-element>"
           }
         }
       ],
@@ -77,19 +83,6 @@
     },
     {
       "id": "PKri",
-      "code_hash": "bce1da1ec21ff2ff0b2428b6b824d654",
-      "outputs": [
-        {
-          "type": "data",
-          "data": {
-            "text/html": "<marimo-ui-element object-id='PKri-0' random-id='0737e15f-6736-96e8-a2bd-35b7c4f31f19'><marimo-table data-initial-value='[]' data-label='null' data-data='&quot;./@file/1732-29159-3lw3VCku.json&quot;' data-total-rows='100000' data-total-columns='8' data-banner-text='&quot;&quot;' data-pagination='true' data-page-size='10' data-field-types='[[&quot;W1_continuous&quot;, [&quot;number&quot;, &quot;float64&quot;]], [&quot;X1_continuous&quot;, [&quot;number&quot;, &quot;float64&quot;]], [&quot;X2_discrete&quot;, [&quot;integer&quot;, &quot;int64&quot;]], [&quot;X3_discrete&quot;, [&quot;integer&quot;, &quot;int64&quot;]], [&quot;X4_discrete&quot;, [&quot;integer&quot;, &quot;int64&quot;]], [&quot;T1_binary&quot;, [&quot;integer&quot;, &quot;int64&quot;]], [&quot;Y1_continuous&quot;, [&quot;number&quot;, &quot;float64&quot;]], [&quot;cates&quot;, [&quot;number&quot;, &quot;float64&quot;]]]' data-show-filters='true' data-show-download='true' data-show-column-summaries='true' data-row-headers='[]' data-has-stable-row-id='false' data-lazy='false' data-preload='false'></marimo-table></marimo-ui-element>"
-          }
-        }
-      ],
-      "console": []
-    },
-    {
-      "id": "Xref",
       "code_hash": "8333e6d4fb13a5e8e229062383b20237",
       "outputs": [
         {
@@ -102,7 +95,7 @@
       "console": []
     },
     {
-      "id": "SFPL",
+      "id": "Xref",
       "code_hash": "8f9b6689fd44aaf9a2ae24d9ddbd670e",
       "outputs": [
         {
@@ -116,259 +109,112 @@
         {
           "type": "stream",
           "name": "stdout",
-          "text": "[04/25/25 09:18:18] DEBUG    Initializing FastOLS with parameters: Y=['Y1_continuous'], T=T1_binary, G=['X2_discrete', 'X3_discrete', 'X4_discrete'],                  ols.py:96\n                             X=['X1_continuous'], W=['W1_continuous'], discrete_treatment=True, engine=cpu                                                                      \n                    DEBUG    Created formula: Y1_continuous ~ C(T1_binary) + C(X2_discrete)*C(T1_binary) + C(X3_discrete)*C(T1_binary) + C(X4_discrete)*C(T1_binary)  ols.py:126\n                             + X1_continuous*C(T1_binary) + W1_continuous                                                                                                       \n"
+          "text": "                    WARNING  FastOLS is experimental and may change in future versions.                                                             _generics.py:41\n                    DEBUG    Initializing FastOLS with parameters: Y=['Y1_continuous', 'Y2_continuous'], T=T1_binary, G=['X2_binary', 'X3_binary',       ols.py:139\n                             'X4_discrete'], X=['X1_continuous'], W=['W1_continuous'], discrete_treatment=True, engine=cpu                                         \n                    DEBUG    Created formula: Y1_continuous + Y2_continuous ~ C(T1_binary) + C(X2_binary)*C(T1_binary) + C(X3_binary)*C(T1_binary) +     ols.py:169\n                             C(X4_discrete)*C(T1_binary) + X1_continuous*C(T1_binary) + W1_continuous                                                              \n"
         }
       ]
+    },
+    {
+      "id": "SFPL",
+      "code_hash": "523c5c0f09c2ec95cea11e083ba5880a",
+      "outputs": [],
+      "console": []
     },
     {
       "id": "BYtC",
       "code_hash": "b44bb118b90c1db3ed8743d2dfa4ce45",
-      "outputs": [
-        {
-          "type": "data",
-          "data": {
-            "text/plain": ""
-          }
-        }
-      ],
-      "console": [
-        {
-          "type": "stream",
-          "name": "stdout",
-          "text": "[04/25/25 09:18:19] DEBUG    Creating model matrix...                                                                                                                 ols.py:305\n"
-        },
-        {
-          "type": "stream",
-          "name": "stdout",
-          "text": "[04/25/25 09:18:21] DEBUG    Design Matrix Creation completed in 2.08 seconds                                                                                    _generics.py:70\n                    INFO     Fitting regression model...                                                                                                              ols.py:249\n"
-        },
-        {
-          "type": "stream",
-          "name": "stdout",
-          "text": "                    DEBUG    Model Fitting completed in 0.41 seconds                                                                                             _generics.py:70\n                    DEBUG    Creating treatment difference matrix...                                                                                                  ols.py:279\n"
-        },
-        {
-          "type": "stream",
-          "name": "stdout",
-          "text": "[04/25/25 09:18:31] DEBUG    Design Matrix Creation completed in 9.50 seconds                                                                                    _generics.py:70\n                    INFO     Estimating Average Treatment Effects (ATEs)...                                                                                           ols.py:180\n"
-        },
-        {
-          "type": "stream",
-          "name": "stdout",
-          "text": "                    DEBUG    ATE Estimation completed in 0.56 seconds                                                                                            _generics.py:70\n                    INFO     Estimating Group Average Treatment Effects (GATEs)...                                                                                    ols.py:360\n"
-        },
-        {
-          "type": "stream",
-          "name": "stdout",
-          "text": "[04/25/25 09:18:34] DEBUG    Starting parallel processing with -1 jobs                                                                                                ols.py:391\n"
-        },
-        {
-          "type": "stream",
-          "name": "stdout",
-          "text": "[04/25/25 09:18:46] DEBUG    Prespecified GATE Estimation completed in 14.26 seconds                                                                             _generics.py:70\n"
-        }
-      ]
+      "outputs": [],
+      "console": []
     },
     {
       "id": "RGSE",
-      "code_hash": "7f6a792d8af863d4bbc2147c292c9e6f",
-      "outputs": [
-        {
-          "type": "data",
-          "data": {
-            "text/html": "<marimo-ui-element object-id='RGSE-0' random-id='18d38733-63a5-c62f-90d8-d08d0a46df80'><marimo-table data-initial-value='[]' data-label='null' data-data='&quot;./@file/1889-29159-WZ9m28Xq.json&quot;' data-total-rows='57' data-total-columns='10' data-banner-text='&quot;&quot;' data-pagination='true' data-page-size='10' data-field-types='[[&quot;group&quot;, [&quot;string&quot;, &quot;object&quot;]], [&quot;membership&quot;, [&quot;string&quot;, &quot;object&quot;]], [&quot;outcome&quot;, [&quot;string&quot;, &quot;object&quot;]], [&quot;ate&quot;, [&quot;number&quot;, &quot;float64&quot;]], [&quot;std_err&quot;, [&quot;number&quot;, &quot;float64&quot;]], [&quot;t_stat&quot;, [&quot;number&quot;, &quot;float64&quot;]], [&quot;pval&quot;, [&quot;number&quot;, &quot;float64&quot;]], [&quot;n&quot;, [&quot;integer&quot;, &quot;int64&quot;]], [&quot;n_treated&quot;, [&quot;integer&quot;, &quot;int64&quot;]], [&quot;n_control&quot;, [&quot;integer&quot;, &quot;int64&quot;]]]' data-show-filters='true' data-show-download='true' data-show-column-summaries='true' data-row-headers='[]' data-has-stable-row-id='false' data-lazy='false' data-preload='false'></marimo-table></marimo-ui-element>"
-          }
-        }
-      ],
+      "code_hash": "5c0f1f02837f2ee178b0986f0d643563",
+      "outputs": [],
       "console": []
     },
     {
       "id": "Kclp",
-      "code_hash": "46d9dfeca5bddff0e966605a73687869",
-      "outputs": [
-        {
-          "type": "data",
-          "data": {
-            "text/html": "<marimo-ui-element object-id='Kclp-0' random-id='799e9eeb-b8d8-756a-f436-914e330bf6e4'><marimo-table data-initial-value='[]' data-label='null' data-data='&quot;./@file/64-29159-YfC6lkvv.json&quot;' data-total-rows='1' data-total-columns='2' data-banner-text='&quot;&quot;' data-pagination='true' data-page-size='10' data-field-types='[[&quot;Treatment&quot;, [&quot;string&quot;, &quot;object&quot;]], [&quot;ATE&quot;, [&quot;number&quot;, &quot;float64&quot;]]]' data-show-filters='true' data-show-download='true' data-show-column-summaries='false' data-row-headers='[]' data-has-stable-row-id='false' data-lazy='false' data-preload='false'></marimo-table></marimo-ui-element>"
-          }
-        }
-      ],
+      "code_hash": "d8f17db86b490d378ec1c0d87aa061d8",
+      "outputs": [],
       "console": []
     },
     {
       "id": "emfo",
-      "code_hash": "f14573f167e4794995052af3a08fff41",
-      "outputs": [
-        {
-          "type": "data",
-          "data": {
-            "text/plain": ""
-          }
-        }
-      ],
-      "console": [
-        {
-          "type": "stream",
-          "name": "stdout",
-          "text": "ATE for X2_discrete, 2: 10.774964896621789\nATE for X2_discrete, 8: 26.442703362883172\n"
-        },
-        {
-          "type": "stream",
-          "name": "stdout",
-          "text": "ATE for X2_discrete, 1: 8.167108561610288\nATE for X2_discrete, 6: 21.25715100670107\n"
-        },
-        {
-          "type": "stream",
-          "name": "stdout",
-          "text": "ATE for X2_discrete, 10: 31.87135437893634\nATE for X2_discrete, 7: 23.90993686697122\n"
-        },
-        {
-          "type": "stream",
-          "name": "stdout",
-          "text": "ATE for X2_discrete, 5: 18.653973952157536\nATE for X2_discrete, 11: 34.29366650679788\n"
-        },
-        {
-          "type": "stream",
-          "name": "stdout",
-          "text": "ATE for X2_discrete, 4: 15.929850167897696\nATE for X2_discrete, 9: 29.10770841435493\n"
-        },
-        {
-          "type": "stream",
-          "name": "stdout",
-          "text": "ATE for X2_discrete, 3: 13.410260369855028\nATE for X2_discrete, 16: 47.480596471569406\nATE for X2_discrete, 29: 83.09992823957467\n"
-        },
-        {
-          "type": "stream",
-          "name": "stdout",
-          "text": "ATE for X2_discrete, 14: 42.49797007650412\nATE for X2_discrete, 19: 55.35660823946291\n"
-        },
-        {
-          "type": "stream",
-          "name": "stdout",
-          "text": "ATE for X2_discrete, 26: 74.66682227551136\nATE for X2_discrete, 13: 39.56928006182229\nATE for X2_discrete, 21: 60.62186112786872\n"
-        },
-        {
-          "type": "stream",
-          "name": "stdout",
-          "text": "ATE for X2_discrete, 17: 50.24749639617702\nATE for X2_discrete, 18: 52.73913729980129\nATE for X2_discrete, 15: 44.769924899762266\n"
-        },
-        {
-          "type": "stream",
-          "name": "stdout",
-          "text": "ATE for X2_discrete, 28: 79.32403704305172\nATE for X2_discrete, 12: 36.82854472772713\n"
-        },
-        {
-          "type": "stream",
-          "name": "stdout",
-          "text": "ATE for X2_discrete, 25: 71.2840167671855\nATE for X2_discrete, 22: 63.29348243019736\nATE for X2_discrete, 31: 88.39684420714883\n"
-        },
-        {
-          "type": "stream",
-          "name": "stdout",
-          "text": "ATE for X2_discrete, 20: 58.10432296519179\nATE for X2_discrete, 32: 88.82127106482615\nATE for X2_discrete, 23: 65.5603864609823\n"
-        },
-        {
-          "type": "stream",
-          "name": "stdout",
-          "text": "ATE for X2_discrete, 24: 68.26858742268612\nATE for X2_discrete, 27: 76.10813721498884\nATE for X2_discrete, 34: 94.51849967176047\n"
-        },
-        {
-          "type": "stream",
-          "name": "stdout",
-          "text": "ATE for X2_discrete, 43: 118.39976071839578\nATE for X2_discrete, 54: 146.2655432838169\nATE for X2_discrete, 47: 127.75232135821054\nATE for X2_discrete, 30: 84.5359359359167\n"
-        },
-        {
-          "type": "stream",
-          "name": "stdout",
-          "text": "ATE for X2_discrete, 37: 103.14396806566239\nATE for X2_discrete, 39: 107.09147993118955\nATE for X2_discrete, 38: 104.85768715382738\n"
-        },
-        {
-          "type": "stream",
-          "name": "stdout",
-          "text": "ATE for X2_discrete, 40: 110.01641098630336\nATE for X2_discrete, 33: 90.84964801357641\nATE for X2_discrete, 36: 98.77977546520368\n"
-        },
-        {
-          "type": "stream",
-          "name": "stdout",
-          "text": "ATE for X2_discrete, 35: 97.62920129867851\nATE for X2_discrete, 51: 136.82955284255186\nATE for X2_discrete, 42: 113.78770087372015\n"
-        },
-        {
-          "type": "stream",
-          "name": "stdout",
-          "text": "ATE for X2_discrete, 46: 123.41479954033916\nATE for X2_discrete, 41: 110.12668951040567\n"
-        },
-        {
-          "type": "stream",
-          "name": "stdout",
-          "text": "ATE for X2_discrete, 44: 120.96544655075084\n"
-        },
-        {
-          "type": "stream",
-          "name": "stdout",
-          "text": "ATE for X3_discrete, 0: 20.16708743639102\n"
-        },
-        {
-          "type": "stream",
-          "name": "stdout",
-          "text": "ATE for X3_discrete, 1: 19.10512954586333\n"
-        },
-        {
-          "type": "stream",
-          "name": "stdout",
-          "text": "ATE for X4_discrete, 0: 15.412231640484626\n"
-        },
-        {
-          "type": "stream",
-          "name": "stdout",
-          "text": "ATE for X4_discrete, 1: 17.909870854697743\n"
-        },
-        {
-          "type": "stream",
-          "name": "stdout",
-          "text": "ATE for X4_discrete, 4: 25.228177335914776\n"
-        },
-        {
-          "type": "stream",
-          "name": "stdout",
-          "text": "ATE for X4_discrete, 5: 27.90252457097681\n"
-        },
-        {
-          "type": "stream",
-          "name": "stdout",
-          "text": "ATE for X4_discrete, 3: 22.87514992431073\nATE for X4_discrete, 2: 20.83063556301795\n"
-        }
-      ]
+      "code_hash": "156bb8200d8f821b7db1641c4f38454b",
+      "outputs": [],
+      "console": []
     },
     {
       "id": "Hstk",
-      "code_hash": "6b21acc6ff23f6199a12afdee4d965d3",
+      "code_hash": "231392380998c8ce1175522f08ad7744",
       "outputs": [],
       "console": []
     },
     {
       "id": "nWHF",
-      "code_hash": "7d620a586511c3f38a8774478379cccd",
+      "code_hash": "53e61336bb49ec978968786b07dea50b",
       "outputs": [],
       "console": []
     },
     {
       "id": "iLit",
+      "code_hash": "2d46a4cccb19111f247b6b8090699b87",
+      "outputs": [],
+      "console": []
+    },
+    {
+      "id": "ZHCJ",
+      "code_hash": "7f6a792d8af863d4bbc2147c292c9e6f",
+      "outputs": [],
+      "console": []
+    },
+    {
+      "id": "ROlb",
+      "code_hash": "46d9dfeca5bddff0e966605a73687869",
+      "outputs": [],
+      "console": []
+    },
+    {
+      "id": "qnkX",
+      "code_hash": "f14573f167e4794995052af3a08fff41",
+      "outputs": [],
+      "console": []
+    },
+    {
+      "id": "TqIu",
+      "code_hash": "e159d1fa333605a84377977b951f46c0",
+      "outputs": [],
+      "console": []
+    },
+    {
+      "id": "Vxnm",
+      "code_hash": "7d620a586511c3f38a8774478379cccd",
+      "outputs": [],
+      "console": []
+    },
+    {
+      "id": "DnEU",
       "code_hash": null,
       "outputs": [],
       "console": []
     },
     {
-      "id": "jHcB",
-      "code_hash": "817438b7101a35cb2e4d349fffca3e2d",
+      "id": "xzeN",
+      "code_hash": "b78aec42248cdffa235c0ea06a068734",
       "outputs": [
         {
           "type": "data",
           "data": {
-            "text/html": "<marimo-ui-element object-id='jHcB-0' random-id='0536fa59-b17d-740d-baa1-609d24f143f1'><marimo-table data-initial-value='[]' data-label='null' data-data='&quot;./@file/187-29159-UyUkvA1Q.json&quot;' data-total-rows='1' data-total-columns='8' data-banner-text='&quot;&quot;' data-pagination='true' data-page-size='10' data-field-types='[[&quot;W1_continuous&quot;, [&quot;number&quot;, &quot;float64&quot;]], [&quot;X1_continuous&quot;, [&quot;number&quot;, &quot;float64&quot;]], [&quot;X2_discrete&quot;, [&quot;string&quot;, &quot;category&quot;]], [&quot;X3_discrete&quot;, [&quot;string&quot;, &quot;category&quot;]], [&quot;X4_discrete&quot;, [&quot;string&quot;, &quot;category&quot;]], [&quot;T1_binary&quot;, [&quot;integer&quot;, &quot;int64&quot;]], [&quot;Y1_continuous&quot;, [&quot;number&quot;, &quot;float64&quot;]], [&quot;cates&quot;, [&quot;number&quot;, &quot;float64&quot;]]]' data-show-filters='true' data-show-download='true' data-show-column-summaries='false' data-row-headers='[&quot;&quot;]' data-has-stable-row-id='false' data-lazy='false' data-preload='false'></marimo-table></marimo-ui-element>"
+            "text/plain": ""
           }
         }
       ],
-      "console": []
+      "console": [
+        {
+          "type": "stream",
+          "name": "stdout",
+          "text": "Help on function FastOLS in module caml.traditional.ols:\n\nFastOLS(Y: Collection[str], T: str, G: Optional[Collection[str]] = None, X: Optional[Collection[str]] = None, W: Optional[Collection[str]] = None, *, discrete_treatment: bool = False, engine: str = 'cpu')\n    FastOLS is a fast implementation of the OLS estimator designed specifically with treatment effect estimation in mind.\n    \n    **FastOLS is experimental and may change significantly in future versions.**\n    \n    This estimator estimates a standard linear regression model for any number of continuous or binary outcomes and a single continuous or binary treatment,\n    and provides estimates for the Average Treatment Effects (ATEs) and Group Average Treatment Effects (GATEs) out of the box. Additionally,\n    methods are provided for estimating & predicting Conditional Average Treatment Effects (CATEs) of individual observations. Custom GATEs\n    can also be estimated ad hoc.\n    \n    This class leverages JAX for fast numerical computations, which can be installed using `pip install caml[jax]`, defaulting to NumPy if JAX is not\n    available. For GPU acceleration, install JAX with GPU support using `pip install caml[jax-gpu]`.\n    \n    For outcome/treatment support, see [matrix](support_matrix.qmd).\n    \n    ## Model Specification\n    \n    The model is given by:\n    $$\n    \\begin{equation}\n    \\mathbf{Y} = T \\beta + \\mathbf{Q}\\mathbf{\\Gamma} + \\left(T \\times \\mathbf{Q}\\right)\\mathbf{\\Omega} + \\mathbf{W}\\mathbf{\\Psi} + \\mathbf{E}\n    \\tag{1}\n    \\end{equation}\n    $$\n    \n    where $\\mathbf{Y}_{n \\times p}$ is the matrix of $p$ outcomes, $T_{n \\times 1}$ is the treatment variable,\n    $\\mathbf{Q}_{n \\times (j+l)} = \\bigl[\\mathbf{X} \\; \\mathbf{G} \\bigr]$ is the horizontal stack matrix of $j$ covariates and $l$ group variables,\n    $\\mathbf{W}_{n \\times m}$ is the matrix of $m$ control covariates, $\\beta_{1 \\times p}$ is the vector of coefficients on $T$,\n    $\\mathbf{\\Gamma}_{(j+l) \\times p}$ is the matrix of coefficients on $\\mathbf{Q}$, $\\mathbf{\\Omega}_{(j+l) \\times p}$ is the matrix\n    of coefficients on the interaction terms between $T$ and $\\mathbf{Q}$, $\\mathbf{\\Psi}_{m \\times p}$ is the matrix of\n    coefficients on $\\mathbf{W}$, and $\\mathbf{E}_{n \\times p}$ is the error term matrix.\n    \n    $\\mathbf{Q}$ contains the covariates and group variables used to model treatment effect heterogeneity via interaction terms.\n    \n    ### Treatment Effect Estimation & Inference\n    Our average treatment effect (ATE) $\\tau$ is defined as:\n    \n    $$\n    \\tau = \\mathbb{E}_n\\left[\\mathbb{E}\\left[\\mathbf{Y} \\mid T = 1\\right] - \\mathbb{E}\\left[\\mathbf{Y} \\mid T = 0\\right]\\right]\n    $$\n    \n    Let $D$ denote the design matrix for (1), then assuming exogeneity in $T$, the ATEs are identified and can be estimated as follows:\n    $$\n    \\tau = \\mathbf{\\Theta'}\\bar{d}\n    $$\n    \n    where $\\mathbf{\\Theta'} = \\left[\\beta' \\; \\mathbf{\\Gamma'} \\; \\mathbf{\\Omega'} \\; \\mathbf{\\Psi'}\\right]$ is\n    the $\\left(p \\times (1+(j+l)+(j+l)+m)\\right)$ horizontally concatenated matrix of transposed coefficient matrices, and\n    $\\bar{d} = \\mathbb{E}_n\\left[D_{T=1} - D_{T=0}\\right]$ is a $((1+(j+l)+(j+l)+m) \\times 1)$ vector.\n    \n    Furthermore, for each outcome $k \\in \\{1,2,...,p\\}$, we can estimate the standard error of the ATE as follows:\n    $$\n    \\text{SE}(\\tau_k) = \\sqrt{\\bar{d}'\\text{VCV}(\\mathbf{\\Theta}_k)\\bar{d}}\n    $$\n    \n    where $\\text{VCV}(\\mathbf{\\Theta}_k)$ is the variance-covariance matrix of the estimated coefficients for the $k$-th outcome.\n    \n    \n    Parameters\n    ----------\n    Y : Collection[str]\n        A list of outcome variable names.\n    T : str\n        The treatment variable name.\n    G : Collection[str] | None\n        A list of group variable names, by default None. These will be the groups for which GATEs will be estimated.\n    X : Collection[str] | None\n        A list of covariate variable names, by default None. These will be the covariates for which heterogeneity/CATEs can be estimated.\n    W : Collection[str] | None\n        A list of additional covariate variable names to be used as controls, by default None. These will be the additional covariates not used for modeling heterogeneity/CATEs.\n    discrete_treatment : bool\n        Whether the treatment is discrete, by default False\n    engine : str\n        The engine to use for computation, by default \"cpu\". Can be \"cpu\" or \"gpu\". Note \"gpu\" requires JAX to be installed, which can be installed\n        via `pip install caml[jax-gpu]`.\n    \n    Attributes\n    ----------\n    Y : Collection[str]\n        A list of outcome variable names.\n    T : str\n        The treatment variable name.\n    G : Collection[str] | None\n        The list of group variable names, by default None. These will be the groups for which GATEs will be estimated.\n    X : Collection[str] | None\n        The list of variable names representing the confounder/control feature set to be utilized for estimating heterogeneity/CATEs, that are in addition to G.\n    W : Collection[str] | None\n        The list of variable names representing the confounder/control feature **not** utilized for estimating heterogeneity/CATEs.\n    discrete_treatment : bool\n        Whether the treatment is discrete, by default True\n    engine : str\n        The engine to use for computation, by default \"cpu\". Can be \"cpu\" or \"gpu\". Note \"gpu\" requires JAX to be installed, which can be installed\n        via `pip install caml[jax-gpu]`\n    formula : str\n        The formula leveraged for design matrix creation via Patsy.\n    results : dict\n        A dictionary containing the results of the fitted model & estimated ATEs/GATEs.\n\n"
+        }
+      ]
     }
   ]
 }

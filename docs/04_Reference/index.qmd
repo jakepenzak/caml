@@ -14,7 +14,7 @@
 
 | | |
 | --- | --- |
-| [FastOLS](FastOLS.qmd#caml.FastOLS) | FastOLS is a fast implementation of the Least Squares estimator designed specifically with Causal Inference in mind. |
+| [FastOLS](FastOLS.qmd#caml.FastOLS) | FastOLS is a fast implementation of the OLS estimator designed specifically with treatment effect estimation in mind. |
 
 ## Synthetic Data Generation
 

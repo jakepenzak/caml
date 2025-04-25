@@ -30,7 +30,7 @@ class CamlSyntheticDataGenerator:
     $$
 
     where $\mathbf{Y_i}$ are the outcome(s), $\mathbf{T_i}$ are the treatment(s), $\mathbf{X_i}$ are the effect modifiers (leveraged for treatment effect heterogeneity)
-    with an optional random subset $\mathcal{S}$ selected as confounders, $\mathbf{W_i}$ are the confounders, $\mathbf{\epsilon_i}$ and $mathbf{\eta_i}$ are the error terms drawn from
+    with an optional random subset $\mathcal{S}$ selected as confounders, $\mathbf{W_i}$ are the confounders, $\mathbf{\epsilon_i}$ and $\mathbf{\eta_i}$ are the error terms drawn from
     normal distributions with optional specified standard deviation, $\tau$ is the CATE function, $g$ is the linearly seperable/nuisance component of the outcome function,
     and $f$ is the treatment function. Note in the case of no modifier variables, we obtain a purely partially linear model, with $\tau$ as a constant.
 
@@ -154,7 +154,7 @@ class CamlSyntheticDataGenerator:
     ):
         if causal_model_functional_form not in ["linear", "nonlinear"]:
             raise ValueError(
-                f"Invalid functional form. Must be choice of {['linear','nonlinear']}"
+                f"Invalid functional form. Must be choice of {['linear', 'nonlinear']}"
             )
         if n_cont_outcomes + n_binary_outcomes == 0:
             raise ValueError("At least one outcome variable type must be specified.")
