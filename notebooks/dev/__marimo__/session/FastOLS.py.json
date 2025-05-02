@@ -45,13 +45,13 @@
         {
           "type": "stream",
           "name": "stdout",
-          "text": "[04/25/25 12:02:41] DEBUG    Logging configured with level: DEBUG                                                                                     logging.py:70\n"
+          "text": "[05/01/25 23:28:30] DEBUG    Logging configured with level: DEBUG                                                                                                                                     logging.py:70\n"
         }
       ]
     },
     {
       "id": "bkHC",
-      "code_hash": "1e2204d81f04d4957d94b945925dcb21",
+      "code_hash": "f8c9971db400edd40561426ff46d7833",
       "outputs": [
         {
           "type": "data",
@@ -60,22 +60,16 @@
           }
         }
       ],
-      "console": [
-        {
-          "type": "stream",
-          "name": "stdout",
-          "text": "                    WARNING  CamlSyntheticDataGenerator is experimental and may change in future versions.                                          _generics.py:41\n"
-        }
-      ]
+      "console": []
     },
     {
       "id": "lEQa",
-      "code_hash": "8bbd05c1ca4cf6a5b9b4910e7fe0fc45",
+      "code_hash": "bce1da1ec21ff2ff0b2428b6b824d654",
       "outputs": [
         {
           "type": "data",
           "data": {
-            "text/html": "<marimo-ui-element object-id='lEQa-0' random-id='1caba67c-1b17-5391-7420-48328d32a787'><marimo-table data-initial-value='[]' data-label='null' data-data='&quot;./@file/1775-26020-YdZurFOm.json&quot;' data-total-rows='100000' data-total-columns='8' data-banner-text='&quot;&quot;' data-pagination='true' data-page-size='10' data-field-types='[[&quot;W1_continuous&quot;, [&quot;number&quot;, &quot;float64&quot;]], [&quot;X1_continuous&quot;, [&quot;number&quot;, &quot;float64&quot;]], [&quot;X2_binary&quot;, [&quot;integer&quot;, &quot;int64&quot;]], [&quot;X3_binary&quot;, [&quot;integer&quot;, &quot;int64&quot;]], [&quot;X4_discrete&quot;, [&quot;integer&quot;, &quot;int64&quot;]], [&quot;T1_binary&quot;, [&quot;integer&quot;, &quot;int64&quot;]], [&quot;Y1_continuous&quot;, [&quot;number&quot;, &quot;float64&quot;]], [&quot;Y2_continuous&quot;, [&quot;number&quot;, &quot;float64&quot;]]]' data-show-filters='true' data-show-download='true' data-show-column-summaries='true' data-row-headers='[]' data-has-stable-row-id='false' data-lazy='false' data-preload='false'></marimo-table></marimo-ui-element>"
+            "text/html": "<marimo-ui-element object-id='lEQa-0' random-id='ede8509e-02ed-2a95-9f7f-91be56b3bf51'><marimo-table data-initial-value='[]' data-label='null' data-data='&quot;./@file/1710-31013-QUFlDwqn.json&quot;' data-total-rows='100000' data-total-columns='8' data-banner-text='&quot;&quot;' data-pagination='true' data-page-size='10' data-field-types='[[&quot;W1_continuous&quot;, [&quot;number&quot;, &quot;float64&quot;]], [&quot;X1_continuous&quot;, [&quot;number&quot;, &quot;float64&quot;]], [&quot;X2_binary&quot;, [&quot;integer&quot;, &quot;int64&quot;]], [&quot;X3_binary&quot;, [&quot;integer&quot;, &quot;int64&quot;]], [&quot;X4_discrete&quot;, [&quot;integer&quot;, &quot;int64&quot;]], [&quot;T1_binary&quot;, [&quot;integer&quot;, &quot;int64&quot;]], [&quot;Y1_continuous&quot;, [&quot;number&quot;, &quot;float64&quot;]], [&quot;cates&quot;, [&quot;number&quot;, &quot;float64&quot;]]]' data-show-filters='true' data-show-download='true' data-show-column-summaries='true' data-row-headers='[]' data-has-stable-row-id='false' data-lazy='false' data-preload='false'></marimo-table></marimo-ui-element>"
           }
         }
       ],
@@ -96,7 +90,7 @@
     },
     {
       "id": "Xref",
-      "code_hash": "8f9b6689fd44aaf9a2ae24d9ddbd670e",
+      "code_hash": "f3799d529f136967f7f631e21282311e",
       "outputs": [
         {
           "type": "data",
@@ -109,97 +103,160 @@
         {
           "type": "stream",
           "name": "stdout",
-          "text": "                    WARNING  FastOLS is experimental and may change in future versions.                                                             _generics.py:41\n                    DEBUG    Initializing FastOLS with parameters: Y=['Y1_continuous', 'Y2_continuous'], T=T1_binary, G=['X2_binary', 'X3_binary',       ols.py:139\n                             'X4_discrete'], X=['X1_continuous'], W=['W1_continuous'], discrete_treatment=True, engine=cpu                                         \n                    DEBUG    Created formula: Y1_continuous + Y2_continuous ~ C(T1_binary) + C(X2_binary)*C(T1_binary) + C(X3_binary)*C(T1_binary) +     ols.py:169\n                             C(X4_discrete)*C(T1_binary) + X1_continuous*C(T1_binary) + W1_continuous                                                              \n"
+          "text": "[05/01/25 23:28:31] DEBUG    Initializing FastOLS with parameters: Y=['Y1_continuous'], T=T1_binary, G=['X2_binary', 'X3_binary', 'X4_discrete'], X=['X1_continuous'], W=['W1_continuous'],              ols.py:123\n                             discrete_treatment=True, engine=gpu                                                                                                                                                   \n                    WARNING  No available GPU detected, falling back to CPU                                                                                                                              ols.py:146\n                    DEBUG    Created formula: Y1_continuous ~ C(T1_binary) + C(X2_binary)*C(T1_binary) + C(X3_binary)*C(T1_binary) + C(X4_discrete)*C(T1_binary) + X1_continuous*C(T1_binary) +          ols.py:153\n                             W1_continuous                                                                                                                                                                         \n"
         }
       ]
     },
     {
       "id": "SFPL",
-      "code_hash": "523c5c0f09c2ec95cea11e083ba5880a",
+      "code_hash": "f15950649de7cc39f7ada18c0b8e8caf",
       "outputs": [],
       "console": []
     },
     {
       "id": "BYtC",
-      "code_hash": "b44bb118b90c1db3ed8743d2dfa4ce45",
-      "outputs": [],
-      "console": []
+      "code_hash": "64d7c295bbd22f8765f8d07c5cbaad33",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "application/json": "{\"params\": \"text/plain:[[ 0.14766223]\\n [-2.26868396]\\n [ 2.10751885]\\n [-0.46902164]\\n [-2.71718152]\\n [-5.93792399]\\n [-8.72354977]\\n [-2.37015574]\\n [-1.30817056]\\n [-3.03536399]\\n [-5.97267161]\\n [-9.13893175]\\n [-1.47028793]\\n [ 0.0096943 ]\\n [-0.41998694]]\", \"vcv\": \"text/plain:[[[ 5.58288808e-02 -5.22362557e-02 -3.34763784e-03 -1.51689598e-02\\n   -1.04218770e-02 -1.04800048e-02 -1.03693310e-02  3.32202245e-03\\n    1.51868995e-02  1.04232495e-02  1.04407380e-02  1.03800234e-02\\n    1.26866006e-02 -1.26911302e-02 -7.85192967e-03]\\n  [-5.22362557e-02  1.01981346e-01  3.37078002e-03  1.51789430e-02\\n    1.04099394e-02  1.05195649e-02  1.03606341e-02 -6.62886210e-03\\n   -2.95457493e-02 -2.00902482e-02 -2.01415980e-02 -2.02099097e-02\\n   -1.26920711e-02  2.47860111e-02 -1.19711618e-04]\\n  [-3.34763784e-03  3.37078002e-03  8.72799931e-03  5.00259807e-05\\n   -4.46239377e-05  1.24858436e-05  3.91015341e-05 -8.72816431e-03\\n   -4.99104201e-05  4.46327787e-05 -1.27387837e-05 -3.90326580e-05\\n    1.08018955e-05 -1.08310732e-05 -5.05788361e-05]\\n  [-1.51689598e-02  1.51789430e-02  5.00259807e-05  1.74871812e-02\\n    2.98227040e-05  1.06183875e-04  1.64441127e-04 -5.00971611e-05\\n   -1.74871313e-02 -2.98188901e-05 -1.06292990e-04 -1.64411415e-04\\n   -2.74735670e-07  2.62148761e-07 -2.18190515e-05]\\n  [-1.04218770e-02  1.04099394e-02 -4.46239377e-05  2.98227040e-05\\n    1.48359917e-02  1.04490120e-02  1.04495147e-02  4.47090526e-05\\n   -2.98823144e-05 -1.48359963e-02 -1.04488815e-02 -1.04495502e-02\\n    2.20917882e-05 -2.20767372e-05  2.60904191e-05]\\n  [-1.04800048e-02  1.05195649e-02  1.24858436e-05  1.06183875e-04\\n    1.04490120e-02  6.29792904e-02  1.04501700e-02 -1.27679069e-05\\n   -1.05986332e-04 -1.04489969e-02 -6.29797228e-02 -1.04500522e-02\\n    1.22921289e-05 -1.23420065e-05 -8.64613427e-05]\\n  [-1.03693310e-02  1.03606341e-02  3.91015341e-05  1.64441127e-04\\n    1.04495147e-02  1.04501700e-02  1.75321350e-02 -3.90395259e-05\\n   -1.64484554e-04 -1.04495180e-02 -1.04500749e-02 -1.75321609e-02\\n    1.13919872e-04 -1.13908907e-04  1.90074851e-05]\\n  [ 3.32202245e-03 -6.62886210e-03 -8.72816431e-03 -5.00971611e-05\\n    4.47090526e-05 -1.27679069e-05 -3.90395259e-05  1.69745451e-02\\n    1.19529221e-05 -2.89815719e-06  6.30817855e-05  6.43899647e-05\\n   -1.07628908e-05 -2.91745020e-05  1.07416569e-04]\\n  [ 1.51868995e-02 -2.95457493e-02 -4.99104201e-05 -1.74871313e-02\\n   -2.98823144e-05 -1.05986332e-04 -1.64484554e-04  1.19529221e-05\\n    3.41852829e-02 -6.10153749e-05 -6.77264176e-05  1.25436591e-04\\n    2.47418703e-07 -1.29077966e-06 -1.79873657e-05]\\n  [ 1.04232495e-02 -2.00902482e-02  4.46327787e-05 -2.98188901e-05\\n   -1.48359963e-02 -1.04489969e-02 -1.04495180e-02 -2.89815719e-06\\n   -6.10153749e-05  2.88437396e-02  2.02938340e-02  2.02932146e-02\\n   -2.20938781e-05  6.87163866e-05 -2.91358067e-05]\\n  [ 1.04407380e-02 -2.01415980e-02 -1.27387837e-05 -1.06292990e-04\\n   -1.04488815e-02 -6.29797228e-02 -1.04500749e-02  6.30817855e-05\\n   -6.77264176e-05  2.02938340e-02  1.21674770e-01  2.02937233e-02\\n   -1.22323373e-05  5.47020025e-05  1.73589991e-04]\\n  [ 1.03800234e-02 -2.02099097e-02 -3.90326580e-05 -1.64411415e-04\\n   -1.04495502e-02 -1.04500522e-02 -1.75321609e-02  6.43899647e-05\\n    1.25436591e-04  2.02932146e-02  2.02937233e-02  3.40445100e-02\\n   -1.13936153e-04  1.00183642e-04 -4.27328160e-05]\\n  [ 1.26866006e-02 -1.26920711e-02  1.08018955e-05 -2.74735670e-07\\n    2.20917882e-05  1.22921289e-05  1.13919872e-04 -1.07628908e-05\\n    2.47418703e-07 -2.20938781e-05 -1.22323373e-05 -1.13936153e-04\\n    5.88318804e-03 -5.88318114e-03  1.19561574e-05]\\n  [-1.26911302e-02  2.47860111e-02 -1.08310732e-05  2.62148761e-07\\n   -2.20767372e-05 -1.23420065e-05 -1.13908907e-04 -2.91745020e-05\\n   -1.29077966e-06  6.87163866e-05  5.47020025e-05  1.00183642e-04\\n   -5.88318114e-03  1.14563071e-02 -1.90547727e-06]\\n  [-7.85192967e-03 -1.19711618e-04 -5.05788361e-05 -2.18190515e-05\\n    2.60904191e-05 -8.64613427e-05  1.90074851e-05  1.07416569e-04\\n   -1.79873657e-05 -2.91358067e-05  1.73589991e-04 -4.27328160e-05\\n    1.19561574e-05 -1.90547727e-06  1.74225711e-02]]]\", \"std_err\": \"text/plain:[[0.23628136 0.31934518 0.09342376 0.13223911 0.12180309 0.25095675\\n  0.13240897 0.1302864  0.18489263 0.16983445 0.34881911 0.18451154\\n  0.07670194 0.10703414 0.13199459]]\", \"treatment_effects\": {\"overall-\": {\"outcome\": [\"Y1_continuous\"], \"ate\": \"text/plain:[[-8.66730825]]\", \"std_err\": \"text/plain:[[0.06339852]]\", \"t_stat\": \"text/plain:[[-136.71152697]]\", \"pval\": \"text/plain:[[0.]]\", \"n\": 100000, \"n_treated\": 51418, \"n_control\": 48582}, \"X2_binary-0\": {\"outcome\": [\"Y1_continuous\"], \"ate\": \"text/plain:[[-7.76374706]]\", \"std_err\": \"text/plain:[[0.08084227]]\", \"t_stat\": \"text/plain:[[-96.03573666]]\", \"pval\": \"text/plain:[[0.]]\", \"n\": 61503, \"n_treated\": 31623, \"n_control\": 29880}, \"X2_binary-1\": {\"outcome\": [\"Y1_continuous\"], \"ate\": \"text/plain:[[-10.11084214]]\", \"std_err\": \"text/plain:[[0.10217287]]\", \"t_stat\": \"text/plain:[[-98.95818532]]\", \"pval\": \"text/plain:[[0.]]\", \"n\": 38497, \"n_treated\": 19795, \"n_control\": 18702}, \"X3_binary-1\": {\"outcome\": [\"Y1_continuous\"], \"ate\": \"text/plain:[[-8.83848363]]\", \"std_err\": \"text/plain:[[0.06820894]]\", \"t_stat\": \"text/plain:[[-129.57954116]]\", \"pval\": \"text/plain:[[0.]]\", \"n\": 86396, \"n_treated\": 44466, \"n_control\": 41930}, \"X3_binary-0\": {\"outcome\": [\"Y1_continuous\"], \"ate\": \"text/plain:[[-7.58021125]]\", \"std_err\": \"text/plain:[[0.17184903]]\", \"t_stat\": \"text/plain:[[-44.10971301]]\", \"pval\": \"text/plain:[[0.]]\", \"n\": 13604, \"n_treated\": 6952, \"n_control\": 6652}, \"X4_discrete-3\": {\"outcome\": [\"Y1_continuous\"], \"ate\": \"text/plain:[[-13.461127]]\", \"std_err\": \"text/plain:[[0.11725957]]\", \"t_stat\": \"text/plain:[[-114.7976807]]\", \"pval\": \"text/plain:[[0.]]\", \"n\": 29233, \"n_treated\": 15053, \"n_control\": 14180}, \"X4_discrete-1\": {\"outcome\": [\"Y1_continuous\"], \"ate\": \"text/plain:[[-7.37300489]]\", \"std_err\": \"text/plain:[[0.09247338]]\", \"t_stat\": \"text/plain:[[-79.73110369]]\", \"pval\": \"text/plain:[[0.]]\", \"n\": 46996, \"n_treated\": 24112, \"n_control\": 22884}, \"X4_discrete-0\": {\"outcome\": [\"Y1_continuous\"], \"ate\": \"text/plain:[[-4.33531951]]\", \"std_err\": \"text/plain:[[0.14245517]]\", \"t_stat\": \"text/plain:[[-30.4328686]]\", \"pval\": \"text/plain:[[0.]]\", \"n\": 19805, \"n_treated\": 10198, \"n_control\": 9607}, \"X4_discrete-2\": {\"outcome\": [\"Y1_continuous\"], \"ate\": \"text/plain:[[-10.30230939]]\", \"std_err\": \"text/plain:[[0.31840152]]\", \"t_stat\": \"text/plain:[[-32.35634505]]\", \"pval\": \"text/plain:[[0.]]\", \"n\": 3966, \"n_treated\": 2055, \"n_control\": 1911}}}"
+          }
+        }
+      ],
+      "console": [
+        {
+          "type": "stream",
+          "name": "stdout",
+          "text": "                    DEBUG    Creating model matrix...                                                                                                                                                    ols.py:495\n"
+        },
+        {
+          "type": "stream",
+          "name": "stdout",
+          "text": "[05/01/25 23:28:33] DEBUG    Design Matrix Creation completed in 2.21 seconds                                                                                                                       _generics.py:73\n                    INFO     Fitting regression model...                                                                                                                                                 ols.py:439\n"
+        },
+        {
+          "type": "stream",
+          "name": "stdout",
+          "text": "[05/01/25 23:28:34] DEBUG    Model Fitting completed in 0.74 seconds                                                                                                                                _generics.py:73\n                    DEBUG    Creating treatment difference matrix...                                                                                                                                     ols.py:469\n"
+        },
+        {
+          "type": "stream",
+          "name": "stdout",
+          "text": "[05/01/25 23:28:37] DEBUG    Design Matrix Creation completed in 2.63 seconds                                                                                                                       _generics.py:73\n                    INFO     Estimating Average Treatment Effects (ATEs)...                                                                                                                              ols.py:261\n"
+        },
+        {
+          "type": "stream",
+          "name": "stdout",
+          "text": "                    DEBUG    ATE Estimation completed in 0.31 seconds                                                                                                                               _generics.py:73\n                    INFO     Estimating Group Average Treatment Effects (GATEs)...                                                                                                                       ols.py:562\n"
+        },
+        {
+          "type": "stream",
+          "name": "stdout",
+          "text": "                    DEBUG    Starting parallel processing with -1 jobs                                                                                                                                   ols.py:593\n"
+        },
+        {
+          "type": "stream",
+          "name": "stdout",
+          "text": "[05/01/25 23:28:41] DEBUG    Prespecified GATE Estimation completed in 3.87 seconds                                                                                                                 _generics.py:73\n"
+        }
+      ]
     },
     {
       "id": "RGSE",
-      "code_hash": "5c0f1f02837f2ee178b0986f0d643563",
-      "outputs": [],
-      "console": []
+      "code_hash": "4d3f7981f4bf0d03d442124be96773f7",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "application/json": "{\"outcome\": [\"Y1_continuous\"], \"cate\": \"text/plain:[[-12.73037977]\\n [ -9.00570742]\\n [-12.73873086]\\n ...\\n [-15.11125284]\\n [ -8.9997673 ]\\n [-12.7296099 ]]\", \"std_err\": \"text/plain:[[0.14829129]\\n [0.12735982]\\n [0.13164668]\\n ...\\n [0.15206538]\\n [0.13096528]\\n [0.15256425]]\", \"t_stat\": \"text/plain:[[-85.8471156 ]\\n [-70.71074043]\\n [-96.76454242]\\n ...\\n [-99.37339602]\\n [-68.71872827]\\n [-83.43769593]]\", \"pval\": \"text/plain:[[0.]\\n [0.]\\n [0.]\\n ...\\n [0.]\\n [0.]\\n [0.]]\"}"
+          }
+        }
+      ],
+      "console": [
+        {
+          "type": "stream",
+          "name": "stdout",
+          "text": "                    INFO     Estimating Conditional Average Treatment Effects (CATEs)...                                                                                                                 ols.py:321\n                    DEBUG    Creating treatment difference matrix...                                                                                                                                     ols.py:469\n"
+        },
+        {
+          "type": "stream",
+          "name": "stdout",
+          "text": "[05/01/25 23:28:43] DEBUG    Design Matrix Creation completed in 2.29 seconds                                                                                                                       _generics.py:73\n"
+        },
+        {
+          "type": "stream",
+          "name": "stdout",
+          "text": "[05/01/25 23:28:45] DEBUG    CATE Estimation completed in 3.91 seconds                                                                                                                              _generics.py:73\n"
+        }
+      ]
     },
     {
       "id": "Kclp",
-      "code_hash": "d8f17db86b490d378ec1c0d87aa061d8",
-      "outputs": [],
-      "console": []
+      "code_hash": "41b2e9792f6716cad4d58d16881c7620",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/html": "<pre style='font-size: 12px'>Array([[-12.73037977],\n       [ -9.00570742],\n       [-12.73873086],\n       ...,\n       [-15.11125284],\n       [ -8.9997673 ],\n       [-12.7296099 ]], dtype=float64)</pre>"
+          }
+        }
+      ],
+      "console": [
+        {
+          "type": "stream",
+          "name": "stdout",
+          "text": "                    INFO     Estimating Conditional Average Treatment Effects (CATEs)...                                                                                                                 ols.py:321\n                    DEBUG    Creating treatment difference matrix...                                                                                                                                     ols.py:469\n"
+        },
+        {
+          "type": "stream",
+          "name": "stdout",
+          "text": "[05/01/25 23:28:47] DEBUG    Design Matrix Creation completed in 1.92 seconds                                                                                                                       _generics.py:73\n                    DEBUG    CATE Estimation completed in 1.94 seconds                                                                                                                              _generics.py:73\n"
+        }
+      ]
     },
     {
       "id": "emfo",
-      "code_hash": "156bb8200d8f821b7db1641c4f38454b",
-      "outputs": [],
+      "code_hash": "09b78cbf83355d97c6f09e87237c5632",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/html": "<marimo-ui-element object-id='emfo-0' random-id='72e397a1-88c3-aebc-ec88-c2c9085ed267'><marimo-table data-initial-value='[]' data-label='null' data-data='&quot;./@file/535-31013-IX3pdccx.json&quot;' data-total-rows='100000' data-total-columns='1' data-banner-text='&quot;&quot;' data-pagination='true' data-page-size='10' data-field-types='[[&quot;CATE_of_T1_binary_on_Y1_continuous&quot;, [&quot;number&quot;, &quot;float64&quot;]]]' data-show-filters='true' data-show-download='true' data-show-column-summaries='true' data-row-headers='[]' data-has-stable-row-id='false' data-lazy='false' data-preload='false'></marimo-table></marimo-ui-element>"
+          }
+        }
+      ],
       "console": []
     },
     {
       "id": "Hstk",
-      "code_hash": "231392380998c8ce1175522f08ad7744",
-      "outputs": [],
+      "code_hash": "7f6a792d8af863d4bbc2147c292c9e6f",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/html": "<marimo-ui-element object-id='Hstk-0' random-id='479ad1e8-270b-063e-332a-07069cd38819'><marimo-table data-initial-value='[]' data-label='null' data-data='&quot;./@file/1707-31013-y5qSvJMY.json&quot;' data-total-rows='9' data-total-columns='10' data-banner-text='&quot;&quot;' data-pagination='true' data-page-size='10' data-field-types='[[&quot;group&quot;, [&quot;string&quot;, &quot;object&quot;]], [&quot;membership&quot;, [&quot;string&quot;, &quot;object&quot;]], [&quot;outcome&quot;, [&quot;string&quot;, &quot;object&quot;]], [&quot;ate&quot;, [&quot;number&quot;, &quot;float64&quot;]], [&quot;std_err&quot;, [&quot;number&quot;, &quot;float64&quot;]], [&quot;t_stat&quot;, [&quot;number&quot;, &quot;float64&quot;]], [&quot;pval&quot;, [&quot;number&quot;, &quot;float64&quot;]], [&quot;n&quot;, [&quot;integer&quot;, &quot;int64&quot;]], [&quot;n_treated&quot;, [&quot;integer&quot;, &quot;int64&quot;]], [&quot;n_control&quot;, [&quot;integer&quot;, &quot;int64&quot;]]]' data-show-filters='true' data-show-download='true' data-show-column-summaries='false' data-row-headers='[]' data-has-stable-row-id='false' data-lazy='false' data-preload='false'></marimo-table></marimo-ui-element>"
+          }
+        }
+      ],
       "console": []
     },
     {
       "id": "nWHF",
-      "code_hash": "53e61336bb49ec978968786b07dea50b",
-      "outputs": [],
+      "code_hash": "46d9dfeca5bddff0e966605a73687869",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/html": "<marimo-ui-element object-id='nWHF-0' random-id='6e730e55-ef34-7630-642d-3fd6183ed911'><marimo-table data-initial-value='[]' data-label='null' data-data='&quot;./@file/64-31013-1aBWSCbc.json&quot;' data-total-rows='1' data-total-columns='2' data-banner-text='&quot;&quot;' data-pagination='true' data-page-size='10' data-field-types='[[&quot;Treatment&quot;, [&quot;string&quot;, &quot;object&quot;]], [&quot;ATE&quot;, [&quot;number&quot;, &quot;float64&quot;]]]' data-show-filters='true' data-show-download='true' data-show-column-summaries='false' data-row-headers='[]' data-has-stable-row-id='false' data-lazy='false' data-preload='false'></marimo-table></marimo-ui-element>"
+          }
+        }
+      ],
       "console": []
     },
     {
       "id": "iLit",
-      "code_hash": "2d46a4cccb19111f247b6b8090699b87",
-      "outputs": [],
-      "console": []
-    },
-    {
-      "id": "ZHCJ",
-      "code_hash": "7f6a792d8af863d4bbc2147c292c9e6f",
-      "outputs": [],
-      "console": []
-    },
-    {
-      "id": "ROlb",
-      "code_hash": "46d9dfeca5bddff0e966605a73687869",
-      "outputs": [],
-      "console": []
-    },
-    {
-      "id": "qnkX",
       "code_hash": "f14573f167e4794995052af3a08fff41",
-      "outputs": [],
-      "console": []
-    },
-    {
-      "id": "TqIu",
-      "code_hash": "e159d1fa333605a84377977b951f46c0",
-      "outputs": [],
-      "console": []
-    },
-    {
-      "id": "Vxnm",
-      "code_hash": "7d620a586511c3f38a8774478379cccd",
-      "outputs": [],
-      "console": []
-    },
-    {
-      "id": "DnEU",
-      "code_hash": null,
-      "outputs": [],
-      "console": []
-    },
-    {
-      "id": "xzeN",
-      "code_hash": "b78aec42248cdffa235c0ea06a068734",
       "outputs": [
         {
           "type": "data",
@@ -212,9 +269,100 @@
         {
           "type": "stream",
           "name": "stdout",
-          "text": "Help on function FastOLS in module caml.traditional.ols:\n\nFastOLS(Y: Collection[str], T: str, G: Optional[Collection[str]] = None, X: Optional[Collection[str]] = None, W: Optional[Collection[str]] = None, *, discrete_treatment: bool = False, engine: str = 'cpu')\n    FastOLS is a fast implementation of the OLS estimator designed specifically with treatment effect estimation in mind.\n    \n    **FastOLS is experimental and may change significantly in future versions.**\n    \n    This estimator estimates a standard linear regression model for any number of continuous or binary outcomes and a single continuous or binary treatment,\n    and provides estimates for the Average Treatment Effects (ATEs) and Group Average Treatment Effects (GATEs) out of the box. Additionally,\n    methods are provided for estimating & predicting Conditional Average Treatment Effects (CATEs) of individual observations. Custom GATEs\n    can also be estimated ad hoc.\n    \n    This class leverages JAX for fast numerical computations, which can be installed using `pip install caml[jax]`, defaulting to NumPy if JAX is not\n    available. For GPU acceleration, install JAX with GPU support using `pip install caml[jax-gpu]`.\n    \n    For outcome/treatment support, see [matrix](support_matrix.qmd).\n    \n    ## Model Specification\n    \n    The model is given by:\n    $$\n    \\begin{equation}\n    \\mathbf{Y} = T \\beta + \\mathbf{Q}\\mathbf{\\Gamma} + \\left(T \\times \\mathbf{Q}\\right)\\mathbf{\\Omega} + \\mathbf{W}\\mathbf{\\Psi} + \\mathbf{E}\n    \\tag{1}\n    \\end{equation}\n    $$\n    \n    where $\\mathbf{Y}_{n \\times p}$ is the matrix of $p$ outcomes, $T_{n \\times 1}$ is the treatment variable,\n    $\\mathbf{Q}_{n \\times (j+l)} = \\bigl[\\mathbf{X} \\; \\mathbf{G} \\bigr]$ is the horizontal stack matrix of $j$ covariates and $l$ group variables,\n    $\\mathbf{W}_{n \\times m}$ is the matrix of $m$ control covariates, $\\beta_{1 \\times p}$ is the vector of coefficients on $T$,\n    $\\mathbf{\\Gamma}_{(j+l) \\times p}$ is the matrix of coefficients on $\\mathbf{Q}$, $\\mathbf{\\Omega}_{(j+l) \\times p}$ is the matrix\n    of coefficients on the interaction terms between $T$ and $\\mathbf{Q}$, $\\mathbf{\\Psi}_{m \\times p}$ is the matrix of\n    coefficients on $\\mathbf{W}$, and $\\mathbf{E}_{n \\times p}$ is the error term matrix.\n    \n    $\\mathbf{Q}$ contains the covariates and group variables used to model treatment effect heterogeneity via interaction terms.\n    \n    ### Treatment Effect Estimation & Inference\n    Our average treatment effect (ATE) $\\tau$ is defined as:\n    \n    $$\n    \\tau = \\mathbb{E}_n\\left[\\mathbb{E}\\left[\\mathbf{Y} \\mid T = 1\\right] - \\mathbb{E}\\left[\\mathbf{Y} \\mid T = 0\\right]\\right]\n    $$\n    \n    Let $D$ denote the design matrix for (1), then assuming exogeneity in $T$, the ATEs are identified and can be estimated as follows:\n    $$\n    \\tau = \\mathbf{\\Theta'}\\bar{d}\n    $$\n    \n    where $\\mathbf{\\Theta'} = \\left[\\beta' \\; \\mathbf{\\Gamma'} \\; \\mathbf{\\Omega'} \\; \\mathbf{\\Psi'}\\right]$ is\n    the $\\left(p \\times (1+(j+l)+(j+l)+m)\\right)$ horizontally concatenated matrix of transposed coefficient matrices, and\n    $\\bar{d} = \\mathbb{E}_n\\left[D_{T=1} - D_{T=0}\\right]$ is a $((1+(j+l)+(j+l)+m) \\times 1)$ vector.\n    \n    Furthermore, for each outcome $k \\in \\{1,2,...,p\\}$, we can estimate the standard error of the ATE as follows:\n    $$\n    \\text{SE}(\\tau_k) = \\sqrt{\\bar{d}'\\text{VCV}(\\mathbf{\\Theta}_k)\\bar{d}}\n    $$\n    \n    where $\\text{VCV}(\\mathbf{\\Theta}_k)$ is the variance-covariance matrix of the estimated coefficients for the $k$-th outcome.\n    \n    \n    Parameters\n    ----------\n    Y : Collection[str]\n        A list of outcome variable names.\n    T : str\n        The treatment variable name.\n    G : Collection[str] | None\n        A list of group variable names, by default None. These will be the groups for which GATEs will be estimated.\n    X : Collection[str] | None\n        A list of covariate variable names, by default None. These will be the covariates for which heterogeneity/CATEs can be estimated.\n    W : Collection[str] | None\n        A list of additional covariate variable names to be used as controls, by default None. These will be the additional covariates not used for modeling heterogeneity/CATEs.\n    discrete_treatment : bool\n        Whether the treatment is discrete, by default False\n    engine : str\n        The engine to use for computation, by default \"cpu\". Can be \"cpu\" or \"gpu\". Note \"gpu\" requires JAX to be installed, which can be installed\n        via `pip install caml[jax-gpu]`.\n    \n    Attributes\n    ----------\n    Y : Collection[str]\n        A list of outcome variable names.\n    T : str\n        The treatment variable name.\n    G : Collection[str] | None\n        The list of group variable names, by default None. These will be the groups for which GATEs will be estimated.\n    X : Collection[str] | None\n        The list of variable names representing the confounder/control feature set to be utilized for estimating heterogeneity/CATEs, that are in addition to G.\n    W : Collection[str] | None\n        The list of variable names representing the confounder/control feature **not** utilized for estimating heterogeneity/CATEs.\n    discrete_treatment : bool\n        Whether the treatment is discrete, by default True\n    engine : str\n        The engine to use for computation, by default \"cpu\". Can be \"cpu\" or \"gpu\". Note \"gpu\" requires JAX to be installed, which can be installed\n        via `pip install caml[jax-gpu]`\n    formula : str\n        The formula leveraged for design matrix creation via Patsy.\n    results : dict\n        A dictionary containing the results of the fitted model & estimated ATEs/GATEs.\n\n"
+          "text": "ATE for X2_binary, 0: -7.783875466259934\nATE for X2_binary, 1: -10.024146585952503\n"
+        },
+        {
+          "type": "stream",
+          "name": "stdout",
+          "text": "ATE for X3_binary, 1: -8.841952705151062\nATE for X3_binary, 0: -7.403845781135477\nATE for X4_discrete, 3: -13.317253111209627\nATE for X4_discrete, 1: -7.38398914939672\n"
+        },
+        {
+          "type": "stream",
+          "name": "stdout",
+          "text": "ATE for X4_discrete, 0: -4.405900456181454\nATE for X4_discrete, 2: -10.350779405215649\n"
         }
       ]
+    },
+    {
+      "id": "ZHCJ",
+      "code_hash": "758001844d7fdb7145c195e6cd861540",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/html": "<marimo-ui-element object-id='ZHCJ-0' random-id='f3fdcefe-0c9f-6a24-1b5b-746ff1ea9387'><marimo-table data-initial-value='[]' data-label='null' data-data='&quot;./@file/195-31013-qCTLIVTv.json&quot;' data-total-rows='1' data-total-columns='10' data-banner-text='&quot;&quot;' data-pagination='true' data-page-size='10' data-field-types='[[&quot;group&quot;, [&quot;string&quot;, &quot;object&quot;]], [&quot;membership&quot;, [&quot;string&quot;, &quot;object&quot;]], [&quot;outcome&quot;, [&quot;string&quot;, &quot;object&quot;]], [&quot;ate&quot;, [&quot;number&quot;, &quot;float64&quot;]], [&quot;std_err&quot;, [&quot;number&quot;, &quot;float64&quot;]], [&quot;t_stat&quot;, [&quot;number&quot;, &quot;float64&quot;]], [&quot;pval&quot;, [&quot;number&quot;, &quot;float64&quot;]], [&quot;n&quot;, [&quot;integer&quot;, &quot;int64&quot;]], [&quot;n_treated&quot;, [&quot;integer&quot;, &quot;int64&quot;]], [&quot;n_control&quot;, [&quot;integer&quot;, &quot;int64&quot;]]]' data-show-filters='true' data-show-download='true' data-show-column-summaries='false' data-row-headers='[]' data-has-stable-row-id='false' data-lazy='false' data-preload='false'></marimo-table></marimo-ui-element>"
+          }
+        }
+      ],
+      "console": [
+        {
+          "type": "stream",
+          "name": "stdout",
+          "text": "[05/01/25 23:28:48] INFO     Estimating Average Treatment Effects (ATEs)...                                                                                                                              ols.py:261\n                    DEBUG    Creating treatment difference matrix...                                                                                                                                     ols.py:469\n"
+        },
+        {
+          "type": "stream",
+          "name": "stdout",
+          "text": "                    DEBUG    Design Matrix Creation completed in 0.37 seconds                                                                                                                       _generics.py:73\n"
+        },
+        {
+          "type": "stream",
+          "name": "stdout",
+          "text": "                    DEBUG    ATE Estimation completed in 0.54 seconds                                                                                                                               _generics.py:73\n"
+        }
+      ]
+    },
+    {
+      "id": "ROlb",
+      "code_hash": "7d620a586511c3f38a8774478379cccd",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/html": "<pre style='font-size: 12px'>-12.453239472477314</pre>"
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "LeGA",
+      "code_hash": "24aca77fe9f4a155ca4f65fca935fc11",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/html": "<marimo-ui-element object-id='LeGA-0' random-id='de48eaff-d48b-6773-a545-ecb34b8bf8e2'><marimo-table data-initial-value='[]' data-label='null' data-data='&quot;./@file/460-31013-AgXY9XvH.json&quot;' data-total-rows='107' data-total-columns='1' data-banner-text='&quot;&quot;' data-pagination='true' data-page-size='10' data-field-types='[[&quot;value&quot;, [&quot;number&quot;, &quot;float64&quot;]]]' data-show-filters='true' data-show-download='true' data-show-column-summaries='true' data-row-headers='[&quot;&quot;]' data-has-stable-row-id='false' data-lazy='false' data-preload='false'></marimo-table></marimo-ui-element>"
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "PujI",
+      "code_hash": "1fbae0a4927582433acbc3d664af5f27",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/html": "<pre style='font-size: 12px'>Array([[4.53522350e-01, 5.86327073e-01, 2.82059648e-01, 2.81063887e-01,\n        5.30363227e-01, 5.44099462e-01, 5.62653753e-01, 6.04064404e-01,\n        6.47211302e-01, 6.95771761e-01, 7.13898260e-01, 7.99634657e-01,\n        8.59762922e-01, 8.82962045e-01, 9.54361179e-01, 1.02941847e+00,\n        1.21032527e+00, 1.12432781e+00, 1.30337938e+00, 1.36634713e+00,\n        1.57747628e+00, 1.82436662e+00, 1.74517011e+00, 2.02499904e+00,\n        2.25638657e+00, 2.59781111e+00, 2.44336817e+00, 2.51643398e+00,\n        2.59929739e+00, 4.08741224e+00, 4.08496075e+00, 3.78660344e+00,\n        4.99937847e+00, 9.97980019e+00, 5.76707056e+00, 7.05823382e+00,\n        9.97696905e+00, 5.76715088e+00, 9.97761273e+00, 4.99890833e+00,\n        9.97797131e+00, 9.97699858e+00, 4.98890972e+00, 7.05905966e+00,\n        9.97864237e+00, 9.97774359e+00, 7.05748010e+00, 9.97816979e+00,\n        9.98225576e+00, 4.98889761e+00, 4.98882308e+00, 9.98274503e+00,\n        9.98302473e+00, 4.01840649e-01, 4.00463361e-01, 7.46781493e-01,\n        7.75720480e-01, 8.12603270e-01, 8.54998614e-01, 9.22649370e-01,\n        9.69560693e-01, 1.02818455e+00, 1.11190614e+00, 1.19978761e+00,\n        1.24962889e+00, 1.34215513e+00, 1.51571190e+00, 1.68129067e+00,\n        1.72813747e+00, 1.88707446e+00, 2.03647409e+00, 2.24322522e+00,\n        2.56027355e+00, 2.59155369e+00, 2.68934995e+00, 3.27619350e+00,\n        3.61649070e+00, 4.30299051e+00, 4.18259075e+00, 4.10082200e+00,\n        5.27980605e+00, 6.45484046e+00, 6.89863644e+00, 6.12653445e+00,\n        1.07831795e+01, 7.63261860e+00, 9.98139175e+00, 1.09332614e+01,\n        1.15248765e+01, 1.22236449e+01, 8.65080424e+00, 1.18033695e-15,\n                   nan, 4.98890972e+00, 1.22215925e+01,            nan,\n        3.38589835e-16, 1.22205918e+01, 1.41094959e+01, 0.00000000e+00,\n        4.98889761e+00, 4.98882308e+00, 0.00000000e+00, 0.00000000e+00,\n        9.35254313e-02, 1.34822840e-01, 4.12155309e-01]], dtype=float64)</pre>"
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "dtzI",
+      "code_hash": null,
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/plain": ""
+          }
+        }
+      ],
+      "console": []
     }
   ]
 }

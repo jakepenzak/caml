@@ -2,4 +2,4 @@
 
 from ._version import __version__
 from .core.cate import CamlCATE
-from .traditional.ols import FastOLS
+from .core.ols import FastOLS

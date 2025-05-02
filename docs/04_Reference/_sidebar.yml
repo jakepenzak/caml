@@ -4,10 +4,8 @@ website:
     - 04_Reference/index.qmd
     - contents:
       - 04_Reference/CamlCATE.qmd
-      section: CaML Core
-    - contents:
       - 04_Reference/FastOLS.qmd
-      section: Traditional Estimators
+      section: CaML Core
     - contents:
       - 04_Reference/CamlSyntheticDataGenerator.qmd
       - 04_Reference/make_partially_linear_dataset_simple.qmd

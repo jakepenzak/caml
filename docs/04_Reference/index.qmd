@@ -7,14 +7,7 @@
 | | |
 | --- | --- |
 | [CamlCATE](CamlCATE.qmd#caml.CamlCATE) | The CamlCATE class represents an opinionated framework of Causal Machine Learning techniques for estimating highly accurate conditional average treatment effects (CATEs). |
-
-## Traditional Estimators
-
-`from caml import *`
-
-| | |
-| --- | --- |
-| [FastOLS](FastOLS.qmd#caml.FastOLS) | FastOLS is a fast implementation of the OLS estimator designed specifically with treatment effect estimation in mind. |
+| [FastOLS](FastOLS.qmd#caml.FastOLS) | FastOLS is an optimized implementation of the OLS estimator designed specifically with treatment effect estimation in mind. |
 
 ## Synthetic Data Generation
 

@@ -1,5 +1,8 @@
 import timeit
 from functools import wraps
+from typing import Protocol, runtime_checkable
+
+import pandas as pd
 
 from .logging import DEBUG, WARNING
 
@@ -89,3 +92,15 @@ def maybe_jit(func=None, **jit_kwargs):
         return maybe_jit_inner
 
     return maybe_jit_inner(func)
+
+
+@runtime_checkable
+class PandasDataFrameConvertible(Protocol):
+    """Protocol for DataFrame-like objects that can be converted to pandas."""
+
+    def toPandas(self) -> pd.DataFrame: ...
+
+    def to_pandas(self) -> pd.DataFrame: ...
+
+
+DataFrameLike = PandasDataFrameConvertible | pd.DataFrame

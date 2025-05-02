@@ -61,6 +61,7 @@ website:
       contents:
         - 02_Concepts/motivation.qmd
         - 02_Concepts/theory.qmd
+        - 02_Concepts/models.qmd
     - id: Examples
       title: "Examples"
       style: floating
@@ -100,10 +101,6 @@ quartodoc:
       contents:
         - name: CamlCATE
           member_order: source
-    - title: Traditional Estimators
-      desc: "`from caml import *`"
-      package: caml
-      contents:
         - name: FastOLS
           member_order: source
     - title: Synthetic Data Generation
