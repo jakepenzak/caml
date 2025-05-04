@@ -129,6 +129,7 @@ class FastOLS:
         self.X = X
         self.W = W
         self.discrete_treatment = discrete_treatment
+        self._HAS_JAX = _HAS_JAX
 
         if engine not in ["cpu", "gpu"]:
             ERROR(
@@ -137,7 +138,7 @@ class FastOLS:
             raise ValueError("Only 'cpu' and 'gpu' are supported for engine argument")
 
         if engine == "gpu":
-            if not _HAS_JAX:
+            if not self._HAS_JAX:
                 ERROR("GPU engine requested but JAX is not available")
                 raise ValueError("JAX is required for gpu engine.")
             try:
@@ -481,7 +482,7 @@ class FastOLS:
 
             df[self.T] = original_t
 
-            if _HAS_JAX:
+            if self._HAS_JAX:
                 X1 = jnp.array(X1, device=jax.devices(self.engine)[0])
                 X0 = jnp.array(X0, device=jax.devices(self.engine)[0])
             else:
@@ -497,7 +498,7 @@ class FastOLS:
 
             self._X_design_info = X.design_info
 
-            if _HAS_JAX:
+            if self._HAS_JAX:
                 y = jnp.array(y, device=jax.devices(self.engine)[0])
                 X = jnp.array(X, device=jax.devices(self.engine)[0])
             else:

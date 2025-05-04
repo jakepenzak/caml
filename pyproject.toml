@@ -103,6 +103,15 @@ convention = "numpy"
 [tool.pytest.ini_options]
 filterwarnings = "ignore::DeprecationWarning"
 addopts = "--cov=caml/ --cov-report=term-missing --cov-report=html:tests/reports/htmlcov --cov-report=xml:tests/reports/coverage.xml"
+markers = [
+  "ols: mark tests for the FastOLS/ols module",
+  "core: mark tests for the core module",
+]
+
+[tool.coverage.run]
+omit = [
+  "caml/logging.py"
+]
 
 [tool.bumpversion]
 current_version = "0.0.0-dev9"
