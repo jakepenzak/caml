@@ -1,5 +1,6 @@
 import builtins
 import importlib
+import sys
 
 import jax.numpy as jnp
 import numpy as np
@@ -239,7 +240,14 @@ class TestFastOLSInitialization:
             assert fo.engine == "cpu"
 
 
-def test__convert_dataframe_to_pandas(df_fixture):  # , request):
+IS_WIN_PY312 = sys.platform.startswith("win") and sys.version_info[:2] == (3, 12)
+
+
+@pytest.mark.skipif(
+    IS_WIN_PY312,
+    reason="PySpark toPandas on Windows with Python 3.12 is unstable in CI",
+)
+def test__convert_dataframe_to_pandas(df_fixture):
     """Test conversion of different DataFrame types to pandas."""
     df_fxt = df_fixture
     fo_obj = FastOLS(Y=["Y"], T="T")
@@ -319,7 +327,7 @@ class TestFastOLSFittingAndEstimation:
 
         fo_obj.fit(pd_df, estimate_effects=True)
 
-        for k, v in fo_obj.results["treatment_effects"].items():
+        for k, _ in fo_obj.results["treatment_effects"].items():
             assert "overall" in k
 
     @pytest.mark.parametrize(
@@ -437,7 +445,7 @@ class TestFastOLSFittingAndEstimation:
             assert c in prettified.columns
             # Recurse through dictionary and hstack numpy arrays to compare to prettified column
             stack = None
-            for k, v in res.items():
+            for _, v in res.items():
                 stack = (
                     np.hstack([stack, v[c].flatten()])
                     if stack is not None

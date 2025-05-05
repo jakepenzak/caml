@@ -479,7 +479,21 @@ class FastOLS:
     def _create_design_matrix(
         self, df: pd.DataFrame, create_diff_matrix: bool = False
     ) -> jnp.ndarray | tuple[jnp.ndarray, jnp.ndarray]:
-        if create_diff_matrix:
+        if not create_diff_matrix:
+            DEBUG("Creating model matrix...")
+            y, X = patsy.dmatrices(self.formula, data=df)
+
+            self._X_design_info = X.design_info
+
+            if _HAS_JAX:
+                y = jnp.array(y, device=jax.devices(self.engine)[0])
+                X = jnp.array(X, device=jax.devices(self.engine)[0])
+            else:
+                y = jnp.array(y)
+                X = jnp.array(X)
+
+            return y, X
+        else:
             DEBUG("Creating treatment difference matrix...")
             original_t = df[self.T].copy()
 
@@ -505,20 +519,6 @@ class FastOLS:
             diff = X1 - X0
 
             return diff
-        else:
-            DEBUG("Creating model matrix...")
-            y, X = patsy.dmatrices(self.formula, data=df)
-
-            self._X_design_info = X.design_info
-
-            if _HAS_JAX:
-                y = jnp.array(y, device=jax.devices(self.engine)[0])
-                X = jnp.array(X, device=jax.devices(self.engine)[0])
-            else:
-                y = jnp.array(y)
-                X = jnp.array(X)
-
-            return y, X
 
     @staticmethod
     def _compute_statistics(
