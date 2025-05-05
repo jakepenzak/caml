@@ -9,8 +9,8 @@ import pytest
 from sklearn.metrics import mean_squared_error, r2_score
 from statsmodels.formula.api import ols
 
-import caml._generics as gen_mod
 import caml.core.ols as ols_mod
+import caml.generics as gen_mod
 from caml import FastOLS
 
 pytestmark = [pytest.mark.core, pytest.mark.ols]

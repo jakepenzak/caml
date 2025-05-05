@@ -5,7 +5,7 @@ import patsy
 from joblib import Parallel, delayed
 from typeguard import typechecked
 
-from .._generics import PandasConvertibleDataFrame, experimental, maybe_jit, timer
+from ..generics import PandasConvertibleDataFrame, experimental, maybe_jit, timer
 from ..logging import DEBUG, ERROR, INFO, WARNING
 
 try:
@@ -33,8 +33,6 @@ class FastOLS:
     and provides estimates for the Average Treatment Effects (ATEs) and Group Average Treatment Effects (GATEs) out of the box. Additionally,
     methods are provided for estimating custom GATEs & Conditional Average Treatment Effects (CATEs) of individual observations, which can also be used for out-of-sample predictions.
     Note, this method assumes linear treatment effects and heterogeneity, which is typically sufficient when primarily concerned with ATEs and GATEs.
-
-    #TODO - Elaborate on this claim
 
     This class leverages JAX for fast numerical computations, which can be installed using `pip install caml[jax]`, defaulting to NumPy if JAX is not
     available. For GPU acceleration, install JAX with GPU support using `pip install caml[jax-gpu]`.

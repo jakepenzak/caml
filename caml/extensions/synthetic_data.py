@@ -10,7 +10,7 @@ from doubleml.datasets import (
 from scipy.linalg import toeplitz
 from typeguard import typechecked
 
-from .._generics import experimental
+from ..generics import experimental
 
 
 @experimental

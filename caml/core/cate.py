@@ -14,7 +14,7 @@ from econml.validate.drtester import DRTester
 from joblib import Parallel, delayed
 from typeguard import typechecked
 
-from .._generics import experimental
+from ..generics import experimental
 from ..logging import ERROR, INFO, WARNING
 from ._base import CamlBase
 from .modeling import model_bank

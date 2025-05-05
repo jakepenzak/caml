@@ -1,6 +1,6 @@
 import timeit
 from functools import wraps
-from typing import Protocol, runtime_checkable
+from typing import Callable, Protocol, runtime_checkable
 
 import pandas as pd
 
@@ -15,7 +15,7 @@ except ImportError:
     _HAS_JAX = False
 
 
-def experimental(obj):
+def experimental(obj: Callable) -> Callable:
     """
     Decorator to mark functions or classes as experimental.
 
@@ -24,12 +24,12 @@ def experimental(obj):
 
     Parameters
     ----------
-    obj
+    obj : Callable
         The class or function to mark as experimental
 
     Returns
     -------
-    Union[type, callable]
+    Callable
         The decorated class or function
     """
     warning_msg = f"{obj.__name__} is experimental and may change in future versions."
@@ -48,18 +48,18 @@ def experimental(obj):
     return wrapper
 
 
-def timer(operation_name=None):
+def timer(operation_name: str | None = None) -> Callable:
     """
     Decorator to measure the execution time of a function or method, logged at DEBUG level.
 
     Parameters
     ----------
-    operation_name
+    operation_name : str | None
         The name of the operation to be timed. If None, the name of the function or method will be used.
 
     Returns
     -------
-    callable
+    Callable
         The decorated function or method
     """
 
@@ -78,7 +78,22 @@ def timer(operation_name=None):
     return decorator if operation_name else decorator(operation_name)
 
 
-def maybe_jit(func=None, **jit_kwargs):
+def maybe_jit(func: Callable | None = None, **jit_kwargs) -> Callable:
+    """Decorator to JIT compile a function using JAX, if available.
+
+    Parameters
+    ----------
+    func : Callable | None
+        The function to be JIT compiled.
+    jit_kwargs : dict
+        Keyword arguments to be passed to jax.jit.
+
+    Returns
+    -------
+    Callable
+        The decorated function or method
+    """
+
     def maybe_jit_inner(func):
         @wraps(func)
         def wrapper(*args, **kwargs):
@@ -95,19 +110,22 @@ def maybe_jit(func=None, **jit_kwargs):
 
 
 @runtime_checkable
-class PandasConvertibleViaToPandas(Protocol):
-    """Protocol for DataFrame-like objects that can be converted to pandas via toPandas()."""
+class PandasConvertibleDataFrame(Protocol):
+    """Protocol for DataFrame-like objects that pandas compatible.
 
-    def toPandas(self) -> pd.DataFrame: ...
+    This includes DataFrames that are either pandas dataframes or can be converted to pandas via `to_pandas()` or `toPandas()` methods.
+    """
 
+    @classmethod
+    def __subclasshook__(cls, subclass):
+        """Method to check if a class is a subclass of specs of PandasConvertibleDataFrame."""
+        if subclass is pd.DataFrame:
+            return True
 
-@runtime_checkable
-class PandasConvertibleViaToPandas_(Protocol):
-    """Protocol for DataFrame-like objects that can be converted to pandas via to_pandas()."""
+        to_pandas = getattr(subclass, "to_pandas", None)
+        toPandas = getattr(subclass, "toPandas", None)
 
-    def to_pandas(self) -> pd.DataFrame: ...
+        if callable(to_pandas) or callable(toPandas):
+            return True
 
-
-PandasConvertibleDataFrame = (
-    PandasConvertibleViaToPandas | PandasConvertibleViaToPandas_ | pd.DataFrame
-)
+        return False
