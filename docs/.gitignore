@@ -2,3 +2,5 @@
 04_Reference/*
 !04_Reference/support_matrix.qmd
 _site/
+site_libs
+objects.json
