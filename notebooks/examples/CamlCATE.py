@@ -1,6 +1,8 @@
+
+
 import marimo
 
-__generated_with = "0.10.18"
+__generated_with = "0.13.1"
 app = marimo.App(width="medium")
 
 
@@ -14,9 +16,13 @@ def _():
 def _(mo):
     mo.md(
         r"""
-        # CamlCATE API Usage
+        # CamlCATE
 
-        Here we'll walk through an example of generating synthetic data, running CamlCATE, and visualizing results using the ground truth as reference.
+        Here we'll walk through an example of generating synthetic data, running `CamlCATE`, and visualizing results using the ground truth as reference.
+
+        `CamlCATE` is particularly useful when highly accurate CATE estimation is of primary interest in the presence of exogenous treatment, simple linear confounding, or complex non-linear confounding exists.
+
+        `CamlCATE` enables the use of various CATE models with varying assumptions on functional form of treatment effects & heterogeneity. When a set of CATE models are considered, the final CATE model is automatically selected is based on validation set performance.
         """
     )
     return
@@ -36,6 +42,14 @@ def _(mo):
 
 @app.cell
 def _():
+    from caml.logging import configure_logging
+    import logging
+    configure_logging(level=logging.DEBUG)
+    return
+
+
+@app.cell
+def _():
     from caml.extensions.synthetic_data import CamlSyntheticDataGenerator
 
     data =  CamlSyntheticDataGenerator(n_obs=10_000,
@@ -48,7 +62,7 @@ def _():
                                       n_nonlinear_transformations=5,
                                       n_nonlinear_interactions=2,
                                       seed=1)
-    return CamlSyntheticDataGenerator, data
+    return (data,)
 
 
 @app.cell
@@ -74,7 +88,7 @@ def _(data):
     for t, df in data.dgp.items():
         print(f"\nDGP for {t}:")
         print(df)
-    return df, t
+    return
 
 
 @app.cell
@@ -103,7 +117,9 @@ def _(mo):
 
         We can instantiate and observe our CamlCATE object via:
 
-        > 💡 **Tip:** `W` can be leveraged if we want to use certain covariates only in our nuisance functions to control for confounding and not in the final CATE estimator. This can be useful if a confounder may be required to include, but for compliance reasons, we don't want our CATE model to leverage this feature (e.g., gender). However, this will restrict our available CATE estimators to orthogonal learners, since metalearners necessarily include all covariates. If you don't care about `W` being in the final CATE estimator, pass it as `X`, as done below.
+        ::: {.callout-tip}
+        `W` can be leveraged if we want to use certain covariates only in our nuisance functions to control for confounding and not in the final CATE estimator. This can be useful if a confounder may be required to include, but for compliance reasons, we don't want our CATE model to leverage this feature (e.g., gender). However, this will restrict our available CATE estimators to orthogonal learners, since metalearners necessarily include all covariates. If you don't care about `W` being in the final CATE estimator, pass it as `X`, as done below.
+        :::
         """
     )
     return
@@ -120,7 +136,7 @@ def _(data):
                         + [c for c in data.df.columns if 'W' in c],
                     discrete_treatment=True,
                     discrete_outcome=False)
-    return CamlCATE, caml_obj
+    return (caml_obj,)
 
 
 @app.cell
@@ -170,7 +186,9 @@ def _(mo):
 
         Now that we have obtained our first-stage models, we can fit our CATE estimators via:
 
-        > 📝 **Note:** The selected model defaults to the one with the highest [RScore](https://econml.azurewebsites.net/_autosummary/econml.score.RScorer.html#econml.score.RScorer). All fitted models are still accessible via the `cate_estimators` attribute and if you want to change default estimator, you can run `caml_obj._validation_estimator = {different_model}`.
+        ::: {.callout-note}
+        The selected model defaults to the one with the highest [RScore](https://econml.azurewebsites.net/_autosummary/econml.score.RScorer.html#econml.score.RScorer). All fitted models are still accessible via the `cate_estimators` attribute and if you want to change default estimator, you can run `caml_obj._validation_estimator = {different_model}`.
+        :::
 
         > 🚀**Forthcoming:** Additional scoring techniques & AutoML for CATE estimators is on our roadmap.
         """
@@ -320,7 +338,7 @@ def _(cate_predictions, data):
 
     true_cates = data.cates.iloc[:, 0]
     mean_squared_error(true_cates,cate_predictions)
-    return mean_squared_error, true_cates
+    return (true_cates,)
 
 
 @app.cell
@@ -334,7 +352,7 @@ def _(cate_predictions, true_cates):
     from caml.extensions.plots import cate_true_vs_estimated_plot
 
     cate_true_vs_estimated_plot(true_cates=true_cates, estimated_cates=cate_predictions)
-    return (cate_true_vs_estimated_plot,)
+    return
 
 
 @app.cell
@@ -342,7 +360,7 @@ def _(cate_predictions, true_cates):
     from caml.extensions.plots import cate_histogram_plot
 
     cate_histogram_plot(true_cates=true_cates, estimated_cates=cate_predictions)
-    return (cate_histogram_plot,)
+    return
 
 
 @app.cell
@@ -350,7 +368,7 @@ def _(cate_predictions, true_cates):
     from caml.extensions.plots import cate_line_plot
 
     cate_line_plot(true_cates=true_cates, estimated_cates=cate_predictions, window=20)
-    return (cate_line_plot,)
+    return
 
 
 @app.cell
@@ -404,11 +422,6 @@ def _(mo):
 @app.cell
 def _(caml_obj):
     caml_obj.cate_estimators
-    return
-
-
-@app.cell
-def _():
     return
 
 

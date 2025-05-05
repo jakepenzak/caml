@@ -120,6 +120,8 @@ class CamlCATE(CamlBase):
         The fitted nuisance function for the treatment variable.
     cate_estimators: dict[str, econml._cate_estimator.BaseCateEstimator | econml.score.EnsembleCateEstimator]
         Dictionary of fitted cate estimator objects.
+    rscores: dict[str, float]
+        Dictionary of RScore values for each fitted cate estimator.
     validation_estimator : econml._cate_estimator.BaseCateEstimator | econml.score.EnsembleCateEstimator
         The fitted EconML estimator object for validation.
     validator_results : econml.validate.results.EvaluationResults
@@ -391,7 +393,7 @@ class CamlCATE(CamlBase):
             cate_estimators=cate_estimators,
             additional_cate_estimators=additional_cate_estimators,
         )
-        (self._validation_estimator, self._rscorer) = (
+        (self._validation_estimator, self._rscorer, self.rscores) = (
             self._fit_and_ensemble_cate_estimators(
                 rscorer_kwargs=rscorer_kwargs,
                 use_ray=use_ray,
@@ -803,6 +805,7 @@ class CamlCATE(CamlBase):
             )
 
         models = [m for m in models if m[1] is not None]
+        self.cate_estimators = models
 
         base_rscorer_settings = {
             "cv": 3,
@@ -849,7 +852,11 @@ class CamlCATE(CamlBase):
         INFO(f"Best Estimator: {best_estimator}")
         INFO(f"Estimator RScores: {estimator_score_dict}")
 
-        return models[np.nanargmax(estimator_scores)][1], rscorer
+        return (
+            models[np.nanargmax(estimator_scores)][1],
+            rscorer,
+            estimator_score_dict,
+        )
 
     def __str__(self):
         """

@@ -61,7 +61,7 @@ def get_cate_model(
     tuple[str, BaseCateEstimator] | None
         The name of the model and the model object.
     """
-    assert model in valid_models, "Model not in list of valid models"
+    assert model in valid_models, f"{model} not in list of valid models"
 
     if model == "LinearDML":
         return model, LinearDML(

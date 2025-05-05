@@ -39,7 +39,7 @@ class FastOLS:
 
     For outcome/treatment support, see [Support Matrix](support_matrix.qmd).
 
-    For model specification details, see [Model Specifications](../02_Concepts/models.qmd).
+    For model specification details, see [Model Specifications](../02_Concepts/models.qmd#fastols).
 
     Parameters
     ----------
@@ -162,7 +162,7 @@ class FastOLS:
     ) -> None:
         """Fits the regression model on the provided data and, optionally, estimates Average Treatment Effect(s) (ATE) and Group Average Treatment Effect(s) (GATE).
 
-        If estimate_effects is True, the method estimates Average Treatment Effects (ATEs) and Group Average Treatment Effects (GATEs), based on specified `G`.
+        If `estimate_effects` is True, the method estimates Average Treatment Effects (ATEs) and Group Average Treatment Effects (GATEs), based on specified `G`.
         This leverages `estimate_ate` method under the hood, but efficiently reuses the data and parallelizes the computation of GATEs.
 
         Parameters
@@ -213,10 +213,19 @@ class FastOLS:
         membership: str | None = None,
         _diff_matrix: jnp.ndarray | None = None,
     ) -> jnp.ndarray | dict:
-        """Estimate Average Treatment Effects (ATEs) of `T` on each `Y` from fitted model.
+        r"""Estimate Average Treatment Effects (ATEs) of `T` on each `Y` from fitted model.
 
-        If the entire dataframe is provided, the function will estimate the ATE of the entire population.
-        If a subset of the dataframe is provided, the function will estimate the ATE of the subset (e.g., GATEs).
+        If the entire dataframe is provided, the function will estimate the ATE of the entire population, where the ATE, in the case of binary treatments, is formally defined as:
+            $$
+            \tau = \mathbb{E}_n[\mathbf{Y}_1 - \mathbf{Y}_0]
+            $$
+
+        If a subset of the dataframe is provided, the function will estimate the ATE of the subset (e.g., GATEs), where the GATE, in the case of binary treatments, is formally defined as:
+            $$
+            \tau = \mathbb{E}_n[\mathbf{Y}_1 - \mathbf{Y}_0|\mathbf{G}=G]
+            $$
+
+        For more details on treatment effect estimation, see [Model Specifications](../02_Concepts/models.qmd#treatment-effect-estimation-inference).
 
         Parameters
         ----------
@@ -241,16 +250,16 @@ class FastOLS:
         Examples
         --------
         ```{python}
+        ate = fo_obj.estimate_ate(df, return_results_dict=True, group="Overall")
+
+        ate
+        ```
+        ```{python}
         df_filtered = df.query(
             "X3_binary == 0 & X1_continuous < 5"
         ).copy()
 
         custom_gate = fo_obj.estimate_ate(df_filtered)
-
-        custom_gate
-        ```
-        ```{python}
-        custom_gate = fo_obj.estimate_ate(df_filtered, return_results_dict=True, group="My Custom Group")
 
         custom_gate
         ```
@@ -289,7 +298,14 @@ class FastOLS:
     def estimate_cate(
         self, df: PandasConvertibleDataFrame, *, return_results_dict: bool = False
     ) -> jnp.ndarray | dict:
-        """Estimate Conditional Average Treatment Effects (CATEs) for all given observations.
+        r"""Estimate Conditional Average Treatment Effects (CATEs) for all given observations in the dataset.
+
+        The CATE, in the case of binary treatments, is formally defined as:
+            $$
+            \tau = \mathbb{E}_n[\mathbf{Y}_1 - \mathbf{Y}_0|\mathbf{Q}=Q]
+            $$
+
+        For more details on treatment effect estimation, see [Model Specifications](../02_Concepts/models.qmd#treatment-effect-estimation-inference).
 
         Parameters
         ----------

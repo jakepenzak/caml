@@ -7,10 +7,16 @@ for documentation. All files relating to the documentation are under the `docs/`
 Quarto & quartodoc provide very detailed documentation on usage so I will refer the reader to these
 resources for more details.
 
-To build the documentation, run the following command from the projects root directory:
+To build the API documentation, run the following command from the projects root directory:
 
 ```bash
 quartodoc build --config docs/_quarto.yml
+```
+
+To build the example notebooks (under `notebooks/examples/`, run the following command:
+
+```bash
+bash docs/marimo_examples_to_quarto.sh
 ```
 
 And to preview the documentation, run the following command:

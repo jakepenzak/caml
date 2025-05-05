@@ -1,6 +1,8 @@
+
+
 import marimo
 
-__generated_with = "0.10.18"
+__generated_with = "0.13.1"
 app = marimo.App(width="medium")
 
 
@@ -12,13 +14,13 @@ def _():
 
 @app.cell
 def _(mo):
-    mo.md("# Caml API Usage")
+    mo.md("""# Caml API Usage""")
     return
 
 
 @app.cell
 def _(mo):
-    mo.md("## Synthetic Data")
+    mo.md("""## Synthetic Data""")
     return
 
 
@@ -26,17 +28,17 @@ def _(mo):
 def _():
     from caml.extensions.synthetic_data import CamlSyntheticDataGenerator
 
-    data =  CamlSyntheticDataGenerator(n_obs=1_000,
-                                      n_cont_outcomes=1,
-                                      n_binary_outcomes=0,
+    data =  CamlSyntheticDataGenerator(n_obs=10_000,
+                                      n_cont_outcomes=0,
+                                      n_binary_outcomes=1,
                                       n_cont_treatments=0,
                                       n_binary_treatments=1,
                                       n_discrete_treatments=0,
-                                      n_cont_confounders=3,
-                                      n_binary_confounders=1,
+                                      n_cont_confounders=2,
+                                      n_binary_confounders=2,
                                       n_discrete_confounders=0,
-                                      n_cont_modifiers=3,
-                                      n_binary_modifiers=1,
+                                      n_cont_modifiers=2,
+                                      n_binary_modifiers=2,
                                       n_discrete_modifiers=0,
                                       n_confounding_modifiers=0,
                                       stddev_outcome_noise=1,
@@ -44,21 +46,14 @@ def _():
                                       causal_model_functional_form="linear",
                                       n_nonlinear_transformations=5,
                                       n_nonlinear_interactions=2,
-                                      seed=None)
+                                      seed=10)
 
 
     synthetic_df = data.df
     cate_df = data.cates
     ate_df = data.ates
     dgp = data.dgp
-    return (
-        CamlSyntheticDataGenerator,
-        ate_df,
-        cate_df,
-        data,
-        dgp,
-        synthetic_df,
-    )
+    return cate_df, dgp, synthetic_df
 
 
 @app.cell
@@ -81,19 +76,19 @@ def _(cate_df):
 
 @app.cell
 def _(mo):
-    mo.md("## Core API")
+    mo.md("""## Core API""")
     return
 
 
 @app.cell
 def _(mo):
-    mo.md("### CamlCATE")
+    mo.md("""### CamlCATE""")
     return
 
 
 @app.cell
 def _(mo):
-    mo.md("#### Class Instantiation")
+    mo.md("""#### Class Instantiation""")
     return
 
 
@@ -111,9 +106,8 @@ def _(synthetic_df):
                     W=[c for c in synthetic_df.columns if 'W' in c],
                     discrete_treatment=True if "binary" in treatment or "discrete" in treatment else False,
                     discrete_outcome=True if "binary" in outcome else False,
-                    seed=None,
-                    verbose=1)
-    return CamlCATE, caml, outcome, treatment
+                    seed=None)
+    return (caml,)
 
 
 @app.cell
@@ -124,15 +118,15 @@ def _(caml):
 
 @app.cell
 def _(mo):
-    mo.md("#### Nuissance Function AutoML")
+    mo.md("""#### Nuissance Function AutoML""")
     return
 
 
 @app.cell
 def _(caml):
     caml.auto_nuisance_functions(
-        flaml_Y_kwargs={"time_budget": 10},
-        flaml_T_kwargs={"time_budget": 10},
+        flaml_Y_kwargs={"time_budget": 30},
+        flaml_T_kwargs={"time_budget": 30},
         use_ray=False,
         use_spark=False,
     )
@@ -141,7 +135,7 @@ def _(caml):
 
 @app.cell
 def _(mo):
-    mo.md("#### Fit and ensemble CATE models")
+    mo.md("""#### Fit and ensemble CATE models""")
     return
 
 
@@ -152,12 +146,10 @@ def _(caml):
             "LinearDML",
             "CausalForestDML",
             "NonParamDML",
-            # "AutoNonParamDML",
             "SparseLinearDML-2D",
             "DRLearner",
             "ForestDRLearner",
             "LinearDRLearner",
-            "SparseLinearDRLearner-2D",
             "DomainAdaptationLearner",
             "SLearner",
             "TLearner",
@@ -178,7 +170,7 @@ def _(caml):
 
 @app.cell
 def _(mo):
-    mo.md("#### CATE Validation")
+    mo.md("""#### CATE Validation""")
     return
 
 
@@ -189,12 +181,12 @@ def _(caml):
     caml.validate(n_groups=4,n_bootstrap=100,print_full_report=True)
 
     plt.show()
-    return (plt,)
+    return
 
 
 @app.cell
 def _(mo):
-    mo.md("#### Refit best estimator on full dataset")
+    mo.md("""#### Refit best estimator on full dataset""")
     return
 
 
@@ -212,7 +204,7 @@ def _(caml):
 
 @app.cell
 def _(mo):
-    mo.md("#### Predict CATEs")
+    mo.md("""#### Predict CATEs""")
     return
 
 
@@ -237,7 +229,7 @@ def _(caml):
     cate_summary = caml.summarize()
 
     cate_summary
-    return (cate_summary,)
+    return
 
 
 @app.cell
@@ -248,7 +240,7 @@ def _(cate_df):
 
 @app.cell
 def _(mo):
-    mo.md("#### Access my dataframe, estimator object, and get string representation of class")
+    mo.md("""#### Access my dataframe, estimator object, and get string representation of class""")
     return
 
 
@@ -272,12 +264,12 @@ def _(caml):
     else:
         print(final_estimator)
         print(caml.input_names)
-    return EnsembleCateEstimator, final_estimator, mod
+    return
 
 
 @app.cell
 def _(mo):
-    mo.md("# Plots")
+    mo.md("""# Plots""")
     return
 
 
@@ -294,9 +286,7 @@ def _(cate_df, cate_predictions, synthetic_df):
         cate_histogram_plot,
         cate_line_plot,
         cate_true_vs_estimated_plot,
-        lower,
         synthetic_df_trimmed,
-        upper,
     )
 
 
