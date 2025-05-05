@@ -1,15 +1,15 @@
+import builtins
 import importlib
-import sys
-from unittest import mock
 
 import jax.numpy as jnp
 import numpy as np
 import pandas as pd
 import polars as pl
 import pytest
-from sklearn.metrics import mean_squared_error
+from sklearn.metrics import mean_squared_error, r2_score
 from statsmodels.formula.api import ols
 
+import caml._generics as gen_mod
 import caml.core.ols as ols_mod
 from caml import FastOLS
 
@@ -19,39 +19,68 @@ N = 1000
 
 @pytest.fixture(params=["jax", "numpy"], ids=["with_jax", "with_numpy"])
 def backend(request, monkeypatch):
-    """Simulate two backends.
+    """Drive FastOLS tests under two simulated environments.
 
-    - 'jax'   → jax, jax.numpy, jax.scipy.stats, _HAS_JAX=True
-    - 'numpy' → numpy, scipy.stats, _HAS_JAX=False.
+    - "with_jax": real JAX is available, so ols_mod._HAS_JAX == True
+    - "with_numpy": JAX imports fail, so ols_mod._HAS_JAX == False
     """
+    # Save the real __import__ so we can restore it later
+    real_import = builtins.__import__
+
+    def fake_import(name, globals=None, locals=None, fromlist=(), level=0):
+        # Simulate ImportError for any jax or jax.* import
+        if name == "jax" or name.startswith("jax."):
+            raise ImportError(f"no module named {name}")
+        return real_import(name, globals, locals, fromlist, level)
+
     if request.param == "jax":
-        import jax
-        import jax.numpy as jnp
-        import jax.scipy.stats as jstats
-
-        monkeypatch.setattr(ols_mod, "_HAS_JAX", True)
-        monkeypatch.setattr(ols_mod, "jax", jax)
-        monkeypatch.setattr(ols_mod, "jnp", jnp)
-        monkeypatch.setattr(ols_mod, "jstats", jstats)
+        # Ensure that, if we’d previously reloaded with numpy, we go back to JAX mode
+        if not ols_mod._HAS_JAX:
+            # Restore real import
+            monkeypatch.setattr(builtins, "__import__", real_import)
+            importlib.reload(ols_mod)
+            importlib.reload(gen_mod)
+        # Sanity-check
+        assert ols_mod._HAS_JAX
+        assert gen_mod._HAS_JAX
     else:
-        import numpy as np
-        import scipy.stats as sstats
+        # Simulate JAX missing
+        monkeypatch.setattr(builtins, "__import__", fake_import)
+        importlib.reload(ols_mod)
+        importlib.reload(gen_mod)
+        # Sanity‑check
+        assert not gen_mod._HAS_JAX
+        assert not ols_mod._HAS_JAX
 
-        monkeypatch.setattr(ols_mod, "_HAS_JAX", False)
-        monkeypatch.setattr(ols_mod, "jax", None)
-        monkeypatch.setattr(ols_mod, "jnp", np)
-        monkeypatch.setattr(ols_mod, "jstats", sstats)
+        import numpy as _np
+        import scipy.stats as _sstats
 
-    return request.param
+        assert ols_mod.jnp is _np
+        assert ols_mod.jstats is _sstats
+
+    yield request.param
+
+    # Teardown: restore import & reload to original module state
+    monkeypatch.setattr(builtins, "__import__", real_import)
+    importlib.reload(ols_mod)
+    importlib.reload(gen_mod)
 
 
-@pytest.fixture
-def dgp():
+@pytest.fixture(params=["cont_T", "binary_T"], ids=["continuous_T", "binary_T"])
+def dgp(request):
     """Generate multi-dimensional outcome dgp."""
     rng = np.random.default_rng(123)
 
-    # binary treatment
-    T = rng.integers(0, 2, size=N)
+    treatment_type = request.param
+    if treatment_type == "binary_T":
+        # binary treatment
+        T = rng.integers(0, 2, size=N)
+        col_str = "T_binary"
+    else:
+        # continuous treatment
+        T = rng.normal(size=N)
+        col_str = "T_continuous"
+
     # covariates
     X1 = rng.normal(size=N)
     X2 = rng.normal(size=N) * 2
@@ -77,11 +106,15 @@ def dgp():
         ) + rng.normal(scale=0.1, size=N)
         return y2
 
-    CATE_Y1 = Y1(np.ones(N), X1, X2, G1, G2, W) - Y1(np.zeros(N), X1, X2, G1, G2, W)
-    CATE_Y2 = Y2(np.ones(N), X1, X2, G1, G2, W) - Y2(np.zeros(N), X1, X2, G1, G2, W)
+    if treatment_type == "binary_T":
+        CATE_Y1 = Y1(np.ones(N), X1, X2, G1, G2, W) - Y1(np.zeros(N), X1, X2, G1, G2, W)
+        CATE_Y2 = Y2(np.ones(N), X1, X2, G1, G2, W) - Y2(np.zeros(N), X1, X2, G1, G2, W)
+    else:
+        CATE_Y1 = Y1(T + 1, X1, X2, G1, G2, W) - Y1(T, X1, X2, G1, G2, W)
+        CATE_Y2 = Y2(T + 1, X1, X2, G1, G2, W) - Y2(T, X1, X2, G1, G2, W)
 
     data = {
-        "T": T,
+        col_str: T,
         "X1": X1,
         "X2": X2,
         "W": W,
@@ -98,35 +131,37 @@ def dgp():
     return {"df": data, "effects": effects}
 
 
+@pytest.fixture(params=["Pandas", "Polars", "PySpark", "InvalidDF"])
+def df_fixture(request, dgp):
+    if request.param == "Pandas":
+        return pd.DataFrame(dgp["df"])
+    elif request.param == "Polars":
+        return pl.DataFrame(dgp["df"])
+    elif request.param == "PySpark":
+        try:
+            spark = request.getfixturevalue("spark")
+            return spark.createDataFrame(pd.DataFrame(dgp["df"]))
+        except Exception as e:
+            pytest.skip(f"Skipping PySpark test due to error: {str(e)}")
+    elif request.param == "InvalidDF":
+        return {"invalid": [1, 2, 3]}
+
+
 @pytest.fixture
 def pd_df(dgp):
     return pd.DataFrame(dgp["df"])
 
 
 @pytest.fixture
-def pl_df(dgp):
-    return pl.DataFrame(dgp["df"])
-
-
-@pytest.fixture
-def ps_df(dgp, request):
-    """PySpark DataFrame fixture that skips if spark session fails to create."""
-    try:
-        spark = request.getfixturevalue("spark")
-        return spark.createDataFrame(pd.DataFrame(dgp["df"]))
-    except Exception as e:
-        pytest.skip(f"Skipping PySpark test due to error: {str(e)}")
-
-
-@pytest.fixture
 def fo_obj(dgp):
+    t_col = [c for c in dgp["df"] if "T" in c][0]
     return FastOLS(
         Y=[c for c in dgp["df"].keys() if "Y" in c],
-        T="T",
+        T=t_col,
         G=[c for c in dgp["df"].keys() if "G" in c],
         X=[c for c in dgp["df"].keys() if "X" in c],
         W=[c for c in dgp["df"].keys() if "W" in c],
-        discrete_treatment=True,
+        discrete_treatment=True if "bin" in t_col else False,
         engine="cpu",
     )
 
@@ -204,25 +239,12 @@ class TestFastOLSInitialization:
             assert fo.engine == "cpu"
 
 
-@pytest.mark.parametrize(
-    "df_fixture",
-    ["pd_df", "pl_df", "ps_df", "invalid_df"],
-    ids=["Pandas", "Polars", "PySpark", "Invalid"],
-)
-def test__convert_dataframe_to_pandas(df_fixture, request):
+def test__convert_dataframe_to_pandas(df_fixture):  # , request):
     """Test conversion of different DataFrame types to pandas."""
-    try:
-        if df_fixture == "invalid_df":
-            df_fxt = {"A": [1, 2, 3]}
-        else:
-            df_fxt = request.getfixturevalue(df_fixture)
-    except pytest.FixtureLookupError as e:
-        df_fxt = None
-        pytest.skip(f"Skipping test with {df_fixture} due to fixture error: {str(e)}")
-
+    df_fxt = df_fixture
     fo_obj = FastOLS(Y=["Y"], T="T")
 
-    if df_fixture == "invalid_df":
+    if isinstance(df_fixture, dict):
         with pytest.raises(ValueError):
             fo_obj._convert_dataframe_to_pandas(df_fxt, groups=["G1", "G2"])
     else:
@@ -232,7 +254,11 @@ def test__convert_dataframe_to_pandas(df_fixture, request):
         assert sorted(df.columns) == sorted(df_fxt.columns)
         assert df["G1"].dtype == "category"
         assert df["G2"].dtype == "category"
-        assert df["T"].dtype == "int64"
+        t_col = [c for c in df.columns if "T" in c][0]
+        if "bin" in t_col:
+            assert df[t_col].dtype == "int64"
+        else:
+            assert df[t_col].dtype == "float64"
         assert df["W"].dtype == "float64"
         assert df["X1"].dtype == "float64"
         assert df["X2"].dtype == "float64"
@@ -241,6 +267,10 @@ def test__convert_dataframe_to_pandas(df_fixture, request):
 
 
 class TestFastOLSFittingAndEstimation:
+    @pytest.fixture(autouse=True)
+    def setup(self, backend):
+        self.backend = backend
+
     @pytest.mark.parametrize("robust_vcv", [True, False], ids=["Robust", "Non-Robust"])
     @pytest.mark.parametrize(
         "estimate_effects", [True, False], ids=["Effects", "No Effects"]
@@ -265,12 +295,17 @@ class TestFastOLSFittingAndEstimation:
             assert np.allclose(fo_obj.results["vcv"][i, :, :], statsmod.cov_params())
             assert np.allclose(fo_obj.results["std_err"][:, i], statsmod.bse)
 
+    def test_fit_with_non_binary_discrete_treatment(self, pd_df, fo_obj, request):
+        t_col = [c for c in pd_df.columns if "T" in c][0]
+        if "cont" in t_col:
+            pytest.skip("Not applicable for continuous treatments.")
+
         # Make sure non-binary discrete treatments throw an error (not supported yet)
         random_indices = np.random.choice(pd_df.index, size=10, replace=False)
-        pd_df.loc[random_indices, "T"] = 3
+        pd_df.loc[random_indices, t_col] = 3
 
         with pytest.raises(ValueError):
-            fo_obj.fit(pd_df, estimate_effects=estimate_effects, robust_vcv=robust_vcv)
+            fo_obj.fit(pd_df)
 
     def test_fit_with_no_groups(self, pd_df, fo_obj):
         # No passed groups will return no group treatment effects
@@ -317,11 +352,9 @@ class TestFastOLSFittingAndEstimation:
             cate_estimated = res["cate"][:, i] if return_results_dict else res[:, i]
             cate_expected = dgp["effects"][f"CATE_{y}"]
 
-            # Check if relative error is small enough (< 10%)
-            rel_error = np.mean(
-                np.abs((cate_estimated - cate_expected) / cate_expected)
-            )
-            assert rel_error < 0.1
+            # Check large enough R2
+            r2 = r2_score(cate_estimated, cate_expected)
+            assert r2 > 0.9
 
             # Check small enough Precision in Estimating Heterogenous Treatment Effects (PEHE)
             assert mean_squared_error(cate_estimated, cate_expected) < 0.1
@@ -373,6 +406,7 @@ class TestFastOLSFittingAndEstimation:
     )
     def test_prettify_treatment_effects(self, pd_df, fo_obj, custom_GATE):
         """Test `prettify_treatment_effects` method."""
+        t_col = [c for c in pd_df.columns if "T" in c][0]
         fo_obj.fit(pd_df, estimate_effects=True)
 
         if custom_GATE:
@@ -390,9 +424,10 @@ class TestFastOLSFittingAndEstimation:
         assert "group" in prettified.columns
         assert "membership" in prettified.columns
         assert "outcome" in prettified.columns
-        assert "n" in prettified.columns
-        assert "n_treated" in prettified.columns
-        assert "n_control" in prettified.columns
+        if "bin" in t_col:
+            assert "n" in prettified.columns
+            assert "n_treated" in prettified.columns
+            assert "n_control" in prettified.columns
         for c in [
             "ate",
             "std_err",
@@ -410,23 +445,3 @@ class TestFastOLSFittingAndEstimation:
                 )
 
             assert np.allclose(stack, prettified[c])
-
-
-def test_jax_fallback_to_numpy(monkeypatch):
-    """Simulate missing jax and ensure fallback to numpy."""
-    # Remove jax from sys.modules if it was loaded
-    sys.modules.pop("jax", None)
-    sys.modules.pop("jax.numpy", None)
-    sys.modules.pop("jax.scipy.stats", None)
-
-    # Patch sys.modules to simulate ImportError
-    with mock.patch.dict("sys.modules", {"jax": None}):
-        # Reload the module where your fallback logic lives
-        import caml.core.ols as ols_mod
-
-        importlib.reload(ols_mod)
-
-        # Check that fallback occurred
-        assert not ols_mod._HAS_JAX
-        assert ols_mod.jnp.__name__.startswith("numpy")
-        assert ols_mod.jstats.__name__.startswith("scipy")
