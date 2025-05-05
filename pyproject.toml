@@ -52,6 +52,7 @@ pyspark = [
 ]
 polars = [
     "polars>=1.17.1",
+    "pyarrow>=20.0.0",
 ]
 jax = [
     "jax>=0.5.2",

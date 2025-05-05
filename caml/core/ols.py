@@ -5,7 +5,7 @@ import patsy
 from joblib import Parallel, delayed
 from typeguard import typechecked
 
-from .._generics import DataFrameLike, experimental, maybe_jit, timer
+from .._generics import PandasConvertibleDataFrame, experimental, maybe_jit, timer
 from ..logging import DEBUG, ERROR, INFO, WARNING
 
 try:
@@ -157,7 +157,7 @@ class FastOLS:
 
     def fit(
         self,
-        df: DataFrameLike,
+        df: PandasConvertibleDataFrame,
         *,
         n_jobs: int = -1,
         estimate_effects: bool = True,
@@ -170,7 +170,7 @@ class FastOLS:
 
         Parameters
         ----------
-        df : DataFrameLike
+        df : PandasConvertibleDataFrame
             Input dataframe to fit the model on. Supported formats:
             pandas DataFrame, PySpark DataFrame, Polars DataFrame, or Any object with `toPandas()` or `to_pandas()` method
         n_jobs : int
@@ -203,14 +203,13 @@ class FastOLS:
                 _diff_matrix=diff_matrix,
                 return_results_dict=True,
                 group="overall",
-                membership="",
             )
             self._estimate_gates(pd_df, _diff_matrix=diff_matrix, n_jobs=n_jobs)
 
     @timer("ATE Estimation")
     def estimate_ate(
         self,
-        df: DataFrameLike,
+        df: PandasConvertibleDataFrame,
         *,
         return_results_dict: bool = False,
         group: str = "Custom Group",
@@ -224,7 +223,7 @@ class FastOLS:
 
         Parameters
         ----------
-        df : DataFrameLike
+        df : PandasConvertibleDataFrame
             Dataframe containing the data to estimate the ATEs. Supported formats:
             pandas DataFrame, PySpark DataFrame, Polars DataFrame, or Any object with `toPandas()` or `to_pandas()` method
         return_results_dict : bool
@@ -282,21 +281,22 @@ class FastOLS:
 
         if return_results_dict:
             results = {}
-            results[f"{group}-{membership}"] = {"outcome": self.Y}
-            results[f"{group}-{membership}"].update(statistics)
+            key = group if membership is None else f"{group}-{membership}"
+            results[key] = {"outcome": self.Y}
+            results[key].update(statistics)
             return results
 
         return statistics["ate"]
 
     @timer("CATE Estimation")
     def estimate_cate(
-        self, df: DataFrameLike, *, return_results_dict: bool = False
+        self, df: PandasConvertibleDataFrame, *, return_results_dict: bool = False
     ) -> jnp.ndarray | dict:
         """Estimate Conditional Average Treatment Effects (CATEs) for all given observations.
 
         Parameters
         ----------
-        df : DataFrameLike
+        df : PandasConvertibleDataFrame
             Dataframe containing the data to estimate CATEs for. Supported formats:
                 pandas DataFrame, PySpark DataFrame, Polars DataFrame, or Any object with `toPandas()` or `to_pandas()` method
         return_results_dict : bool
@@ -338,13 +338,13 @@ class FastOLS:
         return statistics["cate"]
 
     def predict(
-        self, df: DataFrameLike, *, return_results_dict: bool = False
+        self, df: PandasConvertibleDataFrame, *, return_results_dict: bool = False
     ) -> jnp.ndarray | dict:
         """Alias for `estimate_cate`.
 
         Parameters
         ----------
-        df : DataFrameLike
+        df : PandasConvertibleDataFrame
             Dataframe containing the data to estimate CATEs for. Supported formats:
                 pandas DataFrame, PySpark DataFrame, Polars DataFrame, or Any object with `toPandas()` or `to_pandas()` method
         return_results_dict : bool
@@ -459,7 +459,7 @@ class FastOLS:
 
         self.results["params"] = params
         self.results["vcv"] = vcv
-        self.results["std_err"] = jnp.sqrt(jnp.diagonal(vcv, axis1=1, axis2=2))
+        self.results["std_err"] = jnp.sqrt(jnp.diagonal(vcv, axis1=1, axis2=2)).T
         self.results["treatment_effects"] = {}
 
     @timer("Design Matrix Creation")
@@ -608,19 +608,18 @@ class FastOLS:
                 df[col] = df[col].astype("category")
             return df
 
-        if isinstance(df, pd.DataFrame):
-            return convert_groups_to_categorical(df, groups)
+        if isinstance(df, PandasConvertibleDataFrame):
+            if isinstance(df, pd.DataFrame):
+                return convert_groups_to_categorical(df, groups)
 
-        DEBUG(f"Converting input dataframe of type {type(df)} to pandas")
-
-        if isinstance(df, DataFrameLike):
+            DEBUG(f"Converting input dataframe of type {type(df)} to pandas")
             if hasattr(df, "toPandas"):
                 return convert_groups_to_categorical(df.toPandas(), groups)
             if hasattr(df, "to_pandas"):
                 return convert_groups_to_categorical(df.to_pandas(), groups)
 
         ERROR(f"Unsupported dataframe type: {type(df)}")
-        raise Exception(f"Pandas conversion not currently supported for {type(df)}.")
+        raise ValueError(f"Pandas conversion not currently supported for {type(df)}.")
 
     @staticmethod
     def _create_formula(

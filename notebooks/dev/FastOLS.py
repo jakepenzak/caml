@@ -34,8 +34,8 @@ def _():
 @app.cell
 def _(CamlSyntheticDataGenerator):
     data = CamlSyntheticDataGenerator(
-        n_obs=100_000,
-        n_cont_outcomes=1,
+        n_obs=10_000,
+        n_cont_outcomes=2,
         n_binary_outcomes=0,
         n_cont_treatments=0,
         n_binary_treatments=1,
@@ -55,7 +55,7 @@ def _(CamlSyntheticDataGenerator):
 @app.cell
 def _(data):
     df = data.df
-    df["cates"] = data.cates
+    # df["cates"] = data.cates
     df
     return (df,)
 
@@ -90,7 +90,7 @@ def _(df, fu):
 
 @app.cell
 def _(df, fu):
-    cates = fu.estimate_cate(df, return_results_dict=True)
+    cates = fu.estimate_cate(df, return_results_dict=False)
 
     cates
     return
@@ -111,7 +111,19 @@ def _(data):
 
 @app.cell
 def _(fu):
-    fu.prettify_treatment_effects()
+    d = fu.prettify_treatment_effects()
+    return (d,)
+
+
+@app.cell
+def _(d):
+    d
+    return
+
+
+@app.cell
+def _(d):
+    d.query("group == 'overall'")['ate']
     return
 
 

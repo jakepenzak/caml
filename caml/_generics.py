@@ -95,12 +95,19 @@ def maybe_jit(func=None, **jit_kwargs):
 
 
 @runtime_checkable
-class PandasDataFrameConvertible(Protocol):
-    """Protocol for DataFrame-like objects that can be converted to pandas."""
+class PandasConvertibleViaToPandas(Protocol):
+    """Protocol for DataFrame-like objects that can be converted to pandas via toPandas()."""
 
     def toPandas(self) -> pd.DataFrame: ...
+
+
+@runtime_checkable
+class PandasConvertibleViaToPandas_(Protocol):
+    """Protocol for DataFrame-like objects that can be converted to pandas via to_pandas()."""
 
     def to_pandas(self) -> pd.DataFrame: ...
 
 
-DataFrameLike = PandasDataFrameConvertible | pd.DataFrame
+PandasConvertibleDataFrame = (
+    PandasConvertibleViaToPandas | PandasConvertibleViaToPandas_ | pd.DataFrame
+)
