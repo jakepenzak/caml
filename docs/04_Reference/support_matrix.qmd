@@ -3,18 +3,20 @@ title: "Outcome/Treatment Type Support Matrix"
 ---
 
 | Outcome     | Treatment   | [FastOLS](FastOLS.qmd) | [CamlCATE](CamlCATE.qmd)    |
-| ----------- | ----------- | ----------- | ---------- |
-| Continuous  | Binary      | ✅Full      | ✅Full     |
-| Continuous  | Continuous  | ✅Full      | 🟡Partial[^validate]   |
-| Continuous  | Categorical | ❌Not yet   | ✅Full     |
-| Binary      | Binary      | ✅Full      | 🟡Partial[^validate]  |
-| Binary      | Continuous  | ✅Full      | 🟡Partial[^validate]   |
-| Binary      | Categorical | ❌Not yet   | 🟡Partial[^validate]   |
-| Categorical | Binary      | ❌Not yet   | ❌Not yet  |
-| Categorical | Continuous  | ❌Not yet   | ❌Not yet  |
-| Categorical | Categorical | ❌Not yet   | ❌Not yet   |
-|Multi-Dimensional | - | ✅Full | ❌Not yet |
-| - | Multi-Dimensional | ❌Not yet | ❌Not yet |
+| :-----------: | :-----------: | :-----------: | :-----------: |
+| Continuous  | Binary      | ✅    | ✅     |
+| Continuous  | Continuous  | ✅    | 🟡[^validate]   |
+| Continuous  | Categorical | ❌   | ✅     |
+| Binary      | Binary      | ✅      | 🟡[^validate]  |
+| Binary      | Continuous  | ✅      | 🟡[^validate]   |
+| Binary      | Categorical | ❌   | 🟡[^validate]   |
+| Categorical | Binary      | ❌   | ❌  |
+| Categorical | Continuous  | ❌   | ❌  |
+| Categorical | Categorical | ❌   | ❌   |
+|Multi-Dimensional | - | ✅ | ❌ |
+| - | Multi-Dimensional | ❌ | ❌ |
+
+✅ - Full &nbsp;&nbsp; 🟡 - Partial &nbsp;&nbsp; ❌ - Not yet
 
 If you have a specific use case that is not covered by the current support matrix, please feel free to open an issue.
 

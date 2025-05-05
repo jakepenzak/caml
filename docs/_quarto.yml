@@ -95,7 +95,7 @@ quartodoc:
   sidebar: 04_Reference/_sidebar.yml
   sections:
     - title: CaML Core
-      desc: "`from caml import *`"
+      desc: "`from caml import *` <br> <br> Core functionality of CaML for estimating causal effects with cross-sectional data."
       package: caml
       contents:
         - name: CamlCATE
@@ -103,7 +103,7 @@ quartodoc:
         - name: FastOLS
           member_order: source
     - title: Synthetic Data Generation
-      desc: "`from caml.extensions.synthetic_data import *`"
+      desc: "`from caml.extensions.synthetic_data import *` <br> <br> Synthetic data generation utilities for CaML."
       package: caml.extensions.synthetic_data
       contents:
         - name: CamlSyntheticDataGenerator
@@ -115,7 +115,7 @@ quartodoc:
         - name: make_fully_heterogeneous_dataset
           signature_name: short
     - title: Plots
-      desc: "`from caml.extensions.plots import *`"
+      desc: "`from caml.extensions.plots import *` <br> <br> Plotting utilities for CaML."
       package: caml.extensions.plots
       contents:
         - name: cate_histogram_plot
@@ -125,6 +125,7 @@ quartodoc:
         - name: cate_true_vs_estimated_plot
           signature_name: short
     - title: Developer Tools
+      desc: "Developer tools for CaML."
       contents:
         - generics.experimental
         - generics.timer
