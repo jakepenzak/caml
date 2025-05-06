@@ -1,16 +1,13 @@
 from __future__ import annotations
 
 import abc
-import logging
 from typing import TYPE_CHECKING
 
 import numpy as np
 import pandas
 from flaml import AutoML
 from sklearn.model_selection import train_test_split
-
-from ..generics import cls_typechecked
-from ..logging import setup_logging
+from typeguard import typechecked
 
 # Optional dependencies
 try:
@@ -32,10 +29,7 @@ if TYPE_CHECKING:
     pass
 
 
-logger = logging.getLogger(__name__)
-
-
-@cls_typechecked
+@typechecked
 class CamlBase(metaclass=abc.ABCMeta):
     """
     Base ABC class for core Caml classes.
@@ -43,9 +37,7 @@ class CamlBase(metaclass=abc.ABCMeta):
     This class contains the shared methods and properties for the Caml classes.
     """
 
-    def __init__(self, verbose: int = 1):
-        setup_logging(verbose)
-
+    def __init__(self):
         self._data_backend = (
             "pandas"
             if isinstance(self.df, pandas.DataFrame)
@@ -112,11 +104,11 @@ class CamlBase(metaclass=abc.ABCMeta):
 
         Parameters
         ----------
-        validation_size
-            The size of the validation set. Default is None.
-        test_size
+        validation_size : float
+            The size of the validation set. Default is 0.2.
+        test_size : float
             The size of the test set. Default is 0.2.
-        sample_fraction
+        sample_fraction : float
             The size of the sample to use for training. Default is 1.0.
 
         """
@@ -185,17 +177,17 @@ class CamlBase(metaclass=abc.ABCMeta):
 
         Parameters
         ----------
-        outcome
+        outcome : np.ndarray
             The outcome variable.
-        features
+        features : np.ndarray | list[np.ndarray]
             The features matrix/matrices.
-        discrete_outcome
+        discrete_outcome : bool
             Whether the outcome is discrete or continuous.
-        flaml_kwargs
+        flaml_kwargs : dict | None
             The keyword arguments to pass to FLAML.
-        use_ray
+        use_ray : bool
             Whether to use Ray for parallel processing.
-        use_spark
+        use_spark : bool
             Whether to use Spark for parallel processing.
 
         Returns

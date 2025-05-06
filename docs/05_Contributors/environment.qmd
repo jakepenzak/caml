@@ -31,4 +31,4 @@ To help aid in environment setup, we've created a [VS Code devcontainer](https:/
 
 ## Project & Package Dependency Management
 
-We use [uv](https://docs.astral.sh/uv/) for dependency & project management. See docs for details.
+We use [uv](https://docs.astral.sh/uv/) for dependency & project management. See uv [docs](https://docs.astral.sh/uv/) for details.

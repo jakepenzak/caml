@@ -12,7 +12,7 @@ def _():
 
 @app.cell
 def _(mo):
-    mo.md(r"""# Caml Synthetic Data API Usage""")
+    mo.md(r"""# Caml Synthetic Data Generator""")
     return
 
 

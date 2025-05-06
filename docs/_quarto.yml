@@ -41,8 +41,7 @@ website:
       - sidebar:Home
       - sidebar:Concepts
       - sidebar:Examples
-      - text: "API Reference"
-        file: 04_Reference/index.qmd
+      - sidebar:API_Reference
 
     right:
       - sidebar:Contributors
@@ -62,10 +61,17 @@ website:
       contents:
         - 02_Concepts/motivation.qmd
         - 02_Concepts/theory.qmd
+        - 02_Concepts/models.qmd
     - id: Examples
       title: "Examples"
       style: floating
       contents: 03_Examples/*
+    - id: API_Reference
+      title: "Reference"
+      style: floating
+      contents:
+        - 04_Reference/index.qmd
+        - 04_Reference/support_matrix.qmd
     - id: Contributors
       title: "Contributors"
       style: floating
@@ -87,16 +93,17 @@ quartodoc:
   dir: 04_Reference
   title: API Reference
   sidebar: 04_Reference/_sidebar.yml
-
   sections:
     - title: CaML Core
-      desc: "`from caml import *`"
+      desc: "`from caml import *` <br> <br> Core functionality of CaML for estimating causal effects with cross-sectional data."
       package: caml
       contents:
         - name: CamlCATE
           member_order: source
+        - name: FastOLS
+          member_order: source
     - title: Synthetic Data Generation
-      desc: "`from caml.extensions.synthetic_data import *`"
+      desc: "`from caml.extensions.synthetic_data import *` <br> <br> Synthetic data generation utilities for CaML."
       package: caml.extensions.synthetic_data
       contents:
         - name: CamlSyntheticDataGenerator
@@ -108,7 +115,7 @@ quartodoc:
         - name: make_fully_heterogeneous_dataset
           signature_name: short
     - title: Plots
-      desc: "`from caml.extensions.plots import *`"
+      desc: "`from caml.extensions.plots import *` <br> <br> Plotting utilities for CaML."
       package: caml.extensions.plots
       contents:
         - name: cate_histogram_plot
@@ -118,10 +125,14 @@ quartodoc:
         - name: cate_true_vs_estimated_plot
           signature_name: short
     - title: Developer Tools
+      desc: "Developer tools for CaML."
       contents:
-        - generics.generate_random_string
-        - generics.cls_typechecked
-        - logging.setup_logging
+        - generics.experimental
+        - generics.timer
+        - generics.maybe_jit
+        - generics.PandasConvertibleDataFrame
+        - logging.configure_logging
+        - logging.set_log_level
 
 metadata-files:
   - _sidebar.yml
