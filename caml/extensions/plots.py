@@ -18,16 +18,16 @@ def cate_histogram_plot(
 
     Parameters
     ----------
-    estimated_cates
+    estimated_cates : ArrayLike
         The estimated CATEs.
 
-    true_cates
+    true_cates : ArrayLike | None
         The true CATEs.
 
-    figure_kwargs
+    figure_kwargs : dict
         Matplotlib figure arguments.
 
-    hist_kwargs
+    hist_kwargs : dict
         Matplotlib hist arguments.
 
     Returns
@@ -98,19 +98,19 @@ def cate_true_vs_estimated_plot(
 
     Parameters
     ----------
-    estimated_cates
+    estimated_cates : ArrayLike
         The estimated CATEs.
 
-    figure_kwargs
+    figure_kwargs : dict
         Matplotlib figure arguments.
 
-    scatter_kwargs
-        Matplotlib line arguments.
+    scatter_kwargs : dict
+        Matplotlib scatter arguments.
 
     Returns
     -------
     matplotlib.pyplot.Figure
-        The line plot figure object.
+        The scatter plot figure object.
 
     Examples
     --------
@@ -168,25 +168,25 @@ def cate_line_plot(
 
     Parameters
     ----------
-    estimated_cates
+    estimated_cates : ArrayLike
         The estimated CATEs.
 
-    true_cates
+    true_cates : ArrayLike | None
         The true CATEs.
 
-    standard_errors
+    standard_errors : ArrayLike | None
         The standard errors of the estimated CATEs.
 
-    alpha
+    alpha : float
         The alpha level for the confidence intervals. The default is 0.05, which corresponds to 95% confidence intervals.
 
-    window
+    window : int
         The window size for the moving average.
 
-    figure_kwargs
+    figure_kwargs : dict
         Matplotlib figure arguments.
 
-    line_kwargs
+    line_kwargs : dict
         Matplotlib line arguments.
 
     Returns

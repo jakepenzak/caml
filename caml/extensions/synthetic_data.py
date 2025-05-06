@@ -1,4 +1,4 @@
-from collections.abc import Callable
+from typing import Callable
 
 import numpy as np
 import pandas as pd
@@ -10,12 +10,15 @@ from doubleml.datasets import (
 from scipy.linalg import toeplitz
 from typeguard import typechecked
 
-from ..generics import cls_typechecked
+from ..generics import experimental
 
 
-@cls_typechecked
+@experimental
+@typechecked
 class CamlSyntheticDataGenerator:
     r"""Generate highly flexible synthetic data for use in causal inference and CaML testing.
+
+    **CamlSyntheticDataGenerator is experimental and may change significantly in future versions.**
 
     The general form of the data generating process is:
 
@@ -27,7 +30,7 @@ class CamlSyntheticDataGenerator:
     $$
 
     where $\mathbf{Y_i}$ are the outcome(s), $\mathbf{T_i}$ are the treatment(s), $\mathbf{X_i}$ are the effect modifiers (leveraged for treatment effect heterogeneity)
-    with an optional random subset $\mathcal{S}$ selected as confounders, $\mathbf{W_i}$ are the confounders, $\mathbf{\epsilon_i}$ and $mathbf{\eta_i}$ are the error terms drawn from
+    with an optional random subset $\mathcal{S}$ selected as confounders, $\mathbf{W_i}$ are the confounders, $\mathbf{\epsilon_i}$ and $\mathbf{\eta_i}$ are the error terms drawn from
     normal distributions with optional specified standard deviation, $\tau$ is the CATE function, $g$ is the linearly seperable/nuisance component of the outcome function,
     and $f$ is the treatment function. Note in the case of no modifier variables, we obtain a purely partially linear model, with $\tau$ as a constant.
 
@@ -53,43 +56,43 @@ class CamlSyntheticDataGenerator:
 
     Parameters
     ----------
-    n_obs
+    n_obs : int
         Number of observations.
-    n_cont_outcomes
+    n_cont_outcomes : int
         Number of continuous outcomes ($Y$).
-    n_binary_outcomes
+    n_binary_outcomes : int
         Number of binary outcomes ($Y$).
-    n_cont_treatments
+    n_cont_treatments : int
         Number of continuous treatments ($T$).
-    n_binary_treatments
+    n_binary_treatments : int
         Number of binary treatments ($T$).
-    n_discrete_treatments
+    n_discrete_treatments : int
         Number of discrete treatments ($T$).
-    n_cont_confounders
+    n_cont_confounders : int
         Number of continuous confounders ($W$).
-    n_binary_confounders
+    n_binary_confounders : int
         Number of binary confounders ($W$).
-    n_discrete_confounders
+    n_discrete_confounders : int
         Number of discrete confounders ($W$).
-    n_cont_modifiers
+    n_cont_modifiers : int
         Number of continuous treatment effect modifiers ($X$).
-    n_binary_modifiers
+    n_binary_modifiers : int
         Number of binary treatment effect modifiers ($X$).
-    n_discrete_modifiers
+    n_discrete_modifiers : int
         Number of discrete treatment effect modifiers ($X$).
-    n_confounding_modifiers
+    n_confounding_modifiers : int
         Number of confounding treatment effect modifiers ($X_{\mathcal{S}}$).
-    stddev_outcome_noise
+    stddev_outcome_noise : float
         Standard deviation of the outcome noise ($\epsilon$).
-    stddev_treatment_noise
+    stddev_treatment_noise : float
         Standard deviation of the treatment noise ($\eta$).
-    causal_model_functional_form
+    causal_model_functional_form : str
         Functional form of the causal model, can be "linear" or "nonlinear".
-    n_nonlinear_transformations
+    n_nonlinear_transformations : int | None
         Number of nonlinear transformations, only applies if causal_model_functional_form="nonlinear".
-    n_nonlinear_interactions
+    n_nonlinear_interactions : int | None
         Number of nonlinear interactions with treatment, introducing heterogeneity, only applies if causal_model_functional_form="nonlinear".
-    seed
+    seed : int | None
         Random seed to use for generating the data.
 
     Attributes
@@ -151,7 +154,7 @@ class CamlSyntheticDataGenerator:
     ):
         if causal_model_functional_form not in ["linear", "nonlinear"]:
             raise ValueError(
-                f"Invalid functional form. Must be choice of {['linear','nonlinear']}"
+                f"Invalid functional form. Must be choice of {['linear', 'nonlinear']}"
             )
         if n_cont_outcomes + n_binary_outcomes == 0:
             raise ValueError("At least one outcome variable type must be specified.")
@@ -285,9 +288,9 @@ class CamlSyntheticDataGenerator:
 
         Parameters
         ----------
-        confounders
+        confounders : pd.DataFrame
             DataFrame of confounder variables
-        modifiers
+        modifiers : pd.DataFrame
             DataFrame of modifier variables
 
         Returns
@@ -344,11 +347,11 @@ class CamlSyntheticDataGenerator:
 
         Parameters
         ----------
-        confounders
+        confounders : pd.DataFrame
             DataFrame of confounder variables
-        modifier
+        modifiers : pd.DataFrame
             DataFrame of modifier variables
-        treatments
+        treatments : pd.DataFrame
             DataFrame of treatment variables
 
         Returns
@@ -425,19 +428,19 @@ class CamlSyntheticDataGenerator:
 
         Parameters
         ----------
-        covariates
+        covariates : pd.DataFrame
             The covariates dataframe used as features in the DGP.
-        stddev_err
+        stddev_err : float
             The standard deviation of the error term.
-        dep_type
+        dep_type : str
             The dependent variable type. Can be "continuous", "binary", or "discrete".
-        dgp_type
+        dgp_type : str
             The DGP process functional form. Can be "linear" or "nonlinear".
-        return_treatment_effects
+        return_treatment_effects : bool
             Boolean to return treatment effects. Default is False.
-        n_nonlinear_transformations
+        n_nonlinear_transformations : int | None
             Number of random nonlinear transformations. Only applies if dgp_type="nonlinear". Default is None.
-        n_nonlinear_interactions
+        n_nonlinear_interactions : int | None
             Number of random nonlinear interactions with treatment, introducing heterogeneity. Only applies if dgp_type="nonlinear". Default is None.
 
         Returns
@@ -548,11 +551,11 @@ class CamlSyntheticDataGenerator:
 
         Parameters
         ----------
-        f
+        f : Callable
             Outcome function.
-        data
+        data : pd.DataFrame
             Data.
-        dgp_type
+        dgp_type : str
             Type of DGP.
 
         Returns
@@ -595,15 +598,15 @@ class CamlSyntheticDataGenerator:
 
         Parameters
         ----------
-        f
+        f : Callable
             Outcome function.
-        data
+        data : pd.DataFrame
             Dataframe containing covariates and treatment.
-        wrt
+        wrt : str
             With respect to, the name of treatment variable.
-        dgp_type
+        dgp_type : str
             The data generating process type, can be nonlinear or linear.
-        levels
+        levels : list
             The treatment leves to capture potential outcome differences for. For continuous treatments, use 'cont', which measures one unit change in treatment.
 
         Returns
@@ -681,11 +684,11 @@ class CamlSyntheticDataGenerator:
 
         Parameters
         ----------
-        n_obs
+        n_obs : int
             Number of observations.
-        var_type
+        var_type : str
             Type of the variable to generate, choose from "continuous", "binary" or "discrete".
-        rng
+        rng : np.random.Generator
             Numpy random number generator.
 
         Returns
@@ -774,7 +777,7 @@ class CamlSyntheticDataGenerator:
 
         Parameters
         ----------
-        cates
+        cates : dict[str, dict]
             A dictionary including key as outcome name and value as dictionary of CATES of each treatment on that outcome.
 
         Returns
@@ -813,13 +816,13 @@ class CamlSyntheticDataGenerator:
 
         Parameters
         ----------
-        data
+        data : pd.DataFrame
             The input dataframe containing the features to be transformed.
-        n_transforms
+        n_transforms : int
             The number of nonlinear transformations to apply to the features, by default 10.
-        n_interactions
+        n_interactions : int
             The number of interactions with treatment to apply to the features, by default 5.
-        seed
+        seed : int | None
             Seed for the random number generator, by default None.
 
         Returns
@@ -914,7 +917,7 @@ class CamlSyntheticDataGenerator:
 
         Parameters
         ----------
-        x
+        x : np.ndarray
             Input matrix of scores
 
         Returns
@@ -939,7 +942,7 @@ class CamlSyntheticDataGenerator:
 
         Parameters
         ----------
-        x
+        x : np.ndarray
             Input matrix of scores
 
         Returns
@@ -962,9 +965,9 @@ class CamlSyntheticDataGenerator:
 
         Parameters
         ----------
-        prob_matrix
+        prob_matrix : np.ndarray
             Matrix of probabilities to be truncated and renormalized
-        epsilon
+        epsilon : float
             Value to clip probabilities on both ends of the distribution. Default is 0.05.
 
         Returns
@@ -1031,15 +1034,15 @@ def make_partially_linear_dataset_simple(
 
     Parameters
     ----------
-    n_obs
+    n_obs : int
         The number of observations to generate.
-    n_confounders
+    n_confounders : int
         The number of confounders $X$.
-    dim_heterogeneity
+    dim_heterogeneity : int
         The dimension of the heterogeneity $x_0$ or $(x_0,x_1)$. Can only be 1 or 2.
-    binary_treatment
+    binary_treatment : bool
         Whether the treatment $d$ is binary or continuous.
-    seed
+    seed : int | None
         The seed to use for the random number generator.
 
     Returns
@@ -1127,15 +1130,15 @@ def make_partially_linear_dataset_constant(
 
     Parameters
     ----------
-    n_obs
+    n_obs : int
         The number of observations to generate.
-    ate
+    ate : float
         The average treatment effect $\tau_0$.
-    n_confounders
+    n_confounders : int
         The number of confounders $\mathbf{W_i}$ to generate.
-    dgp
+    dgp : str
         The data generating process to use. Can be "make_plr_CCDDHNR20" or "make_plr_turrell2018".
-    seed
+    seed : int | None
         The seed to use for the random number generator.
     **doubleml_kwargs
         Additional keyword arguments to pass to the data generating process.
@@ -1239,13 +1242,13 @@ def make_fully_heterogeneous_dataset(
 
     Parameters
     ----------
-    n_obs
+    n_obs : int
         The number of observations to generate.
-    n_confounders
+    n_confounders : int
         The number of confounders $\mathbf{X_i}$ to generate (these are utilized fully for heterogeneity).
-    theta
+    theta : float
         The base parameter for the treatment effect. Note this differs from the ATE.
-    seed
+    seed : int | None
         The seed to use for the random number generator.
     **doubleml_kwargs
         Additional keyword arguments to pass to the data generating process.

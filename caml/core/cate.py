@@ -1,8 +1,7 @@
 from __future__ import annotations
 
 import copy
-import logging
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Iterable
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -13,12 +12,12 @@ from econml.dml import LinearDML
 from econml.score import EnsembleCateEstimator, RScorer
 from econml.validate.drtester import DRTester
 from joblib import Parallel, delayed
+from typeguard import typechecked
 
-from ..generics import cls_typechecked
+from ..generics import experimental
+from ..logging import ERROR, INFO, WARNING
 from ._base import CamlBase
 from .modeling import model_bank
-
-logger = logging.getLogger(__name__)
 
 # Optional dependencies
 try:
@@ -41,10 +40,12 @@ if TYPE_CHECKING:
     import ray
 
 
-@cls_typechecked
+@experimental
+@typechecked
 class CamlCATE(CamlBase):
-    r"""
-    The CamlCATE class represents an opinionated framework of Causal Machine Learning techniques for estimating highly accurate conditional average treatment effects (CATEs).
+    r"""The CamlCATE class represents an opinionated framework of Causal Machine Learning techniques for estimating highly accurate conditional average treatment effects (CATEs).
+
+    **CamlCATE is experimental and may change significantly in future versions.**
 
     The CATE is defined formally as $\mathbb{E}[\tau|\mathbf{X}]$
     where $\tau$ is the treatment effect and $\mathbf{X}$ is the set of covariates.
@@ -72,43 +73,26 @@ class CamlCATE(CamlBase):
      **Note**: All the standard assumptions of Causal Inference apply to this class (e.g., exogeneity/unconfoundedness, overlap, positivity, etc.).
         The class does not check for these assumptions and assumes that the user has already thought through these assumptions before using the class.
 
-    **Outcome/Treatment Type Support Matrix**
-    <center>
-    | Outcome     | Treatment   | Support     | Missing    |
-    | ----------- | ----------- | ----------- | ---------- |
-    | Continuous  | Binary      | ✅Full      |            |
-    | Continuous  | Continuous  | 🟡Partial   | validate() |
-    | Continuous  | Categorical | ✅Full      |            |
-    | Binary      | Binary      | 🟡Partial   | validate() |
-    | Binary      | Continuous  | 🟡Partial   | validate() |
-    | Binary      | Categorical | 🟡Partial   | validate() |
-    | Categorical | Binary      | ❌Not yet   |            |
-    | Categorical | Continuous  | ❌Not yet   |            |
-    | Categorical | Categorical | ❌Not yet   |            |
-
-    </center>
-    Multi-dimensional outcomes and treatments are not yet supported.
+    For outcome/treatment support, see [matrix](support_matrix.qmd).
 
     Parameters
     ----------
-    df
+    df : pandas.DataFrame | polars.DataFrame | pyspark.sql.DataFrame
         The input DataFrame representing the data for the CamlCATE instance.
-    Y
+    Y : str
         The str representing the column name for the outcome variable.
-    T
+    T : str
         The str representing the column name(s) for the treatment variable(s).
-    X
+    X : str | list[str]
         The str (if unity) or list of feature names representing the feature set to be utilized for estimating heterogeneity/CATE.
-    W
+    W : str | list[str] | None
         The str (if unity) or list of feature names representing the confounder/control feature set to be utilized only for nuisance function estimation. When W is passed, only Orthogonal learners will be leveraged.
-    discrete_treatment
+    discrete_treatment : bool
         A boolean indicating whether the treatment is discrete/categorical or continuous.
-    discrete_outcome
+    discrete_outcome : bool
         A boolean indicating whether the outcome is binary or continuous.
-    seed
+    seed : int | None
         The seed to use for the random number generator.
-    verbose
-        The verbosity level for logging. Default implies 1 (INFO). Set to 0 for no logging. Set to 2 for DEBUG.
 
     Attributes
     ----------
@@ -118,10 +102,10 @@ class CamlCATE(CamlBase):
         The str representing the column name for the outcome variable.
     T : str
         The str representing the column name(s) for the treatment variable(s).
-    X : list[str]
-        The str (if unity) or list/tuple of feature names representing the confounder/control feature set to be utilized for estimating heterogeneity/CATE and nuisance function estimation where applicable.
-    W : list[str]
-        The str (if unity) or list/tuple of feature names representing the confounder/control feature set to be utilized only for nuisance function estimation, where applicable. These will be included by default in Meta-Learners.
+    X : Iterable[str]
+        The str (if unity) or list of variable names representing the confounder/control feature set to be utilized for estimating heterogeneity/CATE and nuisance function estimation where applicable.
+    W : Iterable[str] | None
+        The str (if unity) or list of variable names representing the confounder/control feature set to be utilized only for nuisance function estimation, where applicable. These will be included by default in Meta-Learners.
     discrete_treatment : bool
         A boolean indicating whether the treatment is discrete/categorical or continuous.
     discrete_outcome : bool
@@ -136,6 +120,8 @@ class CamlCATE(CamlBase):
         The fitted nuisance function for the treatment variable.
     cate_estimators: dict[str, econml._cate_estimator.BaseCateEstimator | econml.score.EnsembleCateEstimator]
         Dictionary of fitted cate estimator objects.
+    rscores: dict[str, float]
+        Dictionary of RScore values for each fitted cate estimator.
     validation_estimator : econml._cate_estimator.BaseCateEstimator | econml.score.EnsembleCateEstimator
         The fitted EconML estimator object for validation.
     validator_results : econml.validate.results.EvaluationResults
@@ -162,7 +148,6 @@ class CamlCATE(CamlBase):
         discrete_treatment=True,
         discrete_outcome=False,
         seed=0,
-        verbose=1,
     )
 
     print(caml_obj)
@@ -174,16 +159,15 @@ class CamlCATE(CamlBase):
         df: pandas.DataFrame | polars.DataFrame | pyspark.sql.DataFrame,
         Y: str,
         T: str,
-        X: list[str],
-        W: list[str] | None = None,
+        X: Iterable[str],
+        W: Iterable[str] | None = None,
         *,
         discrete_treatment: bool = True,
         discrete_outcome: bool = False,
         seed: int | None = None,
-        verbose: int = 1,
     ):
         self.df = df
-        super().__init__(verbose=verbose)
+        super().__init__()
 
         self.Y = Y
         self.T = T
@@ -202,13 +186,13 @@ class CamlCATE(CamlBase):
         self._cate_predictions = {}
 
         if not self.discrete_treatment:
-            logger.warning("Validation for continuous treatments is not supported yet.")
+            WARNING("Validation for continuous treatments is not supported yet.")
 
         if self.discrete_outcome:
-            logger.warning("Binary outcomes are experimental and bugs may exist.")
+            WARNING("Binary outcomes are experimental and bugs may exist.")
 
         if len(self.W) > 0:
-            logger.warning(
+            WARNING(
                 "Only Orthogonal Learners are currently supported with 'W', as Meta-Learners neccesitate 'W' in final CATE learner. "
                 "If you don't care about 'W' features being used in final CATE model, add it to 'X' argument insead."
             )
@@ -228,13 +212,13 @@ class CamlCATE(CamlBase):
 
         Parameters
         ----------
-        flaml_Y_kwargs
+        flaml_Y_kwargs : dict | None
             The keyword arguments for the FLAML AutoML search for the outcome model. Default implies the base parameters in CamlBase.
-        flaml_T_kwargs
+        flaml_T_kwargs : dict | None
             The keyword arguments for the FLAML AutoML search for the treatment model. Default implies the base parameters in CamlBase.
-        use_ray
+        use_ray : bool
             A boolean indicating whether to use Ray for parallel processing.
-        use_spark
+        use_spark : bool
             A boolean indicating whether to use Spark for parallel processing.
 
         Examples
@@ -304,7 +288,7 @@ class CamlCATE(CamlBase):
     def fit_validator(
         self,
         *,
-        cate_estimators: list[str] = [
+        cate_estimators: Iterable[str] = [
             "LinearDML",
             "CausalForestDML",
             "NonParamDML",
@@ -334,25 +318,25 @@ class CamlCATE(CamlBase):
 
         Parameters
         ----------
-        cate_estimators
+        cate_estimators : Iterable[str]
             The list of CATE estimators to fit and ensemble. Default implies all available models as defined by class.
-        additional_cate_estimators
+        additional_cate_estimators : list[tuple[str, BaseCateEstimator]]
             The list of additional CATE estimators to fit and ensemble
-        ensemble
+        ensemble : bool
             The boolean indicating whether to ensemble the CATE models & score.
-        rscorer_kwargs
+        rscorer_kwargs : dict
             The keyword arguments for the econml.score.RScorer object.
-        use_ray
+        use_ray : bool
             A boolean indicating whether to use Ray for parallel processing.
-        ray_remote_func_options_kwargs
+        ray_remote_func_options_kwargs : dict
             The keyword arguments for the Ray remote function options.
-        validation_size
+        validation_size : float
             The fraction of the dataset to use for model scoring via RScorer.
-        test_size
+        test_size : float
             The fraction of the dataset to hold out for final evaluation in the `validate()` method.
-        sample_size
+        sample_size : float
             The fraction of the datasets to use. Useful for quick testing when dataframe is large. Defaults implies full training data.
-        n_jobs
+        n_jobs : int
             The number of parallel jobs to run.
 
         Examples
@@ -409,7 +393,7 @@ class CamlCATE(CamlBase):
             cate_estimators=cate_estimators,
             additional_cate_estimators=additional_cate_estimators,
         )
-        (self._validation_estimator, self._rscorer) = (
+        (self._validation_estimator, self._rscorer, self.rscores) = (
             self._fit_and_ensemble_cate_estimators(
                 rscorer_kwargs=rscorer_kwargs,
                 use_ray=use_ray,
@@ -438,13 +422,13 @@ class CamlCATE(CamlBase):
 
         Parameters
         ----------
-        n_groups
+        n_groups : int
             The number of quantile based groups used to calculate calibration scores.
-        n_bootstrap
+        n_bootstrap : int
             The number of boostrap samples to run when calculating confidence bands.
-        estimator
+        estimator : BaseCateEstimator | EnsembleCateEstimator | None
             The estimator to validate. Default implies the best estimator from the validation set.
-        print_full_report
+        print_full_report : bool
             A boolean indicating whether to print the full validation report.
 
         Examples
@@ -461,7 +445,7 @@ class CamlCATE(CamlBase):
             estimator = self._validation_estimator
 
         if not self.discrete_treatment or self.discrete_outcome:
-            logger.error(
+            ERROR(
                 "Validation for continuous treatments and/or discrete outcomes is not supported yet."
             )
             return
@@ -506,11 +490,11 @@ class CamlCATE(CamlBase):
         # Check for insignificant results & warn user
         summary = res.summary()
         if np.array(summary[[c for c in summary.columns if "pval" in c]] > 0.1).any():
-            logger.warning(
+            WARNING(
                 "Some of the validation results suggest that the model may not have found statistically significant heterogeneity. Please closely look at the validation results and consider retraining with new configurations."
             )
         else:
-            logger.info(
+            INFO(
                 "All validation results suggest that the model has found statistically significant heterogeneity."
             )
 
@@ -601,14 +585,14 @@ class CamlCATE(CamlBase):
 
         Parameters
         ----------
-        X
+        X : pandas.DataFrame | np.ndarray | None
             The DataFrame containing the features (X) for which CATE needs to be predicted.
             If not provided, defaults to the internal dataset.
-        T0
+        T0 : int
             Base treatment for each sample.
-        T1
+        T1 : int
             Target treatment for each sample.
-        T
+        T : pandas.DataFrame | np.ndarray | None
             Treatment vector if continuous treatment is leveraged for computing marginal effects around treatments for each individual.
 
         Returns
@@ -657,7 +641,7 @@ class CamlCATE(CamlBase):
 
         Parameters
         ----------
-        cate_predictions
+        cate_predictions : np.ndarray | None
             The CATE predictions for which summary statistics will be generated.
             If not provided, defaults to internal CATE predictions generated by `predict()` method with X=None.
 
@@ -696,9 +680,9 @@ class CamlCATE(CamlBase):
 
         Parameters
         ----------
-        cate_estimators
+        cate_estimators : list[str]
             The list of CATE models to fit and ensemble.
-        additional_cate_estimators
+        additional_cate_estimators : list[tuple[str, BaseCateEstimator]]
             The list of additional CATE models to fit and ensemble.
         """
         _cate_estimators = []
@@ -733,15 +717,15 @@ class CamlCATE(CamlBase):
 
         Parameters
         ----------
-        rscorer_kwargs
+        rscorer_kwargs : dict
             The keyword arguments for the econml.score.RScorer object.
-        use_ray
+        use_ray : bool
             A boolean indicating whether to use Ray for parallel processing.
-        ray_remote_func_options_kwargs
+        ray_remote_func_options_kwargs : dict
             The keyword arguments for the Ray remote function options.
-        n_jobs
+        n_jobs : int
             The number of parallel jobs to run. Default implies -1 (all CPUs).
-        ensemble
+        ensemble : bool
             Whether to ensemble the fitted CATE models.
 
         Returns
@@ -782,7 +766,7 @@ class CamlCATE(CamlBase):
                     )
                 else:
                     if len(self.W) > 0:
-                        logger.warning(
+                        WARNING(
                             f"Non-Orthogonal Learners ({name}) are not supported with 'W'. Skipping model."
                         )
                         fitted_model = None
@@ -793,7 +777,7 @@ class CamlCATE(CamlBase):
                     str(e)
                     == "This method can only be used with single-dimensional continuous treatment or binary categorical treatment."
                 ):
-                    logger.warning(
+                    WARNING(
                         f"Multi-dimensional discrete treatment is not supported for {name}. Skipping model."
                     )
                     fitted_model = None
@@ -821,6 +805,7 @@ class CamlCATE(CamlBase):
             )
 
         models = [m for m in models if m[1] is not None]
+        self.cate_estimators = models
 
         base_rscorer_settings = {
             "cv": 3,
@@ -864,10 +849,14 @@ class CamlCATE(CamlBase):
         )
         best_estimator = models[np.nanargmax(estimator_scores)][0]
 
-        logger.info(f"Best Estimator: {best_estimator}")
-        logger.info(f"Estimator RScores: {estimator_score_dict}")
+        INFO(f"Best Estimator: {best_estimator}")
+        INFO(f"Estimator RScores: {estimator_score_dict}")
 
-        return models[np.nanargmax(estimator_scores)][1], rscorer
+        return (
+            models[np.nanargmax(estimator_scores)][1],
+            rscorer,
+            estimator_score_dict,
+        )
 
     def __str__(self):
         """

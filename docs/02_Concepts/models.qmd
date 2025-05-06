@@ -1,0 +1,66 @@
+---
+title: "Model Specifications"
+---
+
+## [FastOLS](../04_Reference/FastOLS.qmd)
+
+### Model Specification
+
+The model is given by:
+$$
+\begin{equation}
+\mathbf{Y} = T \beta + \mathbf{Q}\mathbf{\Gamma} + \left(T \circ \mathbf{Q}\right)\mathbf{\Omega} + \mathbf{W}\mathbf{\Psi} + \mathbf{E}
+\tag{1}
+\end{equation}
+$$
+
+where
+
+- $\mathbf{Y}_{n \times p}$ is the matrix of $p$ outcomes
+- $T_{n \times 1}$ is the treatment variable
+- $\mathbf{Q}_{n \times (j+l)} = \bigl[\mathbf{X} \; \mathbf{G} \bigr]$ is the horizontal stack matrix of $j$ covariates and $l$ group variables
+- $\mathbf{W}_{n \times m}$ is the matrix of $m$ control covariates
+- $\beta_{1 \times p}$ is the vector of coefficients on $T$
+- $\mathbf{\Gamma}_{(j+l) \times p}$ is the matrix of coefficients on $\mathbf{Q}$
+- $\mathbf{\Omega}_{(j+l) \times p}$ is the matrix of coefficients on the interaction terms between $T$ and $\mathbf{Q}$
+- $\mathbf{\Psi}_{m \times p}$ is the matrix of coefficients on $\mathbf{W}$
+- $\mathbf{E}_{n \times p}$ is the error term matrix
+
+$\mathbf{Q}$ contains the covariates and group variables used to model treatment effect heterogeneity via interaction terms.
+
+### Treatment Effect Estimation & Inference
+
+Our average treatment effects (ATE) $\tau$ for a binary treatment variable $T$ is defined as:
+
+$$
+\tau = \mathbb{E}_n[\mathbf{Y}_1 - \mathbf{Y}_0]
+$$
+
+where $\mathbf{Y}_1$ and $\mathbf{Y}_0$ are the potential outcomes.
+Assuming exogeneity in $T$, the ATEs are identified and can be estimated as follows:
+
+$$
+\tau = \mathbb{E}_n\left[\mathbb{E}\left[\mathbf{Y} \mid T = 1\right] - \mathbb{E}\left[\mathbf{Y} \mid T = 0\right]\right]
+$$
+
+Within the context of (1), this can be estimated via:
+
+$$
+\mathbf{\tau} = \mathbf{\Theta'}\bar{d}
+$$
+
+where $\mathbf{\Theta'} = \left[\beta' \; \mathbf{\Gamma'} \; \mathbf{\Omega'} \; \mathbf{\Psi'}\right]$ is
+the horizontally concatenated matrix of transposed coefficient matrices, and
+$\bar{d} = \mathbb{E}_n\left[D_{T=1} - D_{T=0}\right]$ is the the average difference in the design matrix $D$ of (1) from
+toggling the treatment variable across all observations.
+
+Furthermore, for each outcome $k \in \{1,2,...,p\}$, we can estimate the standard error of the ATE as follows:
+$$
+\text{SE}(\tau_k) = \sqrt{\bar{d}'\text{VCV}(\mathbf{\Theta}_k)\bar{d}}
+$$
+
+where $\text{VCV}(\mathbf{\Theta}_k)$ is the variance-covariance matrix of the estimated coefficients for the $k$-th outcome.
+
+This logic extends naturally to the estimation of GATEs and CATEs (e.g., $\bar{d} = \mathbb{E}_n\left[D_{T=1} - D_{T=0} | \mathbf{G}=g\right]$,
+$\bar{d} = \mathbb{E}_n\left[D_{T=1} - D_{T=0} | \mathbf{G}=g, \mathbf{X}=x\right]$, $\dots$, etc.) and to continuous treatments
+(e.g., $\bar{d} = \mathbb{E}_n\left[D_{T=t+1} - D_{T=t}\right]$, $\dots$, etc.).

@@ -29,3 +29,7 @@ __pycache__/
 
 # Jupyer
 .ipynb_checkpoints
+
+__marimo__/
+
+dev.py

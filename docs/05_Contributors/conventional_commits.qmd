@@ -2,7 +2,7 @@
 title: "Conventional Commits"
 ---
 
-This project uses [conventional commits](https://www.conventionalcommits.org/en/v1.0.0/) for Pull Request titles, as they are used as the commit names on the
+This project uses [conventional commits](https://www.conventionalcommits.org/en/v1.0.0/) for Pull Request titles, as they are ultimately used as the commit names on the
 main branch. What are conventional commits? In the words of the official documentation:
 
 > The Conventional Commits specification is a lightweight convention on top of commit messages.
@@ -30,7 +30,7 @@ Valid types for Caml are as follows:
 - `revert`: Reverting code changes to a previous state
 - `chore`: Routine tasks that don't fit in any of the above
 
-We use the following regex to validate PR titles ([test it!](https://regex101.com/r/yC6ZMD/1):
+We use the following regex to validate PR titles ([test it!](https://regex101.com/r/yC6ZMD/1)):
 
 ```
 ^(build|chore|ci|docs|feat|fix|perf|refactor|revert|style|test|release)(.+)?(!)?:\ .+

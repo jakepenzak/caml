@@ -1,5 +1,5 @@
 [project]
-authors = [{name = "jakepenzak", email = "jacob@pieniazek.me"}]
+authors = [{ name = "jakepenzak", email = "jacob@pieniazek.me" }]
 dependencies = [
     "econml>=0.15.1",
     "flaml[automl]>=2.2.0",
@@ -7,16 +7,17 @@ dependencies = [
     "doubleml>=0.8.0",
     "matplotlib>=3.9.2",
     "rich>=13.9.4",
+    "patsy>=1.0.1",
 ]
 description = "Extensions & abstractions of advanced econometric techniques leveraging machine learning."
 name = "caml"
 requires-python = ">= 3.10"
 version = "0.0.0-dev9"
-license = {file = "LICENSE"}
+license = { file = "LICENSE" }
 readme = "README.md"
 classifiers = [
-  "Development Status :: 1 - Planning",
-  "Programming Language :: Python"
+    "Development Status :: 1 - Planning",
+    "Programming Language :: Python",
 ]
 
 [dependency-groups]
@@ -37,10 +38,7 @@ dev = [
     "pynvim>=0.5.2",
     "ruff>=0.6.2",
 ]
-docs = [
-    "quarto-cli>=1.6.40",
-    "quartodoc>=0.9.1",
-]
+docs = ["quarto-cli>=1.6.40", "quartodoc>=0.9.1"]
 
 [project.optional-dependencies]
 pyspark = [
@@ -49,20 +47,22 @@ pyspark = [
     "pyspark>=3.5.2",
     "ray>=2.35.0",
 ]
-polars = [
-    "polars>=1.17.1",
-]
+polars = ["polars>=1.17.1", "pyarrow>=20.0.0"]
+jax = ["jax>=0.5.2"]
+jax-gpu = ["jax[cuda12]>=0.5.2"]
 
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [tool.ruff]
-exclude = ["scripts/notebooks/",
-            ".git",
-            ".pytest_cache",
-            ".ruff_cache",
-            "notebooks/"]
+exclude = [
+    "scripts/notebooks/",
+    ".git",
+    ".pytest_cache",
+    ".ruff_cache",
+    "notebooks/",
+]
 
 extend-include = ["*.ipynb"]
 
@@ -73,12 +73,12 @@ indent-width = 4
 target-version = "py310"
 
 [tool.ruff.lint.per-file-ignores]
-"__init__.py" = ["E402","F401"] # Import violations
+"__init__.py" = ["E402", "F401"]     # Import violations
 "**/{tests,docs,tools}/*" = ["E402"] # Import violations
 
 [tool.ruff.lint]
 select = ["E", "F", "W", "Q", "D", "I"]
-ignore = ["D401","D100","D101","D102","D103", "E501", "E203"]
+ignore = ["D401", "D100", "D101", "D102", "D103", "E501", "E203"]
 
 [tool.ruff.format]
 quote-style = "double"
@@ -96,6 +96,13 @@ convention = "numpy"
 [tool.pytest.ini_options]
 filterwarnings = "ignore::DeprecationWarning"
 addopts = "--cov=caml/ --cov-report=term-missing --cov-report=html:tests/reports/htmlcov --cov-report=xml:tests/reports/coverage.xml"
+markers = [
+    "ols: mark tests for the FastOLS/ols module",
+    "core: mark tests for the core module",
+]
+
+[tool.coverage.run]
+omit = ["caml/logging.py", "caml/extensions/plots.py"]
 
 [tool.bumpversion]
 current_version = "0.0.0-dev9"

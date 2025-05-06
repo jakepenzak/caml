@@ -14,7 +14,7 @@ and guide you through the process of contributing to CaML.
 Pull requests are the best way to make changes to CaML:
 
 1. Fork the repo and create your branch from `main` branch
-2. Clone the repository
+2. Clone the repository on your local machine
 3. For environment setup, see [Environment Setup](environment.qmd)
 4. For documentation, see [Documentation](documentation.qmd)
 5. For testing, see [Testing](testing.qmd)
