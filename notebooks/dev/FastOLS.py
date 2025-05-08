@@ -23,17 +23,17 @@ def _():
     import pandas as pd
     import numpy as np
     from caml import FastOLS
-    from caml.extensions.synthetic_data import CamlSyntheticDataGenerator
+    from caml.extensions.synthetic_data import SyntheticDataGenerator
     from caml.logging import configure_logging
     import logging
 
     configure_logging(level=logging.DEBUG)
-    return CamlSyntheticDataGenerator, FastOLS
+    return SyntheticDataGenerator, FastOLS
 
 
 @app.cell
-def _(CamlSyntheticDataGenerator):
-    data = CamlSyntheticDataGenerator(
+def _(SyntheticDataGenerator):
+    data = SyntheticDataGenerator(
         n_obs=10_000,
         n_cont_outcomes=2,
         n_binary_outcomes=0,

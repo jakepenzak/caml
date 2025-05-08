@@ -135,9 +135,9 @@ class CamlCATE(CamlBase):
     --------
     ```{python}
     from caml import CamlCATE
-    from caml.extensions.synthetic_data import CamlSyntheticDataGenerator
+    from caml.extensions.synthetic_data import SyntheticDataGenerator
 
-    data_generator = CamlSyntheticDataGenerator(seed=10)
+    data_generator = SyntheticDataGenerator(seed=10)
     df = data_generator.df
 
     caml_obj = CamlCATE(

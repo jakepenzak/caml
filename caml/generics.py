@@ -111,7 +111,7 @@ def maybe_jit(func: Callable | None = None, **jit_kwargs) -> Callable:
 
 @runtime_checkable
 class PandasConvertibleDataFrame(Protocol):
-    """Protocol for DataFrame-like objects that pandas compatible.
+    """Protocol for DataFrame-like objects that are pandas convertible.
 
     This includes DataFrames that are either pandas dataframes or can be converted to pandas via `to_pandas()` or `toPandas()` methods.
     """

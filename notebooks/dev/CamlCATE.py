@@ -26,11 +26,11 @@ def _(mo):
 
 @app.cell
 def _():
-    from caml.extensions.synthetic_data import CamlSyntheticDataGenerator
+    from caml.extensions.synthetic_data import SyntheticDataGenerator
 
-    data =  CamlSyntheticDataGenerator(n_obs=10_000,
-                                      n_cont_outcomes=0,
-                                      n_binary_outcomes=1,
+    data =  SyntheticDataGenerator(n_obs=10_000,
+                                      n_cont_outcomes=1,
+                                      n_binary_outcomes=0,
                                       n_cont_treatments=0,
                                       n_binary_treatments=1,
                                       n_discrete_treatments=0,
@@ -43,10 +43,9 @@ def _():
                                       n_confounding_modifiers=0,
                                       stddev_outcome_noise=1,
                                       stddev_treatment_noise=1,
-                                      causal_model_functional_form="linear",
+                                      causal_model_functional_form="nonlinear",
                                       n_nonlinear_transformations=5,
-                                      n_nonlinear_interactions=2,
-                                      seed=10)
+                                      seed=None)
 
 
     synthetic_df = data.df
@@ -65,6 +64,7 @@ def _(synthetic_df):
 @app.cell
 def _(dgp):
     dgp
+
     return
 
 
@@ -125,8 +125,8 @@ def _(mo):
 @app.cell
 def _(caml):
     caml.auto_nuisance_functions(
-        flaml_Y_kwargs={"time_budget": 30},
-        flaml_T_kwargs={"time_budget": 30},
+        flaml_Y_kwargs={"time_budget": 90},
+        flaml_T_kwargs={"time_budget": 90},
         use_ray=False,
         use_spark=False,
     )

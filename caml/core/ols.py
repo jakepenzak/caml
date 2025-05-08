@@ -85,9 +85,9 @@ class FastOLS:
     --------
     ```{python}
     from caml import FastOLS
-    from caml.extensions.synthetic_data import CamlSyntheticDataGenerator
+    from caml.extensions.synthetic_data import SyntheticDataGenerator
 
-    data_generator = CamlSyntheticDataGenerator(n_cont_outcomes=1,
+    data_generator = SyntheticDataGenerator(n_cont_outcomes=1,
                                                 n_binary_outcomes=1,
                                                 n_binary_modifiers=2,
                                                 seed=10)

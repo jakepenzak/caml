@@ -18,8 +18,8 @@ def _(mo):
 
 @app.cell
 def _():
-    from caml.extensions.synthetic_data import CamlSyntheticDataGenerator
-    return (CamlSyntheticDataGenerator,)
+    from caml.extensions.synthetic_data import SyntheticDataGenerator
+    return (SyntheticDataGenerator,)
 
 
 @app.cell
@@ -29,8 +29,8 @@ def _(mo):
 
 
 @app.cell
-def _(CamlSyntheticDataGenerator):
-    data =  CamlSyntheticDataGenerator(n_obs=10_000,
+def _(SyntheticDataGenerator):
+    data =  SyntheticDataGenerator(n_obs=10_000,
                                       n_cont_outcomes=1,
                                       n_binary_outcomes=1,
                                       n_cont_treatments=1,
@@ -47,7 +47,6 @@ def _(CamlSyntheticDataGenerator):
                                       stddev_treatment_noise=3,
                                       causal_model_functional_form="linear",
                                       n_nonlinear_transformations=10,
-                                      n_nonlinear_interactions=5,
                                       seed=15)
     return (data,)
 

@@ -18,13 +18,13 @@ def _(mo):
 
 @app.cell
 def _():
-    from caml.synthetic_data import CamlSyntheticDataGenerator
-    return (CamlSyntheticDataGenerator,)
+    from caml.synthetic_data import SyntheticDataGenerator
+    return (SyntheticDataGenerator,)
 
 
 @app.cell
-def _(CamlSyntheticDataGenerator):
-    data =  CamlSyntheticDataGenerator(n_obs=10_000,
+def _(SyntheticDataGenerator):
+    data =  SyntheticDataGenerator(n_obs=10_000,
                                       n_cont_outcomes=0,
                                       n_binary_outcomes=1,
                                       n_cont_treatments=0,

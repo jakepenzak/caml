@@ -34,7 +34,7 @@ def _(mo):
         r"""
         ## Generate Synthetic Data
 
-        Here we'll leverage the [`CamlSyntheticDataGenerator`](../04_Reference/CamlSyntheticDataGenerator.qmd) class to generate a linear synthetic data generating process, with a binary treatment, continuous outcome, and a mix of confounding/mediating continuous covariates.
+        Here we'll leverage the [`SyntheticDataGenerator`](../04_Reference/SyntheticDataGenerator.qmd) class to generate a linear synthetic data generating process, with a binary treatment, continuous outcome, and a mix of confounding/mediating continuous covariates.
         """
     )
     return
@@ -50,17 +50,15 @@ def _():
 
 @app.cell
 def _():
-    from caml.extensions.synthetic_data import CamlSyntheticDataGenerator
+    from caml.extensions.synthetic_data import SyntheticDataGenerator
 
-    data =  CamlSyntheticDataGenerator(n_obs=10_000,
+    data =  SyntheticDataGenerator(n_obs=10_000,
                                       n_cont_outcomes=1,
                                       n_binary_treatments=1,
                                       n_cont_confounders=2,
                                       n_cont_modifiers=2,
                                       n_confounding_modifiers=1,
                                       causal_model_functional_form="linear",
-                                      n_nonlinear_transformations=5,
-                                      n_nonlinear_interactions=2,
                                       seed=1)
     return (data,)
 
