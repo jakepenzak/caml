@@ -99,6 +99,8 @@ addopts = "--cov=caml/ --cov-report=term-missing --cov-report=html:tests/reports
 markers = [
     "ols: mark tests for the FastOLS/ols module",
     "core: mark tests for the core module",
+    "extensions: mark tests for the extensions module",
+    "synthetic_data: mark tests for the synthetic data module`",
 ]
 
 [tool.coverage.run]
