@@ -1,13 +1,129 @@
+import re
+
 import numpy as np
 import pytest
 from numpy.testing import assert_allclose
 
 from caml.extensions.synthetic_data import (
+    SyntheticDataGenerator,
     _truncate_and_renormalize_probabilities,
+    make_fully_heterogeneous_dataset,
+    make_partially_linear_dataset_constant,
     make_partially_linear_dataset_simple,
 )
 
 pytestmark = [pytest.mark.extensions, pytest.mark.synthetic_data]
+
+
+class TestSyntheticDataGenerator:
+    @pytest.mark.parametrize(
+        (
+            "n_obs,n_cont_outcomes,n_binary_outcomes,n_cont_treatments,n_binary_treatments,n_discrete_treatments,causal_model_functional_form,n_features"
+        ),
+        [
+            (1000, 1, 1, 1, 1, 1, "linear", 4),
+            (1000, 1, 1, 1, 1, 1, "nonlinear", 4),
+            (1000, 1, 1, 1, 0, 0, "linear", 4),
+            (1000, 1, 1, 1, 0, 0, "nonlinear", 4),
+            (1000, 1, 1, 0, 1, 0, "linear", 4),
+            (1000, 1, 1, 0, 1, 0, "nonlinear", 4),
+            (1000, 1, 1, 0, 0, 1, "linear", 4),
+            (1000, 1, 1, 0, 0, 1, "nonlinear", 4),
+            (1000, 1, 1, 1, 1, 1, "linear", 0),
+            (1000, 1, 1, 1, 1, 1, "nonlinear", 0),
+            (1000, 1, 1, 1, 1, 1, "bad", 4),  # Fail on bad functional form
+            (1000, 0, 0, 1, 1, 1, "linear", 4),  # Fail on no outcomes
+            (1000, 1, 1, 0, 0, 0, "linear", 4),  # Fail on no treatments
+            (0, 1, 1, 1, 1, 1, "linear", 4),  # Fail on no observations
+        ],
+        ids=[
+            "linear_all_treatment_types",
+            "nonlinear_all_treatment_types",
+            "linear_only_cont_treatments",
+            "nonlinear_only_cont_treatments",
+            "linear_only_binary_treatments",
+            "nonlinear_only_binary_treatments",
+            "linear_only_discrete_treatments",
+            "nonlinear_only_discrete_treatments",
+            "linear_no_covariates",
+            "nonlinear_no_covariates",
+            "bad_functional_form",
+            "no_outcomes",
+            "no_treatments",
+            "no_observations",
+        ],
+    )
+    def test_init(
+        self,
+        n_obs,
+        n_cont_outcomes,
+        n_binary_outcomes,
+        n_cont_treatments,
+        n_binary_treatments,
+        n_discrete_treatments,
+        causal_model_functional_form,
+        n_features,
+    ):
+        n_nonlinear_transformations = 5
+
+        def call():
+            return SyntheticDataGenerator(
+                n_obs=n_obs,
+                n_cont_outcomes=n_cont_outcomes,
+                n_binary_outcomes=n_binary_outcomes,
+                n_cont_treatments=n_cont_treatments,
+                n_binary_treatments=n_binary_treatments,
+                n_discrete_treatments=n_discrete_treatments,
+                n_cont_confounders=n_features,
+                n_binary_confounders=n_features,
+                n_discrete_confounders=n_features,
+                n_cont_modifiers=n_features,
+                n_binary_modifiers=n_features,
+                n_discrete_modifiers=n_features,
+                n_confounding_modifiers=n_features,
+                causal_model_functional_form=causal_model_functional_form,
+                n_nonlinear_transformations=n_nonlinear_transformations,
+            )
+
+        if (
+            causal_model_functional_form == "bad"
+            or n_cont_outcomes + n_binary_outcomes == 0
+            or n_cont_treatments + n_binary_treatments + n_discrete_treatments == 0
+            or n_obs == 0
+        ):
+            with pytest.raises(ValueError):
+                call()
+        else:
+            gen = call()
+
+            assert (
+                gen._n_nonlinear_transformations == n_nonlinear_transformations
+                if causal_model_functional_form == "nonlinear"
+                else gen._n_nonlinear_transformations is None
+            )
+
+            assert gen.df.shape == (
+                n_obs,
+                n_cont_outcomes
+                + n_binary_outcomes
+                + n_cont_treatments
+                + n_binary_treatments
+                + n_discrete_treatments
+                + n_features * 6,
+            )
+
+            sum_categories = 0
+            for dis_t in [c for c in gen.df if re.match(r"T[0-9]+", c) and "dis" in c]:
+                sum_categories += len(gen.df[dis_t].unique())
+
+            n_treatment_effects = (n_cont_outcomes + n_binary_outcomes) * (
+                n_cont_treatments
+                + n_binary_treatments
+                + sum_categories
+                - n_discrete_treatments  # Subtract reference group
+            )
+            assert gen.cates.shape == (n_obs, n_treatment_effects)
+            assert gen.ates.shape == (n_treatment_effects, 2)
 
 
 class TestFunctionals:
@@ -42,23 +158,17 @@ class TestFunctionals:
     @pytest.mark.parametrize("n_confounders", [5, 10])
     @pytest.mark.parametrize("dim_heterogeneity", [1, 2, 3])
     @pytest.mark.parametrize("binary_treatment", [True, False])
-    @pytest.mark.parametrize("seed", [None, 1])
     def test_make_partially_linear_dataset_simple(
         self,
         n_obs,
         n_confounders,
         dim_heterogeneity,
         binary_treatment,
-        seed,
     ):
         if dim_heterogeneity == 3:
             with pytest.raises(ValueError):
                 make_partially_linear_dataset_simple(
-                    n_obs=n_obs,
-                    n_confounders=n_confounders,
-                    dim_heterogeneity=dim_heterogeneity,
-                    binary_treatment=binary_treatment,
-                    seed=seed,
+                    dim_heterogeneity=dim_heterogeneity
                 )
         else:
             df, cates, ate = make_partially_linear_dataset_simple(
@@ -66,7 +176,6 @@ class TestFunctionals:
                 n_confounders=n_confounders,
                 dim_heterogeneity=dim_heterogeneity,
                 binary_treatment=binary_treatment,
-                seed=seed,
             )
             assert df.shape == (n_obs, n_confounders + 2)
             assert cates.shape == (n_obs,)
@@ -76,5 +185,47 @@ class TestFunctionals:
             else:
                 assert df["d"].unique().shape[0] != 2
 
-            if seed == 1:
-                assert ate == pytest.approx(4.5, abs=0.6)
+            assert ate == pytest.approx(4.5, abs=0.5)
+
+    @pytest.mark.parametrize("n_obs", [1000, 10000])
+    @pytest.mark.parametrize("exp_ate", [4.5, 15.5])
+    @pytest.mark.parametrize("n_confounders", [5, 15])
+    @pytest.mark.parametrize(
+        "dgp", ["make_plr_CCDDHNR2018", "make_plr_turrell2018", "bad"]
+    )
+    def test_make_partially_linear_dataset_constant(
+        self,
+        n_obs,
+        exp_ate,
+        n_confounders,
+        dgp,
+    ):
+        if dgp == "bad":
+            with pytest.raises(ValueError):
+                make_partially_linear_dataset_constant(dgp=dgp)
+        else:
+            df, cates, ate = make_partially_linear_dataset_constant(
+                n_obs=n_obs,
+                ate=exp_ate,
+                n_confounders=n_confounders,
+                dgp=dgp,
+            )
+            assert df.shape == (n_obs, n_confounders + 2)
+            assert cates.shape == (n_obs,)
+            assert isinstance(ate, float)
+            assert ate == exp_ate
+            assert np.all(cates == exp_ate)
+
+    @pytest.mark.parametrize("n_obs", [1000, 10000])
+    @pytest.mark.parametrize("n_confounders", [5, 15])
+    @pytest.mark.parametrize("theta", [4.0, 5.6])
+    def test_make_fully_heterogeneous_dataset(self, n_obs, n_confounders, theta):
+        df, cates, ate = make_fully_heterogeneous_dataset(
+            n_obs=n_obs,
+            n_confounders=n_confounders,
+            theta=theta,
+        )
+        assert df.shape == (n_obs, n_confounders + 2)
+        assert cates.shape == (n_obs,)
+        assert isinstance(ate, float)
+        assert ate == pytest.approx(theta, abs=0.2)

@@ -8,6 +8,7 @@ from doubleml.datasets import (
     make_plr_CCDDHNR2018,
     make_plr_turrell2018,
 )
+from numpy.typing import ArrayLike
 from scipy.linalg import toeplitz
 from scipy.special import expit as sigmoid
 from scipy.special import softmax
@@ -150,7 +151,11 @@ class SyntheticDataGenerator:
     ```{python}
     from caml.extensions.synthetic_data import SyntheticDataGenerator
 
-    data_generator = SyntheticDataGenerator(seed=10)
+    data_generator = SyntheticDataGenerator(n_cont_outcomes=1,
+                                            n_binary_treatments=1,
+                                            n_cont_confounders=2,
+                                            n_cont_modifiers=2,
+                                            seed=10)
     data_generator.df
     ```
 
@@ -229,6 +234,52 @@ class SyntheticDataGenerator:
         self._rng = np.random.default_rng(seed)
 
         self._generate_data()
+
+    @staticmethod
+    def create_design_matrix(
+        df: pd.DataFrame, formula: str, return_type: str = "dataframe", **kwargs
+    ) -> pd.DataFrame | np.ndarray:
+        """Create a design matrix from a formula and data.
+
+        This method can be used to reconstruct the design matrices used to generate the treatment and outcome
+        variables. Furthermore, using `dgp` attribute, using the returned design matrix, one can generate the original
+        outcomes and treatment variables. See below example.
+
+        Parameters
+        ----------
+        df : pd.DataFrame
+            The input data.
+        formula : str
+            The formula to be used with patsy.
+        return_type : str, optional
+            The type of the returned design matrix. Can be either "dataframe" or "matrix". Default is "dataframe".
+        **kwargs
+            Additional keyword arguments to be passed to patsy.dmatrix.
+
+        Returns
+        -------
+        pd.DataFrame | np.ndarray
+            The design matrix.
+
+        Examples
+        --------
+        ```{python}
+        df = data_generator.df
+        dgp = data_generator.dgp['Y1_continuous']
+
+        design_matrix = data_generator.create_design_matrix(df,formula=dgp['formula'])
+
+        print(design_matrix.columns)
+
+        # Recreate Y1_continuous
+        params = dgp['params']
+        noise = dgp['noise']
+        f = dgp['function']
+
+        f(design_matrix,params,noise)
+        ```
+        """
+        return patsy.dmatrix(formula, data=df, return_type=return_type, **kwargs)
 
     def _generate_data(self):
         """
@@ -397,17 +448,15 @@ class SyntheticDataGenerator:
             elif dist == "beta":
                 a, b = rng.uniform(1, 3), rng.uniform(1, 3)
                 res = rng.beta(a, b, n_obs)
-            elif dist == "laplace":
+            else:  # Laplace
                 loc, scale = rng.uniform(-5, 5), rng.uniform(0.5, 2)
                 res = rng.laplace(loc, scale, n_obs)
-            else:
-                raise ValueError("Invalid distribution")
 
         elif var_type == "binary":
             p = rng.uniform(0.1, 0.9)
             res = rng.binomial(1, p, n_obs)
 
-        elif var_type == "discrete":
+        else:  # Discrete
             distributions = ["poisson", "geometric", "multinomial", "uniform"]
 
             dist = rng.choice(distributions)
@@ -425,14 +474,9 @@ class SyntheticDataGenerator:
                 probs = rng.dirichlet(np.ones(n_categories))
                 res = rng.choice(range(n_categories), size=n_obs, p=probs)
 
-            elif dist == "uniform":
+            else:  # Uniform
                 n_categories = rng.choice(range(2, 7))
                 res = rng.choice(range(0, n_categories), size=n_obs)
-            else:
-                raise ValueError("Invalid distribution")
-
-        else:
-            raise ValueError("Invalid variable type.")
 
         return res
 
@@ -549,9 +593,12 @@ class SyntheticDataGenerator:
         )
 
         if formula is not None:
-            d_matrix = self.create_design_matrix(df, formula=formula)
+            d_matrix = self.create_design_matrix(
+                df,
+                formula=formula,
+            )
         else:
-            d_matrix = df.values
+            d_matrix = df
 
         dep, params, noise, f = self._create_dgp_function(
             df=d_matrix,
@@ -600,14 +647,13 @@ class SyntheticDataGenerator:
         formula = "1 + " + " + ".join(columns)
 
         non_treat_columns = [c for c in columns if "T" not in c]
-        if n_nonlinear_transformations is not None:
+        if n_nonlinear_transformations is not None and len(non_treat_columns) > 0:
             np.random.seed(seed)
 
             transformations = [
-                lambda x: f"I({x}**2)",  # square(x)
+                # lambda x: f"I({x}**2)",  # square(x)
                 lambda x: f"np.log(np.abs({x})+0.01)",  # log(abs(x)+0.01)
                 lambda x: f"np.sqrt(np.abs({x}))",  # sqrt(abs(x))
-                lambda x: f"np.exp({x})",  # exp(x)
                 lambda x: f"np.sin({x})",  # sine(x)
                 lambda x: f"np.cos({x})",  # cosine(x)
             ]
@@ -627,41 +673,20 @@ class SyntheticDataGenerator:
             formula = formula + " + " + " + ".join(sorted(list(terms)))
 
         if include_heterogeneity:
-            treat_column = [c for c in columns if "T" in c][0]
+            treat_columns = [c for c in columns if "T" in c]
             interactions = set()
-            for term in formula.split(" + "):
-                if "T" not in term and "W" not in term and term != "1":
-                    interactions.add(f"{treat_column}*{term}")
+            for treat_column in treat_columns:
+                for term in formula.split(" + "):
+                    if "T" not in term and "W" not in term and term != "1":
+                        interactions.add(f"{treat_column}*{term}")
             if len(interactions) > 0:
                 formula = formula + " + " + " + ".join(sorted(list(interactions)))
 
         return formula
 
     @staticmethod
-    def create_design_matrix(
-        df: pd.DataFrame, formula: str, **kwargs
-    ) -> pd.DataFrame | np.ndarray:
-        """Create a design matrix from a formula and data.
-
-        Parameters
-        ----------
-        df : pd.DataFrame
-            The input data.
-        formula : str
-            The formula to be used with patsy.
-        **kwargs
-            Additional keyword arguments to be passed to patsy.dmatrix.
-
-        Returns
-        -------
-        pd.DataFrame | np.ndarray
-            The design matrix.
-        """
-        return patsy.dmatrix(formula, data=df, **kwargs)
-
-    @staticmethod
     def _create_dgp_function(
-        df: np.ndarray,
+        df: pd.DataFrame,
         n_obs: int,
         stddev_err: float,
         dep_type: str,
@@ -671,7 +696,7 @@ class SyntheticDataGenerator:
 
         Parameters
         ----------
-        df : np.ndarray
+        df : pd.DataFrame
             The input data.
         n_obs : int
             The number of observations.
@@ -703,63 +728,40 @@ class SyntheticDataGenerator:
 
         if dep_type == "continuous":
 
-            def f_cont(x, params, noise):
-                """Continuous target function.
-
-                Logic as follows:
-
-                ```python
-                return x @ params + noise
-                ```
-                """
+            @typechecked
+            def f_cont(x: pd.DataFrame, params: ArrayLike, noise: ArrayLike):
+                """Continuous target function."""
                 return x @ params + noise
 
             f = f_cont
-            dep = f(df, params, noise)
+            dep = np.array(f(df, params, noise))
         elif dep_type == "binary":
 
-            def f_binary(x, params, noise):
-                """Binary target function.
+            @typechecked
+            def f_binary(x: pd.DataFrame, params: ArrayLike, noise: ArrayLike):
+                """Binary target function."""
+                raw = x @ params + noise
 
-                Logic as follows:
-
-                ```python
-                scores = x @ params + noise
-                probs = sigmoid(scores)
-                return _truncate_and_renormalize_probabilities(probs)
-                ```
-                """
-                scores = x @ params + noise
-                probs = sigmoid(scores)
+                probs = sigmoid(raw)
                 return _truncate_and_renormalize_probabilities(probs)
 
             f = f_binary
             scores = f(df, params, noise)
             dep = rng.binomial(1, scores)
-        elif dep_type == "discrete":
+        else:  # Discrete
 
-            def f_discrete(x, params, noise):
-                """Discrete target function.
+            @typechecked
+            def f_discrete(x: pd.DataFrame, params: ArrayLike, noise: ArrayLike):
+                """Discrete target function."""
+                raw = x @ params + noise
 
-                Logic as follows:
-
-                ```python
-                scores = x @ params + noise
-                probs = softmax(scores)
-                return _truncate_and_renormalize_probabilities(probs)
-                ```
-                """
-                scores = x @ params + noise
-                probs = softmax(scores)
+                probs = softmax(raw)
                 return _truncate_and_renormalize_probabilities(probs)
 
             f = f_discrete
             scores = f(df, params, noise)
             dep = np.array([rng.choice(range(n_categories)) for prob in scores])
-        else:
-            raise ValueError(
-                f"Invalid dep_type passed. Got {dep_type}. Choose from ['continuous','binary','discrete']."
-            )
+
         return dep, params, noise, f
 
     def _compute_treatment_effects(
@@ -798,10 +800,8 @@ class SyntheticDataGenerator:
                 levels = ["continuous"]
             elif "binary" in t:
                 levels = [0, 1]
-            elif "discrete" in t:
+            else:  # Discrete
                 levels = df[t].unique().tolist()
-            else:
-                raise ValueError("Invalid treatment type.")
 
             cates[t] = self._compute_potential_outcome_differences(
                 f=f,
@@ -824,7 +824,7 @@ class SyntheticDataGenerator:
         wrt: str,
         formula: str,
         levels: list,
-    ) -> dict[str, np.ndarray] | np.ndarray:
+    ) -> dict[str, ArrayLike] | ArrayLike:
         """Computes potential outcome differences of some outcome function for each individual, returning the conditional average treatment effects (CATEs).
 
         Parameters
@@ -1180,7 +1180,7 @@ def make_fully_heterogeneous_dataset(
     n_confounders : int
         The number of confounders $\mathbf{X_i}$ to generate (these are utilized fully for heterogeneity).
     theta : float
-        The base parameter for the treatment effect. Note this differs from the ATE.
+        The base parameter for the treatment effect. Note this can differ slightly from the true ATE.
     seed : int | None
         The seed to use for the random number generator.
     **doubleml_kwargs
