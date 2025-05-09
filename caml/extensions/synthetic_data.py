@@ -385,7 +385,7 @@ class SyntheticDataGenerator:
         pd.DataFrame
             Dataframe of independent variables.
         """
-        vars = {}
+        ind_vars = {}
 
         var_types = (
             ["continuous"] * n_continuous
@@ -394,11 +394,11 @@ class SyntheticDataGenerator:
         )
 
         for i, t in enumerate(var_types):
-            vars[f"{col_prefix}{i + 1}_{t}"] = self._generate_random_variable(
+            ind_vars[f"{col_prefix}{i + 1}_{t}"] = self._generate_random_variable(
                 n_obs=self._n_obs, var_type=t, rng=self._rng
             )
 
-        df = pd.DataFrame(vars)
+        df = pd.DataFrame(ind_vars)
         if df.shape == (0, 0):
             df = pd.DataFrame(index=range(self._n_obs))
         return df
