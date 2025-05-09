@@ -1,8 +1,10 @@
 import re
 
 import numpy as np
+import pandas as pd
 import pytest
 from numpy.testing import assert_allclose
+from typing_extensions import Callable
 
 from caml.extensions.synthetic_data import (
     SyntheticDataGenerator,
@@ -53,7 +55,7 @@ class TestSyntheticDataGenerator:
             "no_observations",
         ],
     )
-    def test_init(
+    def test_init(  # Testing everything in one pass, easier that way
         self,
         n_obs,
         n_cont_outcomes,
@@ -124,6 +126,66 @@ class TestSyntheticDataGenerator:
             )
             assert gen.cates.shape == (n_obs, n_treatment_effects)
             assert gen.ates.shape == (n_treatment_effects, 2)
+            assert np.allclose(gen.cates.mean(axis=0), gen.ates["ATE"])
+
+            for dep_var in [
+                c
+                for c in gen.df.columns
+                if re.match(r"Y[0-9]+", c) or re.match(r"T[0-9]+", c)
+            ]:
+                dep_var_dgp = gen.dgp[dep_var]
+                params = dep_var_dgp["params"]
+                formula = dep_var_dgp["formula"]
+                noise = dep_var_dgp["noise"]
+                raw_scores = dep_var_dgp["raw_scores"]
+                function = dep_var_dgp["function"]
+
+                assert isinstance(dep_var_dgp, dict)
+                assert isinstance(formula, str | None)
+                assert isinstance(params, np.ndarray)
+                assert isinstance(noise, np.ndarray)
+                assert isinstance(raw_scores, np.ndarray)
+                assert isinstance(function, Callable)
+
+                if formula is not None:
+                    design_matrix = gen.create_design_matrix(
+                        gen.df, formula=formula, return_type="dataframe"
+                    )
+                    assert isinstance(design_matrix, pd.DataFrame)
+
+                    # Recreate dep_var
+                    assert np.allclose(
+                        raw_scores, function(design_matrix, params, noise)
+                    )
+
+                    # Test treatment effect estimation
+                    if "Y" in dep_var:
+                        for t in [c for c in gen.df.columns if c.startswith("T")]:
+                            data_treat = gen.df.copy()
+                            data_cont = gen.df.copy()
+                            if "bin" in t:
+                                data_treat[t] = 1
+                                data_cont[t] = 0
+                            elif "cont" in t:
+                                data_treat[t] = data_treat[t] + 1
+                            else:
+                                continue
+
+                            dm1 = gen.create_design_matrix(
+                                data_treat, formula=formula, return_type="dataframe"
+                            )
+                            dm0 = gen.create_design_matrix(
+                                data_cont, formula=formula, return_type="dataframe"
+                            )
+
+                            treat_col = [
+                                c for c in gen.cates.columns if t in c and dep_var in c
+                            ][0]
+                            assert np.allclose(
+                                gen.cates[treat_col],
+                                function(dm1, params, np.zeros_like(noise))
+                                - function(dm0, params, np.zeros_like(noise)),
+                            )
 
 
 class TestFunctionals:

@@ -18,7 +18,7 @@ from ..generics import experimental
 
 
 def _truncate_and_renormalize_probabilities(
-    prob_matrix: np.ndarray, epsilon: float = 0.05
+    prob_matrix: np.ndarray, epsilon: float = 0.01
 ) -> np.ndarray:
     """Truncate and renormalize probabilities (in case of softmax).
 
@@ -96,6 +96,8 @@ class SyntheticDataGenerator:
     ```
     </div>
 
+    For a more detailed working example, see [SyntheticDataGenerator Example](../03_Examples/SyntheticDataGenerator.qmd).
+
     Parameters
     ----------
     n_obs : int
@@ -145,6 +147,7 @@ class SyntheticDataGenerator:
         The true average treatment effects (ATEs) of the data.
     dgp : dict
         The true data generating processes of the treatments and outcomes.
+        Contains the design matrix formula, parameters, noise, raw_scores, and function used to generate the data.
 
     Examples
     --------
@@ -264,6 +267,7 @@ class SyntheticDataGenerator:
         Examples
         --------
         ```{python}
+        import numpy as np
         df = data_generator.df
         dgp = data_generator.dgp['Y1_continuous']
 
@@ -277,6 +281,8 @@ class SyntheticDataGenerator:
         f = dgp['function']
 
         f(design_matrix,params,noise)
+
+        assert np.allclose(f(design_matrix,params,noise), df['Y1_continuous'])
         ```
         """
         return patsy.dmatrix(formula, data=df, return_type=return_type, **kwargs)
@@ -580,7 +586,7 @@ class SyntheticDataGenerator:
         pd.DataFrame
             The dataframe containing the dependent variables.
         dict
-            The dictionary containing the design matrix, parameters, noise, and function.
+            The dictionary containing the design matrix, parameters, noise, raw scores, and function.
         dict | None
             The dictionary containing the treatment effects, or None if not included.
 
@@ -600,7 +606,7 @@ class SyntheticDataGenerator:
         else:
             d_matrix = df
 
-        dep, params, noise, f = self._create_dgp_function(
+        dep, params, noise, raw_scores, f = self._create_dgp_function(
             df=d_matrix,
             n_obs=self._n_obs,
             stddev_err=stddev_err,
@@ -612,7 +618,13 @@ class SyntheticDataGenerator:
         else:
             cates = None
 
-        dgp = {"formula": formula, "params": params, "noise": noise, "function": f}
+        dgp = {
+            "formula": formula,
+            "params": params,
+            "noise": noise,
+            "raw_scores": raw_scores,
+            "function": f,
+        }
         return dep, dgp, cates
 
     @staticmethod
@@ -691,7 +703,7 @@ class SyntheticDataGenerator:
         stddev_err: float,
         dep_type: str,
         rng: np.random.Generator,
-    ) -> tuple[np.ndarray, np.ndarray, np.ndarray, Callable]:
+    ) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray, Callable]:
         """Creates the data generation process (DGP) function & simulates the data.
 
         Parameters
@@ -709,8 +721,8 @@ class SyntheticDataGenerator:
 
         Returns
         -------
-        tuple[np.ndarray, np.ndarray, np.ndarray, Callable]
-            The generated dependent variable, params, noise, and the DGP function.
+        tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray, Callable]
+            The generated dependent variable, params, noise, raw scores, and the DGP function.
         """
         n_feats = df.shape[1]
 
@@ -723,7 +735,10 @@ class SyntheticDataGenerator:
             param_size = n_feats
             noise_size = n_obs
 
-        params = rng.uniform(low=-3, high=3, size=param_size)
+        if dep_type != "continuous":
+            params = rng.normal(0, 0.5, size=param_size)
+        else:
+            params = rng.normal(0, 2, size=param_size)
         noise = rng.normal(0, stddev_err, size=noise_size)
 
         if dep_type == "continuous":
@@ -734,7 +749,8 @@ class SyntheticDataGenerator:
                 return x @ params + noise
 
             f = f_cont
-            dep = np.array(f(df, params, noise))
+            scores = np.array(f(df, params, noise))
+            dep = scores
         elif dep_type == "binary":
 
             @typechecked
@@ -746,7 +762,7 @@ class SyntheticDataGenerator:
                 return _truncate_and_renormalize_probabilities(probs)
 
             f = f_binary
-            scores = f(df, params, noise)
+            scores = np.array(f(df, params, noise))
             dep = rng.binomial(1, scores)
         else:  # Discrete
 
@@ -759,10 +775,10 @@ class SyntheticDataGenerator:
                 return _truncate_and_renormalize_probabilities(probs)
 
             f = f_discrete
-            scores = f(df, params, noise)
+            scores = np.array(f(df, params, noise))
             dep = np.array([rng.choice(range(n_categories)) for prob in scores])
 
-        return dep, params, noise, f
+        return dep, params, noise, scores, f
 
     def _compute_treatment_effects(
         self,

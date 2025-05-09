@@ -41,6 +41,8 @@ class FastOLS:
 
     For model specification details, see [Model Specifications](../02_Concepts/models.qmd#fastols).
 
+    For a more detailed working example, see [FastOLS Example](../03_Examples/FastOLS.qmd).
+
     Parameters
     ----------
     Y : Collection[str]
@@ -89,6 +91,7 @@ class FastOLS:
 
     data_generator = SyntheticDataGenerator(n_cont_outcomes=1,
                                                 n_binary_outcomes=1,
+                                                n_cont_modifiers=1,
                                                 n_binary_modifiers=2,
                                                 seed=10)
     df = data_generator.df

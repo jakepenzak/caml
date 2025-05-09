@@ -26,18 +26,18 @@ def _(mo):
 def _():
     from caml.extensions.synthetic_data import SyntheticDataGenerator
 
-    data = SyntheticDataGenerator(
+    data_generator = SyntheticDataGenerator(
         n_obs=10_000,
         n_cont_outcomes=0,
         n_binary_outcomes=1,
         n_cont_treatments=0,
         n_binary_treatments=1,
         n_discrete_treatments=0,
-        n_cont_confounders=1,
-        n_binary_confounders=0,
+        n_cont_confounders=2,
+        n_binary_confounders=2,
         n_discrete_confounders=0,
         n_cont_modifiers=2,
-        n_binary_modifiers=0,
+        n_binary_modifiers=2,
         n_discrete_modifiers=0,
         n_confounding_modifiers=0,
         stddev_outcome_noise=3,
@@ -48,10 +48,10 @@ def _():
     )
 
 
-    synthetic_df = data.df
-    cate_df = data.cates
-    ate_df = data.ates
-    dgp = data.dgp
+    synthetic_df = data_generator.df
+    cate_df = data_generator.cates
+    ate_df = data_generator.ates
+    dgp = data_generator.dgp
     return cate_df, dgp, synthetic_df
 
 
@@ -135,7 +135,7 @@ def _(mo):
 def _(caml):
     caml.auto_nuisance_functions(
         flaml_Y_kwargs={
-            "time_budget": 15,
+            "time_budget": 120,
             "estimator_list": [
                 "lgbm",
                 "rf",
@@ -146,7 +146,7 @@ def _(caml):
             ],
         },
         flaml_T_kwargs={
-            "time_budget": 15,
+            "time_budget": 120,
             "estimator_list": [
                 "lgbm",
                 "rf",
@@ -172,17 +172,17 @@ def _(mo):
 def _(caml):
     caml.fit_validator(
         cate_estimators=[
-            # "LinearDML",
+            "LinearDML",
             "CausalForestDML",
-            # "NonParamDML",
-            # "SparseLinearDML-2D",
-            # "DRLearner",
+            "NonParamDML",
+            "SparseLinearDML-2D",
+            "DRLearner",
             "ForestDRLearner",
-            # "LinearDRLearner",
-            # "DomainAdaptationLearner",
-            # "SLearner",
-            # "TLearner",
-            # "XLearner",
+            "LinearDRLearner",
+            "DomainAdaptationLearner",
+            "SLearner",
+            "TLearner",
+            "XLearner",
         ],
         additional_cate_estimators=[],
         rscorer_kwargs={},
@@ -370,6 +370,11 @@ def _(cate_line_plot, synthetic_df):
         true_cates=synthetic_df["true_cates"],
         window=20,
     )
+    return
+
+
+@app.cell
+def _():
     return
 
 

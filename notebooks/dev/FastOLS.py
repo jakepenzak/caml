@@ -1,8 +1,6 @@
-
-
 import marimo
 
-__generated_with = "0.13.1"
+__generated_with = "0.13.6"
 app = marimo.App(width="medium")
 
 
@@ -28,12 +26,12 @@ def _():
     import logging
 
     configure_logging(level=logging.DEBUG)
-    return SyntheticDataGenerator, FastOLS
+    return FastOLS, SyntheticDataGenerator
 
 
 @app.cell
 def _(SyntheticDataGenerator):
-    data = SyntheticDataGenerator(
+    data_generator = SyntheticDataGenerator(
         n_obs=10_000,
         n_cont_outcomes=2,
         n_binary_outcomes=0,
@@ -49,13 +47,13 @@ def _(SyntheticDataGenerator):
         causal_model_functional_form="linear",
         seed=44,
     )
-    return (data,)
+    return (data_generator,)
 
 
 @app.cell
-def _(data):
-    df = data.df
-    # df["cates"] = data.cates
+def _(data_generator):
+    df = data_generator.df
+    # df["cates"] = data_generator.cates
     df
     return (df,)
 
@@ -104,8 +102,8 @@ def _(df, fu):
 
 
 @app.cell
-def _(data):
-    data.cates
+def _(data_generator):
+    data_generator.cates
     return
 
 
@@ -122,14 +120,8 @@ def _(d):
 
 
 @app.cell
-def _(d):
-    d.query("group == 'overall'")['ate']
-    return
-
-
-@app.cell
-def _(data):
-    data.ates
+def _(data_generator):
+    data_generator.ates
     return
 
 
@@ -155,6 +147,11 @@ def _(df, fu):
 @app.cell
 def _(df2):
     df2['cates'].mean()
+    return
+
+
+@app.cell
+def _():
     return
 
 
