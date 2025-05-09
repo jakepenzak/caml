@@ -106,7 +106,7 @@ quartodoc:
       desc: "`from caml.extensions.synthetic_data import *` <br> <br> Synthetic data generation utilities for CaML."
       package: caml.extensions.synthetic_data
       contents:
-        - name: CamlSyntheticDataGenerator
+        - name: SyntheticDataGenerator
           signature_name: short
         - name: make_partially_linear_dataset_simple
           signature_name: short

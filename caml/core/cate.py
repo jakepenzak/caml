@@ -75,6 +75,8 @@ class CamlCATE(CamlBase):
 
     For outcome/treatment support, see [matrix](support_matrix.qmd).
 
+    For a more detailed working example, see [CamlCATE Example](../03_Examples/CamlCATE.qmd).
+
     Parameters
     ----------
     df : pandas.DataFrame | polars.DataFrame | pyspark.sql.DataFrame
@@ -135,9 +137,9 @@ class CamlCATE(CamlBase):
     --------
     ```{python}
     from caml import CamlCATE
-    from caml.extensions.synthetic_data import CamlSyntheticDataGenerator
+    from caml.extensions.synthetic_data import SyntheticDataGenerator
 
-    data_generator = CamlSyntheticDataGenerator(seed=10)
+    data_generator = SyntheticDataGenerator(seed=10, n_cont_modifiers=1, n_cont_confounders=1)
     df = data_generator.df
 
     caml_obj = CamlCATE(
