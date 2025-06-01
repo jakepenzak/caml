@@ -191,6 +191,7 @@ class TestFastOLSInitialization:
             G=["G1", "G2"],
             X=["X1"],
             W=["W1"],
+            xformula="+W1**2",
             discrete_treatment=discrete_treatment,
             engine="cpu",
         )
@@ -199,30 +200,35 @@ class TestFastOLSInitialization:
         assert fo.G == ["G1", "G2"]
         assert fo.X == ["X1"]
         assert fo.W == ["W1"]
-        assert fo.discrete_treatment is discrete_treatment
-        assert fo.engine == "cpu"
+        assert fo._discrete_treatment is discrete_treatment
+        assert fo._engine == "cpu"
         assert fo._fitted is False
-        assert fo.results == {}
         if discrete_treatment:
             assert (
                 fo.formula.replace(" ", "")
-                == "Y1+Y2~C(T)+C(G1)*C(T)+C(G2)*C(T)+X1*C(T)+W1"
+                == "Y1+Y2~C(T)+C(G1)*C(T)+C(G2)*C(T)+X1*C(T)+W1+W1**2"
             )
         else:
-            assert fo.formula.replace(" ", "") == "Y1+Y2~T+C(G1)*T+C(G2)*T+X1*T+W1"
+            assert (
+                fo.formula.replace(" ", "") == "Y1+Y2~T+C(G1)*T+C(G2)*T+X1*T+W1+W1**2"
+            )
 
         summary = (
             "================== FastOLS Object ==================\n"
-            + f"Engine: {fo.engine}\n"
+            + f"Engine: {fo._engine}\n"
             + f"Outcome Variable: {fo.Y}\n"
             + f"Treatment Variable: {fo.T}\n"
-            + f"Discrete Treatment: {fo.discrete_treatment}\n"
+            + f"Discrete Treatment: {fo._discrete_treatment}\n"
             + f"Group Variables: {fo.G}\n"
             + f"Features/Confounders for Heterogeneity (X): {fo.X}\n"
             + f"Features/Confounders as Controls (W): {fo.W}\n"
             + f"Formula: {fo.formula}\n"
         )
         assert str(fo) == summary
+
+        for a in ["params", "vcv", "std_err", "treatment_effects"]:
+            with pytest.raises(RuntimeError):
+                getattr(fo, a)
 
     def test_invalid_engine_raises(self):
         with pytest.raises(ValueError):
@@ -237,7 +243,7 @@ class TestFastOLSInitialization:
         if ols_mod._HAS_JAX:
             monkeypatch.setattr(ols_mod, "jax", DummyJax)
             fo = FastOLS(Y=["Y"], T="T", engine="gpu")
-            assert fo.engine == "cpu"
+            assert fo._engine == "cpu"
 
 
 IS_WIN_PY312 = sys.platform.startswith("win") and sys.version_info[:2] == (3, 12)
@@ -289,7 +295,7 @@ class TestFastOLSFittingAndEstimation:
         assert fo_obj._fitted
 
         for k in ["params", "vcv", "std_err", "treatment_effects"]:
-            assert k in fo_obj.results
+            getattr(fo_obj, k)
 
         for i, y in enumerate([c for c in pd_df.columns if "Y" in c]):
             statsmod = ols(formula=f"{y} ~ {fo_obj.formula.split('~')[1]}", data=pd_df)
@@ -299,11 +305,13 @@ class TestFastOLSFittingAndEstimation:
             else:
                 statsmod = statsmod.fit()
 
-            assert np.allclose(fo_obj.results["params"][:, i], statsmod.params)
-            assert np.allclose(fo_obj.results["vcv"][i, :, :], statsmod.cov_params())
-            assert np.allclose(fo_obj.results["std_err"][:, i], statsmod.bse)
+            assert np.allclose(fo_obj.params[:, i], statsmod.params)
+            assert np.allclose(fo_obj.vcv[i, :, :], statsmod.cov_params())
+            assert np.allclose(fo_obj.std_err[:, i], statsmod.bse)
 
-    def test_fit_with_non_binary_discrete_treatment(self, pd_df, fo_obj, request):
+    def test_fit_with_non_binary_discrete_treatment_raises(
+        self, pd_df, fo_obj, request
+    ):
         t_col = [c for c in pd_df.columns if "T" in c][0]
         if "cont" in t_col:
             pytest.skip("Not applicable for continuous treatments.")
@@ -320,15 +328,31 @@ class TestFastOLSFittingAndEstimation:
         fo_obj.G = None
         fo_obj.__init__(
             **{
-                k: getattr(fo_obj, k)
-                for k in ["Y", "T", "G", "X", "W", "discrete_treatment", "engine"]
+                k: getattr(fo_obj, v)
+                for k, v in {
+                    "Y": "Y",
+                    "T": "T",
+                    "G": "G",
+                    "X": "X",
+                    "W": "W",
+                    "discrete_treatment": "_discrete_treatment",
+                    "engine": "_engine",
+                }.items()
             }
         )
 
         fo_obj.fit(pd_df, estimate_effects=True)
 
-        for k, _ in fo_obj.results["treatment_effects"].items():
+        for k, _ in fo_obj.treatment_effects.items():
             assert "overall" in k
+
+    def test_fit_with_nans_raises(self, pd_df, fo_obj):
+        n_nans = np.random.randint(0, len(pd_df))
+        nan_indices = np.random.choice(pd_df.index, size=n_nans, replace=False)
+        pd_df.loc[nan_indices, "X1"] = np.nan
+
+        with pytest.raises(ValueError):
+            fo_obj.fit(pd_df)
 
     @pytest.mark.parametrize(
         "return_results_dict", [True, False], ids=["Results Dict", "No Results Dict"]
@@ -366,6 +390,16 @@ class TestFastOLSFittingAndEstimation:
 
             # Check small enough Precision in Estimating Heterogenous Treatment Effects (PEHE)
             assert mean_squared_error(cate_estimated, cate_expected) < 0.1
+
+    def test_predict_outcome(self, fo_obj, pd_df):
+        fo_obj.fit(pd_df, estimate_effects=False)
+        res = fo_obj.predict(pd_df, mode="outcome")
+
+        for i, y in enumerate([c for c in pd_df.columns if "Y" in c]):
+            y_estimated = res[:, i]
+            y_expected = pd_df[y]
+            assert r2_score(y_estimated, y_expected) > 0.9
+            assert mean_squared_error(y_estimated, y_expected) < 0.1
 
     @pytest.mark.parametrize(
         "return_results_dict", [True, False], ids=["Results Dict", "No Results Dict"]
@@ -425,7 +459,7 @@ class TestFastOLSFittingAndEstimation:
             prettified = fo_obj.prettify_treatment_effects(res)
         else:
             prettified = fo_obj.prettify_treatment_effects()
-            res = fo_obj.results["treatment_effects"]
+            res = fo_obj.treatment_effects
 
         assert isinstance(prettified, pd.DataFrame)
 

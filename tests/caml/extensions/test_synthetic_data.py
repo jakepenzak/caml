@@ -55,7 +55,7 @@ class TestSyntheticDataGenerator:
             "no_observations",
         ],
     )
-    def test_init(  # Testing everything in one pass, easier that way
+    def test_init(  # Testing everything in one pass, yuck! Not core class.
         self,
         n_obs,
         n_cont_outcomes,
