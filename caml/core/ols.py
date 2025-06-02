@@ -81,7 +81,7 @@ class FastOLS:
         The estimated parameters of the model.
     vcv : np.ndarray
         The estimated variance-covariance matrix of the model parameters.
-    std_errors : np.ndarray
+    std_err : np.ndarray
         The standard errors of the estimated parameters.
     treatment_effects : dict
         The estimated treatment effects dictionary.
