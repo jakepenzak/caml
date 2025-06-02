@@ -42,10 +42,10 @@ def _(SyntheticDataGenerator):
         n_cont_modifiers=1,
         n_binary_modifiers=2,
         n_discrete_modifiers=1,
-        stddev_outcome_noise=10,
-        stddev_treatment_noise=10,
+        stddev_outcome_noise=1,
+        stddev_treatment_noise=1,
         causal_model_functional_form="linear",
-        seed=44,
+        seed=None,
     )
     return (data_generator,)
 
@@ -56,6 +56,18 @@ def _(data_generator):
     # df["cates"] = data_generator.cates
     df
     return (df,)
+
+
+@app.cell
+def _(data_generator):
+    data_generator.dgp
+    return
+
+
+@app.cell
+def _(df):
+    df
+    return
 
 
 @app.cell
@@ -72,6 +84,7 @@ def _(FastOLS, df):
         G=[c for c in df.columns if "X" in c and ("bin" in c or "dis" in c)],
         X=[c for c in df.columns if "X" in c and "cont" in c],
         W=[c for c in df.columns if "W" in c],
+        xformula="+W1_continuous**2",
         engine="gpu",
         discrete_treatment=True,
     )
@@ -79,10 +92,38 @@ def _(FastOLS, df):
 
 
 @app.cell
+def _(fu):
+    fu.formula
+    return
+
+
+@app.cell
 def _(df, fu):
     fu.fit(df, n_jobs=-1, estimate_effects=True, robust_vcv=False)
+    return
 
-    fu.results
+
+@app.cell
+def _(fu):
+    fu.params
+    return
+
+
+@app.cell
+def _(fu):
+    fu.vcv
+    return
+
+
+@app.cell
+def _(fu):
+    fu.std_err
+    return
+
+
+@app.cell
+def _(fu):
+    fu.treatment_effects
     return
 
 
@@ -108,14 +149,14 @@ def _(data_generator):
 
 
 @app.cell
-def _(fu):
-    d = fu.prettify_treatment_effects()
-    return (d,)
+def _(df, fu):
+    fu.predict(df, mode="y")
+    return
 
 
 @app.cell
-def _(d):
-    d
+def _(fu):
+    fu.prettify_treatment_effects()
     return
 
 
@@ -147,11 +188,6 @@ def _(df, fu):
 @app.cell
 def _(df2):
     df2['cates'].mean()
-    return
-
-
-@app.cell
-def _():
     return
 
 

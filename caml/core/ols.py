@@ -55,6 +55,8 @@ class FastOLS:
         A list of covariate variable names. These will be the covariates for which heterogeneity/CATEs can be estimated.
     W : Collection[str] | None
         A list of additional covariate variable names to be used as controls. These will be the additional covariates not used for modeling heterogeneity/CATEs.
+    xformula : str | None
+        Additional formula string to append to the main formula, starting with "+". For example, "+age+gender" will add age and gender as additional predictors.
     discrete_treatment : bool
         Whether the treatment is discrete
     engine : str
@@ -73,15 +75,16 @@ class FastOLS:
         The list of variable names representing the confounder/control feature set to be utilized for estimating heterogeneity/CATEs, that are in addition to G.
     W : Collection[str] | None
         The list of variable names representing the confounder/control feature **not** utilized for estimating heterogeneity/CATEs.
-    discrete_treatment : bool
-        Whether the treatment is binary.
-    engine : str
-        The engine to use for computation. Can be "cpu" or "gpu". Note "gpu" requires JAX to be installed, which can be installed
-        via `pip install caml[jax-gpu]`
     formula : str
         The formula leveraged for design matrix creation via Patsy.
-    results : dict
-        A dictionary containing the results of the fitted model & estimated ATEs/GATEs.
+    params : np.ndarray
+        The estimated parameters of the model.
+    vcv : np.ndarray
+        The estimated variance-covariance matrix of the model parameters.
+    std_errors : np.ndarray
+        The standard errors of the estimated parameters.
+    treatment_effects : dict
+        The estimated treatment effects dictionary.
 
     Examples
     --------
@@ -102,6 +105,7 @@ class FastOLS:
         G=[c for c in df.columns if "X" in c and ("bin" in c or "dis" in c)],
         X=[c for c in df.columns if "X" in c and "cont" in c],
         W=[c for c in df.columns if "W" in c],
+        xformula=None,
         engine="cpu",
         discrete_treatment=True,
     )
@@ -118,6 +122,7 @@ class FastOLS:
         X: Collection[str] | None = None,
         W: Collection[str] | None = None,
         *,
+        xformula: str | None = None,
         discrete_treatment: bool = False,
         engine: str = "cpu",
     ):
@@ -129,7 +134,7 @@ class FastOLS:
         self.G = G
         self.X = X
         self.W = W
-        self.discrete_treatment = discrete_treatment
+        self._discrete_treatment = discrete_treatment
 
         if engine not in ["cpu", "gpu"]:
             ERROR(
@@ -147,13 +152,50 @@ class FastOLS:
                 WARNING("No available GPU detected, falling back to CPU")
                 engine = "cpu"
 
-        self.engine = engine
+        self._engine = engine
         self.formula = self._create_formula(
-            self.Y, self.T, self.G, self.X, self.W, self.discrete_treatment
+            self.Y, self.T, self.G, self.X, self.W, self._discrete_treatment, xformula
         )
+        self._formula = self.formula
         DEBUG(f"Created formula: {self.formula}")
         self._fitted = False
-        self.results = {}
+        self._treatment_effects = {}
+
+    @property
+    def params(self):
+        if self._fitted:
+            return self._params
+        else:
+            raise RuntimeError(
+                "Model has not been fitted yet. Please run fit() method first."
+            )
+
+    @property
+    def vcv(self):
+        if self._fitted:
+            return self._vcv
+        else:
+            raise RuntimeError(
+                "Model has not been fitted yet. Please run fit() method first."
+            )
+
+    @property
+    def std_err(self):
+        if self._fitted:
+            return self._std_err
+        else:
+            raise RuntimeError(
+                "Model has not been fitted yet. Please run fit() method first."
+            )
+
+    @property
+    def treatment_effects(self):
+        if self._fitted:
+            return self._treatment_effects
+        else:
+            raise RuntimeError(
+                "Model has not been fitted yet. Please run fit() method first."
+            )
 
     def fit(
         self,
@@ -186,11 +228,11 @@ class FastOLS:
         ```{python}
         fo_obj.fit(df, n_jobs=4, estimate_effects=True, robust_vcv=True)
 
-        fo_obj.results.keys()
+        fo_obj.treatment_effects.keys()
         ```
         """
         pd_df = self._convert_dataframe_to_pandas(df, self.G)
-        if self.discrete_treatment:
+        if self._discrete_treatment:
             if len(pd_df[self.T].unique()) != 2:
                 raise ValueError("Treatment variable must be binary")
         y, X = self._create_design_matrix(pd_df)
@@ -198,7 +240,7 @@ class FastOLS:
         self._fitted = True
         if estimate_effects:
             diff_matrix = self._create_design_matrix(pd_df, create_diff_matrix=True)
-            self.results["treatment_effects"] = self.estimate_ate(
+            self._treatment_effects = self.estimate_ate(
                 pd_df,
                 _diff_matrix=diff_matrix,
                 return_results_dict=True,
@@ -279,12 +321,12 @@ class FastOLS:
             pd_df = df
             diff_matrix = _diff_matrix
 
-        n_treated = int(pd_df[self.T].sum()) if self.discrete_treatment else None
+        n_treated = int(pd_df[self.T].sum()) if self._discrete_treatment else None
 
-        statistics = self._compute_statistics(
+        effects = self._compute_effects(
             diff_matrix=diff_matrix,
-            params=self.results["params"],
-            vcv=self.results["vcv"],
+            params=self._params,
+            vcv=self._vcv,
             n_treated=n_treated,
         )
 
@@ -292,16 +334,16 @@ class FastOLS:
             results = {}
             key = group if membership is None else f"{group}-{membership}"
             results[key] = {"outcome": self.Y}
-            results[key].update(statistics)
+            results[key].update(effects)
             return results
 
-        return statistics["ate"]
+        return effects["ate"]
 
     @timer("CATE Estimation")
     def estimate_cate(
         self, df: PandasConvertibleDataFrame, *, return_results_dict: bool = False
     ) -> jnp.ndarray | dict:
-        r"""Estimate Conditional Average Treatment Effects (CATEs) for all given observations in the dataset.
+        r"""Estimate Conditional Average Treatment Effects (CATEs) of `T` on each `Y` from fitted model for all given observations in the dataset.
 
         The CATE, in the case of binary treatments, is formally defined as:
             $$
@@ -343,8 +385,8 @@ class FastOLS:
         pd_df = self._convert_dataframe_to_pandas(df, self.G)
         diff_matrix = self._create_design_matrix(pd_df, create_diff_matrix=True)
 
-        statistics = self._compute_statistics(
-            diff_matrix, self.results["params"], self.results["vcv"], is_cates=True
+        statistics = self._compute_effects(
+            diff_matrix, self._params, self._vcv, is_cates=True
         )
 
         if return_results_dict:
@@ -354,9 +396,17 @@ class FastOLS:
         return statistics["cate"]
 
     def predict(
-        self, df: PandasConvertibleDataFrame, *, return_results_dict: bool = False
+        self,
+        df: PandasConvertibleDataFrame,
+        *,
+        return_results_dict: bool = False,
+        mode: str = "cate",
     ) -> jnp.ndarray | dict:
-        """Alias for `estimate_cate`.
+        """Generate predicted conditional average treatment effects (CATEs) or outcomes.
+
+        When mode is "outcome", the function returns predicted outcomes.
+
+        When mode is "cate", the function returns predicted CATEs, behaving as an alias for `estimate_cate`.
 
         Parameters
         ----------
@@ -366,6 +416,11 @@ class FastOLS:
         return_results_dict : bool
             If True, the function returns a dictionary containing CATEs, standard errors, t-statistics, confidence intervals, and p-values.
             If False, the function returns a numpy array containing CATEs alone.
+            Does not have any effect when mode is "outcome".
+        mode : str
+            The mode of prediction. Supported modes are "cate" and "outcome".
+            If "cate", the function returns CATEs.
+            If "outcome", the function returns predicted outcomes.
 
         Returns
         -------
@@ -383,7 +438,15 @@ class FastOLS:
         res.keys()
         ```
         """
-        return self.estimate_cate(df, return_results_dict=return_results_dict)
+        if mode == "cate":
+            return self.estimate_cate(df, return_results_dict=return_results_dict)
+        elif mode == "outcome":
+            _, X = self._create_design_matrix(df)
+            return X @ self.params
+        else:
+            raise ValueError(
+                f"Invalid mode: {mode}. Must be either 'cate' or 'outcome'."
+            )
 
     def prettify_treatment_effects(self, effects: dict | None = None) -> pd.DataFrame:
         """Convert treatment effects dictionary to a pandas DataFrame.
@@ -414,7 +477,7 @@ class FastOLS:
         ```
         """
         if effects is None:
-            effects = self.results["treatment_effects"]
+            effects = self._treatment_effects
         n_outcomes = len(self.Y)
 
         final_results = {}
@@ -473,58 +536,64 @@ class FastOLS:
 
         params, vcv = fit(X, y)
 
-        self.results["params"] = params
-        self.results["vcv"] = vcv
-        self.results["std_err"] = jnp.sqrt(jnp.diagonal(vcv, axis1=1, axis2=2)).T
-        self.results["treatment_effects"] = {}
+        self._params = params
+        self._vcv = vcv
+        self._std_err = jnp.sqrt(jnp.diagonal(vcv, axis1=1, axis2=2)).T
+        self._treatment_effects = {}
 
     @timer("Design Matrix Creation")
     def _create_design_matrix(
         self, df: pd.DataFrame, create_diff_matrix: bool = False
     ) -> jnp.ndarray | tuple[jnp.ndarray, jnp.ndarray]:
-        if not create_diff_matrix:
-            DEBUG("Creating model matrix...")
-            y, X = patsy.dmatrices(self.formula, data=df)
+        try:
+            if not create_diff_matrix:
+                DEBUG("Creating model matrix...")
+                y, X = patsy.dmatrices(self.formula, data=df, NA_action="raise")
 
-            self._X_design_info = X.design_info
+                self._X_design_info = X.design_info
 
-            if _HAS_JAX:
-                y = jnp.array(y, device=jax.devices(self.engine)[0])
-                X = jnp.array(X, device=jax.devices(self.engine)[0])
+                if _HAS_JAX:
+                    y = jnp.array(y, device=jax.devices(self._engine)[0])
+                    X = jnp.array(X, device=jax.devices(self._engine)[0])
+                else:
+                    y = jnp.array(y)
+                    X = jnp.array(X)
+
+                return y, X
             else:
-                y = jnp.array(y)
-                X = jnp.array(X)
+                DEBUG("Creating treatment difference matrix...")
+                original_t = df[self.T].copy()
 
-            return y, X
-        else:
-            DEBUG("Creating treatment difference matrix...")
-            original_t = df[self.T].copy()
+                if self._discrete_treatment:
+                    df[self.T] = 0
+                    X0 = patsy.dmatrix(self._X_design_info, data=df, NA_action="raise")
+                    df[self.T] = 1
+                    X1 = patsy.dmatrix(self._X_design_info, data=df)
+                else:
+                    X0 = patsy.dmatrix(self._X_design_info, data=df)
+                    df[self.T] = df[self.T] + 1
+                    X1 = patsy.dmatrix(self._X_design_info, data=df)
 
-            if self.discrete_treatment:
-                df[self.T] = 0
-                X0 = patsy.dmatrix(self._X_design_info, data=df)
-                df[self.T] = 1
-                X1 = patsy.dmatrix(self._X_design_info, data=df)
-            else:
-                X0 = patsy.dmatrix(self._X_design_info, data=df)
-                df[self.T] = df[self.T] + 1
-                X1 = patsy.dmatrix(self._X_design_info, data=df)
+                df[self.T] = original_t
 
-            df[self.T] = original_t
+                if _HAS_JAX:
+                    X1 = jnp.array(X1, device=jax.devices(self._engine)[0])
+                    X0 = jnp.array(X0, device=jax.devices(self._engine)[0])
+                else:
+                    X1 = jnp.array(X1)
+                    X0 = jnp.array(X0)
 
-            if _HAS_JAX:
-                X1 = jnp.array(X1, device=jax.devices(self.engine)[0])
-                X0 = jnp.array(X0, device=jax.devices(self.engine)[0])
-            else:
-                X1 = jnp.array(X1)
-                X0 = jnp.array(X0)
+                diff = X1 - X0
 
-            diff = X1 - X0
-
-            return diff
+                return diff
+        except patsy.PatsyError as e:
+            if "factor contains missing values" in str(e):
+                raise ValueError(
+                    "Input DataFrame contains missing values. Please handle missing values before proceeding."
+                )
 
     @staticmethod
-    def _compute_statistics(
+    def _compute_effects(
         diff_matrix: jnp.ndarray,
         params: jnp.ndarray,
         vcv: jnp.ndarray,
@@ -587,22 +656,19 @@ class FastOLS:
                 mask = jnp.array(df[group] == membership)
                 treated_mask = (
                     jnp.array(df[df[group] == membership][self.T] == 1)
-                    if self.discrete_treatment
+                    if self._discrete_treatment
                     else None
                 )
                 group_key = f"{group}-{membership}"
                 group_info.append((group_key, mask, treated_mask))
 
-        params = self.results["params"]
-        vcv = self.results["vcv"]
-
         def process_group(group_key, mask, treated_mask):
             diff_matrix_filtered = _diff_matrix[mask]
-            n_treated = int(treated_mask.sum()) if self.discrete_treatment else None
-            statistics = self._compute_statistics(
+            n_treated = int(treated_mask.sum()) if self._discrete_treatment else None
+            statistics = self._compute_effects(
                 diff_matrix=diff_matrix_filtered,
-                params=params,
-                vcv=vcv,
+                params=self._params,
+                vcv=self._vcv,
                 n_treated=n_treated,
             )
             return group_key, statistics
@@ -614,8 +680,8 @@ class FastOLS:
         )
 
         for group_key, statistics in results:
-            self.results["treatment_effects"][group_key] = {"outcome": self.Y}
-            self.results["treatment_effects"][group_key].update(statistics)
+            self._treatment_effects[group_key] = {"outcome": self.Y}
+            self._treatment_effects[group_key].update(statistics)
 
     @staticmethod
     def _convert_dataframe_to_pandas(df, groups) -> pd.DataFrame:
@@ -645,6 +711,7 @@ class FastOLS:
         X: Collection[str] | None = None,
         W: Collection[str] | None = None,
         discrete_treatment: bool = False,
+        xformula: str | None = None,
     ) -> str:
         formula = " + ".join(Y)
 
@@ -664,6 +731,9 @@ class FastOLS:
         for w in W or []:
             formula += f" + {w}"
 
+        if xformula:
+            formula += f" {xformula}"
+
         return formula
 
     def __str__(self):
@@ -677,10 +747,10 @@ class FastOLS:
         """
         summary = (
             "================== FastOLS Object ==================\n"
-            + f"Engine: {self.engine}\n"
+            + f"Engine: {self._engine}\n"
             + f"Outcome Variable: {self.Y}\n"
             + f"Treatment Variable: {self.T}\n"
-            + f"Discrete Treatment: {self.discrete_treatment}\n"
+            + f"Discrete Treatment: {self._discrete_treatment}\n"
             + f"Group Variables: {self.G}\n"
             + f"Features/Confounders for Heterogeneity (X): {self.X}\n"
             + f"Features/Confounders as Controls (W): {self.W}\n"

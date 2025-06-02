@@ -20,7 +20,7 @@ To help aid in environment setup, we've created a [VS Code devcontainer](https:/
 ## Without Devcontainers
 
 ### Prerequisites
-- [uv](https://docs.astral.sh/uv/) v0.6.10
+- [uv](https://docs.astral.sh/uv/)
 - [python](https://www.python.org/downloads/) v3.10
 
 ### Setup
