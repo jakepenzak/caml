@@ -1,5 +1,6 @@
 [project]
-authors = [{ name = "jakepenzak", email = "jacob@pieniazek.me" }]
+authors = [{ name = "Jacob Pieniazek", email = "jacob@pieniazek.me" }]
+maintainers = [{ name = "Jacob Pieniazek", email="jacob@pieniazek.me" }]
 dependencies = [
     "econml>=0.15.1",
     "flaml[automl]>=2.2.0",
@@ -13,12 +14,26 @@ description = "Extensions & abstractions of advanced econometric techniques leve
 name = "caml"
 requires-python = ">= 3.10"
 version = "0.0.0-dev11"
-license = { file = "LICENSE" }
+license = { text = "MIT" }
 readme = "README.md"
+keywords = ["causal inference", "econometrics", "machine learning", "automl", "heterogeneity"]
 classifiers = [
-    "Development Status :: 1 - Planning",
+    "Development Status :: 2 - Pre-Alpha",
     "Programming Language :: Python",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Operating System :: MacOS",
+    "Operating System :: Microsoft :: Windows",
+    "Operating System :: POSIX :: Linux",
+    "License :: OSI Approved :: MIT License",
 ]
+
+[project.urls]
+Homepage = "https://caml-docs.com"
+Documentation = "https://caml-docs.com/"
+"Source Code" = "https://github.com/jakepenzak/caml"
+"Bug Tracker" = "https://github.com/jakepenzak/caml/issues"
 
 [dependency-groups]
 test = [

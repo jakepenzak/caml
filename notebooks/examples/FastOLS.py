@@ -126,9 +126,14 @@ def _(data_generator):
     fo_obj = FastOLS(
         Y=[c for c in data_generator.df.columns if "Y" in c],
         T="T1_binary",
-        G=[c for c in data_generator.df.columns if "X" in c and ("bin" in c or "dis" in c)],
+        G=[
+            c
+            for c in data_generator.df.columns
+            if "X" in c and ("bin" in c or "dis" in c)
+        ],
         X=[c for c in data_generator.df.columns if "X" in c and "cont" in c],
         W=[c for c in data_generator.df.columns if "W" in c],
+        xformula="+ W1_continuous**2",
         engine="cpu",
         discrete_treatment=True,
     )
@@ -161,19 +166,35 @@ def _(mo):
 
 @app.cell
 def _(data_generator, fo_obj):
-    fo_obj.fit(data_generator.df, n_jobs=-1, estimate_effects=True, robust_vcv=True)
+    fo_obj.fit(
+        data_generator.df, n_jobs=-1, estimate_effects=True, robust_vcv=True
+    )
     return
 
 
 @app.cell
 def _(mo):
-    mo.md(r"""We can now inspect the results dictionary:""")
+    mo.md(r"""We can now inspect the model fitted results and estimated treatment effects:""")
     return
 
 
 @app.cell
 def _(fo_obj):
-    fo_obj.results.keys()
+    fo_obj.params
+    # fo_obj.vcv
+    # fo_obj.std_err
+    return
+
+
+@app.cell
+def _(fo_obj):
+    fo_obj.treatment_effects.keys()
+    return
+
+
+@app.cell
+def _(fo_obj):
+    fo_obj.treatment_effects["overall"]
     return
 
 
@@ -181,7 +202,7 @@ def _(fo_obj):
 def _(mo):
     mo.md(
         r"""
-    Here we have direct access to the model parameters (`fo_obj.results['params']`), variance-covariance matrices (`fo_obj.results['vcv']`), standard_errors (`fo_obj.results['std_err']`), and estimated treatment effects (`fo_obj.results['treatment_effects']`).
+    Here we have direct access to the model parameters (`fo_obj.params`), variance-covariance matrices (`fo_obj.vcv]`), standard_errors (`fo_obj.std_err`), and estimated treatment effects (`fo_obj.treatment_effects`).
 
     To make the treatment effect results more readable, we can leverage the `prettify_treatment_effects` method:
     """
@@ -209,13 +230,15 @@ def _(data_generator):
 
 @app.cell
 def _(mo):
-    mo.md("""We can also see what our GATEs are using `data_generator.cates`. Let's choose `X3_binary` in `0` group:""")
+    mo.md("""We can also see what our GATEs are using `data_generator.cates`. Let's choose `X4_binary` in `1` group:""")
     return
 
 
 @app.cell
 def _(data_generator):
-    data_generator.cates.iloc[data_generator.df.query("X4_binary == 1").index].mean()
+    data_generator.cates.iloc[
+        data_generator.df.query("X4_binary == 1").index
+    ].mean()
     return
 
 
@@ -233,7 +256,9 @@ def _(mo):
 
 @app.cell
 def _(data_generator, fo_obj):
-    custom_gate_df = data_generator.df.query("X4_binary == 1 & X2_continuous < -3").copy()
+    custom_gate_df = data_generator.df.query(
+        "X4_binary == 1 & X2_continuous < -3"
+    ).copy()
 
     custom_gate = fo_obj.estimate_ate(
         custom_gate_df,
@@ -295,13 +320,16 @@ def _(data_generator, fo_obj):
 
 @app.cell
 def _(mo):
-    mo.md(r"""Now, let's make our "predictions":""")
+    mo.md(r"""Now, let's make our cate predictions:""")
     return
 
 
 @app.cell
 def _(data_generator, fo_obj):
     cate_predictions = fo_obj.predict(data_generator.df)
+
+    ## We can also make predictions of the outcomes, if desired.
+    # fo_obj.predict(data_generator.df, mode="outcome")
     return (cate_predictions,)
 
 
@@ -309,7 +337,7 @@ def _(data_generator, fo_obj):
 def _(mo):
     mo.md(
         r"""
-    Let's now look at the Precision in Estimating Heterogeneous Effects (PEHE) (e.g., MSE) and plot some results for the treatment effects on each outcome:
+    Let's now look at the Precision in Estimating Heterogeneous Effects (PEHE) (e.g., RMSE) and plot some results for the treatment effects on each outcome:
 
     #### Effect of *binary* T1 on *continuous* Y1
     """
@@ -319,7 +347,7 @@ def _(mo):
 
 @app.cell
 def _():
-    from sklearn.metrics import mean_squared_error
+    from sklearn.metrics import root_mean_squared_error
     from caml.extensions.plots import (
         cate_true_vs_estimated_plot,
         cate_histogram_plot,
@@ -329,15 +357,15 @@ def _():
         cate_histogram_plot,
         cate_line_plot,
         cate_true_vs_estimated_plot,
-        mean_squared_error,
+        root_mean_squared_error,
     )
 
 
 @app.cell
-def _(cate_predictions, data_generator, mean_squared_error):
+def _(cate_predictions, data_generator, root_mean_squared_error):
     true_cates1 = data_generator.cates.iloc[:, 0]
     predicted_cates1 = cate_predictions[:, 0]
-    mean_squared_error(true_cates1, predicted_cates1)
+    root_mean_squared_error(true_cates1, predicted_cates1)
     return predicted_cates1, true_cates1
 
 
@@ -370,10 +398,10 @@ def _(mo):
 
 
 @app.cell
-def _(cate_predictions, data_generator, mean_squared_error):
+def _(cate_predictions, data_generator, root_mean_squared_error):
     true_cates2 = data_generator.cates.iloc[:, 1]
     predicted_cates2 = cate_predictions[:, 1]
-    mean_squared_error(true_cates2, predicted_cates2)
+    root_mean_squared_error(true_cates2, predicted_cates2)
     return predicted_cates2, true_cates2
 
 
@@ -408,11 +436,6 @@ def _(mo):
     :::
     """
     )
-    return
-
-
-@app.cell
-def _():
     return
 
 

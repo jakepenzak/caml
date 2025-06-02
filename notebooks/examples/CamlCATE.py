@@ -42,6 +42,7 @@ def _(mo):
 def _():
     from caml.logging import configure_logging
     import logging
+
     configure_logging(level=logging.DEBUG)
     return
 
@@ -50,14 +51,16 @@ def _():
 def _():
     from caml.extensions.synthetic_data import SyntheticDataGenerator
 
-    data_generator =  SyntheticDataGenerator(n_obs=10_000,
-                                      n_cont_outcomes=1,
-                                      n_binary_treatments=1,
-                                      n_cont_confounders=2,
-                                      n_cont_modifiers=2,
-                                      n_confounding_modifiers=1,
-                                      causal_model_functional_form="linear",
-                                      seed=10)
+    data_generator = SyntheticDataGenerator(
+        n_obs=10_000,
+        n_cont_outcomes=1,
+        n_binary_treatments=1,
+        n_cont_confounders=2,
+        n_cont_modifiers=2,
+        n_confounding_modifiers=1,
+        causal_model_functional_form="linear",
+        seed=10,
+    )
     return (data_generator,)
 
 
@@ -125,13 +128,15 @@ def _(mo):
 def _(data_generator):
     from caml import CamlCATE
 
-    caml_obj = CamlCATE(df=data_generator.df,
-                    Y="Y1_continuous",
-                    T="T1_binary",
-                    X=[c for c in data_generator.df.columns if 'X' in c]
-                        + [c for c in data_generator.df.columns if 'W' in c],
-                    discrete_treatment=True,
-                    discrete_outcome=False)
+    caml_obj = CamlCATE(
+        df=data_generator.df,
+        Y="Y1_continuous",
+        T="T1_binary",
+        X=[c for c in data_generator.df.columns if "X" in c]
+        + [c for c in data_generator.df.columns if "W" in c],
+        discrete_treatment=True,
+        discrete_outcome=False,
+    )
     return (caml_obj,)
 
 
@@ -156,12 +161,16 @@ def _(mo):
 @app.cell
 def _(caml_obj):
     caml_obj.auto_nuisance_functions(
-        flaml_Y_kwargs={"time_budget": 30,
-                        "verbose":0,
-                        "estimator_list":["rf", "extra_tree", "xgb_limitdepth"]},
-        flaml_T_kwargs={"time_budget": 30,
-                        "verbose":0,
-                        "estimator_list":["rf", "extra_tree", "xgb_limitdepth"]},
+        flaml_Y_kwargs={
+            "time_budget": 30,
+            "verbose": 0,
+            "estimator_list": ["rf", "extra_tree", "xgb_limitdepth"],
+        },
+        flaml_T_kwargs={
+            "time_budget": 30,
+            "verbose": 0,
+            "estimator_list": ["rf", "extra_tree", "xgb_limitdepth"],
+        },
     )
     return
 
@@ -322,7 +331,7 @@ def _(mo):
 
     Now we want to see how the estimator performed in modeling the true CATEs.
 
-    First, we can simply compute the Precision in Estimating Heterogeneous Effects (PEHE), which is simply the Mean Squared Error (MSE):
+    First, we can simply compute the Precision in Estimating Heterogeneous Effects (PEHE), which is simply the Root Mean Squared Error (RMSE):
     """
     )
     return
@@ -330,10 +339,10 @@ def _(mo):
 
 @app.cell
 def _(cate_predictions, data_generator):
-    from sklearn.metrics import mean_squared_error
+    from sklearn.metrics import root_mean_squared_error
 
     true_cates = data_generator.cates.iloc[:, 0]
-    mean_squared_error(true_cates,cate_predictions)
+    root_mean_squared_error(true_cates, cate_predictions)
     return (true_cates,)
 
 
@@ -347,7 +356,9 @@ def _(mo):
 def _(cate_predictions, true_cates):
     from caml.extensions.plots import cate_true_vs_estimated_plot
 
-    cate_true_vs_estimated_plot(true_cates=true_cates, estimated_cates=cate_predictions)
+    cate_true_vs_estimated_plot(
+        true_cates=true_cates, estimated_cates=cate_predictions
+    )
     return
 
 
@@ -363,7 +374,9 @@ def _(cate_predictions, true_cates):
 def _(cate_predictions, true_cates):
     from caml.extensions.plots import cate_line_plot
 
-    cate_line_plot(true_cates=true_cates, estimated_cates=cate_predictions, window=20)
+    cate_line_plot(
+        true_cates=true_cates, estimated_cates=cate_predictions, window=20
+    )
     return
 
 
