@@ -74,6 +74,7 @@ jobs:
           base: main
           title: "release: bump v${{ env.OLD_VERSION }} to v${{ env.NEW_VERSION }}"
           commit-message: "release: bump v${{ env.OLD_VERSION }} to v${{ env.NEW_VERSION }}"
+          labels: "type: release"
           body: |
             Bumps version from v${{ env.OLD_VERSION }} to v${{ env.NEW_VERSION }}.
           draft: false
