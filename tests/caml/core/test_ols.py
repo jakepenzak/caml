@@ -2,6 +2,7 @@ import builtins
 import importlib
 import sys
 
+import cloudpickle
 import jax.numpy as jnp
 import numpy as np
 import pandas as pd
@@ -488,3 +489,20 @@ class TestFastOLSFittingAndEstimation:
                 )
 
             assert np.allclose(stack, prettified[c])
+
+
+def test_serializiation(pd_df, fo_obj, tmp_path):
+    fo_obj.fit(pd_df)
+    og_ate = fo_obj.estimate_ate(pd_df)
+    pkl_file = tmp_path / "fo_obj.pkl"
+
+    with open(pkl_file, "wb") as f:
+        cloudpickle.dump(fo_obj, f)
+
+    with open(pkl_file, "rb") as f:
+        loaded = cloudpickle.load(f)
+
+    fo_obj.estimate_ate(pd_df)
+    new_ate = loaded.estimate_ate(pd_df)
+
+    assert np.allclose(og_ate, new_ate)
