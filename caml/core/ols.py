@@ -713,23 +713,23 @@ class FastOLS:
         discrete_treatment: bool = False,
         xformula: str | None = None,
     ) -> str:
-        formula = " + ".join(Y)
+        formula = " + ".join([f"Q('{y}')" for y in Y])
 
         if discrete_treatment:
-            treatment = f"C({T})"
+            treatment = f"C(Q('{T}'))"
         else:
-            treatment = T
+            treatment = f"Q('{T}')"
 
         formula += f" ~ {treatment}"
 
         for g in G or []:
-            formula += f" + C({g})*{treatment}"
+            formula += f" + C(Q('{g}'))*{treatment}"
 
         for x in X or []:
-            formula += f" + {x}*{treatment}"
+            formula += f" + Q('{x}')*{treatment}"
 
         for w in W or []:
-            formula += f" + {w}"
+            formula += f" + Q('{w}')"
 
         if xformula:
             formula += f" {xformula}"
