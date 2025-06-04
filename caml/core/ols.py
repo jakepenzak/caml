@@ -563,16 +563,19 @@ class FastOLS:
             else:
                 DEBUG("Creating treatment difference matrix...")
                 original_t = df[self.T].copy()
+                if self._X_design_info is None:
+                    y, X = patsy.dmatrices(self.formula, data=df, NA_action="raise")
+                    self._X_design_info = X.design_info
 
                 if self._discrete_treatment:
                     df[self.T] = 0
                     X0 = patsy.dmatrix(self._X_design_info, data=df, NA_action="raise")
                     df[self.T] = 1
-                    X1 = patsy.dmatrix(self._X_design_info, data=df)
+                    X1 = patsy.dmatrix(self._X_design_info, data=df, NA_action="raise")
                 else:
-                    X0 = patsy.dmatrix(self._X_design_info, data=df)
+                    X0 = patsy.dmatrix(self._X_design_info, data=df, NA_action="raise")
                     df[self.T] = df[self.T] + 1
-                    X1 = patsy.dmatrix(self._X_design_info, data=df)
+                    X1 = patsy.dmatrix(self._X_design_info, data=df, NA_action="raise")
 
                 df[self.T] = original_t
 
@@ -758,3 +761,10 @@ class FastOLS:
         )
 
         return summary
+
+    def __getstate__(self):
+        """Fix to remove non-serializable patsy objects."""
+        state = self.__dict__.copy()
+        if "_X_design_info" in state:
+            state["_X_design_info"] = None
+        return state
