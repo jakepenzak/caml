@@ -206,11 +206,12 @@ class TestFastOLSInitialization:
         if discrete_treatment:
             assert (
                 fo.formula.replace(" ", "")
-                == "Y1+Y2~C(T)+C(G1)*C(T)+C(G2)*C(T)+X1*C(T)+W1+W1**2"
+                == "Q('Y1')+Q('Y2')~C(Q('T'))+C(Q('G1'))*C(Q('T'))+C(Q('G2'))*C(Q('T'))+Q('X1')*C(Q('T'))+Q('W1')+W1**2"
             )
         else:
             assert (
-                fo.formula.replace(" ", "") == "Y1+Y2~T+C(G1)*T+C(G2)*T+X1*T+W1+W1**2"
+                fo.formula.replace(" ", "")
+                == "Q('Y1')+Q('Y2')~Q('T')+C(Q('G1'))*Q('T')+C(Q('G2'))*Q('T')+Q('X1')*Q('T')+Q('W1')+W1**2"
             )
 
         summary = (
