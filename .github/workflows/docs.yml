@@ -1,8 +1,11 @@
 name: Build & Publish Docs
 
 on:
-  push:
-    branches: ["main"]
+  workflow_dispatch:
+
+  ## Revisit version controlling docs before auto building
+  # push:
+  #   branches: ["main"]
 
 permissions:
   contents: read

@@ -129,3 +129,16 @@ class PandasConvertibleDataFrame(Protocol):
             return True
 
         return False
+
+
+class FittedAttr:
+    def __init__(self, name):
+        self.name = name
+
+    def __get__(self, instance, owner):
+        """Custom getter for FastOLS."""
+        if instance is None:
+            return self
+        if not getattr(instance, "_fitted", False):
+            raise RuntimeError("Model has not been fitted yet. Please run fit() first.")
+        return getattr(instance, self.name)

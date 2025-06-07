@@ -42,3 +42,28 @@ jobs:
 
       - name: Run tests
         run: uv run pytest tests
+
+  mock_build_docs:
+    runs-on: ubuntu-latest
+    if: github.event.pull_request.draft == false
+
+    steps:
+      - name: Checkout 🛎️
+        uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@0c5e2b8115b80b4c7c5ddf6ffdd634974642d182
+        with:
+          version: ${{ vars.UV_VERSION }}
+
+      - name: Create environment
+        run: uv sync --all-groups --frozen
+
+      - name: Render & Publish Docs
+        shell: bash -l {0}
+        run: |
+          set -e
+          source .venv/bin/activate
+          bash docs/marimo_examples_to_quarto.sh
+          quartodoc build --config docs/_quarto.yml
+          quarto render docs/

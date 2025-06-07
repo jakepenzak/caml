@@ -5,7 +5,13 @@ import patsy
 from joblib import Parallel, delayed
 from typeguard import typechecked
 
-from ..generics import PandasConvertibleDataFrame, experimental, maybe_jit, timer
+from ..generics import (
+    FittedAttr,
+    PandasConvertibleDataFrame,
+    experimental,
+    maybe_jit,
+    timer,
+)
 from ..logging import DEBUG, ERROR, INFO, WARNING
 
 try:
@@ -83,6 +89,10 @@ class FastOLS:
         The estimated variance-covariance matrix of the model parameters.
     std_err : np.ndarray
         The standard errors of the estimated parameters.
+    fitted_values : np.ndarray
+        The predicted values from the model.
+    residuals : np.ndarray
+        The residuals of the model.
     treatment_effects : dict
         The estimated treatment effects dictionary.
 
@@ -113,6 +123,13 @@ class FastOLS:
     print(fo_obj)
     ```
     """
+
+    params = FittedAttr("_params")
+    vcv = FittedAttr("_vcv")
+    std_err = FittedAttr("_std_err")
+    treatment_effects = FittedAttr("_treatment_effects")
+    fitted_values = FittedAttr("_fitted_values")
+    residuals = FittedAttr("_residuals")
 
     def __init__(
         self,
@@ -161,49 +178,13 @@ class FastOLS:
         self._fitted = False
         self._treatment_effects = {}
 
-    @property
-    def params(self):
-        if self._fitted:
-            return self._params
-        else:
-            raise RuntimeError(
-                "Model has not been fitted yet. Please run fit() method first."
-            )
-
-    @property
-    def vcv(self):
-        if self._fitted:
-            return self._vcv
-        else:
-            raise RuntimeError(
-                "Model has not been fitted yet. Please run fit() method first."
-            )
-
-    @property
-    def std_err(self):
-        if self._fitted:
-            return self._std_err
-        else:
-            raise RuntimeError(
-                "Model has not been fitted yet. Please run fit() method first."
-            )
-
-    @property
-    def treatment_effects(self):
-        if self._fitted:
-            return self._treatment_effects
-        else:
-            raise RuntimeError(
-                "Model has not been fitted yet. Please run fit() method first."
-            )
-
     def fit(
         self,
         df: PandasConvertibleDataFrame,
         *,
         n_jobs: int = -1,
         estimate_effects: bool = True,
-        robust_vcv: bool = False,
+        cov_type: str = "nonrobust",
     ) -> None:
         """Fits the regression model on the provided data and, optionally, estimates Average Treatment Effect(s) (ATE) and Group Average Treatment Effect(s) (GATE).
 
@@ -220,23 +201,26 @@ class FastOLS:
             If getting OOM errors, try setting n_jobs to a lower value.
         estimate_effects : bool
             Whether to estimate Average Treatment Effects (ATEs) and Group Average Treatment Effects (GATEs).
-        robust_vcv : bool
-            Whether to use heteroskedasticity-robust (white) variance-covariance matrix and standard errors.
+        cov_type : str
+            The covariance estimator to use for variance-covariance matrix and standard errors. Can be "nonrobust", "HC0", or "HC1".
 
         Examples
         --------
         ```{python}
-        fo_obj.fit(df, n_jobs=4, estimate_effects=True, robust_vcv=True)
+        fo_obj.fit(df, n_jobs=4, estimate_effects=True, cov_type='nonrobust')
 
         fo_obj.treatment_effects.keys()
         ```
         """
+        if cov_type not in ("nonrobust", "HC0", "HC1"):
+            raise ValueError("cov_type must be 'nonrobust', 'HC0', or 'HC1'")
+
         pd_df = self._convert_dataframe_to_pandas(df, self.G)
         if self._discrete_treatment:
             if len(pd_df[self.T].unique()) != 2:
                 raise ValueError("Treatment variable must be binary")
         y, X = self._create_design_matrix(pd_df)
-        self._fit(X, y, robust_vcv=robust_vcv)
+        self._fit(X, y, cov_type=cov_type)
         self._fitted = True
         if estimate_effects:
             diff_matrix = self._create_design_matrix(pd_df, create_diff_matrix=True)
@@ -278,7 +262,7 @@ class FastOLS:
             Dataframe containing the data to estimate the ATEs. Supported formats:
             pandas DataFrame, PySpark DataFrame, Polars DataFrame, or Any object with `toPandas()` or `to_pandas()` method
         return_results_dict : bool
-            If True, the function returns a dictionary containing ATEs/GATEs, standard errors, t-statistics, confidence intervals, and p-values.
+            If True, the function returns a dictionary containing ATEs/GATEs, standard errors, t-statistics, and p-values.
             If False, the function returns a numpy array containing ATEs/GATEs alone.
         group : str
             Name of the group to estimate the ATEs for.
@@ -328,6 +312,7 @@ class FastOLS:
             params=self._params,
             vcv=self._vcv,
             n_treated=n_treated,
+            include_inference=return_results_dict,
         )
 
         if return_results_dict:
@@ -358,7 +343,7 @@ class FastOLS:
             Dataframe containing the data to estimate CATEs for. Supported formats:
                 pandas DataFrame, PySpark DataFrame, Polars DataFrame, or Any object with `toPandas()` or `to_pandas()` method
         return_results_dict : bool
-            If True, the function returns a dictionary containing CATEs, standard errors, t-statistics, confidence intervals, and p-values.
+            If True, the function returns a dictionary containing CATEs, standard errors, t-statistics, and p-values.
             If False, the function returns a numpy array containing CATEs alone.
 
         Returns
@@ -385,15 +370,19 @@ class FastOLS:
         pd_df = self._convert_dataframe_to_pandas(df, self.G)
         diff_matrix = self._create_design_matrix(pd_df, create_diff_matrix=True)
 
-        statistics = self._compute_effects(
-            diff_matrix, self._params, self._vcv, is_cates=True
+        effects = self._compute_effects(
+            diff_matrix,
+            self._params,
+            self._vcv,
+            is_cates=True,
+            include_inference=return_results_dict,
         )
 
         if return_results_dict:
             results = {"outcome": self.Y}
-            results.update(statistics)
+            results.update(effects)
             return results
-        return statistics["cate"]
+        return effects["cate"]
 
     def predict(
         self,
@@ -414,7 +403,7 @@ class FastOLS:
             Dataframe containing the data to estimate CATEs for. Supported formats:
                 pandas DataFrame, PySpark DataFrame, Polars DataFrame, or Any object with `toPandas()` or `to_pandas()` method
         return_results_dict : bool
-            If True, the function returns a dictionary containing CATEs, standard errors, t-statistics, confidence intervals, and p-values.
+            If True, the function returns a dictionary containing CATEs, standard errors, t-statistics, and p-values.
             If False, the function returns a numpy array containing CATEs alone.
             Does not have any effect when mode is "outcome".
         mode : str
@@ -515,30 +504,37 @@ class FastOLS:
         return pd.DataFrame(final_results)
 
     @timer("Model Fitting")
-    def _fit(self, X: jnp.ndarray, y: jnp.ndarray, robust_vcv: bool = False):
+    def _fit(self, X: jnp.ndarray, y: jnp.ndarray, cov_type: str = "nonrobust"):
         INFO("Fitting regression model...")
 
         @maybe_jit
         def fit(X, y):
             params, _, _, _ = jnp.linalg.lstsq(X, y, rcond=None)
-            y_resid = y - X @ params
+            fitted_values = X @ params
+            resid = y - fitted_values
+            n = X.shape[0]
+            k = X.shape[1]
             XtX_inv = jnp.linalg.pinv(X.T @ X)
-            if robust_vcv:
-                E = y_resid**2
+            if cov_type in ("HC0", "HC1"):
+                E = resid**2
+                if cov_type == "HC1":
+                    E *= n / (n - k)
                 XEX = jnp.einsum("ni,nj,no->oij", X, X, E)
                 vcv = XtX_inv @ XEX @ XtX_inv
             else:
-                rss = jnp.sum(y_resid**2, axis=0)
-                sigma_squared_hat = rss / (X.shape[0] - X.shape[1])
+                rss = jnp.sum(resid**2, axis=0)
+                sigma_squared_hat = rss / (n - k)
                 XtX_inv = jnp.linalg.pinv(X.T @ X)
                 vcv = jnp.einsum("o,ij->oij", sigma_squared_hat, XtX_inv)
-            return params, vcv
+            return params, vcv, fitted_values, resid
 
-        params, vcv = fit(X, y)
+        params, vcv, fitted_values, residuals = fit(X, y)
 
         self._params = params
         self._vcv = vcv
         self._std_err = jnp.sqrt(jnp.diagonal(vcv, axis1=1, axis2=2)).T
+        self._fitted_values = fitted_values
+        self._residuals = residuals
         self._treatment_effects = {}
 
     @timer("Design Matrix Creation")
@@ -602,6 +598,7 @@ class FastOLS:
         vcv: jnp.ndarray,
         n_treated: int | None = None,
         is_cates: bool = False,
+        include_inference: bool = True,
     ) -> dict:
         if is_cates:
             d = diff_matrix
@@ -609,9 +606,13 @@ class FastOLS:
             d = jnp.mean(diff_matrix, axis=0).reshape(1, -1)
 
         effect = d @ params
-        std_err = jnp.sqrt(jnp.einsum("nj,ojk,nk->no", d, vcv, d))
-        t_stat = jnp.where(std_err > 0, effect / std_err, 0)
-        pval = 2 * (1 - jstats.norm.cdf(jnp.abs(t_stat)))
+        if include_inference:
+            std_err = jnp.sqrt(jnp.einsum("nj,ojk,nk->no", d, vcv, d))
+            t_stat = jnp.where(std_err > 0, effect / std_err, 0)
+            pval = 2 * (1 - jstats.norm.cdf(jnp.abs(t_stat)))
+        else:
+            std_err, t_stat, pval = None, None, None
+
         n = diff_matrix.shape[0]
         if n_treated is not None:
             n_control = n - n_treated
@@ -668,13 +669,13 @@ class FastOLS:
         def process_group(group_key, mask, treated_mask):
             diff_matrix_filtered = _diff_matrix[mask]
             n_treated = int(treated_mask.sum()) if self._discrete_treatment else None
-            statistics = self._compute_effects(
+            effects = self._compute_effects(
                 diff_matrix=diff_matrix_filtered,
                 params=self._params,
                 vcv=self._vcv,
                 n_treated=n_treated,
             )
-            return group_key, statistics
+            return group_key, effects
 
         DEBUG(f"Starting parallel processing with {n_jobs} jobs")
         results: Iterable = Parallel(n_jobs=n_jobs, prefer="threads")(
@@ -682,9 +683,9 @@ class FastOLS:
             for group_key, mask, treated_mask in group_info
         )
 
-        for group_key, statistics in results:
+        for group_key, effects in results:
             self._treatment_effects[group_key] = {"outcome": self.Y}
-            self._treatment_effects[group_key].update(statistics)
+            self._treatment_effects[group_key].update(effects)
 
     @staticmethod
     def _convert_dataframe_to_pandas(df, groups) -> pd.DataFrame:

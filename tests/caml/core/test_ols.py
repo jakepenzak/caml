@@ -228,7 +228,14 @@ class TestFastOLSInitialization:
         )
         assert str(fo) == summary
 
-        for a in ["params", "vcv", "std_err", "treatment_effects"]:
+        for a in [
+            "params",
+            "vcv",
+            "std_err",
+            "treatment_effects",
+            "fitted_values",
+            "residuals",
+        ]:
             with pytest.raises(RuntimeError):
                 getattr(fo, a)
 
@@ -287,25 +294,38 @@ class TestFastOLSFittingAndEstimation:
     def setup(self, backend):
         self.backend = backend
 
-    @pytest.mark.parametrize("robust_vcv", [True, False], ids=["Robust", "Non-Robust"])
+    @pytest.mark.parametrize(
+        "cov_type",
+        ["nonrobust", "HC0", "HC1", "bad_vcv"],
+        ids=["nonrobust", "HC0", "HC1", "bad_vcv"],
+    )
     @pytest.mark.parametrize(
         "estimate_effects", [True, False], ids=["Effects", "No Effects"]
     )
-    def test_fit(self, fo_obj, pd_df, robust_vcv, estimate_effects):
+    def test_fit(self, fo_obj, pd_df, cov_type, estimate_effects):
         """Test fit method using statsmodels ols as benchmark."""
-        fo_obj.fit(pd_df, estimate_effects=estimate_effects, robust_vcv=robust_vcv)
+        if cov_type == "bad_vcv":
+            with pytest.raises(ValueError):
+                fo_obj.fit(pd_df, cov_type=cov_type)
+            return
+
+        fo_obj.fit(pd_df, estimate_effects=estimate_effects, cov_type=cov_type)
         assert fo_obj._fitted
 
-        for k in ["params", "vcv", "std_err", "treatment_effects"]:
+        for k in [
+            "params",
+            "vcv",
+            "std_err",
+            "treatment_effects",
+            "fitted_values",
+            "residuals",
+        ]:
             getattr(fo_obj, k)
 
         for i, y in enumerate([c for c in pd_df.columns if "Y" in c]):
             statsmod = ols(formula=f"{y} ~ {fo_obj.formula.split('~')[1]}", data=pd_df)
 
-            if robust_vcv:
-                statsmod = statsmod.fit(cov_type="HC0")
-            else:
-                statsmod = statsmod.fit()
+            statsmod = statsmod.fit(cov_type=cov_type)
 
             assert np.allclose(fo_obj.params[:, i], statsmod.params)
             assert np.allclose(fo_obj.vcv[i, :, :], statsmod.cov_params())
