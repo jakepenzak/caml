@@ -1,6 +1,8 @@
+
+
 import marimo
 
-__generated_with = "0.13.6"
+__generated_with = "0.13.1"
 app = marimo.App(width="medium")
 
 
@@ -14,14 +16,14 @@ def _():
 def _(mo):
     mo.md(
         r"""
-    # FastOLS
+        # FastOLS
 
-    In this notebook, we'll walk through an example of generating synthetic data, estimating treatment effects (ATEs, GATEs, and CATEs) using `FastOLS`, and comparing to our ground truth.
+        In this notebook, we'll walk through an example of generating synthetic data, estimating treatment effects (ATEs, GATEs, and CATEs) using `FastOLS`, and comparing to our ground truth.
 
-    `FastOLS` is particularly useful when efficiently estimating ATEs and GATEs is of primary interest and the treatment is exogenous or confounding takes on a particularly simple functional form.
+        `FastOLS` is particularly useful when efficiently estimating ATEs and GATEs is of primary interest and the treatment is exogenous or confounding takes on a particularly simple functional form.
 
-    `FastOLS` assumes linear treatment effects & heterogeneity. This is generally sufficient for estimation of ATEs and GATEs, but can perform poorly in CATE estimation & prediction when heterogeneity is complex & nonlinear. For high quality CATE estimation, we recommend leveraging [CamlCATE](../04_Reference/CamlCATE.qmd).
-    """
+        `FastOLS` assumes linear treatment effects & heterogeneity. This is generally sufficient for estimation of ATEs and GATEs, but can perform poorly in CATE estimation & prediction when heterogeneity is complex & nonlinear. For high quality CATE estimation, we recommend leveraging [CamlCATE](../04_Reference/CamlCATE.qmd).
+        """
     )
     return
 
@@ -30,10 +32,10 @@ def _(mo):
 def _(mo):
     mo.md(
         """
-    ## Generate Synthetic Data
+        ## Generate Synthetic Data
 
-    Here we'll leverage the [`SyntheticDataGenerator`](../04_Reference/SyntheticDataGenerator.qmd) class to generate a linear synthetic data generating process, with an exogenous binary treatment, a continuous & a binary outcome, and binary & continuous mediating covariates.
-    """
+        Here we'll leverage the [`SyntheticDataGenerator`](../04_Reference/SyntheticDataGenerator.qmd) class to generate a linear synthetic data generating process, with an exogenous binary treatment, a continuous & a binary outcome, and binary & continuous mediating covariates.
+        """
     )
     return
 
@@ -109,12 +111,12 @@ def _(data_generator):
 def _(mo):
     mo.md(
         r"""
-    ## Running FastOLS
+        ## Running FastOLS
 
-    ### Class Instantiation
+        ### Class Instantiation
 
-    We can instantiate and observe our `FastOLS` object via:
-    """
+        We can instantiate and observe our `FastOLS` object via:
+        """
     )
     return
 
@@ -150,16 +152,16 @@ def _(fo_obj):
 def _(mo):
     mo.md(
         r"""
-    ### Fitting OLS model
+        ### Fitting OLS model
 
-    We can now leverage the `fit` method to estimate the model outlined by `fo_obj.formula`. To capitalize on efficiency gains and parallelization in the estimation of GATEs, we will pass `estimate_effects=True`. The `n_jobs` argument will control the number of parallel jobs (GATE estimations) executed at a time. We will set `n_jobs=-1` to use all available cores for parallelization.
+        We can now leverage the `fit` method to estimate the model outlined by `fo_obj.formula`. To capitalize on efficiency gains and parallelization in the estimation of GATEs, we will pass `estimate_effects=True`. The `n_jobs` argument will control the number of parallel jobs (GATE estimations) executed at a time. We will set `n_jobs=-1` to use all available cores for parallelization.
 
-    ::: {.callout-warning}
-    When dealing with large datasets, setting `n_jobs` to a more conservative value can help prevent OOM errors.
-    :::
+        ::: {.callout-warning}
+        When dealing with large datasets, setting `n_jobs` to a more conservative value can help prevent OOM errors.
+        :::
 
-    For heteroskedasticity-robust variance estimation, we will also pass `robust_vcv=True`.
-    """
+        For heteroskedasticity-robust variance estimation, we will also pass `robust_vcv=True`.
+        """
     )
     return
 
@@ -167,7 +169,7 @@ def _(mo):
 @app.cell
 def _(data_generator, fo_obj):
     fo_obj.fit(
-        data_generator.df, n_jobs=-1, estimate_effects=True, robust_vcv=True
+        data_generator.df, n_jobs=-1, estimate_effects=True, cov_type="HC1"
     )
     return
 
@@ -183,6 +185,8 @@ def _(fo_obj):
     fo_obj.params
     # fo_obj.vcv
     # fo_obj.std_err
+    # fo_obj.fitted_values
+    # fo_obj.residuals
     return
 
 
@@ -202,10 +206,10 @@ def _(fo_obj):
 def _(mo):
     mo.md(
         r"""
-    Here we have direct access to the model parameters (`fo_obj.params`), variance-covariance matrices (`fo_obj.vcv]`), standard_errors (`fo_obj.std_err`), and estimated treatment effects (`fo_obj.treatment_effects`).
+        Here we have direct access to the model parameters (`fo_obj.params`), variance-covariance matrices (`fo_obj.vcv]`), standard_errors (`fo_obj.std_err`), and estimated treatment effects (`fo_obj.treatment_effects`).
 
-    To make the treatment effect results more readable, we can leverage the `prettify_treatment_effects` method:
-    """
+        To make the treatment effect results more readable, we can leverage the `prettify_treatment_effects` method:
+        """
     )
     return
 
@@ -246,10 +250,10 @@ def _(data_generator):
 def _(mo):
     mo.md(
         """
-    ### Custom Group Average Treatment Effects (GATEs)
+        ### Custom Group Average Treatment Effects (GATEs)
 
-    Let's now look at how we can estimate any arbitary GATE using `estimate_ate` method and prettify the results with `prettify_treatment_effects`.
-    """
+        Let's now look at how we can estimate any arbitary GATE using `estimate_ate` method and prettify the results with `prettify_treatment_effects`.
+        """
     )
     return
 
@@ -286,14 +290,14 @@ def _(custom_gate_df, data_generator):
 def _(mo):
     mo.md(
         """
-    ### Conditional Average Treatment Effects (CATEs)
+        ### Conditional Average Treatment Effects (CATEs)
 
-    Let's now look at how we can estimate CATEs / approximate individual-level treatment effects via `estimate_cate` method
+        Let's now look at how we can estimate CATEs / approximate individual-level treatment effects via `estimate_cate` method
 
-    ::: {.callout-note}
-    The `predict` method is a simple alias for `estimate_cate`. Either can be used, but namespacing was created to higlight that `estimate_cate` / `predict` can be used for out of sample treatment effect prediction.
-    :::
-    """
+        ::: {.callout-note}
+        The `predict` method is a simple alias for `estimate_cate`. Either can be used, but namespacing was created to higlight that `estimate_cate` / `predict` can be used for out of sample treatment effect prediction.
+        :::
+        """
     )
     return
 
@@ -337,10 +341,10 @@ def _(data_generator, fo_obj):
 def _(mo):
     mo.md(
         r"""
-    Let's now look at the Precision in Estimating Heterogeneous Effects (PEHE) (e.g., RMSE) and plot some results for the treatment effects on each outcome:
+        Let's now look at the Precision in Estimating Heterogeneous Effects (PEHE) (e.g., RMSE) and plot some results for the treatment effects on each outcome:
 
-    #### Effect of *binary* T1 on *continuous* Y1
-    """
+        #### Effect of *binary* T1 on *continuous* Y1
+        """
     )
     return
 
@@ -431,10 +435,10 @@ def _(cate_line_plot, predicted_cates2, true_cates2):
 def _(mo):
     mo.md(
         r"""
-    ::: {.callout-note}
-    The CATE estimates for binary outcome using simulated data may perform poorly b/c of non-linear transformation (sigmoid) of linear logodds. In general, `FastOLS` should be prioritized when ATEs and GATEs are of primary interest. For high quality CATE estimation, we recommend leveraging [CamlCATE](../04_Reference/CamlCATE.qmd).
-    :::
-    """
+        ::: {.callout-note}
+        The CATE estimates for binary outcome using simulated data may perform poorly b/c of non-linear transformation (sigmoid) of linear logodds. In general, `FastOLS` should be prioritized when ATEs and GATEs are of primary interest. For high quality CATE estimation, we recommend leveraging [CamlCATE](../04_Reference/CamlCATE.qmd).
+        :::
+        """
     )
     return
 

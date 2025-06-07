@@ -1,6 +1,8 @@
+
+
 import marimo
 
-__generated_with = "0.13.6"
+__generated_with = "0.13.1"
 app = marimo.App(width="medium")
 
 
@@ -99,7 +101,7 @@ def _(fu):
 
 @app.cell
 def _(df, fu):
-    fu.fit(df, n_jobs=-1, estimate_effects=True, robust_vcv=False)
+    fu.fit(df, n_jobs=-1, estimate_effects=True)
     return
 
 
