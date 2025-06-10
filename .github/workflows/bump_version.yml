@@ -6,6 +6,10 @@ on:
     branches:
       - main
 
+concurrency:
+  group: api-docs-updates
+  cancel-in-progress: false
+
 permissions:
   contents: write
   packages: read
@@ -14,9 +18,10 @@ permissions:
 
 jobs:
   bump_version:
-    if: github.event.pull_request.merged == true
+    if: >
+      github.event.pull_request.merged == true &&
+      !contains(join(github.event.pull_request.labels.*.name, ','), 'type: release')
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout 🛎️
         uses: actions/checkout@v4
@@ -86,7 +91,7 @@ jobs:
 
       - name: Create Previous Version Doc Snapshot
         if: env.type != 'skip'
-        run: python manage_version.py add --version ${{ env.OLD_VERSION }} --from latest
+        run: python manage_versions.py add --version ${{ env.OLD_VERSION }} --from latest
 
       - name: Commit and Push
         if: env.type != 'skip'

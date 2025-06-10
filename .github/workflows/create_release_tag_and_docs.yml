@@ -5,6 +5,10 @@ on:
     types: [closed]
     branches: [main]
 
+concurrency:
+  group: api-docs-updates
+  cancel-in-progress: false
+
 permissions:
   contents: write
   pull-requests: read
