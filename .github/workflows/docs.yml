@@ -1,8 +1,7 @@
-name: Build & Publish Dev Docs
+name: Build & Publish Docs
 
 on:
-  pull_request:
-    types: [closed]
+  push:
     branches:
       - main
 
@@ -15,8 +14,7 @@ jobs:
   build-and-publish-dev-docs:
     runs-on: ubuntu-latest
     if: >
-      github.event.pull_request.merged == true &&
-      !contains(join(github.event.pull_request.labels.*.name, ','), 'type: release')
+      !startsWith(github.event.head_commit.message, 'release:')
 
     steps:
       - name: Checkout 🛎️
