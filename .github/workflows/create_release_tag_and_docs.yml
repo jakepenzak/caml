@@ -3,7 +3,8 @@ name: Create Release Tag & Build Release Docs
 on:
   pull_request:
     types: [closed]
-    branches: [main]
+    branches:
+      - main
 
 permissions:
   contents: write
@@ -56,8 +57,8 @@ jobs:
           quartodoc build --config docs/_quarto.yml
 
           VERSION=$(bump-my-version show current_version)
-          echo "version=$VERSION" >> $GITHUB_OUTPUT
-          quarto render docs/ --output-dir ../$VERSION
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
+          quarto render docs/ --output-dir ../v$VERSION
 
       - name: Checkout api-docs branch
         uses: actions/checkout@v4
@@ -67,8 +68,8 @@ jobs:
       - name: Build API Docs
         run: |
           rm _site/ -r
-          mv $VERSION _site/
-          cp versions.json v0* dev CNAME _site -r
+          mv v${{ env.VERSION }} _site/
+          cp v* dev CNAME _site -r
 
       - name: Commit and push dev & _site directory
         run: |

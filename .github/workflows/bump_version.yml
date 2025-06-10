@@ -87,14 +87,14 @@ jobs:
 
       - name: Create Previous Version Doc Snapshot
         if: env.type != 'skip'
-        run: python manage_versions.py add --version ${{ env.OLD_VERSION }} --from latest
+        run: python manage_versions.py add --version v${{ env.OLD_VERSION }} --from latest
 
       - name: Commit and Push
         if: env.type != 'skip'
         run: |
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
           git config --global user.name "github-actions[bot]"
-          git add ${{ env.OLD_VERSION }}
+          git add v${{ env.OLD_VERSION }} versions.json
 
           if ! git diff-index --quiet HEAD; then
             git commit -m "Create doc snapshot for v${{ env.OLD_VERSION }}"
