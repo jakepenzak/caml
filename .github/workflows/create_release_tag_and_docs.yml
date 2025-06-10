@@ -67,7 +67,7 @@ jobs:
       - name: Build API Docs
         run: |
           rm _site/ -r
-          mv $VERSION _site/ -r
+          mv $VERSION _site/
           cp versions.json v0* dev CNAME _site -r
 
       - name: Commit and push dev & _site directory
