@@ -66,7 +66,7 @@ jobs:
         run: |
           rm _site/ -r
           mv $VERSION _site/ -r
-          cp versions.json v0* dev _site -r
+          cp versions.json v0* dev CNAME _site -r
 
       - name: Commit and push dev & _site directory
         run: |

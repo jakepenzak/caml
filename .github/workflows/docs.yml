@@ -41,7 +41,7 @@ jobs:
           ref: api-docs
 
       - name: Copy dev into _site directory
-        run: cp dev versions.json _site/ -r
+        run: cp dev versions.json CNAME _site/ -r
 
       - name: Commit and push dev & _site directory
         run: |
