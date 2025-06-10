@@ -2,10 +2,8 @@ name: Build & Publish Docs
 
 on:
   workflow_dispatch:
-
-  ## Revisit version controlling docs before auto building
-  # push:
-  #   branches: ["main"]
+  push:
+    branches: ["main"]
 
 permissions:
   contents: read
@@ -35,15 +33,28 @@ jobs:
           source .venv/bin/activate
           bash docs/marimo_examples_to_quarto.sh
           quartodoc build --config docs/_quarto.yml
-          quarto render docs/
+          quarto render docs/ --output-dir ../dev
 
-      - name: Write CNAME file
-        run: echo "caml-docs.com" > docs/_site/CNAME
+      - name: Checkout api-docs branch
+        uses: actions/checkout@v4
+        with:
+          ref: api-docs
+
+      - name: Copy dev into _site directory
+        run: cp dev versions.json _site/ -r
+
+      - name: Commit and push dev & _site directory
+        run: |
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git config --global user.name "github-actions[bot]"
+          git add dev _site
+          git commit -m "Update dev directory"
+          git push origin api-docs
 
       - name: Upload Artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: "docs/_site"
+          path: "_site"
 
       - name: Deploy to Github Pages 🚀
         id: deployment

@@ -10,6 +10,7 @@ format:
     css: styles/styles.css
     toc: true
     table-scroll: true
+    include-in-header: version-switcher.html
 
 website:
   title: CaML - Causal ML
