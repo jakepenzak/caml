@@ -88,6 +88,7 @@ jobs:
         if: env.type != 'skip'
         shell: bash -l {0}
         run: |
+          uv sync --all-groups --frozen
           source .venv/bin/activate
           python manage_version.py add --version ${{ env.OLD_VERSION }} --from latest
 
