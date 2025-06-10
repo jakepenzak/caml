@@ -1,0 +1,86 @@
+name: Create Release Tag & Build Release Docs
+
+on:
+  pull_request:
+    types: [closed]
+    branches: [main]
+
+permissions:
+  contents: write
+  pull-requests: read
+  pages: write
+  id-token: write
+
+jobs:
+  create_tag:
+    if: >
+      github.event.pull_request.merged == true &&
+      contains(join(github.event.pull_request.labels.*.name, ','), 'type: release')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout 🛎️
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Get Current Version
+        id: get_version
+        run: |
+          VERSION=$(bump-my-version show current_version)
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+
+      - name: Create and push tag
+        run: |
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git config --global user.name "github-actions[bot]"
+          git tag -a "v${{ steps.get_version.outputs.version }}" -m "Release version ${{ steps.get_version.outputs.version }}"
+          git push origin "v${{ steps.get_version.outputs.version }}"
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@0c5e2b8115b80b4c7c5ddf6ffdd634974642d182
+        with:
+          version: ${{ vars.UV_VERSION }}
+
+      - name: Create environment
+        run: uv sync --all-groups --frozen
+
+      - name: Render Release Docs
+        id: render_docs
+        shell: bash -l {0}
+        run: |
+          set -e
+          source .venv/bin/activate
+          bash docs/marimo_examples_to_quarto.sh
+          quartodoc build --config docs/_quarto.yml
+
+          VERSION=$(bump-my-version show current_version)
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          quarto render docs/ --output-dir ../$VERSION
+
+      - name: Checkout api-docs branch
+        uses: actions/checkout@v4
+        with:
+          ref: api-docs
+
+      - name: Build API Docs
+        run: |
+          rm _site/ -r
+          mv $VERSION _site/ -r
+          cp versions.json v0* dev _site -r
+
+      - name: Commit and push dev & _site directory
+        run: |
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git config --global user.name "github-actions[bot]"
+          git add _site/
+          git commit -m "Update _site directory"
+          git push origin api-docs
+
+      - name: Upload Artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: "_site"
+
+      - name: Deploy to Github Pages 🚀
+        id: deployment
+        uses: actions/deploy-pages@v4
