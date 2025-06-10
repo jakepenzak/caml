@@ -35,24 +35,26 @@ jobs:
           source .venv/bin/activate
           bash docs/marimo_examples_to_quarto.sh
           quartodoc build --config docs/_quarto.yml
-          quarto render docs/ --output-dir ../dev
+          quarto render docs/ --output-dir $RUNNER_TEMP/dev
 
       - name: Checkout api-docs branch
         uses: actions/checkout@v4
         with:
           ref: api-docs
 
-      - name: Copy dev into _site directory
-        run: cp dev versions.json CNAME _site/ -r
+      - name: Copy dev docs into _site directory
+        run: |
+          rm -rf dev && cp $RUNNER_TEMP/dev . -r
+          cp dev versions.json CNAME _site/ -r
 
-      - name: Commit and push dev & _site directory
+      - name: Commit and push dev docs & _site directory
         run: |
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
           git config --global user.name "github-actions[bot]"
           git add dev _site
 
           if ! git diff-index --quiet HEAD; then
-            git commit -m "Update dev directory"
+            git commit -m "Update dev docs build"
             git push origin api-docs
           else
             echo "No changes to commit"

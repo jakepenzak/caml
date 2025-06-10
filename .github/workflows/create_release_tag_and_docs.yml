@@ -38,14 +38,14 @@ jobs:
         run: |
           source .venv/bin/activate
           VERSION=$(bump-my-version show current_version)
-          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
 
       - name: Create and push tag
         run: |
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
           git config --global user.name "github-actions[bot]"
-          git tag -a "v${{ steps.get_version.outputs.version }}" -m "Release version ${{ steps.get_version.outputs.version }}"
-          git push origin "v${{ steps.get_version.outputs.version }}"
+          git tag -a "v${{ env.VERSION }}" -m "Release version ${{ env.VERSION }}"
+          git push origin "v${{ env.VERSION }}"
 
       - name: Render Release Docs
         id: render_docs
@@ -55,10 +55,7 @@ jobs:
           source .venv/bin/activate
           bash docs/marimo_examples_to_quarto.sh
           quartodoc build --config docs/_quarto.yml
-
-          VERSION=$(bump-my-version show current_version)
-          echo "VERSION=$VERSION" >> $GITHUB_ENV
-          quarto render docs/ --output-dir ../v$VERSION
+          quarto render docs/ --output-dir $RUNNER_TEMP/v${{ env.VERSION }}
 
       - name: Checkout api-docs branch
         uses: actions/checkout@v4
@@ -67,16 +64,15 @@ jobs:
 
       - name: Build API Docs
         run: |
-          rm _site/ -r
-          mv v${{ env.VERSION }} _site/
+          rm _site/ -r && mv $RUNNER_TEMP/v${{ env.VERSION }} _site
           cp v* dev CNAME _site -r
 
-      - name: Commit and push dev & _site directory
+      - name: Commit and push _site directory with latest release
         run: |
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
           git config --global user.name "github-actions[bot]"
           git add _site/
-          git commit -m "Update _site directory"
+          git commit -m "Update _site directory to latest release for version ${{ env.VERSION }}"
           git push origin api-docs
 
       - name: Upload Artifact
