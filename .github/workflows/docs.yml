@@ -5,6 +5,10 @@ on:
   push:
     branches: ["main"]
 
+concurrency:
+  group: api-docs-updates
+  cancel-in-progress: false
+
 permissions:
   contents: write
   pages: write
@@ -13,6 +17,9 @@ permissions:
 jobs:
   build-and-publish-docs:
     runs-on: ubuntu-latest
+    if: >
+      github.event.pull_request.merged == true &&
+      !contains(join(github.event.pull_request.labels.*.name, ','), 'type: release')
 
     steps:
       - name: Checkout 🛎️
