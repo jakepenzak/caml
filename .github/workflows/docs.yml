@@ -1,4 +1,4 @@
-name: Build & Publish Docs
+name: Build & Publish Dev Docs
 
 on:
   pull_request:
@@ -12,7 +12,7 @@ permissions:
   id-token: write
 
 jobs:
-  build-and-publish-docs:
+  build-and-publish-dev-docs:
     runs-on: ubuntu-latest
     if: >
       github.event.pull_request.merged == true &&
@@ -52,8 +52,13 @@ jobs:
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
           git config --global user.name "github-actions[bot]"
           git add dev _site
-          git commit -m "Update dev directory"
-          git push origin api-docs
+
+          if ! git diff-index --quiet HEAD; then
+            git commit -m "Update dev directory"
+            git push origin api-docs
+          else
+            echo "No changes to commit"
+          fi
 
       - name: Upload Artifact
         uses: actions/upload-pages-artifact@v3

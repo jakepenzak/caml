@@ -12,7 +12,7 @@ permissions:
   id-token: write
 
 jobs:
-  create_tag:
+  create_tag_and_build_release_docs:
     if: >
       github.event.pull_request.merged == true &&
       contains(join(github.event.pull_request.labels.*.name, ','), 'type: release')

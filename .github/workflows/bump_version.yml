@@ -1,4 +1,4 @@
-name: Bump Version
+name: Bump Version and Snapshot Docs
 
 on:
   pull_request:
@@ -13,7 +13,7 @@ permissions:
   pull-requests: write
 
 jobs:
-  bump_version:
+  bump_version_and_snapshot_docs:
     if: >
       github.event.pull_request.merged == true &&
       !contains(join(github.event.pull_request.labels.*.name, ','), 'type: release')
@@ -95,5 +95,10 @@ jobs:
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
           git config --global user.name "github-actions[bot]"
           git add ${{ env.OLD_VERSION }}
-          git commit -m "Create doc snapshot for v${{ env.OLD_VERSION }}"
-          git push origin api-docs
+
+          if ! git diff-index --quiet HEAD; then
+            git commit -m "Create doc snapshot for v${{ env.OLD_VERSION }}"
+            git push origin api-docs
+          else
+            echo "No changes to commit"
+          fi
