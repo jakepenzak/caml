@@ -75,7 +75,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <link href="../site_libs/quarto-html/quarto-syntax-highlighting-de070a7b0ab54f8780927367ac907214.css" rel="stylesheet" id="quarto-text-highlighting-styles">
 <script src="../site_libs/bootstrap/bootstrap.min.js"></script>
 <link href="../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="../site_libs/bootstrap/bootstrap-2735b7ba6101ca845d746cce9d61f548.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<link href="../site_libs/bootstrap/bootstrap-90533376958dee2a2f0107557869354e.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
 <script id="quarto-search-options" type="application/json">{
   "location": "navbar",
   "copy-button": false,
@@ -103,6 +103,446 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     "search-label": "Search"
   }
 }</script>
+<script type="text/javascript">
+    // Enhanced Version Switcher for Quarto Documentation
+    // Provides a floating version selector with hover functionality
+
+    (function () {
+        "use strict";
+
+        // Configuration
+        const CONFIG = {
+            containerId: "version-switcher",
+            position: { bottom: "20px", right: "20px" },
+            versionsJsonPath: getVersionsJsonPath(),
+            currentVersionText: getCurrentVersionFromPath(),
+        };
+
+        // Utility function to get the correct path to versions.json
+        function getVersionsJsonPath() {
+            const path = window.location.pathname;
+            const segments = path.split("/").filter(Boolean);
+
+            return "/versions.json";
+        }
+
+        // Detect current version from URL path
+        function getCurrentVersionFromPath() {
+            const path = window.location.pathname;
+            const versionMatch = path.match(/\/v[\d\.\-\w]+\//);
+
+            if (versionMatch) {
+                return versionMatch[0].replace(/\//g, "");
+            }
+            if (path.includes("dev")) {
+                return "dev";
+            }
+
+            return "latest";
+        }
+
+        // Create version switcher HTML structure
+        function createVersionSwitcher(versions) {
+            const container = document.createElement("div");
+            container.id = CONFIG.containerId;
+            container.setAttribute("role", "navigation");
+            container.setAttribute("aria-label", "Version selector");
+
+            // Create toggle button
+            const toggleButton = document.createElement("button");
+            toggleButton.className = "version-toggle-btn";
+            toggleButton.setAttribute("aria-haspopup", "true");
+            toggleButton.setAttribute("aria-expanded", "false");
+            toggleButton.setAttribute(
+                "aria-label",
+                "Select documentation version",
+            );
+
+            const currentVersionLabel = versions.find(
+                (v) =>
+                    v.text === CONFIG.currentVersionText ||
+                    (v.text === "latest" &&
+                        CONFIG.currentVersionText === "latest"),
+            );
+
+            toggleButton.innerHTML = `
+            <span class="version-icon">📚</span>
+            <span class="version-text">${currentVersionLabel ? currentVersionLabel.text : "Version"}</span>
+            <span class="version-arrow">▼</span>
+        `;
+
+            // Create dropdown menu
+            const dropdown = document.createElement("div");
+            dropdown.className = "version-dropdown";
+            dropdown.setAttribute("role", "menu");
+            dropdown.style.display = "none";
+
+            // Create version list
+            const versionList = document.createElement("ul");
+            versionList.className = "version-list";
+            versionList.setAttribute("role", "none");
+
+            versions.forEach((version, index) => {
+                const listItem = document.createElement("li");
+                listItem.setAttribute("role", "none");
+
+                const link = document.createElement("a");
+                link.className = "version-link";
+                link.href = version.href;
+                link.textContent = version.text;
+                link.setAttribute("role", "menuitem");
+                link.setAttribute("tabindex", "-1");
+
+                // Mark current version
+                if (
+                    version.text === CONFIG.currentVersionText ||
+                    (version.text === "latest" &&
+                        CONFIG.currentVersionText === "latest")
+                ) {
+                    link.classList.add("current-version");
+                    link.setAttribute("aria-current", "page");
+                }
+
+                listItem.appendChild(link);
+                versionList.appendChild(listItem);
+            });
+
+            dropdown.appendChild(versionList);
+            container.appendChild(toggleButton);
+            container.appendChild(dropdown);
+
+            return { container, toggleButton, dropdown, versionList };
+        }
+
+        // Add event listeners for interaction
+        function addEventListeners(elements) {
+            const { container, toggleButton, dropdown, versionList } = elements;
+            let isOpen = false;
+            let hoverTimeout;
+
+            // Mouse enter - show dropdown
+            container.addEventListener("mouseenter", () => {
+                clearTimeout(hoverTimeout);
+                showDropdown();
+            });
+
+            // Mouse leave - hide dropdown with delay
+            container.addEventListener("mouseleave", () => {
+                hoverTimeout = setTimeout(() => {
+                    hideDropdown();
+                }, 300);
+            });
+
+            // Click handler for toggle button
+            toggleButton.addEventListener("click", (e) => {
+                e.preventDefault();
+                if (isOpen) {
+                    hideDropdown();
+                } else {
+                    showDropdown();
+                }
+            });
+
+            // Keyboard navigation
+            container.addEventListener("keydown", (e) => {
+                const links = versionList.querySelectorAll(".version-link");
+                const currentFocus = document.activeElement;
+                const currentIndex = Array.from(links).indexOf(currentFocus);
+
+                switch (e.key) {
+                    case "Escape":
+                        hideDropdown();
+                        toggleButton.focus();
+                        break;
+                    case "ArrowDown":
+                        e.preventDefault();
+                        if (!isOpen) {
+                            showDropdown();
+                            links[0]?.focus();
+                        } else {
+                            const nextIndex =
+                                currentIndex < links.length - 1
+                                    ? currentIndex + 1
+                                    : 0;
+                            links[nextIndex]?.focus();
+                        }
+                        break;
+                    case "ArrowUp":
+                        e.preventDefault();
+                        if (isOpen) {
+                            const prevIndex =
+                                currentIndex > 0
+                                    ? currentIndex - 1
+                                    : links.length - 1;
+                            links[prevIndex]?.focus();
+                        }
+                        break;
+                    case "Enter":
+                    case " ":
+                        if (currentFocus === toggleButton) {
+                            e.preventDefault();
+                            if (isOpen) {
+                                hideDropdown();
+                            } else {
+                                showDropdown();
+                                links[0]?.focus();
+                            }
+                        }
+                        break;
+                }
+            });
+
+            // Click outside to close
+            document.addEventListener("click", (e) => {
+                if (!container.contains(e.target)) {
+                    hideDropdown();
+                }
+            });
+
+            function showDropdown() {
+                dropdown.style.display = "block";
+                toggleButton.setAttribute("aria-expanded", "true");
+                toggleButton.classList.add("active");
+                isOpen = true;
+
+                // Animate in
+                requestAnimationFrame(() => {
+                    dropdown.style.opacity = "1";
+                    dropdown.style.transform = "translateY(0)";
+                });
+            }
+
+            function hideDropdown() {
+                dropdown.style.opacity = "0";
+                dropdown.style.transform = "translateY(-10px)";
+                toggleButton.setAttribute("aria-expanded", "false");
+                toggleButton.classList.remove("active");
+                isOpen = false;
+
+                setTimeout(() => {
+                    dropdown.style.display = "none";
+                }, 200);
+            }
+        }
+
+        // Apply CSS styles
+        function injectStyles() {
+            const styleId = "version-switcher-styles";
+            if (document.getElementById(styleId)) return;
+
+            const styles = `
+            #version-switcher {
+                position: fixed;
+                bottom: ${CONFIG.position.bottom};
+                right: ${CONFIG.position.right};
+                z-index: 9999;
+                font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+                font-size: 14px;
+            }
+
+            .version-toggle-btn {
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                background: rgba(255, 255, 255, 0.95);
+                border: 1px solid rgba(0, 0, 0, 0.1);
+                border-radius: 8px;
+                padding: 10px 16px;
+                cursor: pointer;
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+                backdrop-filter: blur(10px);
+                transition: all 0.2s ease;
+                color: #333;
+                font-weight: 500;
+                min-width: 120px;
+            }
+
+            .version-toggle-btn:hover {
+                background: rgba(255, 255, 255, 1);
+                box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
+                transform: translateY(-2px);
+                border-color: rgba(0, 109, 9, 0.3);
+            }
+
+            .version-toggle-btn.active {
+                background: rgba(255, 255, 255, 1);
+                border-color: #006d09;
+            }
+
+            .version-icon {
+                font-size: 16px;
+            }
+
+            .version-text {
+                flex: 1;
+                text-align: left;
+            }
+
+            .version-arrow {
+                transition: transform 0.2s ease;
+                font-size: 12px;
+                color: #666;
+            }
+
+            .version-toggle-btn.active .version-arrow {
+                transform: rotate(180deg);
+            }
+
+            .version-dropdown {
+                position: absolute;
+                bottom: 100%;
+                right: 0;
+                margin-bottom: 8px;
+                background: rgba(255, 255, 255, 0.98);
+                border: 1px solid rgba(0, 0, 0, 0.1);
+                border-radius: 8px;
+                box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+                backdrop-filter: blur(10px);
+                opacity: 0;
+                transform: translateY(-10px);
+                transition: all 0.2s ease;
+                min-width: 160px;
+            }
+
+            .version-list {
+                list-style: none;
+                margin: 0;
+                padding: 8px 0;
+            }
+
+            .version-link {
+                display: block;
+                padding: 10px 16px;
+                color: #333;
+                text-decoration: none;
+                transition: all 0.15s ease;
+                position: relative;
+            }
+
+            .version-link:hover,
+            .version-link:focus {
+                background: rgba(0, 109, 9, 0.1);
+                color: #006d09;
+                outline: none;
+            }
+
+            .version-link.current-version {
+                background: rgba(0, 109, 9, 0.1);
+                color: #006d09;
+                font-weight: 600;
+            }
+
+            .version-link.current-version::after {
+                content: '✓';
+                position: absolute;
+                right: 16px;
+                top: 50%;
+                transform: translateY(-50%);
+                font-size: 12px;
+            }
+
+            /* Dark mode support */
+            @media (prefers-color-scheme: dark) {
+                .version-toggle-btn {
+                    background: rgba(40, 40, 40, 0.95);
+                    border-color: rgba(255, 255, 255, 0.2);
+                    color: #e0e0e0;
+                }
+
+                .version-toggle-btn:hover {
+                    background: rgba(50, 50, 50, 1);
+                    border-color: rgba(0, 180, 15, 0.5);
+                }
+
+                .version-dropdown {
+                    background: rgba(40, 40, 40, 0.98);
+                    border-color: rgba(255, 255, 255, 0.2);
+                }
+
+                .version-link {
+                    color: #e0e0e0;
+                }
+
+                .version-link:hover,
+                .version-link:focus {
+                    background: rgba(0, 180, 15, 0.2);
+                    color: #00b80f;
+                }
+
+                .version-link.current-version {
+                    background: rgba(0, 180, 15, 0.2);
+                    color: #00b80f;
+                }
+            }
+
+            /* Mobile responsive */
+            @media (max-width: 768px) {
+                #version-switcher {
+                    bottom: 15px;
+                    right: 15px;
+                }
+
+                .version-toggle-btn {
+                    padding: 8px 12px;
+                    min-width: 100px;
+                    font-size: 13px;
+                }
+
+                .version-dropdown {
+                    min-width: 140px;
+                }
+
+                .version-link {
+                    padding: 8px 12px;
+                    font-size: 13px;
+                }
+            }
+        `;
+
+            const styleElement = document.createElement("style");
+            styleElement.id = styleId;
+            styleElement.textContent = styles;
+            document.head.appendChild(styleElement);
+        }
+
+        // Initialize the version switcher
+        function init() {
+            // Don't initialize if already exists
+            if (document.getElementById(CONFIG.containerId)) return;
+
+            fetch(CONFIG.versionsJsonPath)
+                .then((response) => {
+                    if (!response.ok) {
+                        throw new Error(
+                            `HTTP error! status: ${response.status}`,
+                        );
+                    }
+                    return response.json();
+                })
+                .then((versions) => {
+                    if (!Array.isArray(versions) || versions.length === 0) {
+                        console.warn("No versions found in versions.json");
+                        return;
+                    }
+
+                    injectStyles();
+                    const elements = createVersionSwitcher(versions);
+                    addEventListeners(elements);
+                    document.body.appendChild(elements.container);
+                })
+                .catch((error) => {
+                    console.warn("Failed to load version switcher:", error);
+                });
+        }
+
+        // Initialize when DOM is ready
+        if (document.readyState === "loading") {
+            document.addEventListener("DOMContentLoaded", init);
+        } else {
+            init();
+        }
+    })();
+</script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" integrity="sha512-c3Nl8+7g4LMSTdrm621y7kf9v3SDPnhxLNhcjFJbKECVnmZHTdo+IRO05sNLTH/D3vA6u1X32ehoLC7WFVdheg==" crossorigin="anonymous"></script>
 
 <script type="application/javascript">define('jquery', [],function() {return window.jQuery;})</script>
@@ -478,6 +918,16 @@ window.Quarto = {
 <td>The standard errors of the estimated parameters.</td>
 </tr>
 <tr class="even">
+<td>fitted_values</td>
+<td>np.ndarray</td>
+<td>The predicted values from the model.</td>
+</tr>
+<tr class="odd">
+<td>residuals</td>
+<td>np.ndarray</td>
+<td>The residuals of the model.</td>
+</tr>
+<tr class="even">
 <td>treatment_effects</td>
 <td>dict</td>
 <td>The estimated treatment effects dictionary.</td>
@@ -487,7 +937,7 @@ window.Quarto = {
 </section>
 <section id="examples" class="level2 doc-section doc-section-examples">
 <h2 class="doc-section doc-section-examples anchored" data-anchor-id="examples">Examples</h2>
-<div id="e0b2ffd7" class="cell" data-execution_count="1">
+<div id="cea2c6a1" class="cell" data-execution_count="1">
 <div class="sourceCode cell-code" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> caml <span class="im">import</span> FastOLS</span>
 <span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> caml.extensions.synthetic_data <span class="im">import</span> SyntheticDataGenerator</span>
 <span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a></span>
@@ -558,7 +1008,7 @@ Formula: Q('Y1_continuous') + Q('Y2_binary') ~ C(Q('T1_binary')) + C(Q('X2_binar
 </table>
 <section id="caml.FastOLS.fit" class="level3">
 <h3 class="anchored" data-anchor-id="caml.FastOLS.fit">fit</h3>
-<div class="sourceCode" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>FastOLS.fit(df, <span class="op">*</span>, n_jobs<span class="op">=-</span><span class="dv">1</span>, estimate_effects<span class="op">=</span><span class="va">True</span>, robust_vcv<span class="op">=</span><span class="va">False</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>FastOLS.fit(df, <span class="op">*</span>, n_jobs<span class="op">=-</span><span class="dv">1</span>, estimate_effects<span class="op">=</span><span class="va">True</span>, cov_type<span class="op">=</span><span class="st">'nonrobust'</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <p>Fits the regression model on the provided data and, optionally, estimates Average Treatment Effect(s) (ATE) and Group Average Treatment Effect(s) (GATE).</p>
 <p>If <code>estimate_effects</code> is True, the method estimates Average Treatment Effects (ATEs) and Group Average Treatment Effects (GATEs), based on specified <code>G</code>. This leverages <code>estimate_ate</code> method under the hood, but efficiently reuses the data and parallelizes the computation of GATEs.</p>
 <section id="parameters-1" class="level4 doc-section doc-section-parameters">
@@ -567,8 +1017,8 @@ Formula: Q('Y1_continuous') + Q('Y2_binary') ~ C(Q('T1_binary')) + C(Q('X2_binar
 <colgroup>
 <col style="width: 7%">
 <col style="width: 11%">
-<col style="width: 76%">
-<col style="width: 4%">
+<col style="width: 75%">
+<col style="width: 5%">
 </colgroup>
 <thead>
 <tr class="header">
@@ -598,18 +1048,18 @@ Formula: Q('Y1_continuous') + Q('Y2_binary') ~ C(Q('T1_binary')) + C(Q('X2_binar
 <td><code>True</code></td>
 </tr>
 <tr class="even">
-<td>robust_vcv</td>
-<td>bool</td>
-<td>Whether to use heteroskedasticity-robust (white) variance-covariance matrix and standard errors.</td>
-<td><code>False</code></td>
+<td>cov_type</td>
+<td>str</td>
+<td>The covariance estimator to use for variance-covariance matrix and standard errors. Can be “nonrobust”, “HC0”, or “HC1”.</td>
+<td><code>'nonrobust'</code></td>
 </tr>
 </tbody>
 </table>
 </section>
 <section id="examples-1" class="level4 doc-section doc-section-examples">
 <h4 class="doc-section doc-section-examples anchored" data-anchor-id="examples-1">Examples</h4>
-<div id="79953b7d" class="cell" data-execution_count="2">
-<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>fo_obj.fit(df, n_jobs<span class="op">=</span><span class="dv">4</span>, estimate_effects<span class="op">=</span><span class="va">True</span>, robust_vcv<span class="op">=</span><span class="va">True</span>)</span>
+<div id="5b332baf" class="cell" data-execution_count="2">
+<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>fo_obj.fit(df, n_jobs<span class="op">=</span><span class="dv">4</span>, estimate_effects<span class="op">=</span><span class="va">True</span>, cov_type<span class="op">=</span><span class="st">'nonrobust'</span>)</span>
 <span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>fo_obj.treatment_effects.keys()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display" data-execution_count="2">
@@ -640,10 +1090,10 @@ Formula: Q('Y1_continuous') + Q('Y2_binary') ~ C(Q('T1_binary')) + C(Q('X2_binar
 <h4 class="doc-section doc-section-parameters anchored" data-anchor-id="parameters-2">Parameters</h4>
 <table class="caption-top table">
 <colgroup>
+<col style="width: 8%">
+<col style="width: 11%">
+<col style="width: 73%">
 <col style="width: 7%">
-<col style="width: 10%">
-<col style="width: 75%">
-<col style="width: 6%">
 </colgroup>
 <thead>
 <tr class="header">
@@ -663,7 +1113,7 @@ Formula: Q('Y1_continuous') + Q('Y2_binary') ~ C(Q('T1_binary')) + C(Q('X2_binar
 <tr class="even">
 <td>return_results_dict</td>
 <td>bool</td>
-<td>If True, the function returns a dictionary containing ATEs/GATEs, standard errors, t-statistics, confidence intervals, and p-values. If False, the function returns a numpy array containing ATEs/GATEs alone.</td>
+<td>If True, the function returns a dictionary containing ATEs/GATEs, standard errors, t-statistics, and p-values. If False, the function returns a numpy array containing ATEs/GATEs alone.</td>
 <td><code>False</code></td>
 </tr>
 <tr class="odd">
@@ -713,22 +1163,22 @@ Formula: Q('Y1_continuous') + Q('Y2_binary') ~ C(Q('T1_binary')) + C(Q('X2_binar
 </section>
 <section id="examples-2" class="level4 doc-section doc-section-examples">
 <h4 class="doc-section doc-section-examples anchored" data-anchor-id="examples-2">Examples</h4>
-<div id="3b880e1a" class="cell" data-execution_count="3">
+<div id="8a0a7532" class="cell" data-execution_count="3">
 <div class="sourceCode cell-code" id="cb8"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>ate <span class="op">=</span> fo_obj.estimate_ate(df, return_results_dict<span class="op">=</span><span class="va">True</span>, group<span class="op">=</span><span class="st">"Overall"</span>)</span>
 <span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>ate</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display" data-execution_count="3">
 <pre><code>{'Overall': {'outcome': ['Y1_continuous', 'Y2_binary'],
   'ate': array([[3.75944943, 0.19349086]]),
-  'std_err': array([[0.02012079, 0.00971142]]),
-  't_stat': array([[186.84402522,  19.92406093]]),
+  'std_err': array([[0.02012718, 0.00971994]]),
+  't_stat': array([[186.78472875,  19.90658227]]),
   'pval': array([[0., 0.]]),
   'n': 10000,
   'n_treated': 5060,
   'n_control': 4940}}</code></pre>
 </div>
 </div>
-<div id="4c2adba7" class="cell" data-execution_count="4">
+<div id="15b95579" class="cell" data-execution_count="4">
 <div class="sourceCode cell-code" id="cb10"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>df_filtered <span class="op">=</span> df.query(</span>
 <span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>    <span class="st">"X3_binary == 0 &amp; X1_continuous &lt; 5"</span></span>
 <span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>).copy()</span>
@@ -755,8 +1205,8 @@ Formula: Q('Y1_continuous') + Q('Y2_binary') ~ C(Q('T1_binary')) + C(Q('X2_binar
 <table class="caption-top table">
 <colgroup>
 <col style="width: 8%">
-<col style="width: 10%">
-<col style="width: 76%">
+<col style="width: 11%">
+<col style="width: 75%">
 <col style="width: 4%">
 </colgroup>
 <thead>
@@ -777,7 +1227,7 @@ Formula: Q('Y1_continuous') + Q('Y2_binary') ~ C(Q('T1_binary')) + C(Q('X2_binar
 <tr class="even">
 <td>return_results_dict</td>
 <td>bool</td>
-<td>If True, the function returns a dictionary containing CATEs, standard errors, t-statistics, confidence intervals, and p-values. If False, the function returns a numpy array containing CATEs alone.</td>
+<td>If True, the function returns a dictionary containing CATEs, standard errors, t-statistics, and p-values. If False, the function returns a numpy array containing CATEs alone.</td>
 <td><code>False</code></td>
 </tr>
 </tbody>
@@ -809,7 +1259,7 @@ Formula: Q('Y1_continuous') + Q('Y2_binary') ~ C(Q('T1_binary')) + C(Q('X2_binar
 </section>
 <section id="examples-3" class="level4 doc-section doc-section-examples">
 <h4 class="doc-section doc-section-examples anchored" data-anchor-id="examples-3">Examples</h4>
-<div id="b4652ece" class="cell" data-execution_count="5">
+<div id="6319d6af" class="cell" data-execution_count="5">
 <div class="sourceCode cell-code" id="cb13"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>cates <span class="op">=</span> fo_obj.estimate_cate(df)</span>
 <span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>cates[:<span class="dv">5</span>]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display" data-execution_count="5">
@@ -820,7 +1270,7 @@ Formula: Q('Y1_continuous') + Q('Y2_binary') ~ C(Q('T1_binary')) + C(Q('X2_binar
        [3.66232416, 0.24007028]])</code></pre>
 </div>
 </div>
-<div id="79572173" class="cell" data-execution_count="6">
+<div id="674810e5" class="cell" data-execution_count="6">
 <div class="sourceCode cell-code" id="cb15"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a>res <span class="op">=</span> fo_obj.estimate_cate(df, return_results_dict<span class="op">=</span><span class="va">True</span>)</span>
 <span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a>res.keys()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display" data-execution_count="6">
@@ -839,10 +1289,10 @@ Formula: Q('Y1_continuous') + Q('Y2_binary') ~ C(Q('T1_binary')) + C(Q('X2_binar
 <h4 class="doc-section doc-section-parameters anchored" data-anchor-id="parameters-4">Parameters</h4>
 <table class="caption-top table">
 <colgroup>
-<col style="width: 6%">
+<col style="width: 7%">
 <col style="width: 9%">
-<col style="width: 80%">
-<col style="width: 3%">
+<col style="width: 78%">
+<col style="width: 4%">
 </colgroup>
 <thead>
 <tr class="header">
@@ -862,7 +1312,7 @@ Formula: Q('Y1_continuous') + Q('Y2_binary') ~ C(Q('T1_binary')) + C(Q('X2_binar
 <tr class="even">
 <td>return_results_dict</td>
 <td>bool</td>
-<td>If True, the function returns a dictionary containing CATEs, standard errors, t-statistics, confidence intervals, and p-values. If False, the function returns a numpy array containing CATEs alone. Does not have any effect when mode is “outcome”.</td>
+<td>If True, the function returns a dictionary containing CATEs, standard errors, t-statistics, and p-values. If False, the function returns a numpy array containing CATEs alone. Does not have any effect when mode is “outcome”.</td>
 <td><code>False</code></td>
 </tr>
 <tr class="odd">
@@ -900,7 +1350,7 @@ Formula: Q('Y1_continuous') + Q('Y2_binary') ~ C(Q('T1_binary')) + C(Q('X2_binar
 </section>
 <section id="examples-4" class="level4 doc-section doc-section-examples">
 <h4 class="doc-section doc-section-examples anchored" data-anchor-id="examples-4">Examples</h4>
-<div id="09bd4c11" class="cell" data-execution_count="7">
+<div id="a1549564" class="cell" data-execution_count="7">
 <div class="sourceCode cell-code" id="cb18"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a>cates <span class="op">=</span> fo_obj.predict(df)</span>
 <span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a>cates[:<span class="dv">5</span>]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display" data-execution_count="7">
@@ -911,7 +1361,7 @@ Formula: Q('Y1_continuous') + Q('Y2_binary') ~ C(Q('T1_binary')) + C(Q('X2_binar
        [3.66232416, 0.24007028]])</code></pre>
 </div>
 </div>
-<div id="34d1990f" class="cell" data-execution_count="8">
+<div id="47959021" class="cell" data-execution_count="8">
 <div class="sourceCode cell-code" id="cb20"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a>res <span class="op">=</span> fo_obj.predict(df, return_results_dict<span class="op">=</span><span class="va">True</span>)</span>
 <span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a>res.keys()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display" data-execution_count="8">
@@ -973,7 +1423,7 @@ Formula: Q('Y1_continuous') + Q('Y2_binary') ~ C(Q('T1_binary')) + C(Q('X2_binar
 </section>
 <section id="examples-5" class="level4 doc-section doc-section-examples">
 <h4 class="doc-section doc-section-examples anchored" data-anchor-id="examples-5">Examples</h4>
-<div id="d2cb2e84" class="cell" data-execution_count="9">
+<div id="d32d01cf" class="cell" data-execution_count="9">
 <div class="sourceCode cell-code" id="cb23"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a>fo_obj.prettify_treatment_effects()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display" data-execution_count="9">
 <div>
@@ -1002,8 +1452,8 @@ Formula: Q('Y1_continuous') + Q('Y2_binary') ~ C(Q('T1_binary')) + C(Q('X2_binar
 <td>None</td>
 <td>Y1_continuous</td>
 <td>3.759449</td>
-<td>0.020121</td>
-<td>186.844025</td>
+<td>0.020127</td>
+<td>186.784729</td>
 <td>0.000000</td>
 <td>10000</td>
 <td>5060</td>
@@ -1015,8 +1465,8 @@ Formula: Q('Y1_continuous') + Q('Y2_binary') ~ C(Q('T1_binary')) + C(Q('X2_binar
 <td>None</td>
 <td>Y2_binary</td>
 <td>0.193491</td>
-<td>0.009711</td>
-<td>19.924061</td>
+<td>0.009720</td>
+<td>19.906582</td>
 <td>0.000000</td>
 <td>10000</td>
 <td>5060</td>
@@ -1028,8 +1478,8 @@ Formula: Q('Y1_continuous') + Q('Y2_binary') ~ C(Q('T1_binary')) + C(Q('X2_binar
 <td>0</td>
 <td>Y1_continuous</td>
 <td>3.584580</td>
-<td>0.034896</td>
-<td>102.722456</td>
+<td>0.034935</td>
+<td>102.606668</td>
 <td>0.000000</td>
 <td>3320</td>
 <td>1691</td>
@@ -1041,8 +1491,8 @@ Formula: Q('Y1_continuous') + Q('Y2_binary') ~ C(Q('T1_binary')) + C(Q('X2_binar
 <td>0</td>
 <td>Y2_binary</td>
 <td>0.156381</td>
-<td>0.017070</td>
-<td>9.161124</td>
+<td>0.016871</td>
+<td>9.269187</td>
 <td>0.000000</td>
 <td>3320</td>
 <td>1691</td>
@@ -1054,8 +1504,8 @@ Formula: Q('Y1_continuous') + Q('Y2_binary') ~ C(Q('T1_binary')) + C(Q('X2_binar
 <td>1</td>
 <td>Y1_continuous</td>
 <td>3.846360</td>
-<td>0.024623</td>
-<td>156.212722</td>
+<td>0.024626</td>
+<td>156.193627</td>
 <td>0.000000</td>
 <td>6680</td>
 <td>3369</td>
@@ -1067,8 +1517,8 @@ Formula: Q('Y1_continuous') + Q('Y2_binary') ~ C(Q('T1_binary')) + C(Q('X2_binar
 <td>1</td>
 <td>Y2_binary</td>
 <td>0.211934</td>
-<td>0.011806</td>
-<td>17.950933</td>
+<td>0.011892</td>
+<td>17.821080</td>
 <td>0.000000</td>
 <td>6680</td>
 <td>3369</td>
@@ -1080,8 +1530,8 @@ Formula: Q('Y1_continuous') + Q('Y2_binary') ~ C(Q('T1_binary')) + C(Q('X2_binar
 <td>1</td>
 <td>Y1_continuous</td>
 <td>4.081423</td>
-<td>0.021434</td>
-<td>190.419041</td>
+<td>0.021454</td>
+<td>190.238254</td>
 <td>0.000000</td>
 <td>8801</td>
 <td>4451</td>
@@ -1093,8 +1543,8 @@ Formula: Q('Y1_continuous') + Q('Y2_binary') ~ C(Q('T1_binary')) + C(Q('X2_binar
 <td>1</td>
 <td>Y2_binary</td>
 <td>0.208494</td>
-<td>0.010351</td>
-<td>20.142500</td>
+<td>0.010361</td>
+<td>20.123279</td>
 <td>0.000000</td>
 <td>8801</td>
 <td>4451</td>
@@ -1106,8 +1556,8 @@ Formula: Q('Y1_continuous') + Q('Y2_binary') ~ C(Q('T1_binary')) + C(Q('X2_binar
 <td>0</td>
 <td>Y1_continuous</td>
 <td>1.396072</td>
-<td>0.058353</td>
-<td>23.924627</td>
+<td>0.058130</td>
+<td>24.016441</td>
 <td>0.000000</td>
 <td>1199</td>
 <td>609</td>
@@ -1119,9 +1569,9 @@ Formula: Q('Y1_continuous') + Q('Y2_binary') ~ C(Q('T1_binary')) + C(Q('X2_binar
 <td>0</td>
 <td>Y2_binary</td>
 <td>0.083364</td>
-<td>0.028048</td>
-<td>2.972195</td>
-<td>0.002957</td>
+<td>0.028072</td>
+<td>2.969612</td>
+<td>0.002982</td>
 <td>1199</td>
 <td>609</td>
 <td>590</td>
@@ -1132,7 +1582,7 @@ Formula: Q('Y1_continuous') + Q('Y2_binary') ~ C(Q('T1_binary')) + C(Q('X2_binar
 </div>
 </div>
 </div>
-<div id="2fe52f8c" class="cell" data-execution_count="10">
+<div id="c21a9283" class="cell" data-execution_count="10">
 <div class="sourceCode cell-code" id="cb24"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a><span class="co">## Using a custom GATE</span></span>
 <span id="cb24-2"><a href="#cb24-2" aria-hidden="true" tabindex="-1"></a>custom_gate <span class="op">=</span> fo_obj.estimate_ate(df_filtered, return_results_dict<span class="op">=</span><span class="va">True</span>, group<span class="op">=</span><span class="st">"My Custom Group"</span>)</span>
 <span id="cb24-3"><a href="#cb24-3" aria-hidden="true" tabindex="-1"></a>fo_obj.prettify_treatment_effects(custom_gate)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
@@ -1163,8 +1613,8 @@ Formula: Q('Y1_continuous') + Q('Y2_binary') ~ C(Q('T1_binary')) + C(Q('X2_binar
 <td>None</td>
 <td>Y1_continuous</td>
 <td>1.396072</td>
-<td>0.058353</td>
-<td>23.924627</td>
+<td>0.058130</td>
+<td>24.016441</td>
 <td>0.000000</td>
 <td>1199</td>
 <td>609</td>
@@ -1176,9 +1626,9 @@ Formula: Q('Y1_continuous') + Q('Y2_binary') ~ C(Q('T1_binary')) + C(Q('X2_binar
 <td>None</td>
 <td>Y2_binary</td>
 <td>0.083364</td>
-<td>0.028048</td>
-<td>2.972195</td>
-<td>0.002957</td>
+<td>0.028072</td>
+<td>2.969612</td>
+<td>0.002982</td>
 <td>1199</td>
 <td>609</td>
 <td>590</td>

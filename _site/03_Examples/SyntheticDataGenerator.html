@@ -76,7 +76,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <link href="../site_libs/quarto-html/quarto-syntax-highlighting-de070a7b0ab54f8780927367ac907214.css" rel="stylesheet" id="quarto-text-highlighting-styles">
 <script src="../site_libs/bootstrap/bootstrap.min.js"></script>
 <link href="../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="../site_libs/bootstrap/bootstrap-2735b7ba6101ca845d746cce9d61f548.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<link href="../site_libs/bootstrap/bootstrap-90533376958dee2a2f0107557869354e.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
 <script id="quarto-search-options" type="application/json">{
   "location": "navbar",
   "copy-button": false,
@@ -104,6 +104,446 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     "search-label": "Search"
   }
 }</script>
+<script type="text/javascript">
+    // Enhanced Version Switcher for Quarto Documentation
+    // Provides a floating version selector with hover functionality
+
+    (function () {
+        "use strict";
+
+        // Configuration
+        const CONFIG = {
+            containerId: "version-switcher",
+            position: { bottom: "20px", right: "20px" },
+            versionsJsonPath: getVersionsJsonPath(),
+            currentVersionText: getCurrentVersionFromPath(),
+        };
+
+        // Utility function to get the correct path to versions.json
+        function getVersionsJsonPath() {
+            const path = window.location.pathname;
+            const segments = path.split("/").filter(Boolean);
+
+            return "/versions.json";
+        }
+
+        // Detect current version from URL path
+        function getCurrentVersionFromPath() {
+            const path = window.location.pathname;
+            const versionMatch = path.match(/\/v[\d\.\-\w]+\//);
+
+            if (versionMatch) {
+                return versionMatch[0].replace(/\//g, "");
+            }
+            if (path.includes("dev")) {
+                return "dev";
+            }
+
+            return "latest";
+        }
+
+        // Create version switcher HTML structure
+        function createVersionSwitcher(versions) {
+            const container = document.createElement("div");
+            container.id = CONFIG.containerId;
+            container.setAttribute("role", "navigation");
+            container.setAttribute("aria-label", "Version selector");
+
+            // Create toggle button
+            const toggleButton = document.createElement("button");
+            toggleButton.className = "version-toggle-btn";
+            toggleButton.setAttribute("aria-haspopup", "true");
+            toggleButton.setAttribute("aria-expanded", "false");
+            toggleButton.setAttribute(
+                "aria-label",
+                "Select documentation version",
+            );
+
+            const currentVersionLabel = versions.find(
+                (v) =>
+                    v.text === CONFIG.currentVersionText ||
+                    (v.text === "latest" &&
+                        CONFIG.currentVersionText === "latest"),
+            );
+
+            toggleButton.innerHTML = `
+            <span class="version-icon">📚</span>
+            <span class="version-text">${currentVersionLabel ? currentVersionLabel.text : "Version"}</span>
+            <span class="version-arrow">▼</span>
+        `;
+
+            // Create dropdown menu
+            const dropdown = document.createElement("div");
+            dropdown.className = "version-dropdown";
+            dropdown.setAttribute("role", "menu");
+            dropdown.style.display = "none";
+
+            // Create version list
+            const versionList = document.createElement("ul");
+            versionList.className = "version-list";
+            versionList.setAttribute("role", "none");
+
+            versions.forEach((version, index) => {
+                const listItem = document.createElement("li");
+                listItem.setAttribute("role", "none");
+
+                const link = document.createElement("a");
+                link.className = "version-link";
+                link.href = version.href;
+                link.textContent = version.text;
+                link.setAttribute("role", "menuitem");
+                link.setAttribute("tabindex", "-1");
+
+                // Mark current version
+                if (
+                    version.text === CONFIG.currentVersionText ||
+                    (version.text === "latest" &&
+                        CONFIG.currentVersionText === "latest")
+                ) {
+                    link.classList.add("current-version");
+                    link.setAttribute("aria-current", "page");
+                }
+
+                listItem.appendChild(link);
+                versionList.appendChild(listItem);
+            });
+
+            dropdown.appendChild(versionList);
+            container.appendChild(toggleButton);
+            container.appendChild(dropdown);
+
+            return { container, toggleButton, dropdown, versionList };
+        }
+
+        // Add event listeners for interaction
+        function addEventListeners(elements) {
+            const { container, toggleButton, dropdown, versionList } = elements;
+            let isOpen = false;
+            let hoverTimeout;
+
+            // Mouse enter - show dropdown
+            container.addEventListener("mouseenter", () => {
+                clearTimeout(hoverTimeout);
+                showDropdown();
+            });
+
+            // Mouse leave - hide dropdown with delay
+            container.addEventListener("mouseleave", () => {
+                hoverTimeout = setTimeout(() => {
+                    hideDropdown();
+                }, 300);
+            });
+
+            // Click handler for toggle button
+            toggleButton.addEventListener("click", (e) => {
+                e.preventDefault();
+                if (isOpen) {
+                    hideDropdown();
+                } else {
+                    showDropdown();
+                }
+            });
+
+            // Keyboard navigation
+            container.addEventListener("keydown", (e) => {
+                const links = versionList.querySelectorAll(".version-link");
+                const currentFocus = document.activeElement;
+                const currentIndex = Array.from(links).indexOf(currentFocus);
+
+                switch (e.key) {
+                    case "Escape":
+                        hideDropdown();
+                        toggleButton.focus();
+                        break;
+                    case "ArrowDown":
+                        e.preventDefault();
+                        if (!isOpen) {
+                            showDropdown();
+                            links[0]?.focus();
+                        } else {
+                            const nextIndex =
+                                currentIndex < links.length - 1
+                                    ? currentIndex + 1
+                                    : 0;
+                            links[nextIndex]?.focus();
+                        }
+                        break;
+                    case "ArrowUp":
+                        e.preventDefault();
+                        if (isOpen) {
+                            const prevIndex =
+                                currentIndex > 0
+                                    ? currentIndex - 1
+                                    : links.length - 1;
+                            links[prevIndex]?.focus();
+                        }
+                        break;
+                    case "Enter":
+                    case " ":
+                        if (currentFocus === toggleButton) {
+                            e.preventDefault();
+                            if (isOpen) {
+                                hideDropdown();
+                            } else {
+                                showDropdown();
+                                links[0]?.focus();
+                            }
+                        }
+                        break;
+                }
+            });
+
+            // Click outside to close
+            document.addEventListener("click", (e) => {
+                if (!container.contains(e.target)) {
+                    hideDropdown();
+                }
+            });
+
+            function showDropdown() {
+                dropdown.style.display = "block";
+                toggleButton.setAttribute("aria-expanded", "true");
+                toggleButton.classList.add("active");
+                isOpen = true;
+
+                // Animate in
+                requestAnimationFrame(() => {
+                    dropdown.style.opacity = "1";
+                    dropdown.style.transform = "translateY(0)";
+                });
+            }
+
+            function hideDropdown() {
+                dropdown.style.opacity = "0";
+                dropdown.style.transform = "translateY(-10px)";
+                toggleButton.setAttribute("aria-expanded", "false");
+                toggleButton.classList.remove("active");
+                isOpen = false;
+
+                setTimeout(() => {
+                    dropdown.style.display = "none";
+                }, 200);
+            }
+        }
+
+        // Apply CSS styles
+        function injectStyles() {
+            const styleId = "version-switcher-styles";
+            if (document.getElementById(styleId)) return;
+
+            const styles = `
+            #version-switcher {
+                position: fixed;
+                bottom: ${CONFIG.position.bottom};
+                right: ${CONFIG.position.right};
+                z-index: 9999;
+                font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+                font-size: 14px;
+            }
+
+            .version-toggle-btn {
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                background: rgba(255, 255, 255, 0.95);
+                border: 1px solid rgba(0, 0, 0, 0.1);
+                border-radius: 8px;
+                padding: 10px 16px;
+                cursor: pointer;
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+                backdrop-filter: blur(10px);
+                transition: all 0.2s ease;
+                color: #333;
+                font-weight: 500;
+                min-width: 120px;
+            }
+
+            .version-toggle-btn:hover {
+                background: rgba(255, 255, 255, 1);
+                box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
+                transform: translateY(-2px);
+                border-color: rgba(0, 109, 9, 0.3);
+            }
+
+            .version-toggle-btn.active {
+                background: rgba(255, 255, 255, 1);
+                border-color: #006d09;
+            }
+
+            .version-icon {
+                font-size: 16px;
+            }
+
+            .version-text {
+                flex: 1;
+                text-align: left;
+            }
+
+            .version-arrow {
+                transition: transform 0.2s ease;
+                font-size: 12px;
+                color: #666;
+            }
+
+            .version-toggle-btn.active .version-arrow {
+                transform: rotate(180deg);
+            }
+
+            .version-dropdown {
+                position: absolute;
+                bottom: 100%;
+                right: 0;
+                margin-bottom: 8px;
+                background: rgba(255, 255, 255, 0.98);
+                border: 1px solid rgba(0, 0, 0, 0.1);
+                border-radius: 8px;
+                box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+                backdrop-filter: blur(10px);
+                opacity: 0;
+                transform: translateY(-10px);
+                transition: all 0.2s ease;
+                min-width: 160px;
+            }
+
+            .version-list {
+                list-style: none;
+                margin: 0;
+                padding: 8px 0;
+            }
+
+            .version-link {
+                display: block;
+                padding: 10px 16px;
+                color: #333;
+                text-decoration: none;
+                transition: all 0.15s ease;
+                position: relative;
+            }
+
+            .version-link:hover,
+            .version-link:focus {
+                background: rgba(0, 109, 9, 0.1);
+                color: #006d09;
+                outline: none;
+            }
+
+            .version-link.current-version {
+                background: rgba(0, 109, 9, 0.1);
+                color: #006d09;
+                font-weight: 600;
+            }
+
+            .version-link.current-version::after {
+                content: '✓';
+                position: absolute;
+                right: 16px;
+                top: 50%;
+                transform: translateY(-50%);
+                font-size: 12px;
+            }
+
+            /* Dark mode support */
+            @media (prefers-color-scheme: dark) {
+                .version-toggle-btn {
+                    background: rgba(40, 40, 40, 0.95);
+                    border-color: rgba(255, 255, 255, 0.2);
+                    color: #e0e0e0;
+                }
+
+                .version-toggle-btn:hover {
+                    background: rgba(50, 50, 50, 1);
+                    border-color: rgba(0, 180, 15, 0.5);
+                }
+
+                .version-dropdown {
+                    background: rgba(40, 40, 40, 0.98);
+                    border-color: rgba(255, 255, 255, 0.2);
+                }
+
+                .version-link {
+                    color: #e0e0e0;
+                }
+
+                .version-link:hover,
+                .version-link:focus {
+                    background: rgba(0, 180, 15, 0.2);
+                    color: #00b80f;
+                }
+
+                .version-link.current-version {
+                    background: rgba(0, 180, 15, 0.2);
+                    color: #00b80f;
+                }
+            }
+
+            /* Mobile responsive */
+            @media (max-width: 768px) {
+                #version-switcher {
+                    bottom: 15px;
+                    right: 15px;
+                }
+
+                .version-toggle-btn {
+                    padding: 8px 12px;
+                    min-width: 100px;
+                    font-size: 13px;
+                }
+
+                .version-dropdown {
+                    min-width: 140px;
+                }
+
+                .version-link {
+                    padding: 8px 12px;
+                    font-size: 13px;
+                }
+            }
+        `;
+
+            const styleElement = document.createElement("style");
+            styleElement.id = styleId;
+            styleElement.textContent = styles;
+            document.head.appendChild(styleElement);
+        }
+
+        // Initialize the version switcher
+        function init() {
+            // Don't initialize if already exists
+            if (document.getElementById(CONFIG.containerId)) return;
+
+            fetch(CONFIG.versionsJsonPath)
+                .then((response) => {
+                    if (!response.ok) {
+                        throw new Error(
+                            `HTTP error! status: ${response.status}`,
+                        );
+                    }
+                    return response.json();
+                })
+                .then((versions) => {
+                    if (!Array.isArray(versions) || versions.length === 0) {
+                        console.warn("No versions found in versions.json");
+                        return;
+                    }
+
+                    injectStyles();
+                    const elements = createVersionSwitcher(versions);
+                    addEventListeners(elements);
+                    document.body.appendChild(elements.container);
+                })
+                .catch((error) => {
+                    console.warn("Failed to load version switcher:", error);
+                });
+        }
+
+        // Initialize when DOM is ready
+        if (document.readyState === "loading") {
+            document.addEventListener("DOMContentLoaded", init);
+        } else {
+            init();
+        }
+    })();
+</script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" integrity="sha512-c3Nl8+7g4LMSTdrm621y7kf9v3SDPnhxLNhcjFJbKECVnmZHTdo+IRO05sNLTH/D3vA6u1X32ehoLC7WFVdheg==" crossorigin="anonymous"></script>
 
 <script type="application/javascript">define('jquery', [],function() {return window.jQuery;})</script>
@@ -329,13 +769,13 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </header>
 
 
-<div id="983852b2" class="cell" data-execution_count="1">
+<div id="6dcb1fa4" class="cell" data-execution_count="1">
 <div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> caml.extensions.synthetic_data <span class="im">import</span> SyntheticDataGenerator</span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <section id="generate-data" class="level2">
 <h2 class="anchored" data-anchor-id="generate-data">Generate Data</h2>
-<div id="ed765734" class="cell" data-execution_count="2">
+<div id="fa1a7ce3" class="cell" data-execution_count="2">
 <div class="sourceCode cell-code" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>data_generator <span class="op">=</span> SyntheticDataGenerator(</span>
 <span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>    n_obs<span class="op">=</span><span class="dv">10_000</span>,</span>
 <span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>    n_cont_outcomes<span class="op">=</span><span class="dv">1</span>,</span>
@@ -360,7 +800,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </section>
 <section id="simulated-dataframe" class="level2">
 <h2 class="anchored" data-anchor-id="simulated-dataframe">Simulated Dataframe</h2>
-<div id="ab96142b" class="cell" data-execution_count="3">
+<div id="92958b31" class="cell" data-execution_count="3">
 <div class="sourceCode cell-code" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>data_generator.df</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display" data-execution_count="3">
 <div>
@@ -548,7 +988,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </section>
 <section id="true-conditional-average-treatment-effects-cates" class="level2">
 <h2 class="anchored" data-anchor-id="true-conditional-average-treatment-effects-cates">True Conditional Average Treatment Effects (CATEs)</h2>
-<div id="d02950af" class="cell" data-execution_count="4">
+<div id="8058ca7f" class="cell" data-execution_count="4">
 <div class="sourceCode cell-code" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>data_generator.cates</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display" data-execution_count="4">
 <div>
@@ -748,7 +1188,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </section>
 <section id="true-average-treatment-effects-ates" class="level2">
 <h2 class="anchored" data-anchor-id="true-average-treatment-effects-ates">True Average Treatment Effects (ATEs)</h2>
-<div id="2e7da2c3" class="cell" data-execution_count="5">
+<div id="ad80fe3c" class="cell" data-execution_count="5">
 <div class="sourceCode cell-code" id="cb5"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>data_generator.ates</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display" data-execution_count="5">
 <div>
@@ -832,7 +1272,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </section>
 <section id="true-data-generating-process" class="level2">
 <h2 class="anchored" data-anchor-id="true-data-generating-process">True Data Generating Process</h2>
-<div id="31df29c0" class="cell" data-execution_count="6">
+<div id="35d7c816" class="cell" data-execution_count="6">
 <div class="sourceCode cell-code" id="cb6"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> k, v <span class="kw">in</span> data_generator.dgp.items():</span>
 <span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f"DGP for </span><span class="sc">{</span>k<span class="sc">}</span><span class="ss">:"</span>)</span>
 <span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(v)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
@@ -840,11 +1280,11 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <pre><code>DGP for T1_continuous:
 {'formula': '1 + W1_continuous + W2_binary + W3_discrete + X1_continuous', 'params': array([ 0.06058085,  1.16021218, -1.96203513,  0.36371696, -2.17056973]), 'noise': array([-3.62397606, -0.4328875 ,  0.44179631, ..., -4.88301257,
        -1.79886609,  7.66507059]), 'raw_scores': array([-3.72676077, -3.43899217, -2.80623211, ..., -7.29150054,
-       -4.19616712,  5.56335924]), 'function': &lt;function SyntheticDataGenerator._create_dgp_function.&lt;locals&gt;.f_cont at 0x7f1d789bbbe0&gt;}
+       -4.19616712,  5.56335924]), 'function': &lt;function SyntheticDataGenerator._create_dgp_function.&lt;locals&gt;.f_cont at 0x7f13aef69e10&gt;}
 DGP for T2_binary:
 {'formula': '1 + W1_continuous + W2_binary + W3_discrete + X1_continuous', 'params': array([ 0.40298227,  0.46731892, -0.04221048, -1.01745299,  0.75777365]), 'noise': array([ 0.61588584,  3.23845316, -4.20232967, ..., -5.30465767,
        -4.77383245, -3.11883147]), 'raw_scores': array([0.62118342, 0.98880257, 0.01598516, ..., 0.01117315, 0.0234736 ,
-       0.02722537]), 'function': &lt;function SyntheticDataGenerator._create_dgp_function.&lt;locals&gt;.f_binary at 0x7f1d789bb6d0&gt;}
+       0.02722537]), 'function': &lt;function SyntheticDataGenerator._create_dgp_function.&lt;locals&gt;.f_binary at 0x7f13745af490&gt;}
 DGP for T3_discrete:
 {'formula': '1 + W1_continuous + W2_binary + W3_discrete + X1_continuous', 'params': array([[ 0.28408456, -0.41400534,  0.89869683, -0.21225787, -0.51305644],
        [-0.19632837,  0.02928109, -0.76527952, -1.08498952, -0.10759088],
@@ -862,14 +1302,14 @@ DGP for T3_discrete:
        ...,
        [0.2, 0.2, 0.2, 0.2, 0.2],
        [0.2, 0.2, 0.2, 0.2, 0.2],
-       [0.2, 0.2, 0.2, 0.2, 0.2]]), 'function': &lt;function SyntheticDataGenerator._create_dgp_function.&lt;locals&gt;.f_discrete at 0x7f1d789ce170&gt;}
+       [0.2, 0.2, 0.2, 0.2, 0.2]]), 'function': &lt;function SyntheticDataGenerator._create_dgp_function.&lt;locals&gt;.f_discrete at 0x7f13745af9a0&gt;}
 DGP for Y1_continuous:
 {'formula': '1 + W1_continuous + W2_binary + W3_discrete + X1_continuous + X2_binary + X3_discrete + T1_continuous + T2_binary + T3_discrete + T1_continuous*X1_continuous + T1_continuous*X2_binary + T1_continuous*X3_discrete + T2_binary*X1_continuous + T2_binary*X2_binary + T2_binary*X3_discrete + T3_discrete*X1_continuous + T3_discrete*X2_binary + T3_discrete*X3_discrete', 'params': array([-1.24245918, -2.15840213,  1.21168055,  1.88903987, -1.66394546,
        -2.8238776 ,  2.19040025,  1.56437294, -1.2158549 ,  1.1796722 ,
         1.85630525,  0.40119701,  4.06451821,  2.44944857, -0.75652854,
         2.2728199 ,  1.29513067,  1.243022  , -0.35985222]), 'noise': array([ 1.68788239,  4.68077263, -4.52386602, ...,  0.73772796,
         5.84175262, -3.42458613]), 'raw_scores': array([ -20.92714575,   -9.74770328,  -17.37000412, ..., -105.68343735,
-          0.84757356,  113.30196785]), 'function': &lt;function SyntheticDataGenerator._create_dgp_function.&lt;locals&gt;.f_cont at 0x7f1d789ce290&gt;}
+          0.84757356,  113.30196785]), 'function': &lt;function SyntheticDataGenerator._create_dgp_function.&lt;locals&gt;.f_cont at 0x7f13745c1fc0&gt;}
 DGP for Y2_binary:
 {'formula': '1 + W1_continuous + W2_binary + W3_discrete + X1_continuous + X2_binary + X3_discrete + T1_continuous + T2_binary + T3_discrete + T1_continuous*X1_continuous + T1_continuous*X2_binary + T1_continuous*X3_discrete + T2_binary*X1_continuous + T2_binary*X2_binary + T2_binary*X3_discrete + T3_discrete*X1_continuous + T3_discrete*X2_binary + T3_discrete*X3_discrete', 'params': array([ 3.10830726e-01, -8.76756219e-02,  5.06943774e-01,  3.63265570e-01,
         8.10885598e-02,  1.61061427e-01, -2.64294557e-04, -2.93078750e-01,
@@ -877,11 +1317,11 @@ DGP for Y2_binary:
         2.13406730e-01,  5.55264734e-01, -7.14195311e-01,  5.33709717e-01,
        -3.91935251e-01, -6.16656576e-01, -6.84033929e-01]), 'noise': array([-2.0490385 ,  0.51909257,  0.81681174, ...,  5.05902104,
        -2.13548014, -1.22267512]), 'raw_scores': array([0.28372465, 0.05238531, 0.97803581, ..., 0.99      , 0.03363826,
-       0.01      ]), 'function': &lt;function SyntheticDataGenerator._create_dgp_function.&lt;locals&gt;.f_binary at 0x7f1d789ce320&gt;}</code></pre>
+       0.01      ]), 'function': &lt;function SyntheticDataGenerator._create_dgp_function.&lt;locals&gt;.f_binary at 0x7f13745c2050&gt;}</code></pre>
 </div>
 </div>
 <p>We can recreate the raw scores of our treatment and outcome variables too:</p>
-<div id="3fc98269" class="cell" data-execution_count="7">
+<div id="767b88fe" class="cell" data-execution_count="7">
 <div class="sourceCode cell-code" id="cb8"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Recreate Y1_continuous</span></span>
 <span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>df <span class="op">=</span> data_generator.df</span>
 <span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>dgp <span class="op">=</span> data_generator.dgp[<span class="st">"Y1_continuous"</span>]</span>
@@ -914,7 +1354,7 @@ Length: 10000, dtype: float64</code></pre>
 </div>
 </div>
 <p>For treatment variables, we get back the probabilities:</p>
-<div id="82cb0723" class="cell" data-execution_count="8">
+<div id="eab92e02" class="cell" data-execution_count="8">
 <div class="sourceCode cell-code" id="cb10"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Recreate Y2_binary</span></span>
 <span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>dgp_bin <span class="op">=</span> data_generator.dgp[<span class="st">"Y2_binary"</span>]</span>
 <span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a></span>
