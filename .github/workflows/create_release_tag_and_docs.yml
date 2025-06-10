@@ -1,0 +1,85 @@
+name: Create Release Tag & Build Release Docs
+
+on:
+  pull_request:
+    types: [closed]
+    branches:
+      - main
+
+permissions:
+  contents: write
+  pull-requests: read
+  pages: write
+  id-token: write
+
+jobs:
+  create_tag_and_build_release_docs:
+    if: >
+      github.event.pull_request.merged == true &&
+      contains(join(github.event.pull_request.labels.*.name, ','), 'type: release')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout 🛎️
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@0c5e2b8115b80b4c7c5ddf6ffdd634974642d182
+        with:
+          version: ${{ vars.UV_VERSION }}
+
+      - name: Create environment
+        run: uv sync --all-groups --frozen
+
+      - name: Get Current Version
+        id: get_version
+        shell: bash -l {0}
+        run: |
+          source .venv/bin/activate
+          VERSION=$(bump-my-version show current_version)
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
+
+      - name: Create and push tag
+        run: |
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git config --global user.name "github-actions[bot]"
+          git tag -a "v${{ env.VERSION }}" -m "Release version ${{ env.VERSION }}"
+          git push origin "v${{ env.VERSION }}"
+
+      - name: Render Release Docs
+        id: render_docs
+        shell: bash -l {0}
+        run: |
+          set -e
+          source .venv/bin/activate
+          bash docs/marimo_examples_to_quarto.sh
+          quartodoc build --config docs/_quarto.yml
+          quarto render docs/ --output-dir $RUNNER_TEMP/v${{ env.VERSION }}
+
+      - name: Checkout api-docs branch
+        uses: actions/checkout@v4
+        with:
+          ref: api-docs
+
+      - name: Build API Docs
+        run: |
+          rm _site/ -r && mv $RUNNER_TEMP/v${{ env.VERSION }} _site
+          cp v* dev CNAME _site -r
+
+      - name: Commit and push _site directory with latest release
+        run: |
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git config --global user.name "github-actions[bot]"
+          git add _site/
+          git commit -m "Update _site directory to latest release for version ${{ env.VERSION }}"
+          git push origin api-docs
+
+      - name: Upload Artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: "_site"
+
+      - name: Deploy to Github Pages 🚀
+        id: deployment
+        uses: actions/deploy-pages@v4

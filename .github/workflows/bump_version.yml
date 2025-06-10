@@ -1,4 +1,4 @@
-name: Bump Version
+name: Bump Version and Snapshot Docs
 
 on:
   pull_request:
@@ -13,10 +13,11 @@ permissions:
   pull-requests: write
 
 jobs:
-  bump_version:
-    if: github.event.pull_request.merged == true
+  bump_version_and_snapshot_docs:
+    if: >
+      github.event.pull_request.merged == true &&
+      !contains(join(github.event.pull_request.labels.*.name, ','), 'type: release')
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout 🛎️
         uses: actions/checkout@v4
@@ -78,3 +79,26 @@ jobs:
           body: |
             Bumps version from v${{ env.OLD_VERSION }} to v${{ env.NEW_VERSION }}.
           draft: false
+
+      - name: Checkout api-docs branch
+        uses: actions/checkout@v4
+        with:
+          ref: api-docs
+
+      - name: Create Previous Version Doc Snapshot
+        if: env.type != 'skip'
+        run: python manage_versions.py add --version v${{ env.OLD_VERSION }} --from latest
+
+      - name: Commit and Push
+        if: env.type != 'skip'
+        run: |
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git config --global user.name "github-actions[bot]"
+          git add v${{ env.OLD_VERSION }} versions.json
+
+          if ! git diff-index --quiet HEAD; then
+            git commit -m "Create doc snapshot for v${{ env.OLD_VERSION }}"
+            git push origin api-docs
+          else
+            echo "No changes to commit"
+          fi
