@@ -12,7 +12,6 @@ from econml.dml import LinearDML
 from econml.score import EnsembleCateEstimator, RScorer
 from econml.validate.drtester import DRTester
 from joblib import Parallel, delayed
-from typeguard import typechecked
 
 from ..generics import experimental
 from ..logging import ERROR, INFO, WARNING
@@ -41,7 +40,6 @@ if TYPE_CHECKING:
 
 
 @experimental
-@typechecked
 class CamlCATE(CamlBase):
     r"""The CamlCATE class represents an opinionated framework of Causal Machine Learning techniques for estimating highly accurate conditional average treatment effects (CATEs).
 

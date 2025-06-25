@@ -1,3 +1,4 @@
+# pyright: reportArgumentType=false
 import logging
 
 from econml._cate_estimator import BaseCateEstimator
@@ -6,7 +7,6 @@ from econml.dr import DRLearner, ForestDRLearner, LinearDRLearner
 from econml.metalearners import DomainAdaptationLearner, SLearner, TLearner, XLearner
 from sklearn.base import BaseEstimator
 from sklearn.preprocessing import PolynomialFeatures
-from typeguard import typechecked
 
 logger = logging.getLogger(__name__)
 
@@ -26,7 +26,6 @@ valid_models = [
 ]
 
 
-@typechecked
 def get_cate_model(
     model: str,
     mod_Y_X: BaseEstimator,

@@ -3,7 +3,6 @@ from typing import Collection, Iterable
 import pandas as pd
 import patsy
 from joblib import Parallel, delayed
-from typeguard import typechecked
 
 from ..generics import (
     FittedAttr,
@@ -29,7 +28,6 @@ except ImportError:
 
 
 @experimental
-@typechecked
 class FastOLS:
     r"""FastOLS is an optimized implementation of the OLS estimator designed specifically with treatment effect estimation in mind.
 
@@ -540,7 +538,7 @@ class FastOLS:
     @timer("Design Matrix Creation")
     def _create_design_matrix(
         self, df: pd.DataFrame, create_diff_matrix: bool = False
-    ) -> jnp.ndarray | tuple[jnp.ndarray, jnp.ndarray]:
+    ) -> jnp.ndarray | tuple[jnp.ndarray, jnp.ndarray] | None:
         try:
             if not create_diff_matrix:
                 DEBUG("Creating model matrix...")

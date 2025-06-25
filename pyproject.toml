@@ -1,6 +1,6 @@
 [project]
 authors = [{ name = "Jacob Pieniazek", email = "jacob@pieniazek.me" }]
-maintainers = [{ name = "Jacob Pieniazek", email="jacob@pieniazek.me" }]
+maintainers = [{ name = "Jacob Pieniazek", email = "jacob@pieniazek.me" }]
 dependencies = [
     "econml>=0.15.1",
     "flaml[automl]>=2.2.0",
@@ -16,7 +16,13 @@ requires-python = ">= 3.10"
 version = "0.0.0-dev15"
 license = { text = "MIT" }
 readme = "README.md"
-keywords = ["causal inference", "econometrics", "machine learning", "automl", "heterogeneity"]
+keywords = [
+    "causal inference",
+    "econometrics",
+    "machine learning",
+    "automl",
+    "heterogeneity",
+]
 classifiers = [
     "Development Status :: 2 - Pre-Alpha",
     "Programming Language :: Python",
@@ -169,3 +175,4 @@ replace = 'version = "{new_version}"'
 [tool.pyright]
 venvPath = "."
 venv = ".venv"
+typeCheckingMode = "basic"

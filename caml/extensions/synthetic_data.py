@@ -12,7 +12,6 @@ from numpy.typing import ArrayLike
 from scipy.linalg import toeplitz
 from scipy.special import expit as sigmoid
 from scipy.special import softmax
-from typeguard import typechecked
 
 from ..generics import experimental
 
@@ -54,7 +53,6 @@ def _truncate_and_renormalize_probabilities(
 
 
 @experimental
-@typechecked
 class SyntheticDataGenerator:
     r"""Generate highly flexible synthetic data for use in causal inference and CaML testing.
 
@@ -743,7 +741,6 @@ class SyntheticDataGenerator:
 
         if dep_type == "continuous":
 
-            @typechecked
             def f_cont(x: pd.DataFrame, params: ArrayLike, noise: ArrayLike):
                 """Continuous target function."""
                 return x @ params + noise
@@ -753,7 +750,6 @@ class SyntheticDataGenerator:
             dep = scores
         elif dep_type == "binary":
 
-            @typechecked
             def f_binary(x: pd.DataFrame, params: ArrayLike, noise: ArrayLike):
                 """Binary target function."""
                 raw = x @ params + noise
@@ -766,7 +762,6 @@ class SyntheticDataGenerator:
             dep = rng.binomial(1, scores)
         else:  # Discrete
 
-            @typechecked
             def f_discrete(x: pd.DataFrame, params: ArrayLike, noise: ArrayLike):
                 """Discrete target function."""
                 raw = x @ params + noise
@@ -931,7 +926,6 @@ class SyntheticDataGenerator:
         return cate_df, ate_df
 
 
-@typechecked
 def make_partially_linear_dataset_simple(
     n_obs: int = 1000,
     n_confounders: int = 5,
@@ -1038,7 +1032,6 @@ def make_partially_linear_dataset_simple(
     return df, true_cates, true_ate
 
 
-@typechecked
 def make_partially_linear_dataset_constant(
     n_obs: int = 1000,
     ate: float = 4.0,
@@ -1147,7 +1140,6 @@ def make_partially_linear_dataset_constant(
     return df, true_cates, true_ate
 
 
-@typechecked
 def make_fully_heterogeneous_dataset(
     n_obs: int = 1000,
     n_confounders: int = 5,
