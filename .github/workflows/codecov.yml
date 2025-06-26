@@ -22,8 +22,9 @@ jobs:
       - name: Run tests
         run: uv run pytest tests
 
-      - name: Run codacy-coverage-reporter
-        uses: codacy/codacy-coverage-reporter-action@89d6c85cfafaec52c72b6c5e8b2878d33104c699
+      - name: Upload coverage reports to Codecov
+        uses: codecov/codecov-action@v5
         with:
-          project-token: ${{ secrets.CODACY_PROJECT_TOKEN }}
-          coverage-reports: tests/reports/coverage.xml
+          directory: ./tests/reports
+          token: ${{ secrets.CODECOV_TOKEN }}
+          slug: jakepenzak/caml
