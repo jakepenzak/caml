@@ -1,5 +1,6 @@
 import matplotlib.pyplot as plt
 import numpy as np
+from matplotlib.figure import Figure
 from numpy.typing import ArrayLike
 from scipy.stats import norm
 
@@ -12,7 +13,7 @@ def cate_histogram_plot(
     true_cates: ArrayLike | None = None,
     figure_kwargs: dict = {},
     hist_kwargs: dict = {},
-) -> plt.Figure:
+) -> Figure:
     """
     Plots a histogram the estimated CATEs.
 
@@ -92,7 +93,7 @@ def cate_true_vs_estimated_plot(
     *,
     figure_kwargs: dict = {},
     scatter_kwargs: dict = {},
-) -> plt.Figure:
+) -> Figure:
     """
     Plots a scatter plot of the estimated CATEs against the true CATEs.
 
@@ -154,27 +155,27 @@ def cate_true_vs_estimated_plot(
 
 
 def cate_line_plot(
-    estimated_cates: ArrayLike,
+    estimated_cates: np.ndarray,
     *,
-    true_cates: ArrayLike | None = None,
-    standard_errors: ArrayLike | None = None,
+    true_cates: np.ndarray | None = None,
+    standard_errors: np.ndarray | None = None,
     alpha: float = 0.05,
     window: int = 30,
     figure_kwargs: dict = {},
     line_kwargs: dict = {},
-) -> plt.Figure:
+) -> Figure:
     """
     Plots a line plot of the ordered estimated CATEs as a rolling mean with optional confidence intervals.
 
     Parameters
     ----------
-    estimated_cates : ArrayLike
+    estimated_cates : np.ndarray
         The estimated CATEs.
 
-    true_cates : ArrayLike | None
+    true_cates : np.ndarray | None
         The true CATEs.
 
-    standard_errors : ArrayLike | None
+    standard_errors : np.ndarray | None
         The standard errors of the estimated CATEs.
 
     alpha : float

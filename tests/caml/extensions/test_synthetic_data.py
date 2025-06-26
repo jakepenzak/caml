@@ -4,6 +4,7 @@ import numpy as np
 import pandas as pd
 import pytest
 from numpy.testing import assert_allclose
+from typeguard import suppress_type_checks
 from typing_extensions import Callable
 
 from caml.extensions.synthetic_data import (
@@ -18,6 +19,7 @@ pytestmark = [pytest.mark.extensions, pytest.mark.synthetic_data]
 
 
 class TestSyntheticDataGenerator:
+    @suppress_type_checks
     @pytest.mark.parametrize(
         (
             "n_obs,n_cont_outcomes,n_binary_outcomes,n_cont_treatments,n_binary_treatments,n_discrete_treatments,causal_model_functional_form,n_features"
@@ -141,13 +143,13 @@ class TestSyntheticDataGenerator:
                 function = dep_var_dgp["function"]
 
                 assert isinstance(dep_var_dgp, dict)
-                assert isinstance(formula, str | None)
+                assert isinstance(formula, str)
                 assert isinstance(params, np.ndarray)
                 assert isinstance(noise, np.ndarray)
                 assert isinstance(raw_scores, np.ndarray)
                 assert isinstance(function, Callable)
 
-                if formula is not None:
+                if formula != "":
                     design_matrix = gen.create_design_matrix(
                         gen.df, formula=formula, return_type="dataframe"
                     )

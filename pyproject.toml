@@ -1,10 +1,9 @@
 [project]
 authors = [{ name = "Jacob Pieniazek", email = "jacob@pieniazek.me" }]
-maintainers = [{ name = "Jacob Pieniazek", email="jacob@pieniazek.me" }]
+maintainers = [{ name = "Jacob Pieniazek", email = "jacob@pieniazek.me" }]
 dependencies = [
     "econml>=0.15.1",
     "flaml[automl]>=2.2.0",
-    "typeguard>=4.3.0",
     "doubleml>=0.8.0",
     "matplotlib>=3.9.2",
     "rich>=13.9.4",
@@ -16,7 +15,13 @@ requires-python = ">= 3.10"
 version = "0.0.0-dev15"
 license = { text = "MIT" }
 readme = "README.md"
-keywords = ["causal inference", "econometrics", "machine learning", "automl", "heterogeneity"]
+keywords = [
+    "causal inference",
+    "econometrics",
+    "machine learning",
+    "automl",
+    "heterogeneity",
+]
 classifiers = [
     "Development Status :: 2 - Pre-Alpha",
     "Programming Language :: Python",
@@ -43,6 +48,7 @@ test = [
     "pytest-cov>=5.0.0",
     "pytest-html>=4.1.1",
     "pytest-mock>=3.14.0",
+    "typeguard>=4.4.4",
 ]
 dev = [
     "anthropic>=0.42.0",
@@ -117,6 +123,9 @@ markers = [
     "extensions: mark tests for the extensions module",
     "synthetic_data: mark tests for the synthetic data module`",
 ]
+typeguard-packages = "caml"
+typeguard-collection-check-strategy = "ALL_ITEMS"
+typeguard-forward-ref-policy = "ERROR"
 
 [tool.coverage.run]
 omit = ["caml/logging.py", "caml/extensions/plots.py"]
@@ -169,3 +178,5 @@ replace = 'version = "{new_version}"'
 [tool.pyright]
 venvPath = "."
 venv = ".venv"
+typeCheckingMode = "basic"
+exclude = ["tests", "notebooks"]

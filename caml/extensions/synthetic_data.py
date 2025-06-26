@@ -12,7 +12,6 @@ from numpy.typing import ArrayLike
 from scipy.linalg import toeplitz
 from scipy.special import expit as sigmoid
 from scipy.special import softmax
-from typeguard import typechecked
 
 from ..generics import experimental
 
@@ -54,7 +53,6 @@ def _truncate_and_renormalize_probabilities(
 
 
 @experimental
-@typechecked
 class SyntheticDataGenerator:
     r"""Generate highly flexible synthetic data for use in causal inference and CaML testing.
 
@@ -285,7 +283,7 @@ class SyntheticDataGenerator:
         assert np.allclose(f(design_matrix,params,noise), df['Y1_continuous'])
         ```
         """
-        return patsy.dmatrix(formula, data=df, return_type=return_type, **kwargs)
+        return patsy.dmatrix(formula, data=df, return_type=return_type, **kwargs)  # type: ignore
 
     def _generate_data(self):
         """
@@ -496,7 +494,7 @@ class SyntheticDataGenerator:
         stddev_err: float,
         include_heterogeneity: bool = False,
         include_treatment_effects: bool = False,
-    ) -> tuple[pd.DataFrame, dict, dict | None]:
+    ) -> tuple[pd.DataFrame, dict, dict]:
         """Generate treatment or outcome variables as functions of the confounders and/or mediators for synthetic data generation.
 
         This method returns:
@@ -598,7 +596,7 @@ class SyntheticDataGenerator:
             seed=self._seed,
         )
 
-        if formula is not None:
+        if formula != "":
             d_matrix = self.create_design_matrix(
                 df,
                 formula=formula,
@@ -616,7 +614,7 @@ class SyntheticDataGenerator:
         if include_treatment_effects:
             cates = self._compute_treatment_effects(f, params, noise, df, formula)
         else:
-            cates = None
+            cates = {}
 
         dgp = {
             "formula": formula,
@@ -633,7 +631,7 @@ class SyntheticDataGenerator:
         n_nonlinear_transformations: int | None = None,
         include_heterogeneity: bool = False,
         seed: int | None = None,
-    ) -> str | None:
+    ) -> str:
         """Create design matrix formula to be used with patsy.
 
         Parameters
@@ -654,7 +652,7 @@ class SyntheticDataGenerator:
         """
         columns = df.columns
         if len(columns) == 0:
-            return
+            return ""
 
         formula = "1 + " + " + ".join(columns)
 
@@ -678,7 +676,7 @@ class SyntheticDataGenerator:
                     term = f"{x1}*{x2}"
                 else:
                     x = np.random.choice(non_treat_columns)
-                    transform = np.random.choice(transformations)
+                    transform = np.random.choice(np.array(transformations))
                     term = transform(x)
                 terms.add(term)
 
@@ -698,7 +696,7 @@ class SyntheticDataGenerator:
 
     @staticmethod
     def _create_dgp_function(
-        df: pd.DataFrame,
+        df: pd.DataFrame | np.ndarray,
         n_obs: int,
         stddev_err: float,
         dep_type: str,
@@ -743,8 +741,9 @@ class SyntheticDataGenerator:
 
         if dep_type == "continuous":
 
-            @typechecked
-            def f_cont(x: pd.DataFrame, params: ArrayLike, noise: ArrayLike):
+            def f_cont(
+                x: pd.DataFrame | np.ndarray, params: np.ndarray, noise: np.ndarray
+            ):
                 """Continuous target function."""
                 return x @ params + noise
 
@@ -753,8 +752,9 @@ class SyntheticDataGenerator:
             dep = scores
         elif dep_type == "binary":
 
-            @typechecked
-            def f_binary(x: pd.DataFrame, params: ArrayLike, noise: ArrayLike):
+            def f_binary(
+                x: pd.DataFrame | np.ndarray, params: np.ndarray, noise: np.ndarray
+            ):
                 """Binary target function."""
                 raw = x @ params + noise
 
@@ -766,8 +766,9 @@ class SyntheticDataGenerator:
             dep = rng.binomial(1, scores)
         else:  # Discrete
 
-            @typechecked
-            def f_discrete(x: pd.DataFrame, params: ArrayLike, noise: ArrayLike):
+            def f_discrete(
+                x: pd.DataFrame | np.ndarray, params: np.ndarray, noise: np.ndarray
+            ):
                 """Discrete target function."""
                 raw = x @ params + noise
 
@@ -924,14 +925,13 @@ class SyntheticDataGenerator:
 
         cate_df = pd.DataFrame(dict_effects)
 
-        ate_df = cate_df.mean(axis=0).reset_index()
+        ate_df = cate_df.mean(axis=0).reset_index()  # pyright: ignore[reportAttributeAccessIssue]
         ate_df.columns = ["Treatment", "ATE"]
         ate_df["Treatment"] = ate_df["Treatment"].str.replace("CATE_of_", "")
 
         return cate_df, ate_df
 
 
-@typechecked
 def make_partially_linear_dataset_simple(
     n_obs: int = 1000,
     n_confounders: int = 5,
@@ -1038,7 +1038,6 @@ def make_partially_linear_dataset_simple(
     return df, true_cates, true_ate
 
 
-@typechecked
 def make_partially_linear_dataset_constant(
     n_obs: int = 1000,
     ate: float = 4.0,
@@ -1139,15 +1138,14 @@ def make_partially_linear_dataset_constant(
             "dgp must be 'make_plr_CCDDHNR2018' or 'make_plr_turrell2018'."
         )
 
-    df.columns = [c.replace("X", "W") for c in df.columns if "X" in c] + ["y", "d"]
+    df.columns = [c.replace("X", "W") for c in df.columns if "X" in c] + ["y", "d"]  # pyright: ignore[reportAttributeAccessIssue]
 
     true_ate = ate
     true_cates = np.full(n_obs, true_ate)
 
-    return df, true_cates, true_ate
+    return df, true_cates, true_ate  # pyright: ignore[reportReturnType]
 
 
-@typechecked
 def make_fully_heterogeneous_dataset(
     n_obs: int = 1000,
     n_confounders: int = 5,
@@ -1264,7 +1262,7 @@ def make_fully_heterogeneous_dataset(
     y = y_func(d, x, theta)
 
     x_cols = [f"X{i + 1}" for i in np.arange(n_confounders)]
-    df = pd.DataFrame(np.column_stack((x, y, d)), columns=x_cols + ["y", "d"])
+    df = pd.DataFrame(np.column_stack((x, y, d)), columns=x_cols + ["y", "d"])  # pyright: ignore[reportArgumentType]
 
     d1 = np.ones_like(d)
     d0 = np.zeros_like(d)

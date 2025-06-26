@@ -1,9 +1,8 @@
-from typing import Collection, Iterable
+from typing import Any, Collection, NoReturn
 
 import pandas as pd
 import patsy
 from joblib import Parallel, delayed
-from typeguard import typechecked
 
 from ..generics import (
     FittedAttr,
@@ -29,7 +28,6 @@ except ImportError:
 
 
 @experimental
-@typechecked
 class FastOLS:
     r"""FastOLS is an optimized implementation of the OLS estimator designed specifically with treatment effect estimation in mind.
 
@@ -176,7 +174,7 @@ class FastOLS:
         self._formula = self.formula
         DEBUG(f"Created formula: {self.formula}")
         self._fitted = False
-        self._treatment_effects = {}
+        self._treatment_effects: Any = {}
 
     def fit(
         self,
@@ -223,7 +221,7 @@ class FastOLS:
         self._fit(X, y, cov_type=cov_type)
         self._fitted = True
         if estimate_effects:
-            diff_matrix = self._create_design_matrix(pd_df, create_diff_matrix=True)
+            diff_matrix = self._create_difference_matrix(pd_df)
             self._treatment_effects = self.estimate_ate(
                 pd_df,
                 _diff_matrix=diff_matrix,
@@ -298,11 +296,10 @@ class FastOLS:
         if not self._fitted:
             raise RuntimeError("Model must be fitted before estimating ATEs.")
 
+        pd_df = self._convert_dataframe_to_pandas(df, self.G)
         if _diff_matrix is None:
-            pd_df = self._convert_dataframe_to_pandas(df, self.G)
-            diff_matrix = self._create_design_matrix(pd_df, create_diff_matrix=True)
+            diff_matrix = self._create_difference_matrix(pd_df)
         else:
-            pd_df = df
             diff_matrix = _diff_matrix
 
         n_treated = int(pd_df[self.T].sum()) if self._discrete_treatment else None
@@ -368,7 +365,7 @@ class FastOLS:
             raise RuntimeError("Model must be fitted before estimating ATEs.")
 
         pd_df = self._convert_dataframe_to_pandas(df, self.G)
-        diff_matrix = self._create_design_matrix(pd_df, create_diff_matrix=True)
+        diff_matrix = self._create_difference_matrix(pd_df)
 
         effects = self._compute_effects(
             diff_matrix,
@@ -430,7 +427,8 @@ class FastOLS:
         if mode == "cate":
             return self.estimate_cate(df, return_results_dict=return_results_dict)
         elif mode == "outcome":
-            _, X = self._create_design_matrix(df)
+            pd_df = self._convert_dataframe_to_pandas(df, self.G)
+            _, X = self._create_design_matrix(pd_df)
             return X @ self.params
         else:
             raise ValueError(
@@ -466,12 +464,15 @@ class FastOLS:
         ```
         """
         if effects is None:
-            effects = self._treatment_effects
+            effects_to_prettify = self._treatment_effects
+        else:
+            effects_to_prettify = effects
+
         n_outcomes = len(self.Y)
 
         final_results = {}
 
-        for i, k in enumerate(effects.keys()):
+        for i, k in enumerate(effects_to_prettify.keys()):
             try:
                 group = k.split("-")[0]
                 membership = k.split("-")[1]
@@ -481,7 +482,7 @@ class FastOLS:
             if i == 0:
                 final_results["group"] = [group] * n_outcomes
                 final_results["membership"] = [membership] * n_outcomes
-                for stat, value in effects[k].items():
+                for stat, value in effects_to_prettify[k].items():
                     if isinstance(value, list):
                         final_results[stat] = value.copy()
                     elif isinstance(value, jnp.ndarray):
@@ -491,7 +492,7 @@ class FastOLS:
             else:
                 final_results["group"] += [group] * n_outcomes
                 final_results["membership"] += [membership] * n_outcomes
-                for stat, value in effects[k].items():
+                for stat, value in effects_to_prettify[k].items():
                     if isinstance(value, list):
                         final_results[stat] += value
                     elif isinstance(value, jnp.ndarray):
@@ -539,57 +540,72 @@ class FastOLS:
 
     @timer("Design Matrix Creation")
     def _create_design_matrix(
-        self, df: pd.DataFrame, create_diff_matrix: bool = False
-    ) -> jnp.ndarray | tuple[jnp.ndarray, jnp.ndarray]:
+        self, df: pd.DataFrame
+    ) -> tuple[jnp.ndarray, jnp.ndarray] | NoReturn:
         try:
-            if not create_diff_matrix:
-                DEBUG("Creating model matrix...")
-                y, X = patsy.dmatrices(self.formula, data=df, NA_action="raise")
+            DEBUG("Creating model design matrix...")
+            y, X = patsy.dmatrices(self.formula, data=df, NA_action="raise")  # type: ignore
 
-                self._X_design_info = X.design_info
+            self._X_design_info = X.design_info
 
-                if _HAS_JAX:
-                    y = jnp.array(y, device=jax.devices(self._engine)[0])
-                    X = jnp.array(X, device=jax.devices(self._engine)[0])
-                else:
-                    y = jnp.array(y)
-                    X = jnp.array(X)
-
-                return y, X
+            if _HAS_JAX:
+                y = jnp.array(y, device=jax.devices(self._engine)[0])  # type: ignore
+                X = jnp.array(X, device=jax.devices(self._engine)[0])  # type: ignore
             else:
-                DEBUG("Creating treatment difference matrix...")
-                original_t = df[self.T].copy()
-                if self._X_design_info is None:
-                    y, X = patsy.dmatrices(self.formula, data=df, NA_action="raise")
-                    self._X_design_info = X.design_info
+                y = jnp.array(y)
+                X = jnp.array(X)
 
-                if self._discrete_treatment:
-                    df[self.T] = 0
-                    X0 = patsy.dmatrix(self._X_design_info, data=df, NA_action="raise")
-                    df[self.T] = 1
-                    X1 = patsy.dmatrix(self._X_design_info, data=df, NA_action="raise")
-                else:
-                    X0 = patsy.dmatrix(self._X_design_info, data=df, NA_action="raise")
-                    df[self.T] = df[self.T] + 1
-                    X1 = patsy.dmatrix(self._X_design_info, data=df, NA_action="raise")
-
-                df[self.T] = original_t
-
-                if _HAS_JAX:
-                    X1 = jnp.array(X1, device=jax.devices(self._engine)[0])
-                    X0 = jnp.array(X0, device=jax.devices(self._engine)[0])
-                else:
-                    X1 = jnp.array(X1)
-                    X0 = jnp.array(X0)
-
-                diff = X1 - X0
-
-                return diff
+            return y, X
         except patsy.PatsyError as e:
             if "factor contains missing values" in str(e):
                 raise ValueError(
                     "Input DataFrame contains missing values. Please handle missing values before proceeding."
                 )
+            else:
+                raise e
+        except Exception as e:
+            raise e
+
+    @timer("Difference Matrix Creation")
+    def _create_difference_matrix(self, df: pd.DataFrame) -> jnp.ndarray | NoReturn:
+        try:
+            DEBUG("Creating treatment difference matrix...")
+            original_t = df[self.T].copy()
+            if self._X_design_info is None:
+                y, X = patsy.dmatrices(self.formula, data=df, NA_action="raise")  # type: ignore
+                self._X_design_info = X.design_info
+
+            if self._discrete_treatment:
+                df[self.T] = 0
+                X0 = patsy.dmatrix(self._X_design_info, data=df, NA_action="raise")  # type: ignore
+                df[self.T] = 1
+                X1 = patsy.dmatrix(self._X_design_info, data=df, NA_action="raise")  # type: ignore
+            else:
+                X0 = patsy.dmatrix(self._X_design_info, data=df, NA_action="raise")  # type: ignore
+                df[self.T] = df[self.T] + 1
+                X1 = patsy.dmatrix(self._X_design_info, data=df, NA_action="raise")  # type: ignore
+
+            df[self.T] = original_t
+
+            if _HAS_JAX:
+                X1 = jnp.array(X1, device=jax.devices(self._engine)[0])  # type: ignore
+                X0 = jnp.array(X0, device=jax.devices(self._engine)[0])  # type: ignore
+            else:
+                X1 = jnp.array(X1)
+                X0 = jnp.array(X0)
+
+            diff = X1 - X0
+
+            return diff
+        except patsy.PatsyError as e:
+            if "factor contains missing values" in str(e):
+                raise ValueError(
+                    "Input DataFrame contains missing values. Please handle missing values before proceeding."
+                )
+            else:
+                raise e
+        except Exception as e:
+            raise e
 
     @staticmethod
     def _compute_effects(
@@ -678,7 +694,7 @@ class FastOLS:
             return group_key, effects
 
         DEBUG(f"Starting parallel processing with {n_jobs} jobs")
-        results: Iterable = Parallel(n_jobs=n_jobs, prefer="threads")(
+        results: Any = Parallel(n_jobs=n_jobs, prefer="threads")(
             delayed(process_group)(group_key, mask, treated_mask)
             for group_key, mask, treated_mask in group_info
         )

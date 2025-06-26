@@ -1,13 +1,13 @@
 from __future__ import annotations
 
 import abc
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Iterable
 
 import numpy as np
 import pandas
+from econml._cate_estimator import BaseCateEstimator
 from flaml import AutoML
 from sklearn.model_selection import train_test_split
-from typeguard import typechecked
 
 # Optional dependencies
 try:
@@ -19,23 +19,36 @@ except ImportError:
 
 try:
     import pyspark  # noqa: F401
-    # from pyspark.sql import SparkSession
 
     _HAS_PYSPARK = True
 except ImportError:
     _HAS_PYSPARK = False
 
 if TYPE_CHECKING:
-    pass
+    import polars
+    import pyspark
 
 
-@typechecked
 class CamlBase(metaclass=abc.ABCMeta):
     """
     Base ABC class for core Caml classes.
 
     This class contains the shared methods and properties for the Caml classes.
     """
+
+    df: pandas.DataFrame
+    _validation_estimator: BaseCateEstimator
+    _final_estimator: BaseCateEstimator
+    X: Iterable[str]
+    W: Iterable[str] | None
+    T: str
+    Y: str
+    _X: np.ndarray
+    _W: np.ndarray
+    _T: np.ndarray
+    _Y: np.ndarray
+    seed: int | None
+    _data_backend: str
 
     def __init__(self):
         self._data_backend = (
@@ -45,7 +58,7 @@ class CamlBase(metaclass=abc.ABCMeta):
             if _HAS_POLARS and isinstance(self.df, polars.DataFrame)
             else "pyspark"
             if _HAS_PYSPARK
-            and isinstance(self.df, (pyspark.sql.DataFrame, pyspark.pandas.DataFrame))
+            and isinstance(self.df, (pyspark.sql.DataFrame, pyspark.pandas.DataFrame))  # type: ignore[reportAttributeAccessIssue]
             else "unknown"
         )
 
@@ -120,11 +133,11 @@ class CamlBase(metaclass=abc.ABCMeta):
         validation_size = int(validation_size * X.shape[0])
         test_size = int(test_size * X.shape[0])
 
-        if sample_fraction != 1.0:
-            X = X.sample(frac=sample_fraction, random_state=self.seed)
-            W = W.loc[X.index]
-            Y = Y.loc[X.index]
-            T = T.loc[X.index]
+        # if sample_fraction != 1.0:
+        #     X = X.sample(frac=sample_fraction, random_state=self.seed)
+        #     W = W.loc[X.index]
+        #     Y = Y.loc[X.index]
+        #     T = T.loc[X.index]
 
         X_train, X_test, W_train, W_test, T_train, T_test, Y_train, Y_test = (
             train_test_split(X, W, T, Y, test_size=test_size, random_state=self.seed)
@@ -240,7 +253,7 @@ class CamlBase(metaclass=abc.ABCMeta):
 
         automl.fit(feature_matrix, outcome.ravel(), **_flaml_kwargs)
 
-        model = automl.model.estimator
+        model = automl.model.estimator  # pyright: ignore[reportOptionalMemberAccess]
 
         return model
 
