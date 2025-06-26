@@ -283,7 +283,7 @@ class SyntheticDataGenerator:
         assert np.allclose(f(design_matrix,params,noise), df['Y1_continuous'])
         ```
         """
-        return patsy.dmatrix(formula, data=df, return_type=return_type, **kwargs)
+        return patsy.dmatrix(formula, data=df, return_type=return_type, **kwargs)  # type: ignore
 
     def _generate_data(self):
         """
@@ -741,7 +741,7 @@ class SyntheticDataGenerator:
 
         if dep_type == "continuous":
 
-            def f_cont(x: pd.DataFrame, params: ArrayLike, noise: ArrayLike):
+            def f_cont(x: pd.DataFrame, params: np.ndarray, noise: ArrayLike):
                 """Continuous target function."""
                 return x @ params + noise
 
@@ -750,7 +750,7 @@ class SyntheticDataGenerator:
             dep = scores
         elif dep_type == "binary":
 
-            def f_binary(x: pd.DataFrame, params: ArrayLike, noise: ArrayLike):
+            def f_binary(x: pd.DataFrame, params: np.ndarray, noise: ArrayLike):
                 """Binary target function."""
                 raw = x @ params + noise
 
@@ -762,7 +762,7 @@ class SyntheticDataGenerator:
             dep = rng.binomial(1, scores)
         else:  # Discrete
 
-            def f_discrete(x: pd.DataFrame, params: ArrayLike, noise: ArrayLike):
+            def f_discrete(x: pd.DataFrame, params: np.ndarray, noise: ArrayLike):
                 """Discrete target function."""
                 raw = x @ params + noise
 
@@ -919,7 +919,7 @@ class SyntheticDataGenerator:
 
         cate_df = pd.DataFrame(dict_effects)
 
-        ate_df = cate_df.mean(axis=0).reset_index()
+        ate_df = cate_df.mean(axis=0).reset_index()  # pyright: ignore[reportAttributeAccessIssue]
         ate_df.columns = ["Treatment", "ATE"]
         ate_df["Treatment"] = ate_df["Treatment"].str.replace("CATE_of_", "")
 
@@ -1132,12 +1132,12 @@ def make_partially_linear_dataset_constant(
             "dgp must be 'make_plr_CCDDHNR2018' or 'make_plr_turrell2018'."
         )
 
-    df.columns = [c.replace("X", "W") for c in df.columns if "X" in c] + ["y", "d"]
+    df.columns = [c.replace("X", "W") for c in df.columns if "X" in c] + ["y", "d"]  # pyright: ignore[reportAttributeAccessIssue]
 
     true_ate = ate
     true_cates = np.full(n_obs, true_ate)
 
-    return df, true_cates, true_ate
+    return df, true_cates, true_ate  # pyright: ignore[reportReturnType]
 
 
 def make_fully_heterogeneous_dataset(
@@ -1256,7 +1256,7 @@ def make_fully_heterogeneous_dataset(
     y = y_func(d, x, theta)
 
     x_cols = [f"X{i + 1}" for i in np.arange(n_confounders)]
-    df = pd.DataFrame(np.column_stack((x, y, d)), columns=x_cols + ["y", "d"])
+    df = pd.DataFrame(np.column_stack((x, y, d)), columns=x_cols + ["y", "d"])  # pyright: ignore[reportArgumentType]
 
     d1 = np.ones_like(d)
     d0 = np.zeros_like(d)

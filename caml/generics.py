@@ -1,6 +1,6 @@
 import timeit
 from functools import wraps
-from typing import Callable, Protocol, runtime_checkable
+from typing import Any, Callable, Protocol, runtime_checkable
 
 import pandas as pd
 
@@ -110,18 +110,18 @@ def maybe_jit(func: Callable | None = None, **jit_kwargs) -> Callable:
 
 
 @runtime_checkable
-class PandasConvertibleDataFrame(Protocol):
+class _PandasConvertibleDataFrame(Protocol):
     """Protocol for DataFrame-like objects that are pandas convertible.
 
     This includes DataFrames that are either pandas dataframes or can be converted to pandas via `to_pandas()` or `toPandas()` methods.
     """
 
-    @classmethod
-    def __subclasshook__(cls, subclass):
-        """Method to check if a class is a subclass of specs of PandasConvertibleDataFrame."""
-        if subclass is pd.DataFrame:
-            return True
+    to_pandas: Callable[..., Any]
+    toPandas: Callable[..., Any]
 
+    @classmethod
+    def __subclasshook__(cls, subclass: type) -> bool:
+        """Method to check if a class is a subclass of specs of PandasConvertibleDataFrame."""
         to_pandas = getattr(subclass, "to_pandas", None)
         toPandas = getattr(subclass, "toPandas", None)
 
@@ -129,6 +129,9 @@ class PandasConvertibleDataFrame(Protocol):
             return True
 
         return False
+
+
+PandasConvertibleDataFrame = pd.DataFrame | _PandasConvertibleDataFrame
 
 
 class FittedAttr:

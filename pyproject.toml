@@ -176,3 +176,4 @@ replace = 'version = "{new_version}"'
 venvPath = "."
 venv = ".venv"
 typeCheckingMode = "basic"
+exclude = ["tests", "notebooks"]

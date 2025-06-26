@@ -133,11 +133,11 @@ class CamlBase(metaclass=abc.ABCMeta):
         validation_size = int(validation_size * X.shape[0])
         test_size = int(test_size * X.shape[0])
 
-        if sample_fraction != 1.0:
-            X = X.sample(frac=sample_fraction, random_state=self.seed)
-            W = W.loc[X.index]
-            Y = Y.loc[X.index]
-            T = T.loc[X.index]
+        # if sample_fraction != 1.0:
+        #     X = X.sample(frac=sample_fraction, random_state=self.seed)
+        #     W = W.loc[X.index]
+        #     Y = Y.loc[X.index]
+        #     T = T.loc[X.index]
 
         X_train, X_test, W_train, W_test, T_train, T_test, Y_train, Y_test = (
             train_test_split(X, W, T, Y, test_size=test_size, random_state=self.seed)
@@ -253,7 +253,7 @@ class CamlBase(metaclass=abc.ABCMeta):
 
         automl.fit(feature_matrix, outcome.ravel(), **_flaml_kwargs)
 
-        model = automl.model.estimator
+        model = automl.model.estimator  # pyright: ignore[reportOptionalMemberAccess]
 
         return model
 
