@@ -22,6 +22,13 @@ jobs:
       - name: Run tests
         run: uv run pytest tests
 
+      - name: Run codecov-action
+        uses: codecov/codecov-action@18283e04ce6e62d37312384ff67231eb8fd56d24
+        with:
+          directory: ./tests/reports
+          token: ${{ secrets.CODECOV_TOKEN }}
+          slug: jakepenzak/caml
+
       - name: Run codacy-coverage-reporter
         uses: codacy/codacy-coverage-reporter-action@89d6c85cfafaec52c72b6c5e8b2878d33104c699
         with:
