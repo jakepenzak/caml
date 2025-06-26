@@ -494,7 +494,7 @@ class SyntheticDataGenerator:
         stddev_err: float,
         include_heterogeneity: bool = False,
         include_treatment_effects: bool = False,
-    ) -> tuple[pd.DataFrame, dict, dict | None]:
+    ) -> tuple[pd.DataFrame, dict, dict]:
         """Generate treatment or outcome variables as functions of the confounders and/or mediators for synthetic data generation.
 
         This method returns:
@@ -596,7 +596,7 @@ class SyntheticDataGenerator:
             seed=self._seed,
         )
 
-        if formula is not None:
+        if formula != "":
             d_matrix = self.create_design_matrix(
                 df,
                 formula=formula,
@@ -614,7 +614,7 @@ class SyntheticDataGenerator:
         if include_treatment_effects:
             cates = self._compute_treatment_effects(f, params, noise, df, formula)
         else:
-            cates = None
+            cates = {}
 
         dgp = {
             "formula": formula,
@@ -631,7 +631,7 @@ class SyntheticDataGenerator:
         n_nonlinear_transformations: int | None = None,
         include_heterogeneity: bool = False,
         seed: int | None = None,
-    ) -> str | None:
+    ) -> str:
         """Create design matrix formula to be used with patsy.
 
         Parameters
@@ -652,7 +652,7 @@ class SyntheticDataGenerator:
         """
         columns = df.columns
         if len(columns) == 0:
-            return
+            return ""
 
         formula = "1 + " + " + ".join(columns)
 
@@ -676,7 +676,7 @@ class SyntheticDataGenerator:
                     term = f"{x1}*{x2}"
                 else:
                     x = np.random.choice(non_treat_columns)
-                    transform = np.random.choice(transformations)
+                    transform = np.random.choice(np.array(transformations))
                     term = transform(x)
                 terms.add(term)
 
@@ -696,7 +696,7 @@ class SyntheticDataGenerator:
 
     @staticmethod
     def _create_dgp_function(
-        df: pd.DataFrame,
+        df: pd.DataFrame | np.ndarray,
         n_obs: int,
         stddev_err: float,
         dep_type: str,
@@ -741,7 +741,9 @@ class SyntheticDataGenerator:
 
         if dep_type == "continuous":
 
-            def f_cont(x: pd.DataFrame, params: np.ndarray, noise: ArrayLike):
+            def f_cont(
+                x: pd.DataFrame | np.ndarray, params: np.ndarray, noise: np.ndarray
+            ):
                 """Continuous target function."""
                 return x @ params + noise
 
@@ -750,7 +752,9 @@ class SyntheticDataGenerator:
             dep = scores
         elif dep_type == "binary":
 
-            def f_binary(x: pd.DataFrame, params: np.ndarray, noise: ArrayLike):
+            def f_binary(
+                x: pd.DataFrame | np.ndarray, params: np.ndarray, noise: np.ndarray
+            ):
                 """Binary target function."""
                 raw = x @ params + noise
 
@@ -762,7 +766,9 @@ class SyntheticDataGenerator:
             dep = rng.binomial(1, scores)
         else:  # Discrete
 
-            def f_discrete(x: pd.DataFrame, params: np.ndarray, noise: ArrayLike):
+            def f_discrete(
+                x: pd.DataFrame | np.ndarray, params: np.ndarray, noise: np.ndarray
+            ):
                 """Discrete target function."""
                 raw = x @ params + noise
 
