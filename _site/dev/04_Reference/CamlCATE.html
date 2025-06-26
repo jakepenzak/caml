@@ -979,7 +979,7 @@ window.Quarto = {
 </section>
 <section id="examples" class="level2 doc-section doc-section-examples">
 <h2 class="doc-section doc-section-examples anchored" data-anchor-id="examples">Examples</h2>
-<div id="ec3a40e7" class="cell" data-execution_count="1">
+<div id="de7810f3" class="cell" data-execution_count="1">
 <div class="sourceCode cell-code" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> caml <span class="im">import</span> CamlCATE</span>
 <span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> caml.extensions.synthetic_data <span class="im">import</span> SyntheticDataGenerator</span>
 <span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a></span>
@@ -1105,7 +1105,7 @@ Random Seed: 0
 </section>
 <section id="examples-1" class="level4 doc-section doc-section-examples">
 <h4 class="doc-section doc-section-examples anchored" data-anchor-id="examples-1">Examples</h4>
-<div id="11520c0a" class="cell" data-execution_count="2">
+<div id="492b5b3a" class="cell" data-execution_count="2">
 <div class="sourceCode cell-code" id="cb5"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>flaml_Y_kwargs <span class="op">=</span> {</span>
 <span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>    <span class="st">"n_jobs"</span>: <span class="op">-</span><span class="dv">1</span>,</span>
 <span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>    <span class="st">"time_budget"</span>: <span class="dv">10</span>,</span>
@@ -1239,7 +1239,7 @@ ExtraTreesClassifier(criterion='entropy', max_features=0.6334496470801398,
 </section>
 <section id="examples-2" class="level4 doc-section doc-section-examples">
 <h4 class="doc-section doc-section-examples anchored" data-anchor-id="examples-2">Examples</h4>
-<div id="558374da" class="cell" data-execution_count="3">
+<div id="366e82ed" class="cell" data-execution_count="3">
 <div class="sourceCode cell-code" id="cb8"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> econml.dr <span class="im">import</span> LinearDRLearner</span>
 <span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>rscorer_kwargs <span class="op">=</span> {</span>
@@ -1271,8 +1271,8 @@ ExtraTreesClassifier(criterion='entropy', max_features=0.6334496470801398,
 <span id="cb8-29"><a href="#cb8-29" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(caml_obj.validation_estimator)</span>
 <span id="cb8-30"><a href="#cb8-30" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(caml_obj.cate_estimators)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>&lt;econml.dr._drlearner.LinearDRLearner object at 0x7f85a1f0ef50&gt;
-[('LinearDML', &lt;econml.dml.dml.LinearDML object at 0x7f85a1f0eda0&gt;), ('NonParamDML', &lt;econml.dml.dml.NonParamDML object at 0x7f85a1f0ee90&gt;), ('CausalForestDML', &lt;econml.dml.causal_forest.CausalForestDML object at 0x7f85a1f0f1c0&gt;), ('LinearDRLearner', &lt;econml.dr._drlearner.LinearDRLearner object at 0x7f85a1f0ef50&gt;)]</code></pre>
+<pre><code>&lt;econml.dr._drlearner.LinearDRLearner object at 0x7fd1f0335030&gt;
+[('LinearDML', &lt;econml.dml.dml.LinearDML object at 0x7fd1f0335300&gt;), ('NonParamDML', &lt;econml.dml.dml.NonParamDML object at 0x7fd1f03356c0&gt;), ('CausalForestDML', &lt;econml.dml.causal_forest.CausalForestDML object at 0x7fd1f0335240&gt;), ('LinearDRLearner', &lt;econml.dr._drlearner.LinearDRLearner object at 0x7fd1f0335030&gt;)]</code></pre>
 </div>
 </div>
 </section>
@@ -1335,7 +1335,7 @@ ExtraTreesClassifier(criterion='entropy', max_features=0.6334496470801398,
 </section>
 <section id="examples-3" class="level4 doc-section doc-section-examples">
 <h4 class="doc-section doc-section-examples anchored" data-anchor-id="examples-3">Examples</h4>
-<div id="f157b38b" class="cell" data-execution_count="4">
+<div id="0c561e68" class="cell" data-execution_count="4">
 <div class="sourceCode cell-code" id="cb11"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>caml_obj.validate()</span>
 <span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>caml_obj.validator_results</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
@@ -1374,13 +1374,13 @@ ExtraTreesClassifier(criterion='entropy', max_features=0.6334496470801398,
 <p>Sets the <code>input_names</code> and <code>final_estimator</code> class attributes.</p>
 <section id="examples-4" class="level4 doc-section doc-section-examples">
 <h4 class="doc-section doc-section-examples anchored" data-anchor-id="examples-4">Examples</h4>
-<div id="ffb8114e" class="cell" data-execution_count="5">
+<div id="d0c5c832" class="cell" data-execution_count="5">
 <div class="sourceCode cell-code" id="cb14"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>caml_obj.fit_final()</span>
 <span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(caml_obj.final_estimator)</span>
 <span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(caml_obj.input_names)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>&lt;econml.dr._drlearner.LinearDRLearner object at 0x7f85bccd1bd0&gt;
+<pre><code>&lt;econml.dr._drlearner.LinearDRLearner object at 0x7fd1f03f6d70&gt;
 {'feature_names': ['W1_continuous', 'X1_continuous'], 'output_names': 'Y1_continuous', 'treatment_names': 'T1_binary'}</code></pre>
 </div>
 </div>
@@ -1462,7 +1462,7 @@ ExtraTreesClassifier(criterion='entropy', max_features=0.6334496470801398,
 </section>
 <section id="examples-5" class="level4 doc-section doc-section-examples">
 <h4 class="doc-section doc-section-examples anchored" data-anchor-id="examples-5">Examples</h4>
-<div id="98d442fb" class="cell" data-execution_count="6">
+<div id="9b0f90bd" class="cell" data-execution_count="6">
 <div class="sourceCode cell-code" id="cb17"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a>caml_obj.predict()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display" data-execution_count="6">
 <pre><code>array([ 11.50064573,  -9.15542281, -32.14314537, ...,  -4.77048878,
@@ -1528,7 +1528,7 @@ ExtraTreesClassifier(criterion='entropy', max_features=0.6334496470801398,
 </section>
 <section id="examples-6" class="level4 doc-section doc-section-examples">
 <h4 class="doc-section doc-section-examples anchored" data-anchor-id="examples-6">Examples</h4>
-<div id="71286b63" class="cell" data-execution_count="7">
+<div id="b70e62b4" class="cell" data-execution_count="7">
 <div class="sourceCode cell-code" id="cb20"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a>caml_obj.summarize()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display" data-execution_count="7">
 <div>
