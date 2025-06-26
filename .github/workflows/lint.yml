@@ -22,7 +22,7 @@ jobs:
           python-version: "3.10"
 
       - name: Create environment
-        run: uv sync --all-groups --frozen
+        run: uv sync --all-groups --all-extras --frozen
 
       - name: Run pre-commit checks
         shell: bash -l {0}
