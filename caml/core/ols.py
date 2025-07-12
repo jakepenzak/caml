@@ -1,4 +1,4 @@
-from typing import Any, Collection, NoReturn
+from typing import Any, NoReturn, Sequence
 
 import pandas as pd
 import patsy
@@ -8,27 +8,28 @@ from ..generics import (
     FittedAttr,
     PandasConvertibleDataFrame,
     experimental,
+    is_module_available,
     maybe_jit,
     timer,
 )
 from ..logging import DEBUG, ERROR, INFO, WARNING
+from ._base import BaseCamlEstimator
 
-try:
+_HAS_JAX = is_module_available("jax")
+
+if _HAS_JAX:
     import jax
     import jax.numpy as jnp
     import jax.scipy.stats as jstats
 
     jax.config.update("jax_enable_x64", True)
-    _HAS_JAX = True
-except ImportError:
+else:
     import numpy as jnp
     import scipy.stats as jstats
 
-    _HAS_JAX = False
-
 
 @experimental
-class FastOLS:
+class FastOLS(BaseCamlEstimator):
     r"""FastOLS is an optimized implementation of the OLS estimator designed specifically with treatment effect estimation in mind.
 
     **FastOLS is experimental and may change significantly in future versions.**
@@ -49,15 +50,15 @@ class FastOLS:
 
     Parameters
     ----------
-    Y : Collection[str]
+    Y : Sequence[str]
         A list of outcome variable names.
     T : str
         The treatment variable name.
-    G : Collection[str] | None
+    G : Sequence[str] | None
         A list of group variable names. These will be the groups for which GATEs will be estimated.
-    X : Collection[str] | None
+    X : Sequence[str] | None
         A list of covariate variable names. These will be the covariates for which heterogeneity/CATEs can be estimated.
-    W : Collection[str] | None
+    W : Sequence[str] | None
         A list of additional covariate variable names to be used as controls. These will be the additional covariates not used for modeling heterogeneity/CATEs.
     xformula : str | None
         Additional formula string to append to the main formula, starting with "+". For example, "+age+gender" will add age and gender as additional predictors.
@@ -69,15 +70,15 @@ class FastOLS:
 
     Attributes
     ----------
-    Y : Collection[str]
+    Y : Sequence[str]
         A list of outcome variable names.
     T : str
         The treatment variable name.
-    G : Collection[str] | None
+    G : Sequence[str] | None
         The list of group variable names. These will be the groups for which GATEs will be estimated.
-    X : Collection[str] | None
+    X : Sequence[str] | None
         The list of variable names representing the confounder/control feature set to be utilized for estimating heterogeneity/CATEs, that are in addition to G.
-    W : Collection[str] | None
+    W : Sequence[str] | None
         The list of variable names representing the confounder/control feature **not** utilized for estimating heterogeneity/CATEs.
     formula : str
         The formula leveraged for design matrix creation via Patsy.
@@ -131,11 +132,11 @@ class FastOLS:
 
     def __init__(
         self,
-        Y: Collection[str],
+        Y: Sequence[str],
         T: str,
-        G: Collection[str] | None = None,
-        X: Collection[str] | None = None,
-        W: Collection[str] | None = None,
+        G: Sequence[str] | None = None,
+        X: Sequence[str] | None = None,
+        W: Sequence[str] | None = None,
         *,
         xformula: str | None = None,
         discrete_treatment: bool = False,
@@ -144,11 +145,11 @@ class FastOLS:
         DEBUG(
             f"Initializing {self.__class__.__name__} with parameters: Y={Y}, T={T}, G={G}, X={X}, W={W}, discrete_treatment={discrete_treatment}, engine={engine}"
         )
-        self.Y = Y
-        self.T = T
-        self.G = G
-        self.X = X
-        self.W = W
+        self.Y = list(Y)
+        self.T = list(T)
+        self.G = list(G) if G else list()
+        self.X = list(X) if X else list()
+        self.W = list(W) if W else list()
         self._discrete_treatment = discrete_treatment
 
         if engine not in ["cpu", "gpu"]:
@@ -704,51 +705,31 @@ class FastOLS:
             self._treatment_effects[group_key].update(effects)
 
     @staticmethod
-    def _convert_dataframe_to_pandas(df, groups) -> pd.DataFrame:
-        def convert_groups_to_categorical(df, groups):
-            for col in groups or []:
-                df[col] = df[col].astype("category")
-            return df
-
-        if isinstance(df, PandasConvertibleDataFrame):
-            if isinstance(df, pd.DataFrame):
-                return convert_groups_to_categorical(df, groups)
-
-            DEBUG(f"Converting input dataframe of type {type(df)} to pandas")
-            if hasattr(df, "toPandas"):
-                return convert_groups_to_categorical(df.toPandas(), groups)
-            if hasattr(df, "to_pandas"):
-                return convert_groups_to_categorical(df.to_pandas(), groups)
-
-        ERROR(f"Unsupported dataframe type: {type(df)}")
-        raise ValueError(f"Pandas conversion not currently supported for {type(df)}.")
-
-    @staticmethod
     def _create_formula(
-        Y: Collection[str],
-        T: str,
-        G: Collection[str] | None = None,
-        X: Collection[str] | None = None,
-        W: Collection[str] | None = None,
+        Y: list[str],
+        T: list[str],
+        G: list[str],
+        X: list[str],
+        W: list[str],
         discrete_treatment: bool = False,
         xformula: str | None = None,
     ) -> str:
         formula = " + ".join([f"Q('{y}')" for y in Y])
 
         if discrete_treatment:
-            treatment = f"C(Q('{T}'))"
+            treatment = f"C(Q('{T[0]}'))"
         else:
-            treatment = f"Q('{T}')"
+            treatment = f"Q('{T[0]}')"
 
         formula += f" ~ {treatment}"
 
-        for g in G or []:
+        for g in G:
             formula += f" + C(Q('{g}'))*{treatment}"
 
-        for x in X or []:
+        for x in X:
             formula += f" + Q('{x}')*{treatment}"
 
-        for w in W or []:
+        for w in W:
             formula += f" + Q('{w}')"
 
         if xformula:

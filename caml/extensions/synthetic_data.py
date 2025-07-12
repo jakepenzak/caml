@@ -1,4 +1,4 @@
-from typing import Callable, Collection
+from typing import Callable, Sequence
 
 import numpy as np
 import pandas as pd
@@ -486,7 +486,7 @@ class SyntheticDataGenerator:
 
     def _generate_dependent_variables(
         self,
-        dfs: Collection[pd.DataFrame],
+        dfs: Sequence[pd.DataFrame],
         n_continuous: int,
         n_binary: int,
         n_discrete: int,
@@ -505,7 +505,7 @@ class SyntheticDataGenerator:
 
         Parameters
         ----------
-        dfs : Collection[pd.DataFrame]
+        dfs : Sequence[pd.DataFrame]
             Dataframes to generate synthetic data from.
         n_continuous : int
             Number of continuous variables to generate.

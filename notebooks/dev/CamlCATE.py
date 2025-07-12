@@ -27,9 +27,9 @@ def _():
     from caml.extensions.synthetic_data import SyntheticDataGenerator
 
     data_generator = SyntheticDataGenerator(
-        n_obs=10_000,
-        n_cont_outcomes=0,
-        n_binary_outcomes=1,
+        n_obs=1_000,
+        n_cont_outcomes=1,
+        n_binary_outcomes=0,
         n_cont_treatments=0,
         n_binary_treatments=1,
         n_discrete_treatments=0,
@@ -99,13 +99,12 @@ def _(mo):
 
 @app.cell
 def _(synthetic_df):
-    from caml import CamlCATE
+    from caml import AutoCATE
 
     outcome = [c for c in synthetic_df.columns if "Y" in c][0]
     treatment = [c for c in synthetic_df.columns if "T" in c][0]
 
-    caml = CamlCATE(
-        df=synthetic_df,
+    caml = AutoCATE(
         Y=outcome,
         T=treatment,
         X=[c for c in synthetic_df.columns if "X" in c],
@@ -115,19 +114,26 @@ def _(synthetic_df):
         else False,
         discrete_outcome=True if "binary" in outcome else False,
         seed=None,
+        nuisance_mode='auto',
     )
     return (caml,)
 
 
 @app.cell
-def _(caml):
-    print(caml)
+def _(mo):
+    mo.md("""#### Nuissance Function AutoML""")
     return
 
 
 @app.cell
-def _(mo):
-    mo.md("""#### Nuissance Function AutoML""")
+def _(caml, synthetic_df):
+    caml.fit(synthetic_df)
+    return
+
+
+@app.cell
+def _(caml):
+    dir(caml)
     return
 
 

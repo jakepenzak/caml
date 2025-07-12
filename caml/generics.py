@@ -1,5 +1,6 @@
 import timeit
 from functools import wraps
+from importlib.util import find_spec
 from typing import Any, Callable, Protocol, runtime_checkable
 
 import pandas as pd
@@ -139,9 +140,13 @@ class FittedAttr:
         self.name = name
 
     def __get__(self, instance, owner):
-        """Custom getter for FastOLS."""
+        """Custom getter for attributes that require fitting."""
         if instance is None:
             return self
         if not getattr(instance, "_fitted", False):
             raise RuntimeError("Model has not been fitted yet. Please run fit() first.")
         return getattr(instance, self.name)
+
+
+def is_module_available(module_name: str) -> bool:
+    return find_spec(module_name) is not None
