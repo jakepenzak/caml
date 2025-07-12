@@ -12,7 +12,7 @@ def _():
 
 @app.cell
 def _(mo):
-    mo.md("""# Caml API Usage""")
+    mo.md("""# AutoCate API Usage""")
     return
 
 
@@ -26,33 +26,29 @@ def _(mo):
 def _():
     from caml.extensions.synthetic_data import SyntheticDataGenerator
 
-    data_generator = SyntheticDataGenerator(
+    data = SyntheticDataGenerator(
         n_obs=1_000,
         n_cont_outcomes=1,
         n_binary_outcomes=0,
-        n_cont_treatments=0,
         n_binary_treatments=1,
-        n_discrete_treatments=0,
-        n_cont_confounders=2,
-        n_binary_confounders=2,
+        n_cont_confounders=0,
+        n_binary_confounders=0,
         n_discrete_confounders=0,
-        n_cont_modifiers=2,
-        n_binary_modifiers=2,
-        n_discrete_modifiers=0,
-        n_confounding_modifiers=0,
-        stddev_outcome_noise=3,
-        stddev_treatment_noise=3,
-        causal_model_functional_form="nonlinear",
-        n_nonlinear_transformations=2,
-        seed=None,
+        n_cont_modifiers=3,
+        n_binary_modifiers=3,
+        n_discrete_modifiers=2,
+        stddev_outcome_noise=1,
+        stddev_treatment_noise=1,
+        causal_model_functional_form="linear",
+        seed=20,
     )
 
 
-    synthetic_df = data_generator.df
-    cate_df = data_generator.cates
-    ate_df = data_generator.ates
-    dgp = data_generator.dgp
-    return cate_df, dgp, synthetic_df
+    synthetic_df = data.df
+    cate_df = data.cates
+    ate_df = data.ates
+    dgp = data.dgp
+    return ate_df, cate_df, dgp, synthetic_df
 
 
 @app.cell
@@ -74,8 +70,16 @@ def _(cate_df):
 
 
 @app.cell
-def _(cate_df):
-    cate_df.mean()
+def _(ate_df):
+    ate_df
+    return
+
+
+@app.cell
+def _(synthetic_df):
+    for col in synthetic_df.columns:
+        if "discrete" in col:
+            synthetic_df[col] = synthetic_df[col].astype("category")
     return
 
 
@@ -87,7 +91,7 @@ def _(mo):
 
 @app.cell
 def _(mo):
-    mo.md("""### CamlCATE""")
+    mo.md("""### AutoCATE""")
     return
 
 
@@ -104,18 +108,22 @@ def _(synthetic_df):
     outcome = [c for c in synthetic_df.columns if "Y" in c][0]
     treatment = [c for c in synthetic_df.columns if "T" in c][0]
 
-    caml = AutoCATE(
-        Y=outcome,
-        T=treatment,
-        X=[c for c in synthetic_df.columns if "X" in c],
-        W=[c for c in synthetic_df.columns if "W" in c],
-        discrete_treatment=True
-        if "binary" in treatment or "discrete" in treatment
-        else False,
-        discrete_outcome=True if "binary" in outcome else False,
-        seed=None,
-        nuisance_mode='auto',
-    )
+    caml = AutoCATE(Y=outcome,
+                    T=treatment,
+                    X=[c for c in synthetic_df.columns if 'X' in c],
+                    W=[c for c in synthetic_df.columns if 'W' in c],
+                    discrete_treatment=True if "binary" in treatment or "discrete" in treatment else False,
+                    discrete_outcome=True if "binary" in outcome else False,
+                    model_Y={"time_budget": 5},
+                    model_T={"time_budget": 5},
+                    model_regression={"time_budget": 5},
+                    n_jobs=-1,
+                    use_ray=False,
+                    ray_remote_func_options_kwargs=None,
+                    use_spark=False,
+                    seed=None)
+
+
     return (caml,)
 
 
@@ -127,13 +135,13 @@ def _(mo):
 
 @app.cell
 def _(caml, synthetic_df):
-    caml.fit(synthetic_df)
+    final_estimator = caml.fit(synthetic_df)
     return
 
 
 @app.cell
-def _(caml):
-    dir(caml)
+def _(mo):
+    mo.md(r"""# Legacy""")
     return
 
 

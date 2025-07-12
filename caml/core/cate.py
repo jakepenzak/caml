@@ -250,10 +250,10 @@ class AutoCATE(BaseCamlEstimator):
             cate_estimators=list(cate_estimators),
             additional_cate_estimators=list(additional_cate_estimators),
         )
-        fitted_estimators = self._fit_val(estimators, splits)
-        # final_estimator = self._validate(fitted_estimators, splits)
+        fitted_estimators = self._fit_estimators(estimators, splits)
+        final_estimator = self._validate(fitted_estimators, splits)
         # self._test(final_estimator, splits)
-        return fitted_estimators
+        return final_estimator
 
     def estimate_ate(self, df: PandasConvertibleDataFrame) -> None:
         return
@@ -327,8 +327,8 @@ class AutoCATE(BaseCamlEstimator):
 
         self._nuisances_fitted = True
 
-    @timer("Fit Validation Models")
-    def _fit_val(
+    @timer("Fit Validation Estimators")
+    def _fit_estimators(
         self, cate_estimators: list[AutoCateEstimator], splits: dict[str, Any]
     ) -> list[AutoCateEstimator]:
         Y_train = splits["Y_train"]
@@ -396,15 +396,15 @@ class AutoCATE(BaseCamlEstimator):
 
         return fitted_est
 
-    def _fit_and_ensemble_cate_estimators(
-        self,
-        *,
-        rscorer_kwargs: dict,
-        use_ray: bool,
-        ray_remote_func_options_kwargs: dict,
-        n_jobs: int = -1,
-        ensemble: bool = False,
+    @timer("Score Estimators on Validation Set")
+    def _validate(
+        self, fitted_estimators: list[AutoCateEstimator], splits: dict[str, Any]
     ):
+        Y_val = splits["Y_val"]
+        T_val = splits["T_val"]
+        X_val = splits["X_val"]
+        W_val = splits["W_val"]
+
         base_rscorer_settings = {
             "cv": 3,
             "mc_iters": 3,
@@ -412,12 +412,12 @@ class AutoCATE(BaseCamlEstimator):
             "random_state": self.seed,
         }
 
-        if rscorer_kwargs is not None:
-            base_rscorer_settings.update(rscorer_kwargs)
+        # if rscorer_kwargs is not None:
+        #     base_rscorer_settings.update(rscorer_kwargs)
 
-        rscorer = RScorer(  # BUG: RScorer does not work with discrete outcomes. See monkey patch below.
-            model_y=self.model_Y_X_W,
-            model_t=self.model_T_X_W,
+        rscorer = RScorer(
+            model_y=self.model_Y,
+            model_t=self.model_T,
             discrete_treatment=self.discrete_treatment,
             **base_rscorer_settings,
         )
@@ -425,36 +425,36 @@ class AutoCATE(BaseCamlEstimator):
         rscorer.fit(
             y=Y_val,
             T=T_val,
-            X=X_val,
-            W=W_val if W_val.shape[1] > 0 else None,
-            discrete_outcome=self.discrete_outcome,
+            X=X_val if not X_val.empty else None,
+            W=W_val if not W_val.empty else None,
+            discrete_outcome=self.discrete_outcome,  # type: ignore
         )
-        if ensemble:
-            ensemble_estimator, ensemble_score, estimator_scores = rscorer.ensemble(
-                [mdl for _, mdl in models], return_scores=True
-            )
-            estimator_scores = list(estimator_scores)
-            estimator_scores.append(ensemble_score)
-            models.append(("ensemble", ensemble_estimator))
-            self.cate_estimators.append(("ensemble", ensemble_estimator))
-        else:
-            _, _, estimator_scores = rscorer.best_model(
-                [mdl for _, mdl in models], return_scores=True
-            )
 
-        estimator_score_dict = dict(
-            zip([n[0] for n in models], estimator_scores, strict=False)
+        best_estimator, _, estimator_scores = rscorer.best_model(  # type: ignore
+            [mdl.estimator for mdl in fitted_estimators], return_scores=True
         )
-        best_estimator = models[np.nanargmax(estimator_scores)][0]
+
+        estimator_scores = dict(
+            zip([mdl.name for mdl in fitted_estimators], estimator_scores, strict=False)
+        )
 
         INFO(f"Best Estimator: {best_estimator}")
-        INFO(f"Estimator RScores: {estimator_score_dict}")
+        INFO(f"Estimator RScores: {estimator_scores}")
+        print(f"Best Estimator: {best_estimator}")
+        print(f"Estimator RScores: {estimator_scores}")
 
-        return (
-            models[np.nanargmax(estimator_scores)][1],
-            rscorer,
-            estimator_score_dict,
-        )
+        self.rscores = estimator_scores
+
+        return best_estimator
+
+        # if ensemble:
+        #     ensemble_estimator, ensemble_score, estimator_scores = rscorer.ensemble(
+        #         [mdl for _, mdl in models], return_scores=True
+        #     )
+        #     estimator_scores = list(estimator_scores)
+        #     estimator_scores.append(ensemble_score)
+        #     models.append(("ensemble", ensemble_estimator))
+        #     self.cate_estimators.append(("ensemble", ensemble_estimator))
 
     def validate(
         self,

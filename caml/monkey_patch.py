@@ -1,6 +1,7 @@
+import numpy as np
 from econml.dml import LinearDML
 from econml.score import RScorer
-import numpy as np
+
 
 # Monkey patching Rscorer (Fixed in EconML PR - https://github.com/py-why/EconML/pull/927)
 def patched_fit(
