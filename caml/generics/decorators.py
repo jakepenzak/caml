@@ -1,19 +1,18 @@
 import timeit
 from functools import wraps
-from importlib.util import find_spec
-from typing import Any, Callable, Protocol, runtime_checkable
+from typing import Callable
 
-import pandas as pd
+from ..logging import DEBUG, WARNING
+from .utils import is_module_available
 
-from .logging import DEBUG, WARNING
+_HAS_JAX = is_module_available("jax")
 
-try:
+if _HAS_JAX:
     import jax
 
     jax.config.update("jax_enable_x64", True)
-    _HAS_JAX = True
-except ImportError:
-    _HAS_JAX = False
+else:
+    pass
 
 
 def experimental(obj: Callable) -> Callable:
@@ -108,45 +107,3 @@ def maybe_jit(func: Callable | None = None, **jit_kwargs) -> Callable:
         return maybe_jit_inner
 
     return maybe_jit_inner(func)
-
-
-@runtime_checkable
-class _PandasConvertibleDataFrame(Protocol):
-    """Protocol for DataFrame-like objects that are pandas convertible.
-
-    This includes DataFrames that are either pandas dataframes or can be converted to pandas via `to_pandas()` or `toPandas()` methods.
-    """
-
-    to_pandas: Callable[..., Any]
-    toPandas: Callable[..., Any]
-
-    @classmethod
-    def __subclasshook__(cls, subclass: type) -> bool:
-        """Method to check if a class is a subclass of specs of PandasConvertibleDataFrame."""
-        to_pandas = getattr(subclass, "to_pandas", None)
-        toPandas = getattr(subclass, "toPandas", None)
-
-        if callable(to_pandas) or callable(toPandas):
-            return True
-
-        return False
-
-
-PandasConvertibleDataFrame = pd.DataFrame | _PandasConvertibleDataFrame
-
-
-class FittedAttr:
-    def __init__(self, name):
-        self.name = name
-
-    def __get__(self, instance, owner):
-        """Custom getter for attributes that require fitting."""
-        if instance is None:
-            return self
-        if not getattr(instance, "_fitted", False):
-            raise RuntimeError("Model has not been fitted yet. Please run fit() first.")
-        return getattr(instance, self.name)
-
-
-def is_module_available(module_name: str) -> bool:
-    return find_spec(module_name) is not None

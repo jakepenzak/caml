@@ -1,6 +1,6 @@
 import marimo
 
-__generated_with = "0.13.6"
+__generated_with = "0.14.10"
 app = marimo.App(width="medium")
 
 
@@ -13,6 +13,15 @@ def _():
 @app.cell
 def _(mo):
     mo.md("""# AutoCate API Usage""")
+    return
+
+
+@app.cell
+def _():
+    from caml.logging import configure_logging
+    import logging
+
+    configure_logging(level=logging.DEBUG)
     return
 
 
@@ -114,10 +123,10 @@ def _(synthetic_df):
                     W=[c for c in synthetic_df.columns if 'W' in c],
                     discrete_treatment=True if "binary" in treatment or "discrete" in treatment else False,
                     discrete_outcome=True if "binary" in outcome else False,
-                    model_Y={"time_budget": 5},
+                    model_Y={"time_budget": 5, "estimator_list":["extra_tree"]},
                     model_T={"time_budget": 5},
                     model_regression={"time_budget": 5},
-                    n_jobs=-1,
+                    n_jobs=1,
                     use_ray=False,
                     ray_remote_func_options_kwargs=None,
                     use_spark=False,
@@ -135,184 +144,13 @@ def _(mo):
 
 @app.cell
 def _(caml, synthetic_df):
-    final_estimator = caml.fit(synthetic_df)
-    return
-
-
-@app.cell
-def _(mo):
-    mo.md(r"""# Legacy""")
-    return
-
-
-@app.cell
-def _(caml):
-    caml.auto_nuisance_functions(
-        flaml_Y_kwargs={
-            "time_budget": 120,
-            "estimator_list": [
-                "lgbm",
-                "rf",
-                "extra_tree",
-                "xgb_limitdepth",
-                "lrl1",
-                "lrl2",
-            ],
-        },
-        flaml_T_kwargs={
-            "time_budget": 120,
-            "estimator_list": [
-                "lgbm",
-                "rf",
-                "extra_tree",
-                "xgb_limitdepth",
-                "lrl1",
-                "lrl2",
-            ],
-        },
-        use_ray=False,
-        use_spark=False,
-    )
-    return
-
-
-@app.cell
-def _(mo):
-    mo.md("""#### Fit and ensemble CATE models""")
-    return
-
-
-@app.cell
-def _(caml):
-    caml.fit_validator(
-        cate_estimators=[
-            "LinearDML",
-            "CausalForestDML",
-            "NonParamDML",
-            "SparseLinearDML-2D",
-            "DRLearner",
-            "ForestDRLearner",
-            "LinearDRLearner",
-            "DomainAdaptationLearner",
-            "SLearner",
-            "TLearner",
-            "XLearner",
-        ],
-        additional_cate_estimators=[],
-        rscorer_kwargs={},
-        use_ray=False,
-        ray_remote_func_options_kwargs={},
-        ensemble=False,
-        validation_size=0.2,
-        test_size=0.2,
-        sample_size=1.0,
-        n_jobs=-1,
-    )
+    caml.fit(synthetic_df)
     return
 
 
 @app.cell
 def _(caml):
     caml.rscores
-    return
-
-
-@app.cell
-def _(mo):
-    mo.md("""#### CATE Validation""")
-    return
-
-
-@app.cell
-def _(caml):
-    import matplotlib.pyplot as plt
-
-    caml.validate(n_groups=4, n_bootstrap=100, print_full_report=True)
-
-    plt.show()
-    return
-
-
-@app.cell
-def _(mo):
-    mo.md("""#### Refit best estimator on full dataset""")
-    return
-
-
-@app.cell
-def _(caml):
-    caml.fit_final()
-    return
-
-
-@app.cell
-def _(caml):
-    caml.final_estimator
-    return
-
-
-@app.cell
-def _(mo):
-    mo.md("""#### Predict CATEs""")
-    return
-
-
-@app.cell
-def _(caml):
-    ## "Out of sample" predictions
-
-    cate_predictions = caml.predict(T0=0, T1=1)
-
-    cate_predictions
-    return (cate_predictions,)
-
-
-@app.cell
-def _():
-    #### Summarize CATEs
-    return
-
-
-@app.cell
-def _(caml):
-    cate_summary = caml.summarize()
-
-    cate_summary
-    return
-
-
-@app.cell
-def _(cate_df):
-    cate_df.describe()
-    return
-
-
-@app.cell
-def _(mo):
-    mo.md("""#### Access my dataframe, estimator object, and get string representation of class""")
-    return
-
-
-@app.cell
-def _(caml):
-    caml.df
-    return
-
-
-@app.cell
-def _(caml):
-    from econml.score import EnsembleCateEstimator
-
-    # Use this estimator object as pickled object for optimized inference
-    final_estimator = caml.final_estimator
-
-    if isinstance(final_estimator, EnsembleCateEstimator):
-        for mod in final_estimator._cate_models:
-            print(mod)
-            print(caml.input_names)
-    else:
-        print(final_estimator)
-        print(caml.input_names)
     return
 
 

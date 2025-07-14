@@ -2,12 +2,14 @@
 authors = [{ name = "Jacob Pieniazek", email = "jacob@pieniazek.me" }]
 maintainers = [{ name = "Jacob Pieniazek", email = "jacob@pieniazek.me" }]
 dependencies = [
-    "econml>=0.15.1",
+    "econml>=0.16",
     "flaml[automl]>=2.0.0",
     "doubleml>=0.8.0",
     "matplotlib>=3.9.2",
     "rich>=13.9.4",
     "patsy>=1.0.1",
+    "llvmlite>0.40",
+    "numpy<2",
 ]
 description = "Extensions & abstractions of advanced econometric techniques leveraging machine learning."
 name = "caml"
@@ -42,8 +44,8 @@ Documentation = "https://caml-docs.com/"
 
 [dependency-groups]
 test = [
-    "defusedxml>=0.7.1",
-    "genbadge>=1.1.1",
+    "polars>=1.31.0",
+    "pyarrow>=20.0.0",
     "pytest>=8.3.2",
     "pytest-cov>=5.0.0",
     "pytest-html>=4.1.1",
@@ -58,17 +60,16 @@ dev = [
     "pynvim>=0.5.2",
     "ruff>=0.6.2",
 ]
-docs = ["quarto-cli>=1.6.40", "quartodoc>=0.9.1"]
+docs = [
+    "quarto-cli<1.7.32",
+ "quartodoc>=0.9.1",
+]
 
 [project.optional-dependencies]
 pyspark = ["flaml[spark]>=2.0.0", "optuna>=3.6.1", "pyspark>=3.5.2"]
-polars = ["polars>=1.17.1", "pyarrow>=20.0.0"]
 jax = ["jax>=0.5.2"]
 jax-gpu = ["jax[cuda12]>=0.5.2"]
-ray = [
-    "flaml[ray]>=2.3.4",
-    "pydantic<2",
-]
+ray = ["flaml[ray]>=2.3.4", "pydantic<2"]
 
 [build-system]
 requires = ["hatchling"]

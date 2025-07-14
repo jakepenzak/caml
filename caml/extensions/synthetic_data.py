@@ -13,7 +13,7 @@ from scipy.linalg import toeplitz
 from scipy.special import expit as sigmoid
 from scipy.special import softmax
 
-from ..generics import experimental
+from ..generics.decorators import experimental
 
 
 def _truncate_and_renormalize_probabilities(

@@ -4,26 +4,19 @@ import copy
 import warnings
 from typing import TYPE_CHECKING, Any, Sequence
 
-import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-from econml._cate_estimator import BaseCateEstimator
 from econml._ortho_learner import _OrthoLearner
 from econml.dml.dml import NonParamDML
-from econml.score import EnsembleCateEstimator
-from econml.validate.drtester import DRTester
+from econml.score import EnsembleCateEstimator, RScorer
 from joblib import Parallel, delayed
 from sklearn.base import BaseEstimator
 
-from ..generics import (
-    FittedAttr,
-    PandasConvertibleDataFrame,
-    experimental,
-    is_module_available,
-    timer,
-)
-from ..logging import ERROR, INFO, WARNING
-from ..monkey_patch import RScorer
+from ..generics.decorators import experimental, timer
+from ..generics.interfaces import FittedAttr, PandasConvertibleDataFrame
+from ..generics.monkey_patch import DRTester
+from ..generics.utils import is_module_available
+from ..logging import INFO, WARNING
 from ._base import BaseCamlEstimator
 from .modeling.model_bank import (
     AutoCateEstimator,
@@ -46,7 +39,7 @@ warnings.filterwarnings(
 )
 
 
-# Your code here
+# TODO: Add print statements for `fit` method.
 # TODO: Refactor all docstrings!!
 @experimental
 class AutoCATE(BaseCamlEstimator):
@@ -159,8 +152,7 @@ class AutoCATE(BaseCamlEstimator):
     ```
     """
 
-    validation_estimator = FittedAttr("_validation_estimator")
-    final_estimator = FittedAttr("_final_estimator")
+    best_estimator = FittedAttr("_best_estimator")
     model_Y: BaseEstimator
     model_T: BaseEstimator
     model_regression: BaseEstimator
@@ -183,8 +175,8 @@ class AutoCATE(BaseCamlEstimator):
         use_spark: bool = False,
         seed: int | None = None,
     ):
-        self.Y = [Y] if isinstance(Y, str) else list(Y)
-        self.T = [T] if isinstance(T, str) else list(T)
+        self.Y = list(Y)
+        self.T = list(T)
         self.X = list(X) if X else list()
         self.W = list(W) if W else list()
         self.discrete_treatment = discrete_treatment
@@ -251,9 +243,16 @@ class AutoCATE(BaseCamlEstimator):
             additional_cate_estimators=list(additional_cate_estimators),
         )
         fitted_estimators = self._fit_estimators(estimators, splits)
-        final_estimator = self._validate(fitted_estimators, splits)
-        # self._test(final_estimator, splits)
-        return final_estimator
+        self._validate(fitted_estimators, splits, ensemble)
+        self._test(splits, n_groups=5, n_bootstrap=100)
+        # validator, X_test, T_test, Y_test, X_train, T_train, Y_train = self._test(
+        #     splits, n_groups=5, n_bootstrap=100
+        # )
+        self.fitted = True
+
+        # return validator, X_test, T_test, Y_test, X_train, T_train, Y_train
+        # if refit_final:
+        #     self.best_estimator = self._refit_final_estimator()
 
     def estimate_ate(self, df: PandasConvertibleDataFrame) -> None:
         return
@@ -276,6 +275,7 @@ class AutoCATE(BaseCamlEstimator):
             "n_splits": 3,
             "starting_points": "static",
             "estimator_list": "auto",
+            "verbose": 0,
         }
 
         if self.use_spark:
@@ -320,6 +320,7 @@ class AutoCATE(BaseCamlEstimator):
                 flaml_kwargs["task"] = "regression"
                 flaml_kwargs["metric"] = "mse"
 
+            print(f"\nSearching for {model_name}:")
             model = self._run_automl(**flaml_kwargs)
 
             setattr(self, model_name, model)
@@ -398,7 +399,10 @@ class AutoCATE(BaseCamlEstimator):
 
     @timer("Score Estimators on Validation Set")
     def _validate(
-        self, fitted_estimators: list[AutoCateEstimator], splits: dict[str, Any]
+        self,
+        fitted_estimators: list[AutoCateEstimator],
+        splits: dict[str, Any],
+        ensemble: bool = True,
     ):
         Y_val = splits["Y_val"]
         T_val = splits["T_val"]
@@ -419,6 +423,7 @@ class AutoCATE(BaseCamlEstimator):
             model_y=self.model_Y,
             model_t=self.model_T,
             discrete_treatment=self.discrete_treatment,
+            discrete_outcome=self.discrete_outcome,
             **base_rscorer_settings,
         )
 
@@ -427,120 +432,87 @@ class AutoCATE(BaseCamlEstimator):
             T=T_val,
             X=X_val if not X_val.empty else None,
             W=W_val if not W_val.empty else None,
-            discrete_outcome=self.discrete_outcome,  # type: ignore
         )
 
-        best_estimator, _, estimator_scores = rscorer.best_model(  # type: ignore
-            [mdl.estimator for mdl in fitted_estimators], return_scores=True
+        estimators = {mdl.name: mdl.estimator for mdl in fitted_estimators}
+
+        best_estimator, best_score, estimator_scores = rscorer.best_model(  # type: ignore
+            list(estimators.values()), return_scores=True
         )
 
         estimator_scores = dict(
-            zip([mdl.name for mdl in fitted_estimators], estimator_scores, strict=False)
+            zip(list(estimators.keys()), estimator_scores, strict=False)
         )
 
-        INFO(f"Best Estimator: {best_estimator}")
-        INFO(f"Estimator RScores: {estimator_scores}")
-        print(f"Best Estimator: {best_estimator}")
-        print(f"Estimator RScores: {estimator_scores}")
+        if ensemble:
+            ensemble_estimator, ensemble_score, _ = rscorer.ensemble(  # type: ignore
+                list(estimators.values()), return_scores=True
+            )
+            estimator_scores["ensemble"] = ensemble_score
+
+            if ensemble_score > best_score:
+                best_estimator = ensemble_estimator
+                best_score = ensemble_score
 
         self.rscores = estimator_scores
 
-        return best_estimator
+        best_estimator_loc = np.argmax(list(estimator_scores.values()))
+        best_estimator_name = list(estimator_scores.keys())[best_estimator_loc]
 
-        # if ensemble:
-        #     ensemble_estimator, ensemble_score, estimator_scores = rscorer.ensemble(
-        #         [mdl for _, mdl in models], return_scores=True
-        #     )
-        #     estimator_scores = list(estimator_scores)
-        #     estimator_scores.append(ensemble_score)
-        #     models.append(("ensemble", ensemble_estimator))
-        #     self.cate_estimators.append(("ensemble", ensemble_estimator))
+        INFO(f"Best Estimator: '{best_estimator_name}'")
+        INFO(f"Estimator RScores: {estimator_scores}")
 
-    def validate(
+        self.best_estimator = best_estimator
+
+    @timer("Final Model Verification")
+    def _test(
         self,
-        *,
-        n_groups: int = 4,
-        n_bootstrap: int = 100,
-        estimator: BaseCateEstimator | EnsembleCateEstimator | None = None,
-        print_full_report: bool = True,
+        splits: dict[str, Any],
+        n_groups: int,
+        n_bootstrap: int,
     ):
-        """
-        Validates the fitted CATE models on the test set to check for generalization performance.
-
-        Uses the DRTester class from EconML to obtain the Best Linear Predictor (BLP), Calibration, AUTOC, and QINI.
-        See [EconML documentation](https://econml.azurewebsites.net/_autosummary/econml.validate.DRTester.html) for more details.
-        In short, we are checking for the ability of the model to find statistically significant heterogeneity in a "well-calibrated" fashion.
-
-        Sets the `validator_report` attribute to the validation report.
-
-        Parameters
-        ----------
-        n_groups : int
-            The number of quantile based groups used to calculate calibration scores.
-        n_bootstrap : int
-            The number of boostrap samples to run when calculating confidence bands.
-        estimator : BaseCateEstimator | EnsembleCateEstimator | None
-            The estimator to validate. Default implies the best estimator from the validation set.
-        print_full_report : bool
-            A boolean indicating whether to print the full validation report.
-
-        Examples
-        --------
-        ```{python}
-        caml_obj.validate()
-
-        caml_obj.validator_results
-        ```
-        """
-        plt.style.use("ggplot")
-
-        if estimator is None:
-            estimator = self._validation_estimator
-
         if not self.discrete_treatment or self.discrete_outcome:
-            ERROR(
+            WARNING(
                 "Validation for continuous treatments and/or discrete outcomes is not supported yet."
             )
             return
 
+        Y_train = splits["Y_train"]
+        T_train = splits["T_train"]
+        X_train = splits["X_train"]
+        W_train = splits["W_train"]
+
+        Y_test = splits["Y_test"]
+        T_test = splits["T_test"]
+        X_test = splits["X_test"]
+        W_test = splits["W_test"]
+
+        X_W_test = pd.concat((X_test, W_test), axis=1)
+        X_W_train = pd.concat((X_train, W_train), axis=1)
+
         validator = DRTester(
-            model_regression=self.model_Y_X_W_T,
-            model_propensity=self.model_T_X_W,
-            cate=estimator,
+            model_regression=self.model_regression,
+            model_propensity=self.model_T,
+            cate=self.best_estimator,
             cv=3,
+        ).fit_nuisance(
+            X_W_test.to_numpy(),
+            T_test.to_numpy().flatten(),
+            Y_test.to_numpy().flatten(),
+            X_W_train.to_numpy(),
+            T_train.to_numpy().flatten(),
+            Y_train.to_numpy().flatten(),
         )
 
-        X_test, W_test, T_test, Y_test = (
-            self._data_splits["X_test"],
-            self._data_splits["W_test"],
-            self._data_splits["T_test"],
-            self._data_splits["Y_test"],
-        )
-
-        X_train, W_train, T_train, Y_train = (
-            self._data_splits["X_train"],
-            self._data_splits["W_train"],
-            self._data_splits["T_train"],
-            self._data_splits["Y_train"],
-        )
-
-        X_W_test = np.hstack((X_test, W_test))
-        X_W_train = np.hstack((X_train, W_train))
-
-        validator.fit_nuisance(
-            X_W_test,
-            T_test.astype(int),
-            Y_test,
-            X_W_train,
-            T_train.astype(int),
-            Y_train,
-        )
+        # return validator, X_test, T_test, Y_test, X_train, T_train, Y_train
 
         res = validator.evaluate_all(
-            X_test, X_train, n_groups=n_groups, n_bootstrap=n_bootstrap
+            X_test.to_numpy(),
+            X_train.to_numpy(),
+            n_groups=n_groups,
+            n_bootstrap=n_bootstrap,
         )
 
-        # Check for insignificant results & warn user
         summary = res.summary()
         if np.array(summary[[c for c in summary.columns if "pval" in c]] > 0.1).any():
             WARNING(
@@ -551,15 +523,14 @@ class AutoCATE(BaseCamlEstimator):
                 "All validation results suggest that the model has found statistically significant heterogeneity."
             )
 
-        if print_full_report:
-            print(summary.to_string())
-            for i in res.blp.treatments:
-                if i > 0:
-                    res.plot_cal(i)
-                    res.plot_qini(i)
-                    res.plot_toc(i)
+        print(summary.to_string())
+        for i in res.blp.treatments:
+            if i > 0:
+                res.plot_cal(i)
+                res.plot_qini(i)
+                res.plot_toc(i)
 
-        self.validator_results = res
+        self.test_results = res
 
     def fit_final(self):
         """
@@ -766,12 +737,12 @@ class AutoCATE(BaseCamlEstimator):
 
         if self._nuisances_fitted:
             summary += (
-                f"Nuissance Model Y_X: {self.model_Y}\n"
-                + f"Propensity/Nuissance Model T_X: {self.model_T}\n"
-                + f"Regression Model Y_X_T: {self.model_regression}\n"
+                f"Nuissance Model Y: {self.model_Y}\n"
+                + f"Propensity/Nuissance Model T: {self.model_T}\n"
+                + f"Regression Model: {self.model_regression}\n"
             )
 
-        if self._final_estimator is not None:
-            summary += f"Final Estimator: {self._final_estimator}\n"
+        if self._fitted:
+            summary += f"Best Estimator: {self.best_estimator}\n"
 
         return summary

@@ -8,9 +8,7 @@ from flaml import AutoML
 from sklearn.base import BaseEstimator
 from sklearn.model_selection import train_test_split
 
-from ..generics import (
-    PandasConvertibleDataFrame,
-)
+from ..generics.interfaces import PandasConvertibleDataFrame
 from ..logging import DEBUG, ERROR
 
 
@@ -23,7 +21,7 @@ class BaseCamlEstimator(metaclass=abc.ABCMeta):
 
     X: list[str]
     W: list[str]
-    T: list[str]
+    T: list[str] | str
     Y: list[str]
     seed: int | None
 
@@ -117,6 +115,11 @@ class BaseCamlEstimator(metaclass=abc.ABCMeta):
         automl.fit(**flaml_kwargs)
 
         model = automl.model.estimator  # pyright: ignore[reportOptionalMemberAccess]
+
+        print(
+            f"Best estimator: {automl.best_estimator} with loss {automl.best_loss}"
+            f" found on iteration {automl.best_iteration} in {automl.time_to_find_best_model} seconds."
+        )
 
         return model
 

@@ -4,14 +4,9 @@ import pandas as pd
 import patsy
 from joblib import Parallel, delayed
 
-from ..generics import (
-    FittedAttr,
-    PandasConvertibleDataFrame,
-    experimental,
-    is_module_available,
-    maybe_jit,
-    timer,
-)
+from ..generics.decorators import experimental, maybe_jit, timer
+from ..generics.interfaces import FittedAttr, PandasConvertibleDataFrame
+from ..generics.utils import is_module_available
 from ..logging import DEBUG, ERROR, INFO, WARNING
 from ._base import BaseCamlEstimator
 
@@ -146,7 +141,7 @@ class FastOLS(BaseCamlEstimator):
             f"Initializing {self.__class__.__name__} with parameters: Y={Y}, T={T}, G={G}, X={X}, W={W}, discrete_treatment={discrete_treatment}, engine={engine}"
         )
         self.Y = list(Y)
-        self.T = list(T)
+        self.T = T
         self.G = list(G) if G else list()
         self.X = list(X) if X else list()
         self.W = list(W) if W else list()
@@ -707,7 +702,7 @@ class FastOLS(BaseCamlEstimator):
     @staticmethod
     def _create_formula(
         Y: list[str],
-        T: list[str],
+        T: str,
         G: list[str],
         X: list[str],
         W: list[str],
@@ -717,9 +712,9 @@ class FastOLS(BaseCamlEstimator):
         formula = " + ".join([f"Q('{y}')" for y in Y])
 
         if discrete_treatment:
-            treatment = f"C(Q('{T[0]}'))"
+            treatment = f"C(Q('{T}'))"
         else:
-            treatment = f"Q('{T[0]}')"
+            treatment = f"Q('{T}')"
 
         formula += f" ~ {treatment}"
 

@@ -1,6 +1,6 @@
-import builtins
 import importlib
 import sys
+from importlib.util import find_spec
 
 import cloudpickle
 import jax.numpy as jnp
@@ -10,9 +10,11 @@ import polars as pl
 import pytest
 from sklearn.metrics import mean_squared_error, r2_score
 from statsmodels.formula.api import ols
+from typeguard import suppress_type_checks
 
 import caml.core.ols as ols_mod
-import caml.generics as gen_mod
+import caml.generics.decorators as gen_mod
+import caml.generics.utils as utils_mod
 from caml import FastOLS
 
 pytestmark = [pytest.mark.core, pytest.mark.ols]
@@ -26,30 +28,34 @@ def backend(request, monkeypatch):
     - "with_jax": real JAX is available, so ols_mod._HAS_JAX == True
     - "with_numpy": JAX imports fail, so ols_mod._HAS_JAX == False
     """
-    # Save the real __import__ so we can restore it later
-    real_import = builtins.__import__
+    # Save the real find_spec and __import__ so we can restore them later
+    real_find_spec = find_spec
 
-    def fake_import(name, globals=None, locals=None, fromlist=(), level=0):
-        # Simulate ImportError for any jax or jax.* import
+    def fake_find_spec(name, package=None):
+        # Simulate JAX module not being available
         if name == "jax" or name.startswith("jax."):
-            raise ImportError(f"no module named {name}")
-        return real_import(name, globals, locals, fromlist, level)
+            return None
+        return real_find_spec(name, package)
 
     if request.param == "jax":
-        # Ensure that, if we’d previously reloaded with numpy, we go back to JAX mode
+        # Ensure that, if we'd previously reloaded with numpy, we go back to JAX mode
         if not ols_mod._HAS_JAX:
-            # Restore real import
-            monkeypatch.setattr(builtins, "__import__", real_import)
-            importlib.reload(ols_mod)
+            # Restore real find_spec
+            monkeypatch.setattr(
+                "importlib.util.find_spec", real_find_spec
+            )  # monkeypatch.setattr(builtins, "__import__", real_import)
+            importlib.reload(utils_mod)
             importlib.reload(gen_mod)
+            importlib.reload(ols_mod)
         # Sanity-check
         assert ols_mod._HAS_JAX
         assert gen_mod._HAS_JAX
     else:
-        # Simulate JAX missing
-        monkeypatch.setattr(builtins, "__import__", fake_import)
-        importlib.reload(ols_mod)
+        # Simulate JAX missing by mocking find_spec
+        monkeypatch.setattr("importlib.util.find_spec", fake_find_spec)
+        importlib.reload(utils_mod)
         importlib.reload(gen_mod)
+        importlib.reload(ols_mod)
         # Sanity‑check
         assert not gen_mod._HAS_JAX
         assert not ols_mod._HAS_JAX
@@ -62,10 +68,11 @@ def backend(request, monkeypatch):
 
     yield request.param
 
-    # Teardown: restore import & reload to original module state
-    monkeypatch.setattr(builtins, "__import__", real_import)
-    importlib.reload(ols_mod)
+    # Teardown: restore find_spec to original module state
+    monkeypatch.setattr("importlib.util.find_spec", real_find_spec)
+    importlib.reload(utils_mod)
     importlib.reload(gen_mod)
+    importlib.reload(ols_mod)
 
 
 @pytest.fixture(params=["cont_T", "binary_T"], ids=["continuous_T", "binary_T"])
@@ -258,6 +265,7 @@ class TestFastOLSInitialization:
 IS_WIN_PY312 = sys.platform.startswith("win") and sys.version_info[:2] == (3, 12)
 
 
+@suppress_type_checks
 @pytest.mark.skipif(
     IS_WIN_PY312,
     reason="PySpark toPandas on Windows with Python 3.12 is unstable in CI",
