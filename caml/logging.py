@@ -115,7 +115,9 @@ def get_terminal_width(default_width: int = 80) -> int:
         return default_width
 
 
-def get_separator(char: str = "=", width: int | None = None, min_width: int = 20, max_width: int = 120) -> str:
+def get_separator(
+    char: str = "=", width: int | None = None, min_width: int = 20, max_width: int = 120
+) -> str:
     """
     Get a separator line that adapts to terminal width.
 

@@ -232,7 +232,7 @@ class AutoCATE(BaseCamlEstimator):
             if not ray.is_initialized():
                 ray.init()
         ## Add argument checks (e.g. validate cate_estimators and additional_cate_estimators)
-        pd_df = self._convert_dataframe_to_pandas(df,encode_categoricals=True)
+        pd_df = self._convert_dataframe_to_pandas(df, encode_categoricals=True)
         self._find_nuisance_functions(pd_df)
         splits = self._split_data(
             df=pd_df,
@@ -334,7 +334,6 @@ class AutoCATE(BaseCamlEstimator):
     def _fit_estimators(
         self, cate_estimators: list[AutoCateEstimator], splits: dict[str, Any]
     ) -> list[AutoCateEstimator]:
-
         INFO("\n" + get_separator(char="=", width=27))
         INFO("|:dart: AutoML CATE Functions |")
         INFO(get_separator(char="=", width=27) + "\n")

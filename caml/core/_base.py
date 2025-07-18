@@ -118,8 +118,7 @@ class BaseCamlEstimator(metaclass=abc.ABCMeta):
 
         automl.fit(**flaml_kwargs)
 
-        model = automl.model.estimator # pyright: ignore[reportOptionalMemberAccess]
-
+        model = automl.model.estimator  # pyright: ignore[reportOptionalMemberAccess]
 
         INFO(
             f"Best estimator: {automl.best_estimator} with loss {automl.best_loss}"
@@ -130,14 +129,16 @@ class BaseCamlEstimator(metaclass=abc.ABCMeta):
 
     @staticmethod
     def _convert_dataframe_to_pandas(
-        df: PandasConvertibleDataFrame, groups: Sequence[str] | None = None, encode_categoricals: bool = False,
+        df: PandasConvertibleDataFrame,
+        groups: Sequence[str] | None = None,
+        encode_categoricals: bool = False,
     ) -> pd.DataFrame:
         def _convert_groups_to_categorical(df, groups):
             for col in groups or []:
                 df[col] = df[col].astype("category")
             return df
 
-        def _pre_process_categoricals(df)->pd.DataFrame:
+        def _pre_process_categoricals(df) -> pd.DataFrame:
             cat_columns = df.select_dtypes(include=["category"]).columns
             if not cat_columns.empty:
                 df = df.copy()
@@ -159,7 +160,6 @@ class BaseCamlEstimator(metaclass=abc.ABCMeta):
                 return _pre_process(df.toPandas(), groups, encode_categoricals)
             if isinstance(df, _to_pandasConvertible):
                 return _pre_process(df.to_pandas(), groups, encode_categoricals)
-
 
         ERROR(f"Unsupported dataframe type: {type(df)}")
         raise ValueError(f"Pandas conversion not currently supported for {type(df)}.")
