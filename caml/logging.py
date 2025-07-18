@@ -83,3 +83,62 @@ def set_log_level(level: int):
         The new logging level to use.
     """
     logger.setLevel(level)
+
+
+def get_terminal_width(default_width: int = 80) -> int:
+    """
+    Get the terminal width for formatting output.
+
+    Parameters
+    ----------
+    default_width
+        Default width to use if terminal width cannot be detected.
+
+    Returns
+    -------
+    int
+        The terminal width in characters.
+    """
+    try:
+        # Try to get width from existing Rich handlers
+        for handler in logger.handlers:
+            if isinstance(handler, RichHandler):
+                console = handler.console
+                if console and hasattr(console, "size"):
+                    return console.size.width
+
+        # Fallback: create a temporary console to get width
+        console = Console()
+        return console.size.width
+    except Exception:
+        # Fallback to default if anything goes wrong
+        return default_width
+
+
+def get_separator(char: str = "=", width: int | None = None, min_width: int = 20, max_width: int = 120) -> str:
+    """
+    Get a separator line that adapts to terminal width.
+
+    Parameters
+    ----------
+    char
+        Character to use for the separator.
+    width
+        Specific width to use. If None, auto-detects terminal width.
+    min_width
+        Minimum width for the separator.
+    max_width
+        Maximum width for the separator.
+
+    Returns
+    -------
+    str
+        A separator string of appropriate length.
+    """
+    if width is None:
+        width = get_terminal_width()
+
+    # Constrain width to reasonable bounds
+    width = max(min_width, min(width, max_width))
+
+    return char * width

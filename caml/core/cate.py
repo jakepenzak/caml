@@ -4,6 +4,7 @@ import copy
 import warnings
 from typing import TYPE_CHECKING, Any, Sequence
 
+import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 from econml._ortho_learner import _OrthoLearner
@@ -16,7 +17,7 @@ from ..generics.decorators import experimental, timer
 from ..generics.interfaces import FittedAttr, PandasConvertibleDataFrame
 from ..generics.monkey_patch import DRTester
 from ..generics.utils import is_module_available
-from ..logging import INFO, WARNING
+from ..logging import INFO, WARNING, get_separator
 from ._base import BaseCamlEstimator
 from .modeling.model_bank import (
     AutoCateEstimator,
@@ -175,8 +176,8 @@ class AutoCATE(BaseCamlEstimator):
         use_spark: bool = False,
         seed: int | None = None,
     ):
-        self.Y = list(Y)
-        self.T = list(T)
+        self.Y = [Y] if isinstance(Y, str) else list(Y)
+        self.T = [T] if isinstance(T, str) else list(T)
         self.X = list(X) if X else list()
         self.W = list(W) if W else list()
         self.discrete_treatment = discrete_treatment
@@ -231,7 +232,7 @@ class AutoCATE(BaseCamlEstimator):
             if not ray.is_initialized():
                 ray.init()
         ## Add argument checks (e.g. validate cate_estimators and additional_cate_estimators)
-        pd_df = self._convert_dataframe_to_pandas(df)
+        pd_df = self._convert_dataframe_to_pandas(df,encode_categoricals=True)
         self._find_nuisance_functions(pd_df)
         splits = self._split_data(
             df=pd_df,
@@ -245,12 +246,9 @@ class AutoCATE(BaseCamlEstimator):
         fitted_estimators = self._fit_estimators(estimators, splits)
         self._validate(fitted_estimators, splits, ensemble)
         self._test(splits, n_groups=5, n_bootstrap=100)
-        # validator, X_test, T_test, Y_test, X_train, T_train, Y_train = self._test(
-        #     splits, n_groups=5, n_bootstrap=100
-        # )
+
         self.fitted = True
 
-        # return validator, X_test, T_test, Y_test, X_train, T_train, Y_train
         # if refit_final:
         #     self.best_estimator = self._refit_final_estimator()
 
@@ -297,6 +295,10 @@ class AutoCATE(BaseCamlEstimator):
             ("model_T", self.T, self.X + self.W, self.discrete_treatment),
         ]
 
+        INFO("\n" + get_separator(char="=", width=31))
+        INFO("|:dart: AutoML Nuisance Functions |")
+        INFO(get_separator(char="=", width=31) + "\n")
+
         for model_name, outcome, features, discrete_outcome in model_configs:
             flaml_kwargs = base_settings.copy()
 
@@ -320,7 +322,7 @@ class AutoCATE(BaseCamlEstimator):
                 flaml_kwargs["task"] = "regression"
                 flaml_kwargs["metric"] = "mse"
 
-            print(f"\nSearching for {model_name}:")
+            INFO(f"Searching for {model_name}:")
             model = self._run_automl(**flaml_kwargs)
 
             setattr(self, model_name, model)
@@ -332,6 +334,11 @@ class AutoCATE(BaseCamlEstimator):
     def _fit_estimators(
         self, cate_estimators: list[AutoCateEstimator], splits: dict[str, Any]
     ) -> list[AutoCateEstimator]:
+
+        INFO("\n" + get_separator(char="=", width=27))
+        INFO("|:dart: AutoML CATE Functions |")
+        INFO(get_separator(char="=", width=27) + "\n")
+
         Y_train = splits["Y_train"]
         T_train = splits["T_train"]
         X_train = splits["X_train"]
@@ -497,38 +504,46 @@ class AutoCATE(BaseCamlEstimator):
             cv=3,
         ).fit_nuisance(
             X_W_test.to_numpy(),
-            T_test.to_numpy().flatten(),
-            Y_test.to_numpy().flatten(),
+            T_test.to_numpy().ravel(),
+            Y_test.to_numpy().ravel(),
             X_W_train.to_numpy(),
-            T_train.to_numpy().flatten(),
-            Y_train.to_numpy().flatten(),
+            T_train.to_numpy().ravel(),
+            Y_train.to_numpy().ravel(),
         )
 
-        # return validator, X_test, T_test, Y_test, X_train, T_train, Y_train
-
         res = validator.evaluate_all(
-            X_test.to_numpy(),
-            X_train.to_numpy(),
+            X_W_test.to_numpy(),
+            X_W_train.to_numpy(),
             n_groups=n_groups,
             n_bootstrap=n_bootstrap,
         )
 
+        INFO("\n" + get_separator(char="=", width=16))
+        INFO("|:dart: Testing Results |")
+        INFO(get_separator(char="=", width=16) + "\n")
+
         summary = res.summary()
         if np.array(summary[[c for c in summary.columns if "pval" in c]] > 0.1).any():
             WARNING(
-                "Some of the validation results suggest that the model may not have found statistically significant heterogeneity. Please closely look at the validation results and consider retraining with new configurations."
+                "Some of the validation results suggest that the model may not have found statistically significant heterogeneity. Please closely look at the validation results and consider retraining with new configurations.\n"
             )
         else:
             INFO(
-                "All validation results suggest that the model has found statistically significant heterogeneity."
+                "All validation results suggest that the model has found statistically significant heterogeneity.\n"
             )
 
-        print(summary.to_string())
+        INFO(summary)
         for i in res.blp.treatments:
             if i > 0:
+                INFO("CALIBRATION CURVE")
                 res.plot_cal(i)
+                plt.show()
+                INFO("QINI CURVE")
                 res.plot_qini(i)
+                plt.show()
+                INFO("TOC CURVE")
                 res.plot_toc(i)
+                plt.show()
 
         self.test_results = res
 

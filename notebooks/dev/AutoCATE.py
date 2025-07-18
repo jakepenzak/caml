@@ -40,6 +40,7 @@ def _():
         n_cont_outcomes=1,
         n_binary_outcomes=0,
         n_binary_treatments=1,
+        n_discrete_treatments=0,
         n_cont_confounders=0,
         n_binary_confounders=0,
         n_discrete_confounders=0,
@@ -93,6 +94,12 @@ def _(synthetic_df):
 
 
 @app.cell
+def _(synthetic_df):
+    synthetic_df
+    return
+
+
+@app.cell
 def _(mo):
     mo.md("""## Core API""")
     return
@@ -139,6 +146,14 @@ def _(synthetic_df):
 @app.cell
 def _(mo):
     mo.md("""#### Nuissance Function AutoML""")
+    return
+
+
+@app.cell
+def _():
+    import warnings
+
+    warnings.filterwarnings('ignore')
     return
 
 

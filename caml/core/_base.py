@@ -8,8 +8,12 @@ from flaml import AutoML
 from sklearn.base import BaseEstimator
 from sklearn.model_selection import train_test_split
 
-from ..generics.interfaces import PandasConvertibleDataFrame
-from ..logging import DEBUG, ERROR
+from ..generics.interfaces import (
+    PandasConvertibleDataFrame,
+    _to_pandasConvertible,
+    _toPandasConvertible,
+)
+from ..logging import DEBUG, ERROR, INFO
 
 
 class BaseCamlEstimator(metaclass=abc.ABCMeta):
@@ -114,33 +118,48 @@ class BaseCamlEstimator(metaclass=abc.ABCMeta):
 
         automl.fit(**flaml_kwargs)
 
-        model = automl.model.estimator  # pyright: ignore[reportOptionalMemberAccess]
+        model = automl.model.estimator # pyright: ignore[reportOptionalMemberAccess]
 
-        print(
+
+        INFO(
             f"Best estimator: {automl.best_estimator} with loss {automl.best_loss}"
-            f" found on iteration {automl.best_iteration} in {automl.time_to_find_best_model} seconds."
+            f" found on iteration {automl.best_iteration} in {automl.time_to_find_best_model} seconds.\n"
         )
 
         return model
 
     @staticmethod
     def _convert_dataframe_to_pandas(
-        df: PandasConvertibleDataFrame, groups: Sequence[str] | None = None
+        df: PandasConvertibleDataFrame, groups: Sequence[str] | None = None, encode_categoricals: bool = False,
     ) -> pd.DataFrame:
-        def convert_groups_to_categorical(df, groups):
+        def _convert_groups_to_categorical(df, groups):
             for col in groups or []:
                 df[col] = df[col].astype("category")
             return df
 
+        def _pre_process_categoricals(df)->pd.DataFrame:
+            cat_columns = df.select_dtypes(include=["category"]).columns
+            if not cat_columns.empty:
+                df = df.copy()
+                df[cat_columns] = df[cat_columns].apply(lambda x: x.cat.codes)
+            return df
+
+        def _pre_process(df, groups, encode_categoricals):
+            df = _convert_groups_to_categorical(df, groups)
+            if encode_categoricals:
+                df = _pre_process_categoricals(df)
+            return df
+
         if isinstance(df, PandasConvertibleDataFrame):
             if isinstance(df, pd.DataFrame):
-                return convert_groups_to_categorical(df, groups)
+                return _pre_process(df, groups, encode_categoricals)
 
             DEBUG(f"Converting input dataframe of type {type(df)} to pandas")
-            if hasattr(df, "toPandas"):
-                return convert_groups_to_categorical(df.toPandas(), groups)
-            if hasattr(df, "to_pandas"):
-                return convert_groups_to_categorical(df.to_pandas(), groups)
+            if isinstance(df, _toPandasConvertible):
+                return _pre_process(df.toPandas(), groups, encode_categoricals)
+            if isinstance(df, _to_pandasConvertible):
+                return _pre_process(df.to_pandas(), groups, encode_categoricals)
+
 
         ERROR(f"Unsupported dataframe type: {type(df)}")
         raise ValueError(f"Pandas conversion not currently supported for {type(df)}.")
