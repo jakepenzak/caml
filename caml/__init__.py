@@ -2,8 +2,8 @@
 
 import matplotlib.pyplot as plt
 
-from ._version import __version__
-from .core.cate import AutoCATE
-from .core.ols import FastOLS
+from caml._version import __version__
+from caml.core.cate import AutoCATE
+from caml.core.ols import FastOLS
 
 plt.style.use("ggplot")

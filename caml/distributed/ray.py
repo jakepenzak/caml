@@ -1,5 +1,5 @@
 import ray
-from ray.util.spark import (
+from ray.util.spark import (  # pyright: ignore[reportMissingImports]
     MAX_NUM_WORKER_NODES,
     setup_ray_cluster,
     shutdown_ray_cluster,

@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import copy
 import warnings
 from typing import TYPE_CHECKING, Any, Sequence
 
@@ -13,17 +12,17 @@ from econml.score import EnsembleCateEstimator, RScorer
 from joblib import Parallel, delayed
 from sklearn.base import BaseEstimator
 
-from ..generics.decorators import experimental, timer
-from ..generics.interfaces import FittedAttr, PandasConvertibleDataFrame
-from ..generics.monkey_patch import DRTester
-from ..generics.utils import is_module_available
-from ..logging import INFO, WARNING, get_separator
-from ._base import BaseCamlEstimator
-from .modeling.model_bank import (
+from caml.core._base import BaseCamlEstimator
+from caml.core.modeling.model_bank import (
     AutoCateEstimator,
     available_estimators,
     get_cate_estimator,
 )
+from caml.generics.decorators import experimental, timer
+from caml.generics.interfaces import FittedAttr, PandasConvertibleDataFrame
+from caml.generics.monkey_patch import DRTester
+from caml.generics.utils import is_module_available, logo
+from caml.logging import INFO, WARNING, get_separator
 
 _HAS_PYSPARK = is_module_available("pyspark")
 _HAS_RAY = is_module_available("ray")
@@ -35,12 +34,9 @@ if TYPE_CHECKING:
     import ray
 
 
-warnings.filterwarnings(
-    "ignore", message="A column-vector y was passed when a 1d array was expected"
-)
+warnings.filterwarnings("ignore")
 
 
-# TODO: Add print statements for `fit` method.
 # TODO: Refactor all docstrings!!
 @experimental
 class AutoCATE(BaseCamlEstimator):
@@ -223,11 +219,14 @@ class AutoCATE(BaseCamlEstimator):
         self,
         df: PandasConvertibleDataFrame,
         cate_estimators: Sequence[str] = available_estimators,
-        additional_cate_estimators: Sequence[AutoCateEstimator] = [],
+        additional_cate_estimators: Sequence[AutoCateEstimator] = list(),
         ensemble: bool = False,
+        refit_final: bool = True,
         validation_fraction: float = 0.2,
         test_fraction: float = 0.1,
     ):
+        INFO(f"{logo}")
+        INFO(f"{self} \n")
         if self.use_ray:
             if not ray.is_initialized():
                 ray.init()
@@ -249,8 +248,8 @@ class AutoCATE(BaseCamlEstimator):
 
         self.fitted = True
 
-        # if refit_final:
-        #     self.best_estimator = self._refit_final_estimator()
+        if refit_final:
+            self.refit_final(pd_df)
 
     def estimate_ate(self, df: PandasConvertibleDataFrame) -> None:
         return
@@ -263,6 +262,10 @@ class AutoCATE(BaseCamlEstimator):
 
     @timer("Find Nuisance Functions")
     def _find_nuisance_functions(self, df: pd.DataFrame):
+        INFO(get_separator(char="=", width=31))
+        INFO("|:dart: AutoML Nuisance Functions |")
+        INFO(get_separator(char="=", width=31) + "\n")
+
         base_settings = {
             "n_jobs": -1,
             "log_file_name": "",
@@ -289,15 +292,11 @@ class AutoCATE(BaseCamlEstimator):
             (
                 "model_regression",
                 self.Y,
-                self.X + self.W + self.T,
+                self.X + self.W + list(self.T),
                 self.discrete_outcome,
             ),
             ("model_T", self.T, self.X + self.W, self.discrete_treatment),
         ]
-
-        INFO("\n" + get_separator(char="=", width=31))
-        INFO("|:dart: AutoML Nuisance Functions |")
-        INFO(get_separator(char="=", width=31) + "\n")
 
         for model_name, outcome, features, discrete_outcome in model_configs:
             flaml_kwargs = base_settings.copy()
@@ -329,6 +328,8 @@ class AutoCATE(BaseCamlEstimator):
             setattr(self, f"_{model_name}", flaml_kwargs)
 
         self._nuisances_fitted = True
+
+        INFO(":white_check_mark: Completed.")
 
     @timer("Fit Validation Estimators")
     def _fit_estimators(
@@ -373,7 +374,7 @@ class AutoCATE(BaseCamlEstimator):
                     )
                     return None
                 else:
-                    est.fit(Y=Y, T=T, X=X)
+                    est.fit(Y=Y, T=T, X=X if not X.empty else None)
             return estimator
 
         if self.use_ray:
@@ -383,7 +384,7 @@ class AutoCATE(BaseCamlEstimator):
             W_train_ref = ray.put(W_train)
             remote_fns = [
                 ray.remote(fit_estimator)
-                .options(**self.ray_remote_func_options_kwargs)  # type: ignore
+                .options(**self.ray_remote_func_options_kwargs)  # pyright: ignore[reportAttributeAccessIssue]
                 .remote(est, Y_train_ref, T_train_ref, X_train_ref, W_train_ref)
                 for est in cate_estimators
             ]
@@ -442,7 +443,7 @@ class AutoCATE(BaseCamlEstimator):
 
         estimators = {mdl.name: mdl.estimator for mdl in fitted_estimators}
 
-        best_estimator, best_score, estimator_scores = rscorer.best_model(  # type: ignore
+        best_estimator, best_score, estimator_scores = rscorer.best_model(  # pyright: ignore[reportAssignmentType]
             list(estimators.values()), return_scores=True
         )
 
@@ -451,7 +452,7 @@ class AutoCATE(BaseCamlEstimator):
         )
 
         if ensemble:
-            ensemble_estimator, ensemble_score, _ = rscorer.ensemble(  # type: ignore
+            ensemble_estimator, ensemble_score, _ = rscorer.ensemble(  # pyright: ignore[reportAssignmentType]
                 list(estimators.values()), return_scores=True
             )
             estimator_scores["ensemble"] = ensemble_score
@@ -469,6 +470,7 @@ class AutoCATE(BaseCamlEstimator):
         INFO(f"Estimator RScores: {estimator_scores}")
 
         self.best_estimator = best_estimator
+        INFO(":white_check_mark: Completed.")
 
     @timer("Final Model Verification")
     def _test(
@@ -477,6 +479,10 @@ class AutoCATE(BaseCamlEstimator):
         n_groups: int,
         n_bootstrap: int,
     ):
+        INFO("\n" + get_separator(char="=", width=19))
+        INFO("|:test_tube: Testing Results |")
+        INFO(get_separator(char="=", width=19) + "\n")
+
         if not self.discrete_treatment or self.discrete_outcome:
             WARNING(
                 "Validation for continuous treatments and/or discrete outcomes is not supported yet."
@@ -517,10 +523,6 @@ class AutoCATE(BaseCamlEstimator):
             n_bootstrap=n_bootstrap,
         )
 
-        INFO("\n" + get_separator(char="=", width=16))
-        INFO("|:dart: Testing Results |")
-        INFO(get_separator(char="=", width=16) + "\n")
-
         summary = res.summary()
         if np.array(summary[[c for c in summary.columns if "pval" in c]] > 0.1).any():
             WARNING(
@@ -545,165 +547,35 @@ class AutoCATE(BaseCamlEstimator):
                 plt.show()
 
         self.test_results = res
+        INFO(":white_check_mark: Completed.")
 
-    def fit_final(self):
-        """
-        Fits the final estimator on the entire dataset, after validation and testing.
+    @timer("Refit Final Estimator")
+    def refit_final(self, df: PandasConvertibleDataFrame):
+        INFO("\n" + get_separator(char="=", width=31))
+        INFO("|:battery: Refitting Final Estimator |")
+        INFO(get_separator(char="=", width=31) + "\n")
+        df = self._convert_dataframe_to_pandas(df, encode_categoricals=True)
+        estimator = self.best_estimator
+        Y = df[self.Y]
+        T = df[self.T]
+        X = df[self.X]
+        W = df[self.W]
 
-        Sets the `input_names` and `final_estimator` class attributes.
-
-        Examples
-        --------
-        ```{python}
-        caml_obj.fit_final()
-
-        print(caml_obj.final_estimator)
-        print(caml_obj.input_names)
-        ```
-        """
-        self.input_names = {}
-        if not self._validation_estimator:
-            raise RuntimeError(
-                "Must fit validation estimator first before fitting final estimator. Please run fit_validator() method first."
-            )
-        self._final_estimator = copy.deepcopy(self._validation_estimator)
-
-        Y, T, X, W = self._Y, self._T, self._X, self._W
-
-        if isinstance(self._final_estimator, EnsembleCateEstimator):
-            for estimator in self._final_estimator._cate_models:
-                if isinstance(estimator, _OrthoLearner):
-                    estimator.fit(
-                        Y=Y,
-                        T=T,
-                        X=X,
-                        W=W if W.shape[1] > 0 else None,
-                    )
-                else:
-                    estimator.fit(
-                        Y=Y,
-                        T=T,
-                        X=X,
-                    )
-                    self.input_names["feature_names"] = self.X
-                    self.input_names["output_names"] = self.Y
-                    self.input_names["treatment_names"] = self.T
-        else:
-            if isinstance(self._final_estimator, _OrthoLearner):
-                self._final_estimator.fit(
-                    Y=Y,
-                    T=T,
-                    X=X,
-                    W=W if W.shape[1] > 0 else None,
+        def fit_model(est):
+            if isinstance(est, _OrthoLearner):
+                est.fit(
+                    Y=Y, T=T, X=X if not X.empty else None, W=W if not W.empty else None
                 )
             else:
-                self._final_estimator.fit(
-                    Y=Y,
-                    T=T,
-                    X=X,
-                )
+                est.fit(Y=Y, T=T, X=X if not X.empty else None)
 
-            self.input_names["feature_names"] = self.X
-            self.input_names["output_names"] = self.Y
-            self.input_names["treatment_names"] = self.T
-
-    def predict_old(
-        self,
-        *,
-        X: pd.DataFrame | np.ndarray | None = None,
-        T0: int = 0,
-        T1: int = 1,
-        T: pd.DataFrame | np.ndarray | None = None,
-    ) -> np.ndarray:
-        """
-        Predicts the CATE based on the fitted final estimator for either the internal dataset or provided Data.
-
-        For binary treatments, the CATE is the estimated effect of the treatment and for a continuous treatment, the CATE is the estimated effect of a one-unit increase in the treatment.
-        This can be modified by setting the T0 and T1 parameters to the desired treatment levels.
-
-        Parameters
-        ----------
-        X : pd.DataFrame | np.ndarray | None
-            The DataFrame containing the features (X) for which CATE needs to be predicted.
-            If not provided, defaults to the internal dataset.
-        T0 : int
-            Base treatment for each sample.
-        T1 : int
-            Target treatment for each sample.
-        T : pd.DataFrame | np.ndarray | None
-            Treatment vector if continuous treatment is leveraged for computing marginal effects around treatments for each individual.
-
-        Returns
-        -------
-        np.ndarray
-            The predicted CATE values if return_predictions is set to True.
-
-        Examples
-        --------
-        ```{python}
-        caml_obj.predict()
-        ```
-        """
-        if not self._final_estimator:
-            raise RuntimeError(
-                "Must fit final estimator first before making predictions. Please run fit_final() method first."
-            )
-
-        if X is None:
-            _X = self._X
-            _T = self._T
+        if isinstance(estimator, EnsembleCateEstimator):
+            for est in estimator._cate_models:
+                fit_model(est)
         else:
-            _X = X
-            _T = T
+            fit_model(estimator)
 
-        if self.discrete_treatment:
-            cate_predictions = self._final_estimator.effect(_X, T0=T0, T1=T1)
-        else:
-            cate_predictions = self._final_estimator.marginal_effect(_T, _X)
-
-        if cate_predictions.ndim > 1:
-            cate_predictions = cate_predictions.ravel()
-
-        if X is None:
-            self._cate_predictions[f"cate_predictions_{T0}_{T1}"] = cate_predictions
-
-        return cate_predictions
-
-    def summarize(
-        self,
-        *,
-        cate_predictions: np.ndarray | None = None,
-    ):
-        """
-        Provides population summary statistics for the CATE predictions for either the internal results or provided results.
-
-        Parameters
-        ----------
-        cate_predictions : np.ndarray | None
-            The CATE predictions for which summary statistics will be generated.
-            If not provided, defaults to internal CATE predictions generated by `predict()` method with X=None.
-
-        Returns
-        -------
-        pd.DataFrame | pd.Series
-            The summary statistics for the CATE predictions.
-
-        Examples
-        --------
-        ```{python}
-        caml_obj.summarize()
-        ```
-        """
-        if cate_predictions is None:
-            _cate_predictions = self._cate_predictions
-            cate_predictions_df = pd.DataFrame.from_dict(_cate_predictions)
-        else:
-            _cate_predictions = cate_predictions
-            cate_predictions_df = pd.DataFrame(
-                cate_predictions, columns=["cate_predictions"]
-            )
-
-        return cate_predictions_df.describe()
+        INFO(":white_check_mark: Completed.")
 
     def _get_cate_estimators(
         self,

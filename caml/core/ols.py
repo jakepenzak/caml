@@ -4,11 +4,11 @@ import pandas as pd
 import patsy
 from joblib import Parallel, delayed
 
-from ..generics.decorators import experimental, maybe_jit, timer
-from ..generics.interfaces import FittedAttr, PandasConvertibleDataFrame
-from ..generics.utils import is_module_available
-from ..logging import DEBUG, ERROR, INFO, WARNING
-from ._base import BaseCamlEstimator
+from caml.core._base import BaseCamlEstimator
+from caml.generics.decorators import experimental, maybe_jit, timer
+from caml.generics.interfaces import FittedAttr, PandasConvertibleDataFrame
+from caml.generics.utils import is_module_available
+from caml.logging import DEBUG, ERROR, INFO, WARNING
 
 _HAS_JAX = is_module_available("jax")
 
@@ -540,13 +540,13 @@ class FastOLS(BaseCamlEstimator):
     ) -> tuple[jnp.ndarray, jnp.ndarray] | NoReturn:
         try:
             DEBUG("Creating model design matrix...")
-            y, X = patsy.dmatrices(self.formula, data=df, NA_action="raise")  # type: ignore
+            y, X = patsy.dmatrices(self.formula, data=df, NA_action="raise")  # pyright: ignore[reportAttributeAccessIssue]
 
             self._X_design_info = X.design_info
 
             if _HAS_JAX:
-                y = jnp.array(y, device=jax.devices(self._engine)[0])  # type: ignore
-                X = jnp.array(X, device=jax.devices(self._engine)[0])  # type: ignore
+                y = jnp.array(y, device=jax.devices(self._engine)[0])  # pyright: ignore[reportCallIssue]
+                X = jnp.array(X, device=jax.devices(self._engine)[0])  # pyright: ignore[reportCallIssue]
             else:
                 y = jnp.array(y)
                 X = jnp.array(X)
@@ -568,24 +568,24 @@ class FastOLS(BaseCamlEstimator):
             DEBUG("Creating treatment difference matrix...")
             original_t = df[self.T].copy()
             if self._X_design_info is None:
-                y, X = patsy.dmatrices(self.formula, data=df, NA_action="raise")  # type: ignore
+                y, X = patsy.dmatrices(self.formula, data=df, NA_action="raise")  # pyright: ignore[reportAttributeAccessIssue]
                 self._X_design_info = X.design_info
 
             if self._discrete_treatment:
                 df[self.T] = 0
-                X0 = patsy.dmatrix(self._X_design_info, data=df, NA_action="raise")  # type: ignore
+                X0 = patsy.dmatrix(self._X_design_info, data=df, NA_action="raise")  # pyright: ignore[reportAttributeAccessIssue]
                 df[self.T] = 1
-                X1 = patsy.dmatrix(self._X_design_info, data=df, NA_action="raise")  # type: ignore
+                X1 = patsy.dmatrix(self._X_design_info, data=df, NA_action="raise")  # pyright: ignore[reportAttributeAccessIssue]
             else:
-                X0 = patsy.dmatrix(self._X_design_info, data=df, NA_action="raise")  # type: ignore
+                X0 = patsy.dmatrix(self._X_design_info, data=df, NA_action="raise")  # pyright: ignore[reportAttributeAccessIssue]
                 df[self.T] = df[self.T] + 1
-                X1 = patsy.dmatrix(self._X_design_info, data=df, NA_action="raise")  # type: ignore
+                X1 = patsy.dmatrix(self._X_design_info, data=df, NA_action="raise")  # pyright: ignore[reportAttributeAccessIssue]
 
             df[self.T] = original_t
 
             if _HAS_JAX:
-                X1 = jnp.array(X1, device=jax.devices(self._engine)[0])  # type: ignore
-                X0 = jnp.array(X0, device=jax.devices(self._engine)[0])  # type: ignore
+                X1 = jnp.array(X1, device=jax.devices(self._engine)[0])  # pyright: ignore[reportCallIssue]
+                X0 = jnp.array(X0, device=jax.devices(self._engine)[0])  # pyright: ignore[reportCallIssue]
             else:
                 X1 = jnp.array(X1)
                 X0 = jnp.array(X0)

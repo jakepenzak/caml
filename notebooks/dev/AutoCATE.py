@@ -21,7 +21,7 @@ def _():
     from caml.logging import configure_logging
     import logging
 
-    configure_logging(level=logging.DEBUG)
+    configure_logging(level=logging.INFO)
     return
 
 
@@ -151,21 +151,15 @@ def _(mo):
 
 @app.cell
 def _():
-    import warnings
+    # import warnings
 
-    warnings.filterwarnings('ignore')
+    # warnings.filterwarnings('ignore')
     return
 
 
 @app.cell
 def _(caml, synthetic_df):
     caml.fit(synthetic_df)
-    return
-
-
-@app.cell
-def _(caml):
-    caml.rscores
     return
 
 

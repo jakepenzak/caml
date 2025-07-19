@@ -2,8 +2,8 @@ import timeit
 from functools import wraps
 from typing import Callable
 
-from ..logging import DEBUG, WARNING
-from .utils import is_module_available
+from caml.generics.utils import is_module_available
+from caml.logging import DEBUG, WARNING
 
 _HAS_JAX = is_module_available("jax")
 

@@ -13,7 +13,7 @@ from scipy.linalg import toeplitz
 from scipy.special import expit as sigmoid
 from scipy.special import softmax
 
-from ..generics.decorators import experimental
+from caml.generics.decorators import experimental
 
 
 def _truncate_and_renormalize_probabilities(
@@ -283,7 +283,7 @@ class SyntheticDataGenerator:
         assert np.allclose(f(design_matrix,params,noise), df['Y1_continuous'])
         ```
         """
-        return patsy.dmatrix(formula, data=df, return_type=return_type, **kwargs)  # type: ignore
+        return patsy.dmatrix(formula, data=df, return_type=return_type, **kwargs)  # pyright: ignore[reportAttributeAccessIssue]
 
     def _generate_data(self):
         """
