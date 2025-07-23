@@ -12,17 +12,18 @@ from econml.score import EnsembleCateEstimator, RScorer
 from joblib import Parallel, delayed
 from sklearn.base import BaseEstimator
 
+from caml import logging as clg
 from caml.core._base import BaseCamlEstimator
 from caml.core.modeling.model_bank import (
     AutoCateEstimator,
     available_estimators,
     get_cate_estimator,
 )
-from caml.generics.decorators import experimental, timer
+from caml.generics.decorators import experimental, narrate, timer
 from caml.generics.interfaces import FittedAttr, PandasConvertibleDataFrame
 from caml.generics.monkey_patch import DRTester
-from caml.generics.utils import is_module_available, logo
-from caml.logging import INFO, WARNING, get_separator
+from caml.generics.utils import is_module_available
+from caml.logging import INFO, WARNING
 
 _HAS_PYSPARK = is_module_available("pyspark")
 _HAS_RAY = is_module_available("ray")
@@ -215,6 +216,7 @@ class AutoCATE(BaseCamlEstimator):
                 "PySpark is not installed. Please install PySpark optional dependencies via `pip install caml[pyspark]`."
             )
 
+    @narrate(preamble=clg.LOGO, epilogue=None)
     def fit(
         self,
         df: PandasConvertibleDataFrame,
@@ -225,7 +227,6 @@ class AutoCATE(BaseCamlEstimator):
         validation_fraction: float = 0.2,
         test_fraction: float = 0.1,
     ):
-        INFO(f"{logo}")
         INFO(f"{self} \n")
         if self.use_ray:
             if not ray.is_initialized():
@@ -260,12 +261,9 @@ class AutoCATE(BaseCamlEstimator):
     def predict(self, df: PandasConvertibleDataFrame) -> None:
         return
 
+    @narrate(preamble=clg.AUTOML_NUISANCE_PREAMBLE)
     @timer("Find Nuisance Functions")
     def _find_nuisance_functions(self, df: pd.DataFrame):
-        INFO(get_separator(char="=", width=31))
-        INFO("|:dart: AutoML Nuisance Functions |")
-        INFO(get_separator(char="=", width=31) + "\n")
-
         base_settings = {
             "n_jobs": -1,
             "log_file_name": "",
@@ -329,16 +327,14 @@ class AutoCATE(BaseCamlEstimator):
 
         self._nuisances_fitted = True
 
-        INFO(":white_check_mark: Completed.")
-
+    @narrate(
+        preamble=clg.AUTOML_CATE_PREAMBLE,
+        epilogue=None,
+    )
     @timer("Fit Validation Estimators")
     def _fit_estimators(
         self, cate_estimators: list[AutoCateEstimator], splits: dict[str, Any]
     ) -> list[AutoCateEstimator]:
-        INFO("\n" + get_separator(char="=", width=27))
-        INFO("|:dart: AutoML CATE Functions |")
-        INFO(get_separator(char="=", width=27) + "\n")
-
         Y_train = splits["Y_train"]
         T_train = splits["T_train"]
         X_train = splits["X_train"]
@@ -404,6 +400,7 @@ class AutoCATE(BaseCamlEstimator):
 
         return fitted_est
 
+    @narrate(preamble=None)
     @timer("Score Estimators on Validation Set")
     def _validate(
         self,
@@ -470,8 +467,8 @@ class AutoCATE(BaseCamlEstimator):
         INFO(f"Estimator RScores: {estimator_scores}")
 
         self.best_estimator = best_estimator
-        INFO(":white_check_mark: Completed.")
 
+    @narrate(preamble=clg.CATE_TESTING_PREAMBLE)
     @timer("Final Model Verification")
     def _test(
         self,
@@ -479,10 +476,6 @@ class AutoCATE(BaseCamlEstimator):
         n_groups: int,
         n_bootstrap: int,
     ):
-        INFO("\n" + get_separator(char="=", width=19))
-        INFO("|:test_tube: Testing Results |")
-        INFO(get_separator(char="=", width=19) + "\n")
-
         if not self.discrete_treatment or self.discrete_outcome:
             WARNING(
                 "Validation for continuous treatments and/or discrete outcomes is not supported yet."
@@ -547,13 +540,10 @@ class AutoCATE(BaseCamlEstimator):
                 plt.show()
 
         self.test_results = res
-        INFO(":white_check_mark: Completed.")
 
+    @narrate(preamble=clg.REFIT_FINAL_PREAMBLE)
     @timer("Refit Final Estimator")
     def refit_final(self, df: PandasConvertibleDataFrame):
-        INFO("\n" + get_separator(char="=", width=31))
-        INFO("|:battery: Refitting Final Estimator |")
-        INFO(get_separator(char="=", width=31) + "\n")
         df = self._convert_dataframe_to_pandas(df, encode_categoricals=True)
         estimator = self.best_estimator
         Y = df[self.Y]
@@ -574,8 +564,6 @@ class AutoCATE(BaseCamlEstimator):
                 fit_model(est)
         else:
             fit_model(estimator)
-
-        INFO(":white_check_mark: Completed.")
 
     def _get_cate_estimators(
         self,

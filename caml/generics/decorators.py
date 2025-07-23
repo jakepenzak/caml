@@ -3,7 +3,7 @@ from functools import wraps
 from typing import Callable
 
 from caml.generics.utils import is_module_available
-from caml.logging import DEBUG, WARNING
+from caml.logging import DEBUG, INFO, WARNING
 
 _HAS_JAX = is_module_available("jax")
 
@@ -46,6 +46,46 @@ def experimental(obj: Callable) -> Callable:
         return obj(*args, **kwargs)
 
     return wrapper
+
+
+def narrate(
+    preamble: str | None = None, epilogue: str | None = ":white_check_mark: Completed."
+) -> Callable:
+    """
+    Decorator to log the execution of a function or method.
+
+    This decorator will log a pre-execution (preamble) message and a post-execution (epilogue) message.
+
+    Parameters
+    ----------
+    preamble : str
+        The message to log before the function or method execution.
+    epilogue : str
+        The message to log after the function or method execution.
+
+    Returns
+    -------
+    Callable
+        The decorated class or function
+    """
+
+    def decorator(func):
+        @wraps(func)
+        def wrapper(*args, **kwargs):
+            if preamble is None:
+                pass
+            else:
+                INFO(preamble)
+            result = func(*args, **kwargs)
+            if epilogue is None:
+                pass
+            else:
+                INFO(epilogue)
+            return result
+
+        return wrapper
+
+    return decorator
 
 
 def timer(operation_name: str | None = None) -> Callable:

@@ -85,62 +85,47 @@ def set_log_level(level: int):
     logger.setLevel(level)
 
 
-def get_terminal_width(default_width: int = 80) -> int:
-    """
-    Get the terminal width for formatting output.
-
-    Parameters
-    ----------
-    default_width
-        Default width to use if terminal width cannot be detected.
-
-    Returns
-    -------
-    int
-        The terminal width in characters.
-    """
-    try:
-        # Try to get width from existing Rich handlers
-        for handler in logger.handlers:
-            if isinstance(handler, RichHandler):
-                console = handler.console
-                if console and hasattr(console, "size"):
-                    return console.size.width
-
-        # Fallback: create a temporary console to get width
-        console = Console()
-        return console.size.width
-    except Exception:
-        # Fallback to default if anything goes wrong
-        return default_width
-
-
-def get_separator(
-    char: str = "=", width: int | None = None, min_width: int = 20, max_width: int = 120
+def get_section_header(
+    title: str, emoji: str = "", sep_char: str = "=", width: int | None = None
 ) -> str:
     """
-    Get a separator line that adapts to terminal width.
+    Generate a formatted section header with separators.
 
     Parameters
     ----------
-    char
-        Character to use for the separator.
-    width
-        Specific width to use. If None, auto-detects terminal width.
-    min_width
-        Minimum width for the separator.
-    max_width
-        Maximum width for the separator.
+    title : str
+        The title text to display
+    emoji : str
+        Optional emoji to include in the title
+    width : int | None
+        Width for the separators. If None, calculated from title length.
 
     Returns
     -------
     str
-        A separator string of appropriate length.
+        Formatted header with top and bottom separators
     """
     if width is None:
-        width = get_terminal_width()
+        # Calculate width based on title length + padding
+        width = len(title) + 5  # 2.5 chars padding on each side
 
-    # Constrain width to reasonable bounds
-    width = max(min_width, min(width, max_width))
+    separator = sep_char * width
+    formatted_title = f"|{emoji} {title}|" if emoji else f"|{title}|"
 
-    return char * width
+    return f"\n{separator}\n{formatted_title}\n{separator}\n"
+
+
+LOGO = r"""
+  ____      __  __ _
+ / ___|__ _|  \/  | |
+| |   / _` | |\/| | |
+| |__| (_| | |  | | |___
+ \____\__,_|_|  |_|_____|
+
+"""
+
+## AutoCATE Narrations
+AUTOML_NUISANCE_PREAMBLE = get_section_header("AutoML Nuisance Functions", ":dart:")
+AUTOML_CATE_PREAMBLE = get_section_header("AutoML CATE Functions", ":dart:")
+CATE_TESTING_PREAMBLE = get_section_header("Testing Results", ":test_tube:")
+REFIT_FINAL_PREAMBLE = get_section_header("Refitting Final Estimator", ":battery:")
