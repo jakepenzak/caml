@@ -170,6 +170,7 @@ class AutoCATE(BaseCamlEstimator):
         model_Y: dict | BaseEstimator | None = None,
         model_T: dict | BaseEstimator | None = None,
         model_regression: dict | BaseEstimator | None = None,
+        enable_categorical: bool = False,
         n_jobs: int = 1,
         use_ray: bool = False,
         ray_remote_func_options_kwargs: dict | None = None,
@@ -185,6 +186,7 @@ class AutoCATE(BaseCamlEstimator):
         self._model_Y = model_Y
         self._model_T = model_T
         self._model_regression = model_regression
+        self.enable_categorical = enable_categorical
         self.n_jobs = n_jobs
         self.use_ray = use_ray
         self.ray_remote_func_options_kwargs = (
@@ -195,13 +197,6 @@ class AutoCATE(BaseCamlEstimator):
         self.use_spark = use_spark
         self.seed = seed
         self.available_estimators = available_estimators
-
-        self._fitted = False
-        self._nuisances_fitted = False
-        self._cate_predictions = {}
-
-        if not discrete_treatment:
-            WARNING("Validation for continuous treatments is not supported yet.")
 
         if len(self.W) > 0:
             WARNING(
@@ -232,27 +227,31 @@ class AutoCATE(BaseCamlEstimator):
         test_fraction: float = 0.1,
     ):
         """TODO: Docstring."""
+        self._fitted = False
+        self._nuisances_fitted = False
         INFO(f"{self} \n")
         if self.use_ray:
             if not ray.is_initialized():
                 ray.init()
         ## Add argument checks (e.g. validate cate_estimators and additional_cate_estimators)
-        pd_df = self._convert_dataframe_to_pandas(df, encode_categoricals=True)
+        pd_df = self._convert_dataframe_to_pandas(df)
+        if self.enable_categorical:
+            pd_df, self._categorical_mappings = self._encode_categoricals(
+                pd_df, is_training=True
+            )
         self._find_nuisance_functions(pd_df)
         splits = self._split_data(
             df=pd_df,
             validation_fraction=validation_fraction,
             test_fraction=test_fraction,
         )
-        estimators = self._get_cate_estimators(
-            cate_estimators=list(cate_estimators),
-            additional_cate_estimators=list(additional_cate_estimators),
+        fitted_estimators = self._fit_estimators(
+            cate_estimators, additional_cate_estimators, splits
         )
-        fitted_estimators = self._fit_estimators(estimators, splits)
         self._validate(fitted_estimators, splits, ensemble)
         self._test(splits, n_groups=5, n_bootstrap=100)
 
-        self.fitted = True
+        self._fitted = True
 
         if refit_final:
             self.refit_final(pd_df)
@@ -272,9 +271,13 @@ class AutoCATE(BaseCamlEstimator):
         self, df: PandasConvertibleDataFrame, T0: int = 0, T1: int = 1
     ) -> np.ndarray:
         """TODO: Docstring."""
-        pd_df = self._convert_dataframe_to_pandas(df, encode_categoricals=True)
+        pd_df: pd.DataFrame = self._convert_dataframe_to_pandas(df)
+        if self.enable_categorical:
+            pd_df, _ = self._encode_categoricals(
+                pd_df, categorical_mappings=self._categorical_mappings
+            )
         if self.discrete_treatment:
-            cates = self.best_estimator.effect(pd_df[self.X], T0=T0, T1=T1)
+            cates = self.best_estimator.effect(pd_df, T0=T0, T1=T1)
         else:
             cates = self.best_estimator.marginal_effect(pd_df[self.T], pd_df[self.X])
 
@@ -360,8 +363,18 @@ class AutoCATE(BaseCamlEstimator):
     )
     @timer("Fitting Validation Estimators")
     def _fit_estimators(
-        self, cate_estimators: list[AutoCateEstimator], splits: dict[str, Any]
+        self,
+        cate_estimators: Sequence[str],
+        additional_cate_estimators: Sequence[AutoCateEstimator],
+        splits: dict[str, Any],
     ) -> list[AutoCateEstimator]:
+        estimators = self._get_cate_estimators(
+            cate_estimators=cate_estimators,
+            additional_cate_estimators=additional_cate_estimators,
+        )
+        if len(estimators) == 0:
+            raise ValueError("No valid CATE estimators found.")
+
         Y_train = splits["Y_train"]
         T_train = splits["T_train"]
         X_train = splits["X_train"]
@@ -409,18 +422,18 @@ class AutoCATE(BaseCamlEstimator):
                 ray.remote(fit_estimator)
                 .options(**self.ray_remote_func_options_kwargs)  # pyright: ignore[reportAttributeAccessIssue]
                 .remote(est, Y_train_ref, T_train_ref, X_train_ref, W_train_ref)
-                for est in cate_estimators
+                for est in estimators
             ]
             fitted_est = ray.get(remote_fns)
         elif self.n_jobs == 1:
             fitted_est = [
                 fit_estimator(est, Y_train, T_train, X_train, W_train)
-                for est in cate_estimators
+                for est in estimators
             ]
         else:
             fitted_est = Parallel(n_jobs=self.n_jobs)(
                 delayed(fit_estimator)(est, Y_train, T_train, X_train, W_train)
-                for est in cate_estimators
+                for est in estimators
             )
 
         fitted_est = [est for est in fitted_est if est is not None]
@@ -603,12 +616,16 @@ class AutoCATE(BaseCamlEstimator):
     @narrate(preamble=clg.REFIT_FINAL_PREAMBLE)
     @timer("Refitting Final Estimator")
     def refit_final(self, df: PandasConvertibleDataFrame):
-        df = self._convert_dataframe_to_pandas(df, encode_categoricals=True)
+        pd_df = self._convert_dataframe_to_pandas(df)
+        if self.enable_categorical:
+            pd_df, _ = self._encode_categoricals(
+                pd_df, categorical_mappings=self._categorical_mappings
+            )
         estimator = self.best_estimator
-        Y = df[self.Y]
-        T = df[self.T]
-        X = df[self.X]
-        W = df[self.W]
+        Y = pd_df[self.Y]
+        T = pd_df[self.T]
+        X = pd_df[self.X]
+        W = pd_df[self.W]
 
         def fit_model(est):
             if isinstance(est, _OrthoLearner):
@@ -627,10 +644,10 @@ class AutoCATE(BaseCamlEstimator):
     def _get_cate_estimators(
         self,
         *,
-        cate_estimators: list[str],
-        additional_cate_estimators: list[AutoCateEstimator],
-    ) -> list[AutoCateEstimator]:
-        _cate_estimators: list[AutoCateEstimator] = []
+        cate_estimators: Sequence[str],
+        additional_cate_estimators: Sequence[AutoCateEstimator],
+    ) -> Sequence[AutoCateEstimator]:
+        estimators: Sequence[AutoCateEstimator] = []
         for est in cate_estimators:
             estimator = get_cate_estimator(
                 est,
@@ -644,9 +661,11 @@ class AutoCATE(BaseCamlEstimator):
             if estimator is None:
                 pass
             else:
-                _cate_estimators.append(estimator)
+                estimators.append(estimator)
 
-        return _cate_estimators + additional_cate_estimators
+        estimators.extend(additional_cate_estimators)
+
+        return estimators
 
     def __str__(self):
         """

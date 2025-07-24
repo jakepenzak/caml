@@ -100,20 +100,41 @@ class BaseCamlEstimator(metaclass=abc.ABCMeta):
         }
 
     @staticmethod
+    def _encode_categoricals(
+        df: pd.DataFrame,
+        *,
+        is_training: bool = False,
+        categorical_mappings: dict = dict(),
+    ) -> tuple[pd.DataFrame, dict]:
+        cat_columns = df.select_dtypes(include=["category"]).columns
+        if not cat_columns.empty:
+            df = df.copy()
+            if is_training:
+                categorical_mappings = {}
+                for col in cat_columns:
+                    categories = df[col].cat.categories
+                    categorical_mappings[col] = {
+                        cat: i for i, cat in enumerate(categories)
+                    }
+                    df[col] = df[col].map(categorical_mappings[col]).astype("int")
+            else:
+                if categorical_mappings is None:
+                    raise ValueError(
+                        "No mappings passed for categorical columns and is_training is False."
+                    )
+                for col in cat_columns:
+                    if col in categorical_mappings:
+                        mapping = categorical_mappings[col]
+                        df[col] = df[col].map(mapping).astype("int")
+                    else:
+                        raise ValueError(
+                            f"No stored mapping found for categorical column '{col}'"
+                        )
+
+        return df, categorical_mappings
+
+    @staticmethod
     def _run_automl(**flaml_kwargs) -> BaseEstimator:
-        """
-        AutoML utilizing FLAML.
-
-        Parameters
-        ----------
-        **flaml_kwargs
-            The keyword arguments to pass to FLAML.
-
-        Returns
-        -------
-        sklearn.base.BaseEstimator
-            The best nuisance model found by FLAML.
-        """
         automl = AutoML()
 
         automl.fit(**flaml_kwargs)
@@ -131,35 +152,21 @@ class BaseCamlEstimator(metaclass=abc.ABCMeta):
     def _convert_dataframe_to_pandas(
         df: PandasConvertibleDataFrame,
         groups: Sequence[str] | None = None,
-        encode_categoricals: bool = False,
     ) -> pd.DataFrame:
         def _convert_groups_to_categorical(df, groups):
             for col in groups or []:
                 df[col] = df[col].astype("category")
             return df
 
-        def _pre_process_categoricals(df) -> pd.DataFrame:
-            cat_columns = df.select_dtypes(include=["category"]).columns
-            if not cat_columns.empty:
-                df = df.copy()
-                df[cat_columns] = df[cat_columns].apply(lambda x: x.cat.codes)
-            return df
-
-        def _pre_process(df, groups, encode_categoricals):
-            df = _convert_groups_to_categorical(df, groups)
-            if encode_categoricals:
-                df = _pre_process_categoricals(df)
-            return df
-
         if isinstance(df, PandasConvertibleDataFrame):
             if isinstance(df, pd.DataFrame):
-                return _pre_process(df, groups, encode_categoricals)
+                return _convert_groups_to_categorical(df, groups)
 
             DEBUG(f"Converting input dataframe of type {type(df)} to pandas")
             if isinstance(df, _toPandasConvertible):
-                return _pre_process(df.toPandas(), groups, encode_categoricals)
+                return _convert_groups_to_categorical(df.toPandas(), groups)
             if isinstance(df, _to_pandasConvertible):
-                return _pre_process(df.to_pandas(), groups, encode_categoricals)
+                return _convert_groups_to_categorical(df.to_pandas(), groups)
 
         ERROR(f"Unsupported dataframe type: {type(df)}")
         raise ValueError(f"Pandas conversion not currently supported for {type(df)}.")
