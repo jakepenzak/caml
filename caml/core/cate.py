@@ -6,6 +6,7 @@ from typing import TYPE_CHECKING, Any, Sequence
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
+from econml._cate_estimator import BaseCateEstimator
 from econml._ortho_learner import _OrthoLearner
 from econml.dml.dml import NonParamDML
 from econml.score import EnsembleCateEstimator, RScorer
@@ -150,7 +151,9 @@ class AutoCATE(BaseCamlEstimator):
     ```
     """
 
-    best_estimator = FittedAttr("_best_estimator")
+    best_estimator: BaseCateEstimator | EnsembleCateEstimator = FittedAttr(
+        "_best_estimator"
+    )  # pyright: ignore[reportAssignmentType]
     model_Y: BaseEstimator
     model_T: BaseEstimator
     model_regression: BaseEstimator
@@ -217,6 +220,7 @@ class AutoCATE(BaseCamlEstimator):
             )
 
     @narrate(preamble=clg.LOGO, epilogue=None)
+    @timer("End-to-end Fitting, Validation, & Testing")
     def fit(
         self,
         df: PandasConvertibleDataFrame,
@@ -227,6 +231,7 @@ class AutoCATE(BaseCamlEstimator):
         validation_fraction: float = 0.2,
         test_fraction: float = 0.1,
     ):
+        """TODO: Docstring."""
         INFO(f"{self} \n")
         if self.use_ray:
             if not ray.is_initialized():
@@ -252,17 +257,39 @@ class AutoCATE(BaseCamlEstimator):
         if refit_final:
             self.refit_final(pd_df)
 
-    def estimate_ate(self, df: PandasConvertibleDataFrame) -> None:
-        return
+    @timer("Estimate ATEs")
+    def estimate_ate(
+        self, df: PandasConvertibleDataFrame, T0: int = 0, T1: int = 1
+    ) -> float:
+        """TODO: Docstring."""
+        cates = self.estimate_cate(df, T0=T0, T1=T1)
+        ate = np.mean(cates)
 
-    def estimate_cate(self, df: PandasConvertibleDataFrame) -> None:
-        return
+        return ate  # pyright: ignore[reportReturnType]
 
-    def predict(self, df: PandasConvertibleDataFrame) -> None:
-        return
+    @timer("Estimating CATEs")
+    def estimate_cate(
+        self, df: PandasConvertibleDataFrame, T0: int = 0, T1: int = 1
+    ) -> np.ndarray:
+        """TODO: Docstring."""
+        pd_df = self._convert_dataframe_to_pandas(df, encode_categoricals=True)
+        if self.discrete_treatment:
+            cates = self.best_estimator.effect(pd_df[self.X], T0=T0, T1=T1)
+        else:
+            cates = self.best_estimator.marginal_effect(pd_df[self.T], pd_df[self.X])
+
+        return cates
+
+    def predict(self, df: PandasConvertibleDataFrame, **kwargs) -> np.ndarray:
+        """Alias for `estimate_cate`."""
+        return self.estimate_cate(df, **kwargs)
+
+    def effect(self, df: PandasConvertibleDataFrame, **kwargs) -> np.ndarray:
+        """Alias for `estimate_cate`."""
+        return self.estimate_cate(df, **kwargs)
 
     @narrate(preamble=clg.AUTOML_NUISANCE_PREAMBLE)
-    @timer("Find Nuisance Functions")
+    @timer("Nuisance Function AutoML")
     def _find_nuisance_functions(self, df: pd.DataFrame):
         base_settings = {
             "n_jobs": -1,
@@ -331,7 +358,7 @@ class AutoCATE(BaseCamlEstimator):
         preamble=clg.AUTOML_CATE_PREAMBLE,
         epilogue=None,
     )
-    @timer("Fit Validation Estimators")
+    @timer("Fitting Validation Estimators")
     def _fit_estimators(
         self, cate_estimators: list[AutoCateEstimator], splits: dict[str, Any]
     ) -> list[AutoCateEstimator]:
@@ -401,7 +428,7 @@ class AutoCATE(BaseCamlEstimator):
         return fitted_est
 
     @narrate(preamble=None)
-    @timer("Score Estimators on Validation Set")
+    @timer("Scoring Estimators on Validation Set")
     def _validate(
         self,
         fitted_estimators: list[AutoCateEstimator],
@@ -466,22 +493,17 @@ class AutoCATE(BaseCamlEstimator):
         INFO(f"Best Estimator: '{best_estimator_name}'")
         INFO(f"Estimator RScores: {estimator_scores}")
 
+        self.best_estimator_name = best_estimator_name
         self.best_estimator = best_estimator
 
     @narrate(preamble=clg.CATE_TESTING_PREAMBLE)
-    @timer("Final Model Verification")
+    @timer("Verifying Final Model")
     def _test(
         self,
         splits: dict[str, Any],
         n_groups: int,
         n_bootstrap: int,
     ):
-        if not self.discrete_treatment or self.discrete_outcome:
-            WARNING(
-                "Validation for continuous treatments and/or discrete outcomes is not supported yet."
-            )
-            return
-
         Y_train = splits["Y_train"]
         T_train = splits["T_train"]
         X_train = splits["X_train"]
@@ -495,54 +517,91 @@ class AutoCATE(BaseCamlEstimator):
         X_W_test = pd.concat((X_test, W_test), axis=1)
         X_W_train = pd.concat((X_train, W_train), axis=1)
 
-        validator = DRTester(
-            model_regression=self.model_regression,
-            model_propensity=self.model_T,
-            cate=self.best_estimator,
-            cv=3,
-        ).fit_nuisance(
-            X_W_test.to_numpy(),
-            T_test.to_numpy().ravel(),
-            Y_test.to_numpy().ravel(),
-            X_W_train.to_numpy(),
-            T_train.to_numpy().ravel(),
-            Y_train.to_numpy().ravel(),
-        )
+        if not self.discrete_treatment:
+            INFO("Continuous treatment specified. Using RScorer for final testing.")
+            base_rscorer_settings = {
+                "cv": 3,
+                "mc_iters": 3,
+                "mc_agg": "median",
+                "random_state": self.seed,
+            }
 
-        res = validator.evaluate_all(
-            X_W_test.to_numpy(),
-            X_W_train.to_numpy(),
-            n_groups=n_groups,
-            n_bootstrap=n_bootstrap,
-        )
+            # if rscorer_kwargs is not None:
+            #     base_rscorer_settings.update(rscorer_kwargs)
 
-        summary = res.summary()
-        if np.array(summary[[c for c in summary.columns if "pval" in c]] > 0.1).any():
-            WARNING(
-                "Some of the validation results suggest that the model may not have found statistically significant heterogeneity. Please closely look at the validation results and consider retraining with new configurations.\n"
+            rscorer = RScorer(
+                model_y=self.model_Y,
+                model_t=self.model_T,
+                discrete_treatment=self.discrete_treatment,
+                discrete_outcome=self.discrete_outcome,
+                **base_rscorer_settings,
             )
+
+            rscorer.fit(
+                y=Y_test,
+                T=T_test,
+                X=X_test if not X_test.empty else None,
+                W=W_test if not W_test.empty else None,
+            )
+
+            rscore = rscorer.score(self.best_estimator)
+
+            INFO(f"RScore for {self.best_estimator_name}: {rscore}")
+
+            self.test_results = {self.best_estimator_name: rscore}
+
         else:
-            INFO(
-                "All validation results suggest that the model has found statistically significant heterogeneity.\n"
+            INFO("Discrete treatment specified. Using DRTester for final testing.")
+            validator = DRTester(
+                model_regression=self.model_regression,
+                model_propensity=self.model_T,
+                cate=self.best_estimator,
+                cv=3,
+            ).fit_nuisance(
+                X_W_test.to_numpy(),
+                T_test.to_numpy().ravel(),
+                Y_test.to_numpy().ravel(),
+                X_W_train.to_numpy(),
+                T_train.to_numpy().ravel(),
+                Y_train.to_numpy().ravel(),
             )
 
-        INFO(summary)
-        for i in res.blp.treatments:
-            if i > 0:
-                INFO("CALIBRATION CURVE")
-                res.plot_cal(i)
-                plt.show()
-                INFO("QINI CURVE")
-                res.plot_qini(i)
-                plt.show()
-                INFO("TOC CURVE")
-                res.plot_toc(i)
-                plt.show()
+            res = validator.evaluate_all(
+                X_W_test.to_numpy(),
+                X_W_train.to_numpy(),
+                n_groups=n_groups,
+                n_bootstrap=n_bootstrap,
+            )
 
-        self.test_results = res
+            summary = res.summary()
+            if np.array(
+                summary[[c for c in summary.columns if "pval" in c]] > 0.1
+            ).any():
+                WARNING(
+                    "Some of the validation results suggest that the model may not have found statistically significant heterogeneity. Please closely look at the validation results and consider retraining with new configurations.\n"
+                )
+            else:
+                INFO(
+                    "All validation results suggest that the model has found statistically significant heterogeneity.\n"
+                )
+
+            INFO(summary)
+            for i in res.blp.treatments:
+                if i > 0:
+                    INFO("CALIBRATION CURVE")
+                    res.plot_cal(i)
+                    plt.show()
+                    INFO("QINI CURVE")
+                    res.plot_qini(i)
+                    plt.show()
+                    INFO("TOC CURVE")
+                    res.plot_toc(i)
+                    plt.show()
+
+            self.test_results = res
 
     @narrate(preamble=clg.REFIT_FINAL_PREAMBLE)
-    @timer("Refit Final Estimator")
+    @timer("Refitting Final Estimator")
     def refit_final(self, df: PandasConvertibleDataFrame):
         df = self._convert_dataframe_to_pandas(df, encode_categoricals=True)
         estimator = self.best_estimator

@@ -99,7 +99,7 @@ quartodoc:
       desc: "`from caml import *` <br> <br> Core functionality of CaML for estimating causal effects with cross-sectional data."
       package: caml
       contents:
-        - name: CamlCATE
+        - name: AutoCATE
           member_order: source
         - name: FastOLS
           member_order: source
