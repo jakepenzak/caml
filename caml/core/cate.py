@@ -6,25 +6,26 @@ from typing import TYPE_CHECKING, Any, Sequence
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
+from econml import dml, dr, metalearners
 from econml._cate_estimator import BaseCateEstimator
 from econml._ortho_learner import _OrthoLearner
 from econml.dml.dml import NonParamDML
+from econml.inference import BootstrapInference, PopulationSummaryResults
+from econml.inference._inference import InferenceResults
 from econml.score import EnsembleCateEstimator, RScorer
 from joblib import Parallel, delayed
-from sklearn.base import BaseEstimator
 
 from caml import logging as clg
 from caml.core._base import BaseCamlEstimator
 from caml.core.modeling.model_bank import (
     AutoCateEstimator,
     available_estimators,
-    get_cate_estimator,
 )
 from caml.generics.decorators import experimental, narrate, timer
 from caml.generics.interfaces import FittedAttr, PandasConvertibleDataFrame
 from caml.generics.monkey_patch import DRTester
 from caml.generics.utils import is_module_available
-from caml.logging import INFO, WARNING
+from caml.logging import DEBUG, INFO, WARNING
 
 _HAS_PYSPARK = is_module_available("pyspark")
 _HAS_RAY = is_module_available("ray")
@@ -34,7 +35,7 @@ if _HAS_RAY:
 
 if TYPE_CHECKING:
     import ray
-
+    from sklearn.base import BaseEstimator
 
 warnings.filterwarnings("ignore")
 
@@ -154,9 +155,9 @@ class AutoCATE(BaseCamlEstimator):
     best_estimator: BaseCateEstimator | EnsembleCateEstimator = FittedAttr(
         "_best_estimator"
     )  # pyright: ignore[reportAssignmentType]
-    model_Y: BaseEstimator
-    model_T: BaseEstimator
-    model_regression: BaseEstimator
+    model_Y: BaseEstimator = FittedAttr("_model_Y")  # pyright: ignore[reportAssignmentType]
+    model_T: BaseEstimator = FittedAttr("_model_T")  # pyright: ignore[reportAssignmentType]
+    model_regression: BaseEstimator = FittedAttr("_model_regression")  # pyright: ignore[reportAssignmentType]
 
     def __init__(
         self,
@@ -183,9 +184,9 @@ class AutoCATE(BaseCamlEstimator):
         self.W = list(W) if W else list()
         self.discrete_treatment = discrete_treatment
         self.discrete_outcome = discrete_outcome
-        self._model_Y = model_Y
-        self._model_T = model_T
-        self._model_regression = model_regression
+        self._model_Y_specs = model_Y
+        self._model_T_specs = model_T
+        self._model_regression_specs = model_regression
         self.enable_categorical = enable_categorical
         self.n_jobs = n_jobs
         self.use_ray = use_ray
@@ -196,7 +197,12 @@ class AutoCATE(BaseCamlEstimator):
         )
         self.use_spark = use_spark
         self.seed = seed
-        self.available_estimators = available_estimators
+        self.available_estimators = list(available_estimators.keys())
+
+        self._model_T = None
+        self._model_Y = None
+        self._model_regression = None
+        self._bs_estimator = None
 
         if len(self.W) > 0:
             WARNING(
@@ -219,7 +225,7 @@ class AutoCATE(BaseCamlEstimator):
     def fit(
         self,
         df: PandasConvertibleDataFrame,
-        cate_estimators: Sequence[str] = available_estimators,
+        cate_estimators: Sequence[str] = list(available_estimators.keys()),
         additional_cate_estimators: Sequence[AutoCateEstimator] = list(),
         ensemble: bool = False,
         refit_final: bool = True,
@@ -228,8 +234,18 @@ class AutoCATE(BaseCamlEstimator):
     ):
         """TODO: Docstring."""
         self._fitted = False
-        self._nuisances_fitted = False
         INFO(f"{self} \n")
+
+        for ce in cate_estimators:
+            if ce not in self.available_estimators:
+                raise ValueError(f"Invalid cate_estimator: {ce}")
+
+        for ce in additional_cate_estimators:
+            if not isinstance(ce, AutoCateEstimator):
+                raise ValueError(
+                    f"Invalid cate_estimator: {ce}. Must be instance of AutoCateEstimator."
+                )
+
         if self.use_ray:
             if not ray.is_initialized():
                 ray.init()
@@ -256,38 +272,97 @@ class AutoCATE(BaseCamlEstimator):
         if refit_final:
             self.refit_final(pd_df)
 
-    @timer("Estimate ATEs")
+    @timer("Estimating ATE(s)")
     def estimate_ate(
-        self, df: PandasConvertibleDataFrame, T0: int = 0, T1: int = 1
-    ) -> float:
+        self,
+        df: PandasConvertibleDataFrame,
+        T0: int = 0,
+        T1: int = 1,
+        return_inference: bool = False,
+        alpha: float = 0.05,
+        value: int = 0,
+    ) -> float | np.ndarray | PopulationSummaryResults:
         """TODO: Docstring."""
-        cates = self.estimate_cate(df, T0=T0, T1=T1)
-        ate = np.mean(cates)
-
-        return ate  # pyright: ignore[reportReturnType]
+        if return_inference:
+            inference = self.estimate_cate(df, T0=T0, T1=T1, return_inference=True)
+            return inference.population_summary(alpha=alpha, value=value)
+        else:
+            cates = self.estimate_cate(df, T0=T0, T1=T1)
+            ate = np.mean(cates)
+            return ate  # pyright: ignore[reportReturnType]
 
     @timer("Estimating CATEs")
     def estimate_cate(
-        self, df: PandasConvertibleDataFrame, T0: int = 0, T1: int = 1
-    ) -> np.ndarray:
+        self,
+        df: PandasConvertibleDataFrame,
+        T0: int = 0,
+        T1: int = 1,
+        return_inference: bool = False,
+        n_bootstrap_samples: int = 100,
+    ) -> np.ndarray | InferenceResults:
         """TODO: Docstring."""
         pd_df: pd.DataFrame = self._convert_dataframe_to_pandas(df)
         if self.enable_categorical:
             pd_df, _ = self._encode_categoricals(
                 pd_df, categorical_mappings=self._categorical_mappings
             )
-        if self.discrete_treatment:
-            cates = self.best_estimator.effect(pd_df, T0=T0, T1=T1)
+
+        X = pd_df[self.X]
+
+        if return_inference:
+            if self.best_estimator._inference is None or isinstance(  # pyright: ignore[reportAttributeAccessIssue]
+                self.best_estimator, EnsembleCateEstimator
+            ):
+                WARNING(
+                    f"Asymptotic inference is not supported for this {self.best_estimator_name}. Falling back to bootstrap. Initial fit can be expensive."
+                )
+                if self._bs_estimator is None:
+                    self._bs_estimator = BootstrapInference(
+                        n_bootstrap_samples=n_bootstrap_samples, n_jobs=self.n_jobs
+                    )
+                    Y = pd_df[self.Y]
+                    T = pd_df[self.T]
+                    W = pd_df[self.W]
+                    self._bs_estimator.fit(
+                        self.best_estimator,
+                        Y=Y,
+                        T=T,
+                        X=X if not X.empty else None,
+                        W=W if not W.empty else None,
+                    )
+
+                if self.discrete_treatment:
+                    inference = self._bs_estimator.effect_inference(X, T0=T0, T1=T1)
+                else:
+                    inference = self._bs_estimator.marginal_effect_inference(
+                        pd_df[self.T], X
+                    )
+
+            elif self.discrete_treatment:
+                inference = self.best_estimator.effect_inference(X, T0=T0, T1=T1)
+            else:
+                inference = self.best_estimator.marginal_effect_inference(
+                    pd_df[self.T], X
+                )
+
+            return inference
         else:
-            cates = self.best_estimator.marginal_effect(pd_df[self.T], pd_df[self.X])
+            if self.discrete_treatment:
+                cates = self.best_estimator.effect(X, T0=T0, T1=T1)
+            else:
+                cates = self.best_estimator.marginal_effect(pd_df[self.T], X)
 
-        return cates
+            return cates
 
-    def predict(self, df: PandasConvertibleDataFrame, **kwargs) -> np.ndarray:
+    def predict(
+        self, df: PandasConvertibleDataFrame, **kwargs
+    ) -> np.ndarray | InferenceResults:
         """Alias for `estimate_cate`."""
         return self.estimate_cate(df, **kwargs)
 
-    def effect(self, df: PandasConvertibleDataFrame, **kwargs) -> np.ndarray:
+    def effect(
+        self, df: PandasConvertibleDataFrame, **kwargs
+    ) -> np.ndarray | InferenceResults:
         """Alias for `estimate_cate`."""
         return self.estimate_cate(df, **kwargs)
 
@@ -329,14 +404,14 @@ class AutoCATE(BaseCamlEstimator):
         for model_name, outcome, features, discrete_outcome in model_configs:
             flaml_kwargs = base_settings.copy()
 
-            model_arg = getattr(self, f"_{model_name}")
+            model_arg = getattr(self, f"_{model_name}_specs")
 
             if isinstance(model_arg, dict):
                 flaml_kwargs.update(model_arg)
             elif model_arg is None:
                 pass
             else:
-                setattr(self, model_name, model_arg)
+                setattr(self, f"_{model_name}", model_arg)
                 continue
 
             flaml_kwargs["label"] = outcome[0]
@@ -352,10 +427,11 @@ class AutoCATE(BaseCamlEstimator):
             INFO(f"Searching for {model_name}:")
             model = self._run_automl(**flaml_kwargs)
 
-            setattr(self, model_name, model)
-            setattr(self, f"_{model_name}", flaml_kwargs)
+            del flaml_kwargs["dataframe"]
+            DEBUG(f"Ran AutoML with parameters: {flaml_kwargs}\n")
 
-        self._nuisances_fitted = True
+            setattr(self, f"_{model_name}", model)
+            setattr(self, f"_{model_name}_specs", flaml_kwargs)
 
     @narrate(
         preamble=clg.AUTOML_CATE_PREAMBLE,
@@ -438,6 +514,11 @@ class AutoCATE(BaseCamlEstimator):
 
         fitted_est = [est for est in fitted_est if est is not None]
 
+        if len(fitted_est) == 0:
+            raise ValueError(
+                "No valid estimators were fitted. Please check your specified CATE estimators."
+            )
+
         return fitted_est
 
     @narrate(preamble=None)
@@ -464,8 +545,8 @@ class AutoCATE(BaseCamlEstimator):
         #     base_rscorer_settings.update(rscorer_kwargs)
 
         rscorer = RScorer(
-            model_y=self.model_Y,
-            model_t=self.model_T,
+            model_y=self._model_Y,
+            model_t=self._model_T,
             discrete_treatment=self.discrete_treatment,
             discrete_outcome=self.discrete_outcome,
             **base_rscorer_settings,
@@ -520,15 +601,11 @@ class AutoCATE(BaseCamlEstimator):
         Y_train = splits["Y_train"]
         T_train = splits["T_train"]
         X_train = splits["X_train"]
-        W_train = splits["W_train"]
 
         Y_test = splits["Y_test"]
         T_test = splits["T_test"]
         X_test = splits["X_test"]
         W_test = splits["W_test"]
-
-        X_W_test = pd.concat((X_test, W_test), axis=1)
-        X_W_train = pd.concat((X_train, W_train), axis=1)
 
         if not self.discrete_treatment:
             INFO("Continuous treatment specified. Using RScorer for final testing.")
@@ -543,8 +620,8 @@ class AutoCATE(BaseCamlEstimator):
             #     base_rscorer_settings.update(rscorer_kwargs)
 
             rscorer = RScorer(
-                model_y=self.model_Y,
-                model_t=self.model_T,
+                model_y=self._model_Y,
+                model_t=self._model_T,
                 discrete_treatment=self.discrete_treatment,
                 discrete_outcome=self.discrete_outcome,
                 **base_rscorer_settings,
@@ -566,22 +643,22 @@ class AutoCATE(BaseCamlEstimator):
         else:
             INFO("Discrete treatment specified. Using DRTester for final testing.")
             validator = DRTester(
-                model_regression=self.model_regression,
-                model_propensity=self.model_T,
+                model_regression=self._model_regression,
+                model_propensity=self._model_T,
                 cate=self.best_estimator,
                 cv=3,
             ).fit_nuisance(
-                X_W_test.to_numpy(),
+                X_test.to_numpy(),
                 T_test.to_numpy().ravel(),
                 Y_test.to_numpy().ravel(),
-                X_W_train.to_numpy(),
+                X_train.to_numpy(),
                 T_train.to_numpy().ravel(),
                 Y_train.to_numpy().ravel(),
             )
 
             res = validator.evaluate_all(
-                X_W_test.to_numpy(),
-                X_W_train.to_numpy(),
+                X_test.to_numpy(),
+                X_train.to_numpy(),
                 n_groups=n_groups,
                 n_bootstrap=n_bootstrap,
             )
@@ -646,24 +723,95 @@ class AutoCATE(BaseCamlEstimator):
         *,
         cate_estimators: Sequence[str],
         additional_cate_estimators: Sequence[AutoCateEstimator],
-    ) -> Sequence[AutoCateEstimator]:
-        estimators: Sequence[AutoCateEstimator] = []
+    ) -> list[AutoCateEstimator]:
+        estimators: list[AutoCateEstimator] = []
         for est in cate_estimators:
-            estimator = get_cate_estimator(
-                est,
-                self.model_Y,
-                self.model_T,
-                self.model_regression,
-                self.discrete_treatment,
-                self.discrete_outcome,
-                self.seed,
-            )
-            if estimator is None:
-                pass
-            else:
-                estimators.append(estimator)
+            estimators.append(available_estimators[est])
 
-        estimators.extend(additional_cate_estimators)
+        additional_cate_estimators = list(additional_cate_estimators)
+        estimators = estimators + additional_cate_estimators
+
+        to_remove = []
+        for ace in estimators:
+            name = ace.name
+            estimator = ace.estimator
+
+            def check_for_instance(estimator, models):
+                for model in models:
+                    try:
+                        inst = getattr(dml, model)
+                    except AttributeError:
+                        try:
+                            inst = getattr(dr, model)
+                        except AttributeError:
+                            inst = getattr(metalearners, model)
+
+                    if type(estimator) is inst:
+                        return True
+                return False
+
+            if self.discrete_outcome:
+                res = check_for_instance(
+                    estimator,
+                    ["NonParamDML", "SLearner", "TLearner", "XLearner", "DRLearner"],
+                )
+                if res:
+                    WARNING(
+                        f"Discrete outcomes not yet supported for {name}! Removing..."
+                    )
+                    to_remove.append(ace)
+
+            if not self.discrete_treatment:
+                res = check_for_instance(
+                    estimator,
+                    [
+                        "DRLearner",
+                        "ForestDRLearner",
+                        "LinearDRLearner",
+                        "SLearner",
+                        "TLearner",
+                        "XLearner",
+                    ],
+                )
+                if res:
+                    WARNING(
+                        f"Discrete treatments not yet supported for {name}! Removing..."
+                    )
+                    to_remove.append(ace)
+
+            if hasattr(estimator, "model_y"):
+                estimator.model_y = self._model_Y  # pyright: ignore[reportAttributeAccessIssue]
+            if hasattr(estimator, "model_t"):
+                estimator.model_t = self._model_T  # pyright: ignore[reportAttributeAccessIssue]
+            if hasattr(estimator, "model_regression"):
+                estimator.model_regression = self._model_regression  # pyright: ignore[reportAttributeAccessIssue]
+            if hasattr(estimator, "model_final"):
+                try:
+                    estimator.model_final = self._model_regression  # pyright: ignore[reportAttributeAccessIssue]
+                except ValueError:
+                    pass
+            if hasattr(estimator, "propensity_model"):
+                estimator.propensity_model = self._model_T  # pyright: ignore[reportAttributeAccessIssue]
+            if hasattr(estimator, "model_propensity"):
+                estimator.model_propensity = self._model_T  # pyright: ignore[reportAttributeAccessIssue]
+            if hasattr(estimator, "overall_model"):
+                estimator.overall_model = self._model_regression  # pyright: ignore[reportAttributeAccessIssue]
+            if hasattr(estimator, "models"):
+                estimator.models = self._model_regression  # pyright: ignore[reportAttributeAccessIssue]
+            if hasattr(estimator, "cate_models"):
+                estimator.cate_models = self._model_regression  # pyright: ignore[reportAttributeAccessIssue]
+            if hasattr(estimator, "discrete_outcome"):
+                estimator.discrete_outcome = self.discrete_outcome  # pyright: ignore[reportAttributeAccessIssue]
+            if hasattr(estimator, "discrete_treatment"):
+                estimator.discrete_treatment = self.discrete_treatment  # pyright: ignore[reportAttributeAccessIssue]
+            if hasattr(estimator, "random_state"):
+                estimator.random_state = self.seed  # pyright: ignore[reportAttributeAccessIssue]
+
+        for est in to_remove:
+            try:
+                estimators.remove(est)
+            except ValueError:
+                continue
 
         return estimators
 
@@ -687,14 +835,12 @@ class AutoCATE(BaseCamlEstimator):
             + f"Random Seed: {self.seed}\n"
         )
 
-        if self._nuisances_fitted:
-            summary += (
-                f"Nuissance Model Y: {self.model_Y}\n"
-                + f"Propensity/Nuissance Model T: {self.model_T}\n"
-                + f"Regression Model: {self.model_regression}\n"
-            )
-
         if self._fitted:
-            summary += f"Best Estimator: {self.best_estimator}\n"
+            summary += (
+                f"Nuissance Model Y: {self._model_Y}\n"
+                + f"Propensity/Nuissance Model T: {self._model_T}\n"
+                + f"Regression Model: {self._model_regression}\n"
+                + f"Best Estimator: {self.best_estimator}\n"
+            )
 
         return summary

@@ -21,7 +21,7 @@ def _():
     from caml.logging import configure_logging
     import logging
 
-    configure_logging(level=logging.INFO)
+    configure_logging(level=logging.DEBUG)
     return
 
 
@@ -39,17 +39,17 @@ def _():
         n_obs=10_000,
         n_cont_outcomes=1,
         n_binary_outcomes=0,
-        n_binary_treatments=0,
+        n_binary_treatments=1,
         n_discrete_treatments=0,
-        n_cont_treatments=1,
-        n_cont_confounders=0,
-        n_binary_confounders=0,
+        n_cont_treatments=0,
+        n_cont_confounders=3,
+        n_binary_confounders=3,
         n_discrete_confounders=0,
         n_cont_modifiers=3,
         n_binary_modifiers=3,
         n_discrete_modifiers=2,
-        stddev_outcome_noise=1,
-        stddev_treatment_noise=1,
+        stddev_outcome_noise=10,
+        stddev_treatment_noise=10,
         causal_model_functional_form="nonlinear",
         seed=20,
     )
@@ -130,15 +130,15 @@ def _(synthetic_df):
 
     caml = AutoCATE(Y=outcome,
                     T=treatment,
-                    X=[c for c in synthetic_df.columns if 'X' in c],
-                    W=[c for c in synthetic_df.columns if 'W' in c],
+                    X=[c for c in synthetic_df.columns if 'X' in c] + [c for c in synthetic_df.columns if 'W' in c],
+                    W=[],
                     discrete_treatment=True if "binary" in treatment or "discrete" in treatment else False,
                     discrete_outcome=True if "binary" in outcome else False,
-                    model_Y={"time_budget": 5, "estimator_list":["extra_tree"]},
+                    model_Y={"time_budget": 5},
                     model_T={"time_budget": 5},
                     model_regression={"time_budget": 5},
                     enable_categorical=True,
-                    n_jobs=1,
+                    n_jobs=-1,
                     use_ray=True,
                     ray_remote_func_options_kwargs=None,
                     use_spark=False,
@@ -158,7 +158,7 @@ def _():
 
 @app.cell
 def _(caml, synthetic_df):
-    caml.fit(synthetic_df, cate_estimators=['LinearDML'])
+    caml.fit(synthetic_df)
     return
 
 
@@ -170,14 +170,26 @@ def _(caml, synthetic_df):
 
 
 @app.cell
-def _(ate_df):
-    ate_df
+def _(caml, synthetic_df):
+    obj2 = caml.estimate_cate(synthetic_df, return_inference=True)
+    return (obj2,)
+
+
+@app.cell
+def _(caml, synthetic_df):
+    caml.estimate_ate(synthetic_df, return_inference=True)
     return
 
 
 @app.cell
-def _(caml):
-    caml.best_estimator
+def _(obj2):
+    obj2
+    return
+
+
+@app.cell
+def _(ate_df):
+    ate_df
     return
 
 
@@ -226,6 +238,11 @@ def _(cate_line_plot, cate_predictions):
 @app.cell
 def _(cate_line_plot, cate_predictions, true_cates):
     cate_line_plot(estimated_cates=cate_predictions.flatten(), true_cates=true_cates.flatten(), window=10)
+    return
+
+
+@app.cell
+def _():
     return
 
 
