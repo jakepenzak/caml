@@ -61,10 +61,7 @@ dev = [
     "pynvim>=0.5.2",
     "ruff>=0.6.2",
 ]
-docs = [
-    "quarto-cli<1.7.32",
- "quartodoc>=0.9.1",
-]
+docs = ["quarto-cli<1.7.32", "quartodoc>=0.9.1"]
 
 [project.optional-dependencies]
 pyspark = ["flaml[spark]>=2.0.0", "optuna>=3.6.1", "pyspark>=3.5.2"]

@@ -36,7 +36,7 @@ def _():
     from caml.extensions.synthetic_data import SyntheticDataGenerator
 
     data = SyntheticDataGenerator(
-        n_obs=10_000,
+        n_obs=1_000,
         n_cont_outcomes=1,
         n_binary_outcomes=0,
         n_binary_treatments=1,
@@ -48,10 +48,10 @@ def _():
         n_cont_modifiers=3,
         n_binary_modifiers=3,
         n_discrete_modifiers=2,
-        stddev_outcome_noise=10,
-        stddev_treatment_noise=10,
-        causal_model_functional_form="nonlinear",
-        seed=20,
+        stddev_outcome_noise=1,
+        stddev_treatment_noise=1,
+        causal_model_functional_form="linear",
+        seed=None,
     )
 
 
@@ -92,8 +92,14 @@ def _(synthetic_df):
         if "discrete" in col:
             synthetic_df[col] = synthetic_df[col].astype("category")
 
-    mapping = dict(zip(list(synthetic_df['X7_discrete'].cat.categories),['a','b','c','d','e','f']))
-    synthetic_df['X7_discrete'] = synthetic_df['X7_discrete'].map(mapping)
+    categories = list(synthetic_df["X7_discrete"].cat.categories)
+    mapping = dict(
+        zip(
+            categories,
+            [f"A{str(i)}" for i in categories],
+        )
+    )
+    synthetic_df["X7_discrete"] = synthetic_df["X7_discrete"].map(mapping)
     return
 
 
@@ -128,23 +134,26 @@ def _(synthetic_df):
     outcome = [c for c in synthetic_df.columns if "Y" in c][0]
     treatment = [c for c in synthetic_df.columns if "T" in c][0]
 
-    caml = AutoCATE(Y=outcome,
-                    T=treatment,
-                    X=[c for c in synthetic_df.columns if 'X' in c] + [c for c in synthetic_df.columns if 'W' in c],
-                    W=[],
-                    discrete_treatment=True if "binary" in treatment or "discrete" in treatment else False,
-                    discrete_outcome=True if "binary" in outcome else False,
-                    model_Y={"time_budget": 5},
-                    model_T={"time_budget": 5},
-                    model_regression={"time_budget": 5},
-                    enable_categorical=True,
-                    n_jobs=-1,
-                    use_ray=True,
-                    ray_remote_func_options_kwargs=None,
-                    use_spark=False,
-                    seed=None)
-
-
+    caml = AutoCATE(
+        Y=outcome,
+        T=treatment,
+        X=[c for c in synthetic_df.columns if "X" in c]
+        + [c for c in synthetic_df.columns if "W" in c],
+        W=[],
+        discrete_treatment=True
+        if "binary" in treatment or "discrete" in treatment
+        else False,
+        discrete_outcome=True if "binary" in outcome else False,
+        model_Y={"time_budget": 5},
+        model_T={"time_budget": 5},
+        model_regression={"time_budget": 5},
+        enable_categorical=True,
+        n_jobs=-1,
+        use_ray=False,
+        ray_remote_func_options_kwargs=None,
+        use_spark=False,
+        seed=None,
+    )
     return (caml,)
 
 
@@ -201,7 +210,12 @@ def _(mo):
 
 @app.cell
 def _(cate_df):
-    from caml.extensions.plots import cate_histogram_plot, cate_true_vs_estimated_plot, cate_line_plot
+    from caml.extensions.plots import (
+        cate_histogram_plot,
+        cate_true_vs_estimated_plot,
+        cate_line_plot,
+    )
+
     true_cates = cate_df.to_numpy()
     return (
         cate_histogram_plot,
@@ -213,19 +227,27 @@ def _(cate_df):
 
 @app.cell
 def _(cate_predictions, cate_true_vs_estimated_plot, true_cates):
-    cate_true_vs_estimated_plot(true_cates=true_cates, estimated_cates=cate_predictions)
+    cate_true_vs_estimated_plot(
+        true_cates=true_cates, estimated_cates=cate_predictions
+    )
+    return
+
+
+@app.cell
+def _(cate_predictions):
+    cate_predictions.shape
     return
 
 
 @app.cell
 def _(cate_histogram_plot, cate_predictions):
-    cate_histogram_plot(estimated_cates=cate_predictions.reshape(-1,1))
+    cate_histogram_plot(estimated_cates=cate_predictions)
     return
 
 
 @app.cell
 def _(cate_histogram_plot, cate_predictions, true_cates):
-    cate_histogram_plot(estimated_cates=cate_predictions.reshape(-1,1), true_cates=true_cates)
+    cate_histogram_plot(estimated_cates=cate_predictions, true_cates=true_cates)
     return
 
 
@@ -237,7 +259,11 @@ def _(cate_line_plot, cate_predictions):
 
 @app.cell
 def _(cate_line_plot, cate_predictions, true_cates):
-    cate_line_plot(estimated_cates=cate_predictions.flatten(), true_cates=true_cates.flatten(), window=10)
+    cate_line_plot(
+        estimated_cates=cate_predictions.flatten(),
+        true_cates=true_cates.flatten(),
+        window=10,
+    )
     return
 
 
