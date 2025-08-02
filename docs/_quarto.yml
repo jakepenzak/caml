@@ -63,10 +63,10 @@ website:
         - 02_Concepts/motivation.qmd
         - 02_Concepts/theory.qmd
         - 02_Concepts/models.qmd
-    - id: Examples
-      title: "Examples"
-      style: floating
-      contents: 03_Examples/*
+    # - id: Examples
+    #   title: "Examples"
+    #   style: floating
+    #   contents: 03_Examples/*
     - id: API_Reference
       title: "Reference"
       style: floating
@@ -126,14 +126,16 @@ quartodoc:
         - name: cate_true_vs_estimated_plot
           signature_name: short
     - title: Developer Tools
-      desc: "Developer tools for CaML."
+      desc: "Developer tools and utilities for CaML."
       contents:
-        - generics.experimental
-        - generics.timer
-        - generics.maybe_jit
-        - generics.PandasConvertibleDataFrame
-        - logging.configure_logging
-        - logging.set_log_level
+        - name: decorators
+          package: caml.generics
+        - name: interfaces
+          package: caml.generics
+        - name: utils
+          package: caml.generics
+        - name: logging
+          package: caml.generics
 
 metadata-files:
   - _sidebar.yml

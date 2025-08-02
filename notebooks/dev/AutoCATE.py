@@ -18,10 +18,10 @@ def _(mo):
 
 @app.cell
 def _():
-    from caml.logging import configure_logging
-    import logging
+    # from caml.generics.logging import configure_logging
+    # import logging
 
-    configure_logging(level=logging.DEBUG)
+    # configure_logging(level=logging.DEBUG)
     return
 
 
@@ -36,18 +36,18 @@ def _():
     from caml.extensions.synthetic_data import SyntheticDataGenerator
 
     data = SyntheticDataGenerator(
-        n_obs=1_000,
+        n_obs=10_000,
         n_cont_outcomes=1,
         n_binary_outcomes=0,
         n_binary_treatments=1,
         n_discrete_treatments=0,
         n_cont_treatments=0,
-        n_cont_confounders=3,
-        n_binary_confounders=3,
+        n_cont_confounders=0,
+        n_binary_confounders=0,
         n_discrete_confounders=0,
-        n_cont_modifiers=3,
-        n_binary_modifiers=3,
-        n_discrete_modifiers=2,
+        n_cont_modifiers=2,
+        n_binary_modifiers=2,
+        n_discrete_modifiers=1,
         stddev_outcome_noise=1,
         stddev_treatment_noise=1,
         causal_model_functional_form="linear",
@@ -87,19 +87,19 @@ def _(ate_df):
 
 
 @app.cell
-def _(synthetic_df):
-    for col in synthetic_df.columns:
-        if "discrete" in col:
-            synthetic_df[col] = synthetic_df[col].astype("category")
+def _():
+    # for col in synthetic_df.columns:
+    #     if "discrete" in col:
+    #         synthetic_df[col] = synthetic_df[col].astype("category")
 
-    categories = list(synthetic_df["X7_discrete"].cat.categories)
-    mapping = dict(
-        zip(
-            categories,
-            [f"A{str(i)}" for i in categories],
-        )
-    )
-    synthetic_df["X7_discrete"] = synthetic_df["X7_discrete"].map(mapping)
+    # categories = list(synthetic_df["X7_discrete"].cat.categories)
+    # mapping = dict(
+    #     zip(
+    #         categories,
+    #         [f"A{str(i)}" for i in categories],
+    #     )
+    # )
+    # synthetic_df["X7_discrete"] = synthetic_df["X7_discrete"].map(mapping)
     return
 
 
@@ -144,9 +144,9 @@ def _(synthetic_df):
         if "binary" in treatment or "discrete" in treatment
         else False,
         discrete_outcome=True if "binary" in outcome else False,
-        model_Y={"time_budget": 5},
-        model_T={"time_budget": 5},
-        model_regression={"time_budget": 5},
+        model_Y={"time_budget": 10},
+        model_T={"time_budget": 10},
+        model_regression={"time_budget": 10},
         enable_categorical=True,
         n_jobs=-1,
         use_ray=False,
@@ -167,7 +167,7 @@ def _():
 
 @app.cell
 def _(caml, synthetic_df):
-    caml.fit(synthetic_df)
+    caml.fit(synthetic_df, cate_estimators=["LinearDML"])
     return
 
 
@@ -181,18 +181,18 @@ def _(caml, synthetic_df):
 @app.cell
 def _(caml, synthetic_df):
     obj2 = caml.estimate_cate(synthetic_df, return_inference=True)
-    return (obj2,)
-
-
-@app.cell
-def _(caml, synthetic_df):
-    caml.estimate_ate(synthetic_df, return_inference=True)
     return
 
 
 @app.cell
-def _(obj2):
-    obj2
+def _(caml, synthetic_df):
+    pop = caml.estimate_ate(synthetic_df, return_inference=True)
+    return (pop,)
+
+
+@app.cell
+def _(pop):
+    pop
     return
 
 

@@ -1,3 +1,5 @@
+"""Logging utilities for CaML."""
+
 import logging
 import warnings
 
@@ -71,18 +73,6 @@ def configure_logging(level: int = logging.WARNING):
     warnings.filterwarnings("ignore")
 
     logger.debug(f"Logging configured with level: {logging.getLevelName(level)}")
-
-
-def set_log_level(level: int):
-    """
-    Change the logging level after initial configuration.
-
-    Parameters
-    ----------
-    level
-        The new logging level to use.
-    """
-    logger.setLevel(level)
 
 
 def get_section_header(

@@ -7,8 +7,8 @@ from joblib import Parallel, delayed
 from caml.core._base import BaseCamlEstimator
 from caml.generics.decorators import experimental, maybe_jit, timer
 from caml.generics.interfaces import FittedAttr, PandasConvertibleDataFrame
+from caml.generics.logging import DEBUG, ERROR, INFO, WARNING
 from caml.generics.utils import is_module_available
-from caml.logging import DEBUG, ERROR, INFO, WARNING
 
 _HAS_JAX = is_module_available("jax")
 

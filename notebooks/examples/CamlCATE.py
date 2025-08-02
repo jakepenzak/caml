@@ -40,7 +40,7 @@ def _(mo):
 
 @app.cell
 def _():
-    from caml.logging import configure_logging
+    from caml.generics.logging import configure_logging
     import logging
 
     configure_logging(level=logging.DEBUG)

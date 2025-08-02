@@ -24,7 +24,7 @@ def _():
     import numpy as np
     from caml import FastOLS
     from caml.extensions.synthetic_data import SyntheticDataGenerator
-    from caml.logging import configure_logging
+    from caml.generics.logging import configure_logging
     import logging
 
     configure_logging(level=logging.DEBUG)

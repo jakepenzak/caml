@@ -10,10 +10,10 @@ from sklearn.model_selection import train_test_split
 
 from caml.generics.interfaces import (
     PandasConvertibleDataFrame,
-    _to_pandasConvertible,
-    _toPandasConvertible,
+    to_pandasConvertible,
+    toPandasConvertible,
 )
-from caml.logging import DEBUG, ERROR, INFO
+from caml.generics.logging import DEBUG, ERROR, INFO
 
 
 class BaseCamlEstimator(metaclass=abc.ABCMeta):
@@ -27,7 +27,7 @@ class BaseCamlEstimator(metaclass=abc.ABCMeta):
     W: list[str]
     T: list[str] | str
     Y: list[str]
-    seed: int | None
+    _seed: int | None
 
     def __init__(self):
         pass
@@ -70,7 +70,7 @@ class BaseCamlEstimator(metaclass=abc.ABCMeta):
         test_size = int(test_fraction * X.shape[0])
 
         X_train, X_test, W_train, W_test, T_train, T_test, Y_train, Y_test = (
-            train_test_split(X, W, T, Y, test_size=test_size, random_state=self.seed)
+            train_test_split(X, W, T, Y, test_size=test_size, random_state=self._seed)
         )
 
         X_train, X_val, W_train, W_val, T_train, T_val, Y_train, Y_val = (
@@ -80,7 +80,7 @@ class BaseCamlEstimator(metaclass=abc.ABCMeta):
                 T_train,
                 Y_train,
                 test_size=validation_size,
-                random_state=self.seed,
+                random_state=self._seed,
             )
         )
 
@@ -163,9 +163,9 @@ class BaseCamlEstimator(metaclass=abc.ABCMeta):
                 return _convert_groups_to_categorical(df, groups)
 
             DEBUG(f"Converting input dataframe of type {type(df)} to pandas")
-            if isinstance(df, _toPandasConvertible):
+            if isinstance(df, toPandasConvertible):
                 return _convert_groups_to_categorical(df.toPandas(), groups)
-            if isinstance(df, _to_pandasConvertible):
+            if isinstance(df, to_pandasConvertible):
                 return _convert_groups_to_categorical(df.to_pandas(), groups)
 
         ERROR(f"Unsupported dataframe type: {type(df)}")
