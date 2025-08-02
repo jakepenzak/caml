@@ -45,19 +45,19 @@ warnings.filterwarnings("ignore")
 # TODO: Refactor all docstrings!!
 @experimental
 class AutoCATE(BaseCamlEstimator):
-    r"""The AutoCATE class is an high-level API facilitating an AutoML framework for CATE estimation, built on top of the EconML library.
+    r"""The AutoCATE class is a high-level API facilitating an AutoML framework for CATE estimation, built on top of the EconML library.
 
     **AutoCATE is experimental and may change significantly in future versions.**
 
     The CATE is defined as $\mathbb{E}[\tau|\mathbf{X}]$
-    where $\tau$ is the treatment effect and $\mathbf{X}$ is the set of covariates.
+    where $\tau$ is the treatment effect and $\mathbf{X}$ is the set of features leveraged for treatment effect heterogeneity.
 
-    This class is built on top of the EconML library and provides a high-level API for AutoML for fitting, validating, and making predictions/inference with CATE models,
+    This class is built on top of the EconML library and provides a high-level AutoML API for fitting, validating, and making predictions/inference with CATE models,
     with best practices built directly into the API. The class is designed to be easy to use and understand, while still providing flexibility for advanced users.
 
     Note that first-stage models are estimated using a full AutoML framework via [Flaml](https://microsoft.github.io/FLAML/), whereas the second-stage models
-    are currently estimated & selected based on pre-specified set of models (or custom CATE models) passed - there is no tuning of hyperparameters. This is
-    on the roadmap for future versions of AutoCATE.
+    are currently estimated & selected based on a pre-specified set of models (or custom CATE models) passed, thus there is no tuning of hyperparameters.
+    This and other AutoML features are on the roadmap for future versions of AutoCATE.
 
     For technical details on the AutoCATE class, see here.
 
@@ -233,6 +233,7 @@ class AutoCATE(BaseCamlEstimator):
     def fit(
         self,
         df: PandasConvertibleDataFrame,
+        *,
         cate_estimators: Sequence[str] = list(available_estimators.keys()),
         additional_cate_estimators: Sequence[AutoCateEstimator] = list(),
         ensemble: bool = False,
@@ -338,31 +339,33 @@ class AutoCATE(BaseCamlEstimator):
     def estimate_ate(
         self,
         df: PandasConvertibleDataFrame,
+        *,
         effect_mode: str = "discrete",
         T0: int = 0,
         T1: int = 1,
         T: np.ndarray | pd.DataFrame | None = None,
         return_inference: bool = False,
+        allow_bootstrap: bool = False,
         n_bootstrap_samples: int = 100,
         alpha: float = 0.05,
         value: int = 0,
     ) -> float | PopulationSummaryResults:
-        r"""Calculate the average treatment effect (ATE) $\mathbb{E}[\tau(\mathbf{X})]$.
+        r"""Calculate the average treatment effect(s) (ATE) $\mathbb{E}[\tau(\mathbf{X})]$.
 
-        This method can be used for group average treatment effects (GATEs) $\mathbb{E}[\tau(\mathbf{X})|G]$ by filtering the input df to select a specific group.
+        This method can be used for group average treatment effects (GATEs) $\mathbb{E}[\tau(\mathbf{X})|G]$ by filtering the input df to a specific group.
 
         Two effect modes are supported: `discrete` and `marginal`.
 
-        In `discrete` mode, the effect is calculated between two specific treatment levels T0 and T1 - $\tau(\mathbf{X}, T0, T1)$.
+        In `discrete` mode, the effect is calculated between two specific treatment levels `T0` and `T1` - $\mathbb{E}[\tau(\mathbf{X}, T0, T1)]$.
 
-        In `marginal` mode, the effect is calculated for each observation as a gradient around their treatment levels - $\partial_{\tau}(T,\mathbf{x})$
+        In `marginal` mode, the effect is calculated for each observation as a gradient around their treatment levels `T` - $\mathbb{E}[\partial_{\tau}(T,\mathbf{x})]$
 
         See [EconML](https://www.pywhy.org/EconML/_autosummary/econml.dml.LinearDML.html#econml.dml.LinearDML.__init__) for more details.
 
         Parameters
         ----------
         df : PandasConvertibleDataFrame
-            The data frame containing the data.
+            The dataframe containing all of the data passed to `fit` method.
         effect_mode : str
             The mode of effect calculation. Can be "marginal" or "discrete".
         T0 : int
@@ -373,6 +376,10 @@ class AutoCATE(BaseCamlEstimator):
             The base treatment levels for each observation when effect_mode is "marginal".
         return_inference : bool
             Whether to return inference results.
+        allow_bootstrap : bool
+            Whether to allow bootstrap inference when asymptotic inference is not supported by the best estimator. This can be computationally expensive.
+        n_bootstrap_samples : int
+            The number of bootstrap samples to use when return_inference is True and asymptotic inference is not supported by the best estimator.
         alpha : float
             The level of confidence in the reported interval.
         value : int
@@ -426,14 +433,74 @@ class AutoCATE(BaseCamlEstimator):
     def estimate_cate(
         self,
         df: PandasConvertibleDataFrame,
+        *,
         effect_mode: str = "discrete",
         T0: int = 0,
         T1: int = 1,
         T: np.ndarray | pd.DataFrame | None = None,
         return_inference: bool = False,
+        allow_bootstrap: bool = False,
         n_bootstrap_samples: int = 100,
     ) -> np.ndarray | InferenceResults:
-        """TODO: Docstring."""
+        r"""Calculate the Conditional Average Treatment Effects (CATE) $\tau(\mathbf{x})$.
+
+        Two effect modes are supported: `discrete` and `marginal`.
+
+        In `discrete` mode, the effect is calculated between two specific treatment levels T0 and T1 - $\tau(\mathbf{X}, T0, T1)$.
+
+        In `marginal` mode, the effect is calculated for each observation as a gradient around their treatment levels - $\partial_{\tau}(T,\mathbf{x})$
+
+        See [EconML](https://www.pywhy.org/EconML/_autosummary/econml.dml.LinearDML.html#econml.dml.LinearDML.__init__) for more details.
+
+        Parameters
+        ----------
+        df : PandasConvertibleDataFrame
+            The dataframe containing all of the data passed to `fit` method.
+        effect_mode : str
+            The mode of effect calculation. Can be "marginal" or "discrete".
+        T0 : int
+            The base treatment level when effect_mode is "discrete".
+        T1 : int
+            The target treatment level when effect_mode is "discrete".
+        T : np.ndarray | pd.DataFrame | None
+            The base treatment levels for each observation when effect_mode is "marginal".
+        return_inference : bool
+            Whether to return inference results.
+        allow_bootstrap : bool
+            Whether to allow bootstrap inference when asymptotic inference is not supported by the best estimator. This can be computationally expensive.
+        n_bootstrap_samples : int
+            The number of bootstrap samples to use when return_inference is True and asymptotic inference is not supported by the best estimator.
+
+        Returns
+        -------
+        np.ndarray | InferenceResults
+            The CATE estimates as an array if return_inference is False. Otherwise, the return value is an instance of [NormalInferenceResults](https://www.pywhy.org/EconML/_autosummary/econml.inference.NormalInferenceResults.html)
+            if asymptotic inference is available for the best estimator or [EmpiricalInferenceResults](https://www.pywhy.org/EconML/_autosummary/econml.inference.EmpiricalInferenceResults.html) if not.
+
+        Examples
+        --------
+        ```{python}
+        # Return CATEs array
+        auto_cate.estimate_cate(
+            df = df,
+            effect_mode = "discrete",
+            T0 = 0,
+            T1 = 1,
+        )[:5]
+        ```
+        ```{python}
+        # Return CATEs with Inference
+        inference = auto_cate.estimate_cate(
+            df = df,
+            effect_mode = "discrete",
+            T0 = 0,
+            T1 = 1,
+            return_inference = True,
+        )
+
+        print(inference)
+        ```
+        """
         if effect_mode not in ["discrete", "marginal"]:
             raise ValueError(
                 f"Invalid effect_mode: {effect_mode} Must be either 'discrete' or 'marginal'"
@@ -454,7 +521,7 @@ class AutoCATE(BaseCamlEstimator):
                 self._best_estimator, EnsembleCateEstimator
             ):
                 WARNING(
-                    f"Asymptotic inference is not supported for {self._best_estimator_name}. Falling back to bootstrap. Initial fit will happen once and can be expensive."
+                    f"Asymptotic inference is not supported for {self._best_estimator_name}. Falling back to bootstrap. Initial bootstrap fit will happen once and be cached. This can be computationally expensive."
                 )
                 if self._bs_estimator is None:
                     self._bs_estimator = BootstrapInference(
