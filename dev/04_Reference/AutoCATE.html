@@ -847,10 +847,10 @@ window.Quarto = {
 <td><code>False</code></td>
 </tr>
 <tr class="odd">
-<td>model_y</td>
-<td></td>
+<td>model_Y</td>
+<td>dict | BaseEstimator | None</td>
 <td>A dictionary of <a href="https://microsoft.github.io/FLAML/docs/reference/automl/automl">FLAML</a> kwarg overrides or a BaseEstimator instance for the outcome model - <span class="math inline">\(\mathbb{E}[Y \mid \mathbf{X},\mathbf{W}]\)</span>.</td>
-<td><em>required</em></td>
+<td><code>None</code></td>
 </tr>
 <tr class="even">
 <td>model_T</td>
@@ -985,7 +985,7 @@ window.Quarto = {
 </section>
 <section id="examples" class="level2 doc-section doc-section-examples">
 <h2 class="doc-section doc-section-examples anchored" data-anchor-id="examples">Examples</h2>
-<div id="65bf6a67" class="cell" data-execution_count="1">
+<div id="459e26ec" class="cell" data-execution_count="1">
 <div class="sourceCode cell-code" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> caml <span class="im">import</span> AutoCATE</span>
 <span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> caml.extensions.synthetic_data <span class="im">import</span> SyntheticDataGenerator</span>
 <span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a></span>
@@ -1005,7 +1005,7 @@ window.Quarto = {
 <span id="cb2-17"><a href="#cb2-17" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb2-18"><a href="#cb2-18" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(auto_cate)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display">
-<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"><span style="color: #7fbfbf; text-decoration-color: #7fbfbf">[11/10/25 01:03:57] </span><span style="color: #808000; text-decoration-color: #808000">WARNING </span> AutoCATE is experimental and may change in future versions.           <a href="file:///home/runner/work/caml/caml/caml/generics/decorators.py" target="_blank"><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">decorators.py</span></a><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">:</span><a href="file:///home/runner/work/caml/caml/caml/generics/decorators.py#57" target="_blank"><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">57</span></a>
+<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"><span style="color: #7fbfbf; text-decoration-color: #7fbfbf">[11/10/25 02:26:51] </span><span style="color: #808000; text-decoration-color: #808000">WARNING </span> AutoCATE is experimental and may change in future versions.           <a href="file:///home/runner/work/caml/caml/caml/generics/decorators.py" target="_blank"><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">decorators.py</span></a><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">:</span><a href="file:///home/runner/work/caml/caml/caml/generics/decorators.py#57" target="_blank"><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">57</span></a>
 </pre>
 </div>
 <div class="cell-output cell-output-stdout">
@@ -1175,7 +1175,7 @@ Random Seed: None
 </section>
 <section id="examples-1" class="level4 doc-section doc-section-examples">
 <h4 class="doc-section doc-section-examples anchored" data-anchor-id="examples-1">Examples</h4>
-<div id="d4aaa3af" class="cell" data-execution_count="2">
+<div id="12cf53fd" class="cell" data-execution_count="2">
 <div class="sourceCode cell-code" id="cb5"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> caml <span class="im">import</span> AutoCateEstimator</span>
 <span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> econml.dml <span class="im">import</span> LinearDML</span>
 <span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a></span>
@@ -1228,8 +1228,8 @@ Random Seed: None
 </pre>
 </div>
 <div class="cell-output cell-output-display">
-<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"><span style="color: #7fbfbf; text-decoration-color: #7fbfbf">[11/10/25 01:04:07] </span><span style="color: #008000; text-decoration-color: #008000">INFO    </span> Best estimator: xgboost with loss <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">32.237903294121594</span> found on iteration   <a href="file:///home/runner/work/caml/caml/caml/core/_base.py" target="_blank"><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">_base.py</span></a><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">:</span><a href="file:///home/runner/work/caml/caml/caml/core/_base.py#144" target="_blank"><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">144</span></a>
-<span style="color: #7fbfbf; text-decoration-color: #7fbfbf">                    </span>         <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">135</span> in <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">7.368263483047485</span> seconds.                                         <span style="color: #7f7f7f; text-decoration-color: #7f7f7f">            </span>
+<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"><span style="color: #7fbfbf; text-decoration-color: #7fbfbf">[11/10/25 02:27:01] </span><span style="color: #008000; text-decoration-color: #008000">INFO    </span> Best estimator: xgboost with loss <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">32.23692194931248</span> found on iteration    <a href="file:///home/runner/work/caml/caml/caml/core/_base.py" target="_blank"><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">_base.py</span></a><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">:</span><a href="file:///home/runner/work/caml/caml/caml/core/_base.py#144" target="_blank"><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">144</span></a>
+<span style="color: #7fbfbf; text-decoration-color: #7fbfbf">                    </span>         <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">130</span> in <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">8.529869318008423</span> seconds.                                         <span style="color: #7f7f7f; text-decoration-color: #7f7f7f">            </span>
 <span style="color: #7fbfbf; text-decoration-color: #7fbfbf">                    </span>                                                                                   <span style="color: #7f7f7f; text-decoration-color: #7f7f7f">            </span>
 </pre>
 </div>
@@ -1238,8 +1238,8 @@ Random Seed: None
 </pre>
 </div>
 <div class="cell-output cell-output-display">
-<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"><span style="color: #7fbfbf; text-decoration-color: #7fbfbf">[11/10/25 01:04:17] </span><span style="color: #008000; text-decoration-color: #008000">INFO    </span> Best estimator: lgbm with loss <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">1.167150473177883</span> found on iteration <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">64</span> in <a href="file:///home/runner/work/caml/caml/caml/core/_base.py" target="_blank"><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">_base.py</span></a><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">:</span><a href="file:///home/runner/work/caml/caml/caml/core/_base.py#144" target="_blank"><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">144</span></a>
-<span style="color: #7fbfbf; text-decoration-color: #7fbfbf">                    </span>         <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">8.102029800415039</span> seconds.                                                <span style="color: #7f7f7f; text-decoration-color: #7f7f7f">            </span>
+<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"><span style="color: #7fbfbf; text-decoration-color: #7fbfbf">[11/10/25 02:27:12] </span><span style="color: #008000; text-decoration-color: #008000">INFO    </span> Best estimator: lgbm with loss <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">1.167150473177883</span> found on iteration <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">67</span> in <a href="file:///home/runner/work/caml/caml/caml/core/_base.py" target="_blank"><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">_base.py</span></a><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">:</span><a href="file:///home/runner/work/caml/caml/caml/core/_base.py#144" target="_blank"><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">144</span></a>
+<span style="color: #7fbfbf; text-decoration-color: #7fbfbf">                    </span>         <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">8.155766487121582</span> seconds.                                                <span style="color: #7f7f7f; text-decoration-color: #7f7f7f">            </span>
 <span style="color: #7fbfbf; text-decoration-color: #7fbfbf">                    </span>                                                                                   <span style="color: #7f7f7f; text-decoration-color: #7f7f7f">            </span>
 </pre>
 </div>
@@ -1248,8 +1248,8 @@ Random Seed: None
 </pre>
 </div>
 <div class="cell-output cell-output-display">
-<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"><span style="color: #7fbfbf; text-decoration-color: #7fbfbf">[11/10/25 01:04:28] </span><span style="color: #008000; text-decoration-color: #008000">INFO    </span> Best estimator: lrl1 with loss <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">0.6690757715207992</span> found on iteration <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">108</span>  <a href="file:///home/runner/work/caml/caml/caml/core/_base.py" target="_blank"><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">_base.py</span></a><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">:</span><a href="file:///home/runner/work/caml/caml/caml/core/_base.py#144" target="_blank"><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">144</span></a>
-<span style="color: #7fbfbf; text-decoration-color: #7fbfbf">                    </span>         in <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">10.0403470993042</span> seconds.                                              <span style="color: #7f7f7f; text-decoration-color: #7f7f7f">            </span>
+<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"><span style="color: #7fbfbf; text-decoration-color: #7fbfbf">[11/10/25 02:27:22] </span><span style="color: #008000; text-decoration-color: #008000">INFO    </span> Best estimator: lrl1 with loss <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">0.6690757889939509</span> found on iteration <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">115</span>  <a href="file:///home/runner/work/caml/caml/caml/core/_base.py" target="_blank"><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">_base.py</span></a><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">:</span><a href="file:///home/runner/work/caml/caml/caml/core/_base.py#144" target="_blank"><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">144</span></a>
+<span style="color: #7fbfbf; text-decoration-color: #7fbfbf">                    </span>         in <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">10.044898509979248</span> seconds.                                            <span style="color: #7f7f7f; text-decoration-color: #7f7f7f">            </span>
 <span style="color: #7fbfbf; text-decoration-color: #7fbfbf">                    </span>                                                                                   <span style="color: #7f7f7f; text-decoration-color: #7f7f7f">            </span>
 </pre>
 </div>
@@ -1266,17 +1266,17 @@ Random Seed: None
 </pre>
 </div>
 <div class="cell-output cell-output-display">
-<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"><span style="color: #7fbfbf; text-decoration-color: #7fbfbf">[11/10/25 01:04:35] </span><span style="color: #008000; text-decoration-color: #008000">INFO    </span> Best Estimator: <span style="color: #008000; text-decoration-color: #008000">'DRLearner'</span>                                                <a href="file:///home/runner/work/caml/caml/caml/core/cate.py" target="_blank"><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">cate.py</span></a><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">:</span><a href="file:///home/runner/work/caml/caml/caml/core/cate.py#837" target="_blank"><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">837</span></a>
+<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"><span style="color: #7fbfbf; text-decoration-color: #7fbfbf">[11/10/25 02:27:29] </span><span style="color: #008000; text-decoration-color: #008000">INFO    </span> Best Estimator: <span style="color: #008000; text-decoration-color: #008000">'SparseLinearDML-2D'</span>                                       <a href="file:///home/runner/work/caml/caml/caml/core/cate.py" target="_blank"><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">cate.py</span></a><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">:</span><a href="file:///home/runner/work/caml/caml/caml/core/cate.py#837" target="_blank"><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">837</span></a>
 </pre>
 </div>
 <div class="cell-output cell-output-display">
-<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"><span style="color: #7fbfbf; text-decoration-color: #7fbfbf">                    </span><span style="color: #008000; text-decoration-color: #008000">INFO    </span> Estimator RScores: <span style="font-weight: bold">{</span><span style="color: #008000; text-decoration-color: #008000">'LinearDML'</span>: <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">0.8560669031846578</span>, <span style="color: #008000; text-decoration-color: #008000">'CausalForestDML'</span>:    <a href="file:///home/runner/work/caml/caml/caml/core/cate.py" target="_blank"><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">cate.py</span></a><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">:</span><a href="file:///home/runner/work/caml/caml/caml/core/cate.py#838" target="_blank"><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">838</span></a>
-<span style="color: #7fbfbf; text-decoration-color: #7fbfbf">                    </span>         <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">0.8519446558375909</span>, <span style="color: #008000; text-decoration-color: #008000">'NonParamDML'</span>: <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">0.8410109556296228</span>,                     <span style="color: #7f7f7f; text-decoration-color: #7f7f7f">           </span>
-<span style="color: #7fbfbf; text-decoration-color: #7fbfbf">                    </span>         <span style="color: #008000; text-decoration-color: #008000">'SparseLinearDML-2D'</span>: <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">0.8571702523352553</span>, <span style="color: #008000; text-decoration-color: #008000">'DRLearner'</span>: <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">0.858706361968661</span>,  <span style="color: #7f7f7f; text-decoration-color: #7f7f7f">           </span>
-<span style="color: #7fbfbf; text-decoration-color: #7fbfbf">                    </span>         <span style="color: #008000; text-decoration-color: #008000">'ForestDRLearner'</span>: <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">0.8518428725579171</span>, <span style="color: #008000; text-decoration-color: #008000">'LinearDRLearner'</span>:                  <span style="color: #7f7f7f; text-decoration-color: #7f7f7f">           </span>
-<span style="color: #7fbfbf; text-decoration-color: #7fbfbf">                    </span>         <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">0.8558966465537325</span>, <span style="color: #008000; text-decoration-color: #008000">'SLearner'</span>: <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">0.8586046658112165</span>, <span style="color: #008000; text-decoration-color: #008000">'TLearner'</span>:            <span style="color: #7f7f7f; text-decoration-color: #7f7f7f">           </span>
-<span style="color: #7fbfbf; text-decoration-color: #7fbfbf">                    </span>         <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">0.8543674324398438</span>, <span style="color: #008000; text-decoration-color: #008000">'XLearner'</span>: <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">0.8546823858023365</span>, <span style="color: #008000; text-decoration-color: #008000">'MyCustomEstimator'</span>:   <span style="color: #7f7f7f; text-decoration-color: #7f7f7f">           </span>
-<span style="color: #7fbfbf; text-decoration-color: #7fbfbf">                    </span>         <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">0.8561491149494594</span><span style="font-weight: bold">}</span>                                                        <span style="color: #7f7f7f; text-decoration-color: #7f7f7f">           </span>
+<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"><span style="color: #7fbfbf; text-decoration-color: #7fbfbf">                    </span><span style="color: #008000; text-decoration-color: #008000">INFO    </span> Estimator RScores: <span style="font-weight: bold">{</span><span style="color: #008000; text-decoration-color: #008000">'LinearDML'</span>: <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">0.8915316168416445</span>, <span style="color: #008000; text-decoration-color: #008000">'CausalForestDML'</span>:    <a href="file:///home/runner/work/caml/caml/caml/core/cate.py" target="_blank"><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">cate.py</span></a><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">:</span><a href="file:///home/runner/work/caml/caml/caml/core/cate.py#838" target="_blank"><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">838</span></a>
+<span style="color: #7fbfbf; text-decoration-color: #7fbfbf">                    </span>         <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">0.8867258021415686</span>, <span style="color: #008000; text-decoration-color: #008000">'NonParamDML'</span>: <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">0.8705077046965002</span>,                     <span style="color: #7f7f7f; text-decoration-color: #7f7f7f">           </span>
+<span style="color: #7fbfbf; text-decoration-color: #7fbfbf">                    </span>         <span style="color: #008000; text-decoration-color: #008000">'SparseLinearDML-2D'</span>: <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">0.8916246618211885</span>, <span style="color: #008000; text-decoration-color: #008000">'DRLearner'</span>: <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">0.8851821578767136</span>, <span style="color: #7f7f7f; text-decoration-color: #7f7f7f">           </span>
+<span style="color: #7fbfbf; text-decoration-color: #7fbfbf">                    </span>         <span style="color: #008000; text-decoration-color: #008000">'ForestDRLearner'</span>: <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">0.8861324959556454</span>, <span style="color: #008000; text-decoration-color: #008000">'LinearDRLearner'</span>:                  <span style="color: #7f7f7f; text-decoration-color: #7f7f7f">           </span>
+<span style="color: #7fbfbf; text-decoration-color: #7fbfbf">                    </span>         <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">0.8914964022878061</span>, <span style="color: #008000; text-decoration-color: #008000">'SLearner'</span>: <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">0.8900019729445495</span>, <span style="color: #008000; text-decoration-color: #008000">'TLearner'</span>:            <span style="color: #7f7f7f; text-decoration-color: #7f7f7f">           </span>
+<span style="color: #7fbfbf; text-decoration-color: #7fbfbf">                    </span>         <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">0.8874970254586843</span>, <span style="color: #008000; text-decoration-color: #008000">'XLearner'</span>: <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">0.8885081740890497</span>, <span style="color: #008000; text-decoration-color: #008000">'MyCustomEstimator'</span>:   <span style="color: #7f7f7f; text-decoration-color: #7f7f7f">           </span>
+<span style="color: #7fbfbf; text-decoration-color: #7fbfbf">                    </span>         <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">0.8915177238619969</span><span style="font-weight: bold">}</span>                                                        <span style="color: #7f7f7f; text-decoration-color: #7f7f7f">           </span>
 </pre>
 </div>
 <div class="cell-output cell-output-display">
@@ -1296,17 +1296,17 @@ Random Seed: None
 </pre>
 </div>
 <div class="cell-output cell-output-display">
-<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"><span style="color: #7fbfbf; text-decoration-color: #7fbfbf">[11/10/25 01:04:36] </span><span style="color: #008000; text-decoration-color: #008000">INFO    </span> All validation results suggest that the model has found statistically      <a href="file:///home/runner/work/caml/caml/caml/core/cate.py" target="_blank"><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">cate.py</span></a><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">:</span><a href="file:///home/runner/work/caml/caml/caml/core/cate.py#923" target="_blank"><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">923</span></a>
+<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"><span style="color: #7fbfbf; text-decoration-color: #7fbfbf">[11/10/25 02:27:30] </span><span style="color: #008000; text-decoration-color: #008000">INFO    </span> All validation results suggest that the model has found statistically      <a href="file:///home/runner/work/caml/caml/caml/core/cate.py" target="_blank"><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">cate.py</span></a><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">:</span><a href="file:///home/runner/work/caml/caml/caml/core/cate.py#923" target="_blank"><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">923</span></a>
 <span style="color: #7fbfbf; text-decoration-color: #7fbfbf">                    </span>         significant heterogeneity.                                                 <span style="color: #7f7f7f; text-decoration-color: #7f7f7f">           </span>
 <span style="color: #7fbfbf; text-decoration-color: #7fbfbf">                    </span>                                                                                    <span style="color: #7f7f7f; text-decoration-color: #7f7f7f">           </span>
 </pre>
 </div>
 <div class="cell-output cell-output-display">
 <pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"><span style="color: #7fbfbf; text-decoration-color: #7fbfbf">                    </span><span style="color: #008000; text-decoration-color: #008000">INFO    </span>    treatment  blp_est  blp_se  blp_pval  qini_est  qini_se  qini_pval  \   <a href="file:///home/runner/work/caml/caml/caml/core/cate.py" target="_blank"><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">cate.py</span></a><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">:</span><a href="file:///home/runner/work/caml/caml/caml/core/cate.py#927" target="_blank"><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">927</span></a>
-<span style="color: #7fbfbf; text-decoration-color: #7fbfbf">                    </span>         <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">0</span>          <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">1</span>    <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">1.002</span>   <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">0.009</span>       <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">0.0</span>     <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">2.055</span>    <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">0.088</span>        <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">0.0</span>      <span style="color: #7f7f7f; text-decoration-color: #7f7f7f">           </span>
+<span style="color: #7fbfbf; text-decoration-color: #7fbfbf">                    </span>         <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">0</span>          <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">1</span>    <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">0.995</span>   <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">0.008</span>       <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">0.0</span>     <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">2.111</span>    <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">0.086</span>        <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">0.0</span>      <span style="color: #7f7f7f; text-decoration-color: #7f7f7f">           </span>
 <span style="color: #7fbfbf; text-decoration-color: #7fbfbf">                    </span>                                                                                    <span style="color: #7f7f7f; text-decoration-color: #7f7f7f">           </span>
 <span style="color: #7fbfbf; text-decoration-color: #7fbfbf">                    </span>            autoc_est  autoc_se  autoc_pval  cal_r_squared                          <span style="color: #7f7f7f; text-decoration-color: #7f7f7f">           </span>
-<span style="color: #7fbfbf; text-decoration-color: #7fbfbf">                    </span>         <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">0</span>      <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">5.917</span>     <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">0.306</span>         <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">0.0</span>          <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">0.984</span>                          <span style="color: #7f7f7f; text-decoration-color: #7f7f7f">           </span>
+<span style="color: #7fbfbf; text-decoration-color: #7fbfbf">                    </span>         <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">0</span>      <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">6.118</span>     <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">0.304</span>         <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">0.0</span>          <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">0.984</span>                          <span style="color: #7f7f7f; text-decoration-color: #7f7f7f">           </span>
 </pre>
 </div>
 <div class="cell-output cell-output-display">
@@ -1355,7 +1355,7 @@ Random Seed: None
 </pre>
 </div>
 <div class="cell-output cell-output-display">
-<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"><span style="color: #7fbfbf; text-decoration-color: #7fbfbf">[11/10/25 01:04:37] </span><span style="color: #008000; text-decoration-color: #008000">INFO    </span> ✅ Completed.                                                        <a href="file:///home/runner/work/caml/caml/caml/generics/decorators.py" target="_blank"><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">decorators.py</span></a><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">:</span><a href="file:///home/runner/work/caml/caml/caml/generics/decorators.py#116" target="_blank"><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">116</span></a>
+<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"><span style="color: #7fbfbf; text-decoration-color: #7fbfbf">                    </span><span style="color: #008000; text-decoration-color: #008000">INFO    </span> ✅ Completed.                                                        <a href="file:///home/runner/work/caml/caml/caml/generics/decorators.py" target="_blank"><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">decorators.py</span></a><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">:</span><a href="file:///home/runner/work/caml/caml/caml/generics/decorators.py#116" target="_blank"><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">116</span></a>
 </pre>
 </div>
 </div>
@@ -1502,7 +1502,7 @@ Random Seed: None
 </section>
 <section id="examples-2" class="level4 doc-section doc-section-examples">
 <h4 class="doc-section doc-section-examples anchored" data-anchor-id="examples-2">Examples</h4>
-<div id="9c9d9833" class="cell" data-execution_count="3">
+<div id="d7fdcc5f" class="cell" data-execution_count="3">
 <div class="sourceCode cell-code" id="cb8"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Return scalar ATE</span></span>
 <span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>auto_cate.estimate_ate(</span>
 <span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>    df <span class="op">=</span> df,</span>
@@ -1511,10 +1511,10 @@ Random Seed: None
 <span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a>    T1 <span class="op">=</span> <span class="dv">1</span>,</span>
 <span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display" data-execution_count="3">
-<pre><code>-7.665033167319471</code></pre>
+<pre><code>-7.713145378787159</code></pre>
 </div>
 </div>
-<div id="66cae68f" class="cell" data-execution_count="4">
+<div id="4235c500" class="cell" data-execution_count="4">
 <div class="sourceCode cell-code" id="cb10"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Return ATE with Inference</span></span>
 <span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>auto_cate.estimate_ate(</span>
 <span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>    df <span class="op">=</span> df,</span>
@@ -1531,9 +1531,19 @@ Random Seed: None
 <tbody>
 <tr class="odd">
 <td data-quarto-table-cell-role="th">mean_point</td>
+<td data-quarto-table-cell-role="th">stderr_mean</td>
+<td data-quarto-table-cell-role="th">zstat</td>
+<td data-quarto-table-cell-role="th">pvalue</td>
+<td data-quarto-table-cell-role="th">ci_mean_lower</td>
+<td data-quarto-table-cell-role="th">ci_mean_upper</td>
 </tr>
 <tr class="even">
-<td>-7.665</td>
+<td>-7.713</td>
+<td>0.077</td>
+<td>-99.526</td>
+<td>0.0</td>
+<td>-7.865</td>
+<td>-7.561</td>
 </tr>
 </tbody>
 </table>
@@ -1548,9 +1558,26 @@ Random Seed: None
 <td data-quarto-table-cell-role="th">pct_point_upper</td>
 </tr>
 <tr class="even">
-<td>8.319</td>
-<td>-25.052</td>
-<td>9.89</td>
+<td>8.44</td>
+<td>-25.383</td>
+<td>10.324</td>
+</tr>
+</tbody>
+</table>
+
+
+<table class="simpletable caption-top table table-sm table-striped small" data-quarto-postprocess="true">
+<caption>Total Variance of Point Estimate</caption>
+<tbody>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">stderr_point</td>
+<td data-quarto-table-cell-role="th">ci_point_lower</td>
+<td data-quarto-table-cell-role="th">ci_point_upper</td>
+</tr>
+<tr class="even">
+<td>8.44</td>
+<td>-25.409</td>
+<td>10.232</td>
 </tr>
 </tbody>
 </table>
@@ -1646,7 +1673,7 @@ Random Seed: None
 </section>
 <section id="examples-3" class="level4 doc-section doc-section-examples">
 <h4 class="doc-section doc-section-examples anchored" data-anchor-id="examples-3">Examples</h4>
-<div id="9c5bdd41" class="cell" data-execution_count="5">
+<div id="7025028b" class="cell" data-execution_count="5">
 <div class="sourceCode cell-code" id="cb12"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Return CATEs array</span></span>
 <span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>auto_cate.estimate_cate(</span>
 <span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a>    df <span class="op">=</span> df,</span>
@@ -1655,14 +1682,14 @@ Random Seed: None
 <span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a>    T1 <span class="op">=</span> <span class="dv">1</span>,</span>
 <span id="cb12-7"><a href="#cb12-7" aria-hidden="true" tabindex="-1"></a>)[:<span class="dv">5</span>]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display" data-execution_count="5">
-<pre><code>array([[ 12.37899085],
-       [ -8.70264313],
-       [-30.77315369],
-       [  3.54551431],
-       [ -5.31883128]])</code></pre>
+<pre><code>array([[ 11.78890302],
+       [ -9.22462096],
+       [-32.56025136],
+       [  3.4063814 ],
+       [ -5.25150199]])</code></pre>
 </div>
 </div>
-<div id="1888d2b1" class="cell" data-execution_count="6">
+<div id="6f6aba5b" class="cell" data-execution_count="6">
 <div class="sourceCode cell-code" id="cb14"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Return CATEs with Inference</span></span>
 <span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>inference <span class="op">=</span> auto_cate.estimate_cate(</span>
 <span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>    df <span class="op">=</span> df,</span>
@@ -1674,7 +1701,7 @@ Random Seed: None
 <span id="cb14-9"><a href="#cb14-9" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb14-10"><a href="#cb14-10" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(inference)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>&lt;econml.inference._inference.NormalInferenceResults object at 0x7f9564685f60&gt;</code></pre>
+<pre><code>&lt;econml.inference._inference.NormalInferenceResults object at 0x7fa974b50d90&gt;</code></pre>
 </div>
 </div>
 </section>

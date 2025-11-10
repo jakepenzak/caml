@@ -992,7 +992,7 @@ window.Quarto = {
 </section>
 <section id="examples" class="level2 doc-section doc-section-examples">
 <h2 class="doc-section doc-section-examples anchored" data-anchor-id="examples">Examples</h2>
-<div id="26c9b68b" class="cell" data-execution_count="1">
+<div id="7f88f22a" class="cell" data-execution_count="1">
 <div class="sourceCode cell-code" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> caml.extensions.synthetic_data <span class="im">import</span> SyntheticDataGenerator</span>
 <span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>data_generator <span class="op">=</span> SyntheticDataGenerator(n_cont_outcomes<span class="op">=</span><span class="dv">1</span>,</span>
@@ -1124,7 +1124,7 @@ window.Quarto = {
 </div>
 </div>
 </div>
-<div id="f8a3c20d" class="cell" data-execution_count="2">
+<div id="23f12eef" class="cell" data-execution_count="2">
 <div class="sourceCode cell-code" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>data_generator.cates</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display" data-execution_count="2">
 <div>
@@ -1189,7 +1189,7 @@ window.Quarto = {
 </div>
 </div>
 </div>
-<div id="09c952be" class="cell" data-execution_count="3">
+<div id="3b74b271" class="cell" data-execution_count="3">
 <div class="sourceCode cell-code" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>data_generator.ates</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display" data-execution_count="3">
 <div>
@@ -1215,7 +1215,7 @@ window.Quarto = {
 </div>
 </div>
 </div>
-<div id="22f92ffa" class="cell" data-execution_count="4">
+<div id="eaee5a98" class="cell" data-execution_count="4">
 <div class="sourceCode cell-code" id="cb5"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> t, df <span class="kw">in</span> data_generator.dgp.items():</span>
 <span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f"</span><span class="ch">\n</span><span class="ss">DGP for </span><span class="sc">{</span>t<span class="sc">}</span><span class="ss">:"</span>)</span>
 <span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(df)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
@@ -1224,13 +1224,13 @@ window.Quarto = {
 DGP for T1_binary:
 {'formula': '1 + W1_continuous + W2_continuous', 'params': array([ 0.4609703 ,  0.2566887 , -0.03896251]), 'noise': array([ 0.14476544, -0.51949108, -1.88624383, ..., -0.59020672,
         0.87157749,  0.0697439 ]), 'raw_scores': array([0.69496136, 0.49765524, 0.15083742, ..., 0.47633017, 0.80751307,
-       0.5669763 ]), 'function': &lt;function SyntheticDataGenerator._create_dgp_function.&lt;locals&gt;.f_binary at 0x7f14c51b3910&gt;}
+       0.5669763 ]), 'function': &lt;function SyntheticDataGenerator._create_dgp_function.&lt;locals&gt;.f_binary at 0x7f26bbfbbac0&gt;}
 
 DGP for Y1_continuous:
 {'formula': '1 + W1_continuous + W2_continuous + X1_continuous + X2_continuous + T1_binary + T1_binary*X1_continuous + T1_binary*X2_continuous', 'params': array([-1.80242342,  1.11129512, -4.1263484 , -4.82709212,  1.87319625,
         2.60635605, -0.91633948,  0.71653213]), 'noise': array([-0.12533653, -1.15370094, -0.26681987, ...,  1.85405702,
        -0.18887322, -0.45736583]), 'raw_scores': array([-10.3729005 ,  13.43724492, -51.69501383, ...,   5.99231789,
-         1.54364473, -44.11428464]), 'function': &lt;function SyntheticDataGenerator._create_dgp_function.&lt;locals&gt;.f_cont at 0x7f1485065120&gt;}</code></pre>
+         1.54364473, -44.11428464]), 'function': &lt;function SyntheticDataGenerator._create_dgp_function.&lt;locals&gt;.f_cont at 0x7f267fee52d0&gt;}</code></pre>
 </div>
 </div>
 </section>
@@ -1326,7 +1326,7 @@ DGP for Y1_continuous:
 </section>
 <section id="examples-1" class="level4 doc-section doc-section-examples">
 <h4 class="doc-section doc-section-examples anchored" data-anchor-id="examples-1">Examples</h4>
-<div id="d5a9a9bc" class="cell" data-execution_count="5">
+<div id="36dfa479" class="cell" data-execution_count="5">
 <div class="sourceCode cell-code" id="cb8"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
 <span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>df <span class="op">=</span> data_generator.df</span>
 <span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>dgp <span class="op">=</span> data_generator.dgp[<span class="st">'Y1_continuous'</span>]</span>

@@ -780,17 +780,17 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <section id="generate-synthetic-data" class="level2">
 <h2 class="anchored" data-anchor-id="generate-synthetic-data">Generate Synthetic Data</h2>
 <p>Here we’ll leverage the <a href="../04_Reference/SyntheticDataGenerator.html"><code>SyntheticDataGenerator</code></a> class to generate a linear synthetic data generating process, with an exogenous binary treatment, a continuous &amp; a binary outcome, and binary &amp; continuous mediating covariates.</p>
-<div id="e07c58ad" class="cell" data-execution_count="1">
+<div id="f953954b" class="cell" data-execution_count="1">
 <div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> caml.generics.logging <span class="im">import</span> configure_logging</span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> logging</span>
 <span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>configure_logging(level<span class="op">=</span>logging.DEBUG)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display">
-<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"><span style="color: #7fbfbf; text-decoration-color: #7fbfbf">[11/10/25 01:01:49] </span><span style="color: #008080; text-decoration-color: #008080">DEBUG   </span> Logging configured with level: DEBUG                                     <a href="file:///home/runner/work/caml/caml/caml/generics/logging.py" target="_blank"><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">logging.py</span></a><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">:</span><a href="file:///home/runner/work/caml/caml/caml/generics/logging.py#75" target="_blank"><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">75</span></a>
+<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"><span style="color: #7fbfbf; text-decoration-color: #7fbfbf">[11/10/25 02:24:47] </span><span style="color: #008080; text-decoration-color: #008080">DEBUG   </span> Logging configured with level: DEBUG                                     <a href="file:///home/runner/work/caml/caml/caml/generics/logging.py" target="_blank"><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">logging.py</span></a><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">:</span><a href="file:///home/runner/work/caml/caml/caml/generics/logging.py#75" target="_blank"><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">75</span></a>
 </pre>
 </div>
 </div>
-<div id="25456527" class="cell" data-execution_count="2">
+<div id="8c2d8d5f" class="cell" data-execution_count="2">
 <div class="sourceCode cell-code" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> caml.extensions.synthetic_data <span class="im">import</span> SyntheticDataGenerator</span>
 <span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>data_generator <span class="op">=</span> SyntheticDataGenerator(</span>
@@ -807,13 +807,13 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a>    seed<span class="op">=</span><span class="dv">10</span>,</span>
 <span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display">
-<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"><span style="color: #7fbfbf; text-decoration-color: #7fbfbf">                    </span><span style="color: #808000; text-decoration-color: #808000">WARNING </span> SyntheticDataGenerator is experimental and may change in future       <a href="file:///home/runner/work/caml/caml/caml/generics/decorators.py" target="_blank"><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">decorators.py</span></a><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">:</span><a href="file:///home/runner/work/caml/caml/caml/generics/decorators.py#57" target="_blank"><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">57</span></a>
+<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"><span style="color: #7fbfbf; text-decoration-color: #7fbfbf">[11/10/25 02:24:48] </span><span style="color: #808000; text-decoration-color: #808000">WARNING </span> SyntheticDataGenerator is experimental and may change in future       <a href="file:///home/runner/work/caml/caml/caml/generics/decorators.py" target="_blank"><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">decorators.py</span></a><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">:</span><a href="file:///home/runner/work/caml/caml/caml/generics/decorators.py#57" target="_blank"><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">57</span></a>
 <span style="color: #7fbfbf; text-decoration-color: #7fbfbf">                    </span>         versions.                                                             <span style="color: #7f7f7f; text-decoration-color: #7f7f7f">                </span>
 </pre>
 </div>
 </div>
 <p>We can print our simulated data via:</p>
-<div id="e6ad9182" class="cell" data-execution_count="3">
+<div id="bd8b68c5" class="cell" data-execution_count="3">
 <div class="sourceCode cell-code" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>data_generator.df</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display" data-execution_count="3">
 <div>
@@ -987,7 +987,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </div>
 </div>
 <p>To inspect our true data generating process, we can call <code>data_generator.dgp</code>. Furthermore, we will have our true CATEs and ATEs at our disposal via <code>data_generator.cates</code> &amp; <code>data_generator.ates</code>, respectively. We’ll use this as our source of truth for performance evaluation of our CATE estimator.</p>
-<div id="008623f6" class="cell" data-execution_count="4">
+<div id="8f0dd5cf" class="cell" data-execution_count="4">
 <div class="sourceCode cell-code" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> t, df <span class="kw">in</span> data_generator.dgp.items():</span>
 <span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f"</span><span class="ch">\n</span><span class="ss">DGP for </span><span class="sc">{</span>t<span class="sc">}</span><span class="ss">:"</span>)</span>
 <span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(df)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
@@ -996,24 +996,24 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 DGP for T1_binary:
 {'formula': '1 + W1_continuous + W2_continuous', 'params': array([0.00323235, 0.14809798, 0.00393589]), 'noise': array([ 0.41708078,  2.72097405, -0.05882655, ...,  0.53984804,
         1.50464572, -0.08231107]), 'raw_scores': array([0.6130131 , 0.9436502 , 0.50082704, ..., 0.6447923 , 0.83198225,
-       0.48696005]), 'function': &lt;function SyntheticDataGenerator._create_dgp_function.&lt;locals&gt;.f_binary at 0x7fcb5aecb400&gt;}
+       0.48696005]), 'function': &lt;function SyntheticDataGenerator._create_dgp_function.&lt;locals&gt;.f_binary at 0x7f2f0113b490&gt;}
 
 DGP for Y1_continuous:
 {'formula': '1 + W1_continuous + W2_continuous + X1_continuous + X2_continuous + X3_continuous + X4_binary + X5_binary + T1_binary + T1_binary*X1_continuous + T1_binary*X2_continuous + T1_binary*X3_continuous + T1_binary*X4_binary + T1_binary*X5_binary', 'params': array([-0.35986539, -3.30656481, -1.08522702, -2.03156347,  4.15748518,
        -3.7649075 ,  2.0412171 , -4.06259065,  1.19724956, -1.49108621,
        -0.33216768,  1.0519125 , -0.68252501,  0.57505328]), 'noise': array([ 0.19963494, -0.500903  ,  1.15056187, ..., -1.08977141,
         0.79262583,  1.81566293]), 'raw_scores': array([-11.31940995,   9.16782505, -21.01031565, ...,  -1.03763754,
-        -0.23595847, -20.00791171]), 'function': &lt;function SyntheticDataGenerator._create_dgp_function.&lt;locals&gt;.f_cont at 0x7fcb1fbb3b50&gt;}
+        -0.23595847, -20.00791171]), 'function': &lt;function SyntheticDataGenerator._create_dgp_function.&lt;locals&gt;.f_cont at 0x7f2ec501bc70&gt;}
 
 DGP for Y2_binary:
 {'formula': '1 + W1_continuous + W2_continuous + X1_continuous + X2_continuous + X3_continuous + X4_binary + X5_binary + T1_binary + T1_binary*X1_continuous + T1_binary*X2_continuous + T1_binary*X3_continuous + T1_binary*X4_binary + T1_binary*X5_binary', 'params': array([-0.69301323,  0.54152509,  0.39837891,  0.15335688,  0.39980853,
        -0.31388112, -0.18490127,  0.25395436,  0.19802621, -0.84703988,
        -0.12066193,  0.09225998,  0.37205785, -0.20954318]), 'noise': array([ 1.07352996,  0.43383419, -1.01413765, ..., -1.15478882,
         0.58572912,  0.22523345]), 'raw_scores': array([0.06237408, 0.99      , 0.75869455, ..., 0.65949716, 0.91015409,
-       0.77628529]), 'function': &lt;function SyntheticDataGenerator._create_dgp_function.&lt;locals&gt;.f_binary at 0x7fcb1fbb3be0&gt;}</code></pre>
+       0.77628529]), 'function': &lt;function SyntheticDataGenerator._create_dgp_function.&lt;locals&gt;.f_binary at 0x7f2ec501bd00&gt;}</code></pre>
 </div>
 </div>
-<div id="adf7e3a8" class="cell" data-execution_count="5">
+<div id="df27881d" class="cell" data-execution_count="5">
 <div class="sourceCode cell-code" id="cb6"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>data_generator.cates</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display" data-execution_count="5">
 <div>
@@ -1090,7 +1090,7 @@ DGP for Y2_binary:
 </div>
 </div>
 </div>
-<div id="5678d135" class="cell" data-execution_count="6">
+<div id="70c33689" class="cell" data-execution_count="6">
 <div class="sourceCode cell-code" id="cb7"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>data_generator.ates</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display" data-execution_count="6">
 <div>
@@ -1127,7 +1127,7 @@ DGP for Y2_binary:
 <section id="class-instantiation" class="level3">
 <h3 class="anchored" data-anchor-id="class-instantiation">Class Instantiation</h3>
 <p>We can instantiate and observe our <code>FastOLS</code> object via:</p>
-<div id="e55ab520" class="cell" data-execution_count="7">
+<div id="2fdb9039" class="cell" data-execution_count="7">
 <div class="sourceCode cell-code" id="cb8"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> caml <span class="im">import</span> FastOLS</span>
 <span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>fo_obj <span class="op">=</span> FastOLS(</span>
@@ -1145,7 +1145,7 @@ DGP for Y2_binary:
 <span id="cb8-15"><a href="#cb8-15" aria-hidden="true" tabindex="-1"></a>    discrete_treatment<span class="op">=</span><span class="va">True</span>,</span>
 <span id="cb8-16"><a href="#cb8-16" aria-hidden="true" tabindex="-1"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display">
-<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"><span style="color: #7fbfbf; text-decoration-color: #7fbfbf">[11/10/25 01:01:50] </span><span style="color: #008080; text-decoration-color: #008080">DEBUG   </span> Initializing FastOLS with parameters: <span style="color: #808000; text-decoration-color: #808000">Y</span>=<span style="font-weight: bold">[</span><span style="color: #008000; text-decoration-color: #008000">'Y1_continuous'</span>, <span style="color: #008000; text-decoration-color: #008000">'Y2_binary'</span><span style="font-weight: bold">]</span>,     <a href="file:///home/runner/work/caml/caml/caml/core/ols.py" target="_blank"><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">ols.py</span></a><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">:</span><a href="file:///home/runner/work/caml/caml/caml/core/ols.py#140" target="_blank"><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">140</span></a>
+<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"><span style="color: #7fbfbf; text-decoration-color: #7fbfbf">                    </span><span style="color: #008080; text-decoration-color: #008080">DEBUG   </span> Initializing FastOLS with parameters: <span style="color: #808000; text-decoration-color: #808000">Y</span>=<span style="font-weight: bold">[</span><span style="color: #008000; text-decoration-color: #008000">'Y1_continuous'</span>, <span style="color: #008000; text-decoration-color: #008000">'Y2_binary'</span><span style="font-weight: bold">]</span>,     <a href="file:///home/runner/work/caml/caml/caml/core/ols.py" target="_blank"><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">ols.py</span></a><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">:</span><a href="file:///home/runner/work/caml/caml/caml/core/ols.py#140" target="_blank"><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">140</span></a>
 <span style="color: #7fbfbf; text-decoration-color: #7fbfbf">                    </span>         <span style="color: #808000; text-decoration-color: #808000">T</span>=<span style="color: #800080; text-decoration-color: #800080">T1_binary</span>, <span style="color: #808000; text-decoration-color: #808000">G</span>=<span style="font-weight: bold">[</span><span style="color: #008000; text-decoration-color: #008000">'X4_binary'</span>, <span style="color: #008000; text-decoration-color: #008000">'X5_binary'</span><span style="font-weight: bold">]</span>, <span style="color: #808000; text-decoration-color: #808000">X</span>=<span style="font-weight: bold">[</span><span style="color: #008000; text-decoration-color: #008000">'X1_continuous'</span>,              <span style="color: #7f7f7f; text-decoration-color: #7f7f7f">          </span>
 <span style="color: #7fbfbf; text-decoration-color: #7fbfbf">                    </span>         <span style="color: #008000; text-decoration-color: #008000">'X2_continuous'</span>, <span style="color: #008000; text-decoration-color: #008000">'X3_continuous'</span><span style="font-weight: bold">]</span>, <span style="color: #808000; text-decoration-color: #808000">W</span>=<span style="font-weight: bold">[</span><span style="color: #008000; text-decoration-color: #008000">'W1_continuous'</span>, <span style="color: #008000; text-decoration-color: #008000">'W2_continuous'</span><span style="font-weight: bold">]</span>,    <span style="color: #7f7f7f; text-decoration-color: #7f7f7f">          </span>
 <span style="color: #7fbfbf; text-decoration-color: #7fbfbf">                    </span>         <span style="color: #808000; text-decoration-color: #808000">discrete_treatment</span>=<span style="color: #00ff00; text-decoration-color: #00ff00; font-style: italic">True</span>, <span style="color: #808000; text-decoration-color: #808000">engine</span>=<span style="color: #800080; text-decoration-color: #800080">cpu</span>                                         <span style="color: #7f7f7f; text-decoration-color: #7f7f7f">          </span>
@@ -1164,7 +1164,7 @@ DGP for Y2_binary:
 </pre>
 </div>
 </div>
-<div id="b0da95e9" class="cell" data-execution_count="8">
+<div id="c78ed12c" class="cell" data-execution_count="8">
 <div class="sourceCode cell-code" id="cb9"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(fo_obj)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>================== FastOLS Object ==================
@@ -1197,7 +1197,7 @@ Warning
 </div>
 </div>
 <p>For heteroskedasticity-robust variance estimation, we will also pass <code>robust_vcv=True</code>.</p>
-<div id="1faa8a05" class="cell" data-execution_count="9">
+<div id="1ac832f7" class="cell" data-execution_count="9">
 <div class="sourceCode cell-code" id="cb11"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>fo_obj.fit(data_generator.df, n_jobs<span class="op">=-</span><span class="dv">1</span>, estimate_effects<span class="op">=</span><span class="va">True</span>, cov_type<span class="op">=</span><span class="st">"HC1"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display">
 <pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"><span style="color: #7fbfbf; text-decoration-color: #7fbfbf">                    </span><span style="color: #008080; text-decoration-color: #008080">DEBUG   </span> Creating model design matrix<span style="color: #808000; text-decoration-color: #808000">...</span>                                             <a href="file:///home/runner/work/caml/caml/caml/core/ols.py" target="_blank"><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">ols.py</span></a><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">:</span><a href="file:///home/runner/work/caml/caml/caml/core/ols.py#545" target="_blank"><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">545</span></a>
@@ -1245,7 +1245,7 @@ Warning
 </div>
 </div>
 <p>We can now inspect the model fitted results and estimated treatment effects:</p>
-<div id="e4e8b738" class="cell" data-execution_count="10">
+<div id="9d1e65c4" class="cell" data-execution_count="10">
 <div class="sourceCode cell-code" id="cb12"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>fo_obj.params</span>
 <span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a><span class="co"># fo_obj.vcv</span></span>
 <span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a><span class="co"># fo_obj.std_err</span></span>
@@ -1269,13 +1269,13 @@ Warning
        [-1.63464173,  0.03581225]])</code></pre>
 </div>
 </div>
-<div id="0aed8cd4" class="cell" data-execution_count="11">
+<div id="95cd0040" class="cell" data-execution_count="11">
 <div class="sourceCode cell-code" id="cb14"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>fo_obj.treatment_effects.keys()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display" data-execution_count="11">
 <pre><code>dict_keys(['overall', 'X4_binary-0', 'X4_binary-1', 'X5_binary-0', 'X5_binary-1'])</code></pre>
 </div>
 </div>
-<div id="aa23baf3" class="cell" data-execution_count="12">
+<div id="88e1e913" class="cell" data-execution_count="12">
 <div class="sourceCode cell-code" id="cb16"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a>fo_obj.treatment_effects[<span class="st">"overall"</span>]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display" data-execution_count="12">
 <pre><code>{'outcome': ['Y1_continuous', 'Y2_binary'],
@@ -1290,7 +1290,7 @@ Warning
 </div>
 <p>Here we have direct access to the model parameters (<code>fo_obj.params</code>), variance-covariance matrices (<code>fo_obj.vcv]</code>), standard_errors (<code>fo_obj.std_err</code>), and estimated treatment effects (<code>fo_obj.treatment_effects</code>).</p>
 <p>To make the treatment effect results more readable, we can leverage the <code>prettify_treatment_effects</code> method:</p>
-<div id="387fbc47" class="cell" data-execution_count="13">
+<div id="58e13196" class="cell" data-execution_count="13">
 <div class="sourceCode cell-code" id="cb18"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a>fo_obj.prettify_treatment_effects()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display" data-execution_count="13">
 <div>
@@ -1450,7 +1450,7 @@ Warning
 </div>
 </div>
 <p>Comparing our overall treatment effect (ATE) to the ground truth, we have:</p>
-<div id="b0980037" class="cell" data-execution_count="14">
+<div id="7f24b573" class="cell" data-execution_count="14">
 <div class="sourceCode cell-code" id="cb19"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a>data_generator.ates</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display" data-execution_count="14">
 <div>
@@ -1482,7 +1482,7 @@ Warning
 </div>
 </div>
 <p>We can also see what our GATEs are using <code>data_generator.cates</code>. Let’s choose <code>X4_binary</code> in <code>1</code> group:</p>
-<div id="e8a7861f" class="cell" data-execution_count="15">
+<div id="f7b446b2" class="cell" data-execution_count="15">
 <div class="sourceCode cell-code" id="cb20"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a>data_generator.cates.iloc[</span>
 <span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a>    data_generator.df.query(<span class="st">"X4_binary == 1"</span>).index</span>
 <span id="cb20-3"><a href="#cb20-3" aria-hidden="true" tabindex="-1"></a>].mean()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
@@ -1496,7 +1496,7 @@ dtype: float64</code></pre>
 <section id="custom-group-average-treatment-effects-gates" class="level3">
 <h3 class="anchored" data-anchor-id="custom-group-average-treatment-effects-gates">Custom Group Average Treatment Effects (GATEs)</h3>
 <p>Let’s now look at how we can estimate any arbitary GATE using <code>estimate_ate</code> method and prettify the results with <code>prettify_treatment_effects</code>.</p>
-<div id="f2246b6d" class="cell" data-execution_count="16">
+<div id="6d420d1a" class="cell" data-execution_count="16">
 <div class="sourceCode cell-code" id="cb22"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a>custom_gate_df <span class="op">=</span> data_generator.df.query(</span>
 <span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a>    <span class="st">"X4_binary == 1 &amp; X2_continuous &lt; -3"</span></span>
 <span id="cb22-3"><a href="#cb22-3" aria-hidden="true" tabindex="-1"></a>).copy()</span>
@@ -1578,7 +1578,7 @@ dtype: float64</code></pre>
 </div>
 </div>
 <p>Let’s compare this to the ground truth as well:</p>
-<div id="5cc0700d" class="cell" data-execution_count="17">
+<div id="e62c6671" class="cell" data-execution_count="17">
 <div class="sourceCode cell-code" id="cb23"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a>data_generator.cates.iloc[custom_gate_df.index].mean()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display" data-execution_count="17">
 <pre><code>CATE_of_T1_binary_on_Y1_continuous    0.530934
@@ -1603,7 +1603,7 @@ Note
 <p>The <code>predict</code> method is a simple alias for <code>estimate_cate</code>. Either can be used, but namespacing was created to higlight that <code>estimate_cate</code> / <code>predict</code> can be used for out of sample treatment effect prediction.</p>
 </div>
 </div>
-<div id="23fe24c6" class="cell" data-execution_count="18">
+<div id="cfc92fe2" class="cell" data-execution_count="18">
 <div class="sourceCode cell-code" id="cb25"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a>cates <span class="op">=</span> fo_obj.estimate_cate(data_generator.df)</span>
 <span id="cb25-2"><a href="#cb25-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb25-3"><a href="#cb25-3" aria-hidden="true" tabindex="-1"></a>cates</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
@@ -1634,7 +1634,7 @@ Note
 </div>
 </div>
 <p>If we wanted additional information on CATEs (such as standard errors), we can call:</p>
-<div id="e520d2f2" class="cell" data-execution_count="19">
+<div id="e8734dc0" class="cell" data-execution_count="19">
 <div class="sourceCode cell-code" id="cb27"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a>fo_obj.estimate_cate(data_generator.df, return_results_dict<span class="op">=</span><span class="va">True</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display">
 <pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"><span style="color: #7fbfbf; text-decoration-color: #7fbfbf">                    </span><span style="color: #008000; text-decoration-color: #008000">INFO    </span> Estimating Conditional Average Treatment Effects <span style="font-weight: bold">(</span>CATEs<span style="font-weight: bold">)</span><span style="color: #808000; text-decoration-color: #808000">...</span>                 <a href="file:///home/runner/work/caml/caml/caml/core/ols.py" target="_blank"><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">ols.py</span></a><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">:</span><a href="file:///home/runner/work/caml/caml/caml/core/ols.py#361" target="_blank"><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">361</span></a>
@@ -1685,7 +1685,7 @@ Note
 </div>
 </div>
 <p>Now, let’s make our cate predictions:</p>
-<div id="331fa0ac" class="cell" data-execution_count="20">
+<div id="23549db2" class="cell" data-execution_count="20">
 <div class="sourceCode cell-code" id="cb29"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a>cate_predictions <span class="op">=</span> fo_obj.predict(data_generator.df)</span>
 <span id="cb29-2"><a href="#cb29-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb29-3"><a href="#cb29-3" aria-hidden="true" tabindex="-1"></a><span class="co">## We can also make predictions of the outcomes, if desired.</span></span>
@@ -1710,7 +1710,7 @@ Note
 <p>Let’s now look at the Precision in Estimating Heterogeneous Effects (PEHE) (e.g., RMSE) and plot some results for the treatment effects on each outcome:</p>
 <section id="effect-of-binary-t1-on-continuous-y1" class="level4">
 <h4 class="anchored" data-anchor-id="effect-of-binary-t1-on-continuous-y1">Effect of <em>binary</em> T1 on <em>continuous</em> Y1</h4>
-<div id="1bca7d28" class="cell" data-execution_count="21">
+<div id="daafdbc0" class="cell" data-execution_count="21">
 <div class="sourceCode cell-code" id="cb30"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb30-1"><a href="#cb30-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.metrics <span class="im">import</span> root_mean_squared_error</span>
 <span id="cb30-2"><a href="#cb30-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> caml.extensions.plots <span class="im">import</span> (</span>
 <span id="cb30-3"><a href="#cb30-3" aria-hidden="true" tabindex="-1"></a>    cate_true_vs_estimated_plot,</span>
@@ -1718,7 +1718,7 @@ Note
 <span id="cb30-5"><a href="#cb30-5" aria-hidden="true" tabindex="-1"></a>    cate_line_plot,</span>
 <span id="cb30-6"><a href="#cb30-6" aria-hidden="true" tabindex="-1"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
-<div id="0af48e0c" class="cell" data-execution_count="22">
+<div id="c28650bf" class="cell" data-execution_count="22">
 <div class="sourceCode cell-code" id="cb31"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb31-1"><a href="#cb31-1" aria-hidden="true" tabindex="-1"></a>true_cates1 <span class="op">=</span> data_generator.cates.iloc[:, <span class="dv">0</span>]</span>
 <span id="cb31-2"><a href="#cb31-2" aria-hidden="true" tabindex="-1"></a>predicted_cates1 <span class="op">=</span> cate_predictions[:, <span class="dv">0</span>]</span>
 <span id="cb31-3"><a href="#cb31-3" aria-hidden="true" tabindex="-1"></a>root_mean_squared_error(true_cates1, predicted_cates1)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
@@ -1726,7 +1726,7 @@ Note
 <pre><code>0.054197542640946</code></pre>
 </div>
 </div>
-<div id="f0302d77" class="cell" data-execution_count="23">
+<div id="3e0de7d1" class="cell" data-execution_count="23">
 <div class="sourceCode cell-code" id="cb33"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb33-1"><a href="#cb33-1" aria-hidden="true" tabindex="-1"></a>cate_true_vs_estimated_plot(</span>
 <span id="cb33-2"><a href="#cb33-2" aria-hidden="true" tabindex="-1"></a>    true_cates<span class="op">=</span>true_cates1, estimated_cates<span class="op">=</span>predicted_cates1</span>
 <span id="cb33-3"><a href="#cb33-3" aria-hidden="true" tabindex="-1"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
@@ -1738,7 +1738,7 @@ Note
 </div>
 </div>
 </div>
-<div id="115fe64b" class="cell" data-execution_count="24">
+<div id="af6f1082" class="cell" data-execution_count="24">
 <div class="sourceCode cell-code" id="cb34"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb34-1"><a href="#cb34-1" aria-hidden="true" tabindex="-1"></a>cate_histogram_plot(true_cates<span class="op">=</span>true_cates1, estimated_cates<span class="op">=</span>predicted_cates1)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display" data-execution_count="24">
 <div>
@@ -1748,7 +1748,7 @@ Note
 </div>
 </div>
 </div>
-<div id="2266dc9f" class="cell" data-execution_count="25">
+<div id="ca3af0be" class="cell" data-execution_count="25">
 <div class="sourceCode cell-code" id="cb35"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb35-1"><a href="#cb35-1" aria-hidden="true" tabindex="-1"></a>cate_line_plot(</span>
 <span id="cb35-2"><a href="#cb35-2" aria-hidden="true" tabindex="-1"></a>    true_cates<span class="op">=</span>true_cates1, estimated_cates<span class="op">=</span>predicted_cates1, window<span class="op">=</span><span class="dv">20</span></span>
 <span id="cb35-3"><a href="#cb35-3" aria-hidden="true" tabindex="-1"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
@@ -1763,7 +1763,7 @@ Note
 </section>
 <section id="effect-of-binary-t1-on-binary-y2" class="level4">
 <h4 class="anchored" data-anchor-id="effect-of-binary-t1-on-binary-y2">Effect of <em>binary</em> T1 on <em>binary</em> Y2</h4>
-<div id="7e2fc850" class="cell" data-execution_count="26">
+<div id="b7a1edc7" class="cell" data-execution_count="26">
 <div class="sourceCode cell-code" id="cb36"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb36-1"><a href="#cb36-1" aria-hidden="true" tabindex="-1"></a>true_cates2 <span class="op">=</span> data_generator.cates.iloc[:, <span class="dv">1</span>]</span>
 <span id="cb36-2"><a href="#cb36-2" aria-hidden="true" tabindex="-1"></a>predicted_cates2 <span class="op">=</span> cate_predictions[:, <span class="dv">1</span>]</span>
 <span id="cb36-3"><a href="#cb36-3" aria-hidden="true" tabindex="-1"></a>root_mean_squared_error(true_cates2, predicted_cates2)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
@@ -1771,7 +1771,7 @@ Note
 <pre><code>0.15683038625127854</code></pre>
 </div>
 </div>
-<div id="05fa1fca" class="cell" data-execution_count="27">
+<div id="c371b7b8" class="cell" data-execution_count="27">
 <div class="sourceCode cell-code" id="cb38"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb38-1"><a href="#cb38-1" aria-hidden="true" tabindex="-1"></a>cate_true_vs_estimated_plot(</span>
 <span id="cb38-2"><a href="#cb38-2" aria-hidden="true" tabindex="-1"></a>    true_cates<span class="op">=</span>true_cates2, estimated_cates<span class="op">=</span>predicted_cates2</span>
 <span id="cb38-3"><a href="#cb38-3" aria-hidden="true" tabindex="-1"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
@@ -1783,7 +1783,7 @@ Note
 </div>
 </div>
 </div>
-<div id="ea493ced" class="cell" data-execution_count="28">
+<div id="5aa5a672" class="cell" data-execution_count="28">
 <div class="sourceCode cell-code" id="cb39"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb39-1"><a href="#cb39-1" aria-hidden="true" tabindex="-1"></a>cate_histogram_plot(true_cates<span class="op">=</span>true_cates2, estimated_cates<span class="op">=</span>predicted_cates2)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display" data-execution_count="28">
 <div>
@@ -1793,7 +1793,7 @@ Note
 </div>
 </div>
 </div>
-<div id="1b25002f" class="cell" data-execution_count="29">
+<div id="2cdf16af" class="cell" data-execution_count="29">
 <div class="sourceCode cell-code" id="cb40"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb40-1"><a href="#cb40-1" aria-hidden="true" tabindex="-1"></a>cate_line_plot(</span>
 <span id="cb40-2"><a href="#cb40-2" aria-hidden="true" tabindex="-1"></a>    true_cates<span class="op">=</span>true_cates2, estimated_cates<span class="op">=</span>predicted_cates2, window<span class="op">=</span><span class="dv">20</span></span>
 <span id="cb40-3"><a href="#cb40-3" aria-hidden="true" tabindex="-1"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>

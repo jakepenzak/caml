@@ -785,7 +785,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <section id="generate-synthetic-data" class="level2">
 <h2 class="anchored" data-anchor-id="generate-synthetic-data">Generate Synthetic Data</h2>
 <p>Here we’ll leverage the <a href="../04_Reference/SyntheticDataGenerator.html"><code>SyntheticDataGenerator</code></a> class to generate a linear synthetic data generating process, with a binary treatment, continuous outcome, and a mix of confounding/mediating continuous covariates.</p>
-<div id="a444be5e" class="cell" data-execution_count="1">
+<div id="e77a3d1e" class="cell" data-execution_count="1">
 <div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> caml.extensions.synthetic_data <span class="im">import</span> SyntheticDataGenerator</span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>data_generator <span class="op">=</span> SyntheticDataGenerator(</span>
@@ -800,7 +800,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <p>We can print our simulated data via:</p>
-<div id="05cdb2f5" class="cell" data-execution_count="2">
+<div id="77d69278" class="cell" data-execution_count="2">
 <div class="sourceCode cell-code" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>data_generator.df</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display" data-execution_count="2">
 <div>
@@ -926,7 +926,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </div>
 </div>
 <p>To inspect our true data generating process, we can call <code>data_generator.dgp</code>. Furthermore, we will have our true CATEs and ATEs at our disposal via <code>data_generator.cates</code> &amp; <code>data_generator.ates</code>, respectively. We’ll use this as our source of truth for performance evaluation of our CATE estimator.</p>
-<div id="5daa5c6e" class="cell" data-execution_count="3">
+<div id="d2667f18" class="cell" data-execution_count="3">
 <div class="sourceCode cell-code" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> t, df <span class="kw">in</span> data_generator.dgp.items():</span>
 <span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f"</span><span class="ch">\n</span><span class="ss">DGP for </span><span class="sc">{</span>t<span class="sc">}</span><span class="ss">:"</span>)</span>
 <span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(df)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
@@ -935,16 +935,16 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 DGP for T1_binary:
 {'formula': '1 + W1_continuous + W2_continuous + X1_continuous', 'params': array([ 0.4609703 ,  0.2566887 , -0.03896251,  0.07238272]), 'noise': array([-0.51949108, -1.88624383,  0.86927397, ...,  0.87157749,
         0.0697439 , -0.72616319]), 'raw_scores': array([0.58800598, 0.13710535, 0.75412862, ..., 0.7549587 , 0.60527474,
-       0.39290362]), 'function': &lt;function SyntheticDataGenerator._create_dgp_function.&lt;locals&gt;.f_binary at 0x7f045a657910&gt;}
+       0.39290362]), 'function': &lt;function SyntheticDataGenerator._create_dgp_function.&lt;locals&gt;.f_binary at 0x7fe94c14ba30&gt;}
 
 DGP for Y1_continuous:
 {'formula': '1 + W1_continuous + W2_continuous + X1_continuous + X2_continuous + T1_binary + T1_binary*X1_continuous + T1_binary*X2_continuous', 'params': array([ 1.11129512, -4.1263484 , -4.82709212,  1.87319625,  2.60635605,
        -0.91633948,  0.71653213, -0.25067306]), 'noise': array([-1.15370094, -0.26681987,  0.05261899, ..., -0.18887322,
        -0.45736583, -0.57057603]), 'raw_scores': array([ 11.88030508, -32.29214063, -48.69639077, ..., -26.0873159 ,
-       -25.87633114, -38.20052217]), 'function': &lt;function SyntheticDataGenerator._create_dgp_function.&lt;locals&gt;.f_cont at 0x7f041e799120&gt;}</code></pre>
+       -25.87633114, -38.20052217]), 'function': &lt;function SyntheticDataGenerator._create_dgp_function.&lt;locals&gt;.f_cont at 0x7fe90c061240&gt;}</code></pre>
 </div>
 </div>
-<div id="98dfc280" class="cell" data-execution_count="4">
+<div id="f35a25c4" class="cell" data-execution_count="4">
 <div class="sourceCode cell-code" id="cb5"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>data_generator.cates</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display" data-execution_count="4">
 <div>
@@ -1009,7 +1009,7 @@ DGP for Y1_continuous:
 </div>
 </div>
 </div>
-<div id="c6b44997" class="cell" data-execution_count="5">
+<div id="e4971a76" class="cell" data-execution_count="5">
 <div class="sourceCode cell-code" id="cb6"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>data_generator.ates</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display" data-execution_count="5">
 <div>
@@ -1054,7 +1054,7 @@ Tip
 <p><code>W</code> can be leveraged if we want to use certain covariates only in our nuisance functions to control for confounding and not in the final CATE estimator. This can be useful if a confounder may be required to include, but for compliance reasons, we don’t want our CATE model to leverage this feature (e.g., gender). However, this will restrict our available CATE estimators to orthogonal learners, since metalearners necessarily include all covariates. If you don’t care about <code>W</code> being in the final CATE estimator, pass it as <code>X</code>, as done below.</p>
 </div>
 </div>
-<div id="719732e8" class="cell" data-execution_count="6">
+<div id="b123edb2" class="cell" data-execution_count="6">
 <div class="sourceCode cell-code" id="cb7"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> caml <span class="im">import</span> AutoCATE</span>
 <span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>auto_cate <span class="op">=</span> AutoCATE(</span>
@@ -1084,7 +1084,7 @@ Tip
 <span id="cb7-27"><a href="#cb7-27" aria-hidden="true" tabindex="-1"></a>    seed<span class="op">=</span><span class="va">None</span>,</span>
 <span id="cb7-28"><a href="#cb7-28" aria-hidden="true" tabindex="-1"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display">
-<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"><span style="color: #7fbfbf; text-decoration-color: #7fbfbf">[11/10/25 01:02:10] </span><span style="color: #808000; text-decoration-color: #808000">WARNING </span> AutoCATE is experimental and may change in future versions.           <a href="file:///home/runner/work/caml/caml/caml/generics/decorators.py" target="_blank"><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">decorators.py</span></a><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">:</span><a href="file:///home/runner/work/caml/caml/caml/generics/decorators.py#57" target="_blank"><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">57</span></a>
+<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"><span style="color: #7fbfbf; text-decoration-color: #7fbfbf">[11/10/25 02:25:08] </span><span style="color: #808000; text-decoration-color: #808000">WARNING </span> AutoCATE is experimental and may change in future versions.           <a href="file:///home/runner/work/caml/caml/caml/generics/decorators.py" target="_blank"><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">decorators.py</span></a><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">:</span><a href="file:///home/runner/work/caml/caml/caml/generics/decorators.py#57" target="_blank"><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">57</span></a>
 </pre>
 </div>
 </div>
@@ -1092,7 +1092,7 @@ Tip
 <section id="fitting-end-to-end-autocate-pipeline" class="level3">
 <h3 class="anchored" data-anchor-id="fitting-end-to-end-autocate-pipeline">Fitting End-to-End AutoCATE pipeline</h3>
 <p>First, I can inspect available estimators out of the box:</p>
-<div id="1c4581a1" class="cell" data-execution_count="7">
+<div id="b92ed924" class="cell" data-execution_count="7">
 <div class="sourceCode cell-code" id="cb8"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>auto_cate.available_estimators</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display" data-execution_count="7">
 <pre><code>['LinearDML',
@@ -1108,16 +1108,16 @@ Tip
 </div>
 </div>
 <p>And create another one if desired:</p>
-<div id="9095a851" class="cell" data-execution_count="8">
+<div id="f9943d6d" class="cell" data-execution_count="8">
 <div class="sourceCode cell-code" id="cb10"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> caml <span class="im">import</span> AutoCateEstimator</span>
 <span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> econml.dml <span class="im">import</span> LinearDML</span>
 <span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a>my_custom_estimator <span class="op">=</span> AutoCateEstimator(name<span class="op">=</span><span class="st">"MyCustomEstimator"</span>,estimator<span class="op">=</span>LinearDML())</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
-<div id="f2723f2f" class="cell" data-execution_count="9">
+<div id="5476c8a3" class="cell" data-execution_count="9">
 <div class="sourceCode cell-code" id="cb11"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>auto_cate.fit(data_generator.df, cate_estimators<span class="op">=</span>[<span class="st">'LinearDML'</span>,<span class="st">'CausalForestDML'</span>,<span class="st">'TLearner'</span>], additional_cate_estimators<span class="op">=</span>[my_custom_estimator])</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display">
-<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"><span style="color: #7fbfbf; text-decoration-color: #7fbfbf">[11/10/25 01:02:11] </span><span style="color: #008000; text-decoration-color: #008000">INFO    </span>                                                                      <a href="file:///home/runner/work/caml/caml/caml/generics/decorators.py" target="_blank"><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">decorators.py</span></a><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">:</span><a href="file:///home/runner/work/caml/caml/caml/generics/decorators.py#111" target="_blank"><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">111</span></a>
+<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"><span style="color: #7fbfbf; text-decoration-color: #7fbfbf">                    </span><span style="color: #008000; text-decoration-color: #008000">INFO    </span>                                                                      <a href="file:///home/runner/work/caml/caml/caml/generics/decorators.py" target="_blank"><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">decorators.py</span></a><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">:</span><a href="file:///home/runner/work/caml/caml/caml/generics/decorators.py#111" target="_blank"><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">111</span></a>
 <span style="color: #7fbfbf; text-decoration-color: #7fbfbf">                    </span>           ____      __  __ _                                                 <span style="color: #7f7f7f; text-decoration-color: #7f7f7f">                 </span>
 <span style="color: #7fbfbf; text-decoration-color: #7fbfbf">                    </span>          <span style="color: #800080; text-decoration-color: #800080">/</span> ___|__ _|  \<span style="color: #800080; text-decoration-color: #800080">/</span>  | |                                                <span style="color: #7f7f7f; text-decoration-color: #7f7f7f">                 </span>
 <span style="color: #7fbfbf; text-decoration-color: #7fbfbf">                    </span>         | |   <span style="color: #800080; text-decoration-color: #800080">/</span> _` | |\<span style="color: #800080; text-decoration-color: #800080">/</span>| | |                                                <span style="color: #7f7f7f; text-decoration-color: #7f7f7f">                 </span>
@@ -1158,8 +1158,8 @@ Tip
 </pre>
 </div>
 <div class="cell-output cell-output-display">
-<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"><span style="color: #7fbfbf; text-decoration-color: #7fbfbf">[11/10/25 01:02:21] </span><span style="color: #008000; text-decoration-color: #008000">INFO    </span> Best estimator: extra_tree with loss <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">5.526333452848555</span> found on iteration <a href="file:///home/runner/work/caml/caml/caml/core/_base.py" target="_blank"><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">_base.py</span></a><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">:</span><a href="file:///home/runner/work/caml/caml/caml/core/_base.py#144" target="_blank"><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">144</span></a>
-<span style="color: #7fbfbf; text-decoration-color: #7fbfbf">                    </span>         <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">35</span> in <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">8.222009420394897</span> seconds.                                          <span style="color: #7f7f7f; text-decoration-color: #7f7f7f">            </span>
+<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"><span style="color: #7fbfbf; text-decoration-color: #7fbfbf">[11/10/25 02:25:18] </span><span style="color: #008000; text-decoration-color: #008000">INFO    </span> Best estimator: extra_tree with loss <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">5.526333452848555</span> found on iteration <a href="file:///home/runner/work/caml/caml/caml/core/_base.py" target="_blank"><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">_base.py</span></a><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">:</span><a href="file:///home/runner/work/caml/caml/caml/core/_base.py#144" target="_blank"><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">144</span></a>
+<span style="color: #7fbfbf; text-decoration-color: #7fbfbf">                    </span>         <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">35</span> in <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">7.994625806808472</span> seconds.                                          <span style="color: #7f7f7f; text-decoration-color: #7f7f7f">            </span>
 <span style="color: #7fbfbf; text-decoration-color: #7fbfbf">                    </span>                                                                                   <span style="color: #7f7f7f; text-decoration-color: #7f7f7f">            </span>
 </pre>
 </div>
@@ -1168,8 +1168,8 @@ Tip
 </pre>
 </div>
 <div class="cell-output cell-output-display">
-<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"><span style="color: #7fbfbf; text-decoration-color: #7fbfbf">[11/10/25 01:02:31] </span><span style="color: #008000; text-decoration-color: #008000">INFO    </span> Best estimator: rf with loss <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">3.537512927034561</span> found on iteration <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">28</span> in   <a href="file:///home/runner/work/caml/caml/caml/core/_base.py" target="_blank"><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">_base.py</span></a><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">:</span><a href="file:///home/runner/work/caml/caml/caml/core/_base.py#144" target="_blank"><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">144</span></a>
-<span style="color: #7fbfbf; text-decoration-color: #7fbfbf">                    </span>         <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">6.004995584487915</span> seconds.                                                <span style="color: #7f7f7f; text-decoration-color: #7f7f7f">            </span>
+<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"><span style="color: #7fbfbf; text-decoration-color: #7fbfbf">[11/10/25 02:25:28] </span><span style="color: #008000; text-decoration-color: #008000">INFO    </span> Best estimator: rf with loss <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">3.537512927034561</span> found on iteration <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">28</span> in   <a href="file:///home/runner/work/caml/caml/caml/core/_base.py" target="_blank"><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">_base.py</span></a><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">:</span><a href="file:///home/runner/work/caml/caml/caml/core/_base.py#144" target="_blank"><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">144</span></a>
+<span style="color: #7fbfbf; text-decoration-color: #7fbfbf">                    </span>         <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">5.744458198547363</span> seconds.                                                <span style="color: #7f7f7f; text-decoration-color: #7f7f7f">            </span>
 <span style="color: #7fbfbf; text-decoration-color: #7fbfbf">                    </span>                                                                                   <span style="color: #7f7f7f; text-decoration-color: #7f7f7f">            </span>
 </pre>
 </div>
@@ -1178,8 +1178,8 @@ Tip
 </pre>
 </div>
 <div class="cell-output cell-output-display">
-<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"><span style="color: #7fbfbf; text-decoration-color: #7fbfbf">[11/10/25 01:02:41] </span><span style="color: #008000; text-decoration-color: #008000">INFO    </span> Best estimator: rf with loss <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">0.6739378405925093</span> found on iteration <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">31</span> in  <a href="file:///home/runner/work/caml/caml/caml/core/_base.py" target="_blank"><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">_base.py</span></a><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">:</span><a href="file:///home/runner/work/caml/caml/caml/core/_base.py#144" target="_blank"><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">144</span></a>
-<span style="color: #7fbfbf; text-decoration-color: #7fbfbf">                    </span>         <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">6.047068357467651</span> seconds.                                                <span style="color: #7f7f7f; text-decoration-color: #7f7f7f">            </span>
+<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"><span style="color: #7fbfbf; text-decoration-color: #7fbfbf">[11/10/25 02:25:38] </span><span style="color: #008000; text-decoration-color: #008000">INFO    </span> Best estimator: rf with loss <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">0.6739378405925093</span> found on iteration <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">30</span> in  <a href="file:///home/runner/work/caml/caml/caml/core/_base.py" target="_blank"><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">_base.py</span></a><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">:</span><a href="file:///home/runner/work/caml/caml/caml/core/_base.py#144" target="_blank"><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">144</span></a>
+<span style="color: #7fbfbf; text-decoration-color: #7fbfbf">                    </span>         <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">5.867589950561523</span> seconds.                                                <span style="color: #7f7f7f; text-decoration-color: #7f7f7f">            </span>
 <span style="color: #7fbfbf; text-decoration-color: #7fbfbf">                    </span>                                                                                   <span style="color: #7f7f7f; text-decoration-color: #7f7f7f">            </span>
 </pre>
 </div>
@@ -1188,7 +1188,7 @@ Tip
 </pre>
 </div>
 <div class="cell-output cell-output-display">
-<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"><span style="color: #7fbfbf; text-decoration-color: #7fbfbf">[11/10/25 01:02:42] </span><span style="color: #008000; text-decoration-color: #008000">INFO    </span>                                                                      <a href="file:///home/runner/work/caml/caml/caml/generics/decorators.py" target="_blank"><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">decorators.py</span></a><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">:</span><a href="file:///home/runner/work/caml/caml/caml/generics/decorators.py#111" target="_blank"><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">111</span></a>
+<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"><span style="color: #7fbfbf; text-decoration-color: #7fbfbf">                    </span><span style="color: #008000; text-decoration-color: #008000">INFO    </span>                                                                      <a href="file:///home/runner/work/caml/caml/caml/generics/decorators.py" target="_blank"><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">decorators.py</span></a><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">:</span><a href="file:///home/runner/work/caml/caml/caml/generics/decorators.py#111" target="_blank"><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">111</span></a>
 <span style="color: #7fbfbf; text-decoration-color: #7fbfbf">                    </span>         ==========================                                           <span style="color: #7f7f7f; text-decoration-color: #7f7f7f">                 </span>
 <span style="color: #7fbfbf; text-decoration-color: #7fbfbf">                    </span>         |🎯 AutoML CATE Functions|                                           <span style="color: #7f7f7f; text-decoration-color: #7f7f7f">                 </span>
 <span style="color: #7fbfbf; text-decoration-color: #7fbfbf">                    </span>         ==========================                                           <span style="color: #7f7f7f; text-decoration-color: #7f7f7f">                 </span>
@@ -1196,13 +1196,13 @@ Tip
 </pre>
 </div>
 <div class="cell-output cell-output-display">
-<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"><span style="color: #7fbfbf; text-decoration-color: #7fbfbf">[11/10/25 01:02:49] </span><span style="color: #008000; text-decoration-color: #008000">INFO    </span> Best Estimator: <span style="color: #008000; text-decoration-color: #008000">'MyCustomEstimator'</span>                                        <a href="file:///home/runner/work/caml/caml/caml/core/cate.py" target="_blank"><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">cate.py</span></a><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">:</span><a href="file:///home/runner/work/caml/caml/caml/core/cate.py#837" target="_blank"><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">837</span></a>
+<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"><span style="color: #7fbfbf; text-decoration-color: #7fbfbf">[11/10/25 02:25:46] </span><span style="color: #008000; text-decoration-color: #008000">INFO    </span> Best Estimator: <span style="color: #008000; text-decoration-color: #008000">'CausalForestDML'</span>                                          <a href="file:///home/runner/work/caml/caml/caml/core/cate.py" target="_blank"><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">cate.py</span></a><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">:</span><a href="file:///home/runner/work/caml/caml/caml/core/cate.py#837" target="_blank"><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">837</span></a>
 </pre>
 </div>
 <div class="cell-output cell-output-display">
-<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"><span style="color: #7fbfbf; text-decoration-color: #7fbfbf">                    </span><span style="color: #008000; text-decoration-color: #008000">INFO    </span> Estimator RScores: <span style="font-weight: bold">{</span><span style="color: #008000; text-decoration-color: #008000">'LinearDML'</span>: <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">0.4254385830736336</span>, <span style="color: #008000; text-decoration-color: #008000">'CausalForestDML'</span>:    <a href="file:///home/runner/work/caml/caml/caml/core/cate.py" target="_blank"><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">cate.py</span></a><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">:</span><a href="file:///home/runner/work/caml/caml/caml/core/cate.py#838" target="_blank"><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">838</span></a>
-<span style="color: #7fbfbf; text-decoration-color: #7fbfbf">                    </span>         <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">0.42094619091815355</span>, <span style="color: #008000; text-decoration-color: #008000">'TLearner'</span>: <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">0.34032083960574877</span>, <span style="color: #008000; text-decoration-color: #008000">'MyCustomEstimator'</span>: <span style="color: #7f7f7f; text-decoration-color: #7f7f7f">           </span>
-<span style="color: #7fbfbf; text-decoration-color: #7fbfbf">                    </span>         <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">0.4254885302600513</span><span style="font-weight: bold">}</span>                                                        <span style="color: #7f7f7f; text-decoration-color: #7f7f7f">           </span>
+<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"><span style="color: #7fbfbf; text-decoration-color: #7fbfbf">                    </span><span style="color: #008000; text-decoration-color: #008000">INFO    </span> Estimator RScores: <span style="font-weight: bold">{</span><span style="color: #008000; text-decoration-color: #008000">'LinearDML'</span>: <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">0.3461651229898831</span>, <span style="color: #008000; text-decoration-color: #008000">'CausalForestDML'</span>:    <a href="file:///home/runner/work/caml/caml/caml/core/cate.py" target="_blank"><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">cate.py</span></a><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">:</span><a href="file:///home/runner/work/caml/caml/caml/core/cate.py#838" target="_blank"><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">838</span></a>
+<span style="color: #7fbfbf; text-decoration-color: #7fbfbf">                    </span>         <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">0.3465083494631893</span>, <span style="color: #008000; text-decoration-color: #008000">'TLearner'</span>: <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">0.2921653988528229</span>, <span style="color: #008000; text-decoration-color: #008000">'MyCustomEstimator'</span>:   <span style="color: #7f7f7f; text-decoration-color: #7f7f7f">           </span>
+<span style="color: #7fbfbf; text-decoration-color: #7fbfbf">                    </span>         <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">0.34640625822782134</span><span style="font-weight: bold">}</span>                                                       <span style="color: #7f7f7f; text-decoration-color: #7f7f7f">           </span>
 </pre>
 </div>
 <div class="cell-output cell-output-display">
@@ -1222,17 +1222,17 @@ Tip
 </pre>
 </div>
 <div class="cell-output cell-output-display">
-<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"><span style="color: #7fbfbf; text-decoration-color: #7fbfbf">[11/10/25 01:02:50] </span><span style="color: #008000; text-decoration-color: #008000">INFO    </span> All validation results suggest that the model has found statistically      <a href="file:///home/runner/work/caml/caml/caml/core/cate.py" target="_blank"><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">cate.py</span></a><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">:</span><a href="file:///home/runner/work/caml/caml/caml/core/cate.py#923" target="_blank"><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">923</span></a>
+<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"><span style="color: #7fbfbf; text-decoration-color: #7fbfbf">[11/10/25 02:25:47] </span><span style="color: #008000; text-decoration-color: #008000">INFO    </span> All validation results suggest that the model has found statistically      <a href="file:///home/runner/work/caml/caml/caml/core/cate.py" target="_blank"><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">cate.py</span></a><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">:</span><a href="file:///home/runner/work/caml/caml/caml/core/cate.py#923" target="_blank"><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">923</span></a>
 <span style="color: #7fbfbf; text-decoration-color: #7fbfbf">                    </span>         significant heterogeneity.                                                 <span style="color: #7f7f7f; text-decoration-color: #7f7f7f">           </span>
 <span style="color: #7fbfbf; text-decoration-color: #7fbfbf">                    </span>                                                                                    <span style="color: #7f7f7f; text-decoration-color: #7f7f7f">           </span>
 </pre>
 </div>
 <div class="cell-output cell-output-display">
 <pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"><span style="color: #7fbfbf; text-decoration-color: #7fbfbf">                    </span><span style="color: #008000; text-decoration-color: #008000">INFO    </span>    treatment  blp_est  blp_se  blp_pval  qini_est  qini_se  qini_pval  \   <a href="file:///home/runner/work/caml/caml/caml/core/cate.py" target="_blank"><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">cate.py</span></a><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">:</span><a href="file:///home/runner/work/caml/caml/caml/core/cate.py#927" target="_blank"><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">927</span></a>
-<span style="color: #7fbfbf; text-decoration-color: #7fbfbf">                    </span>         <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">0</span>          <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">1</span>    <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">0.974</span>    <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">0.04</span>       <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">0.0</span>     <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">0.994</span>    <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">0.051</span>        <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">0.0</span>      <span style="color: #7f7f7f; text-decoration-color: #7f7f7f">           </span>
+<span style="color: #7fbfbf; text-decoration-color: #7fbfbf">                    </span>         <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">0</span>          <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">1</span>    <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">1.036</span>   <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">0.034</span>       <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">0.0</span>     <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">1.037</span>    <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">0.043</span>        <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">0.0</span>      <span style="color: #7f7f7f; text-decoration-color: #7f7f7f">           </span>
 <span style="color: #7fbfbf; text-decoration-color: #7fbfbf">                    </span>                                                                                    <span style="color: #7f7f7f; text-decoration-color: #7f7f7f">           </span>
 <span style="color: #7fbfbf; text-decoration-color: #7fbfbf">                    </span>            autoc_est  autoc_se  autoc_pval  cal_r_squared                          <span style="color: #7f7f7f; text-decoration-color: #7f7f7f">           </span>
-<span style="color: #7fbfbf; text-decoration-color: #7fbfbf">                    </span>         <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">0</span>      <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">2.641</span>      <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">0.15</span>         <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">0.0</span>          <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">0.942</span>                          <span style="color: #7f7f7f; text-decoration-color: #7f7f7f">           </span>
+<span style="color: #7fbfbf; text-decoration-color: #7fbfbf">                    </span>         <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">0</span>      <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">2.814</span>      <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">0.13</span>         <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">0.0</span>          <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">0.961</span>                          <span style="color: #7f7f7f; text-decoration-color: #7f7f7f">           </span>
 </pre>
 </div>
 <div class="cell-output cell-output-display">
@@ -1247,7 +1247,7 @@ Tip
 </div>
 </div>
 <div class="cell-output cell-output-display">
-<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"><span style="color: #7fbfbf; text-decoration-color: #7fbfbf">[11/10/25 01:02:51] </span><span style="color: #008000; text-decoration-color: #008000">INFO    </span> QINI CURVE                                                                 <a href="file:///home/runner/work/caml/caml/caml/core/cate.py" target="_blank"><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">cate.py</span></a><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">:</span><a href="file:///home/runner/work/caml/caml/caml/core/cate.py#933" target="_blank"><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">933</span></a>
+<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"><span style="color: #7fbfbf; text-decoration-color: #7fbfbf">                    </span><span style="color: #008000; text-decoration-color: #008000">INFO    </span> QINI CURVE                                                                 <a href="file:///home/runner/work/caml/caml/caml/core/cate.py" target="_blank"><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">cate.py</span></a><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">:</span><a href="file:///home/runner/work/caml/caml/caml/core/cate.py#933" target="_blank"><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">933</span></a>
 </pre>
 </div>
 <div class="cell-output cell-output-display">
@@ -1258,7 +1258,7 @@ Tip
 </div>
 </div>
 <div class="cell-output cell-output-display">
-<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"><span style="color: #7fbfbf; text-decoration-color: #7fbfbf">                    </span><span style="color: #008000; text-decoration-color: #008000">INFO    </span> TOC CURVE                                                                  <a href="file:///home/runner/work/caml/caml/caml/core/cate.py" target="_blank"><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">cate.py</span></a><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">:</span><a href="file:///home/runner/work/caml/caml/caml/core/cate.py#936" target="_blank"><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">936</span></a>
+<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"><span style="color: #7fbfbf; text-decoration-color: #7fbfbf">[11/10/25 02:25:48] </span><span style="color: #008000; text-decoration-color: #008000">INFO    </span> TOC CURVE                                                                  <a href="file:///home/runner/work/caml/caml/caml/core/cate.py" target="_blank"><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">cate.py</span></a><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">:</span><a href="file:///home/runner/work/caml/caml/caml/core/cate.py#936" target="_blank"><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">936</span></a>
 </pre>
 </div>
 <div class="cell-output cell-output-display">
@@ -1281,7 +1281,7 @@ Tip
 </pre>
 </div>
 <div class="cell-output cell-output-display">
-<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"><span style="color: #7fbfbf; text-decoration-color: #7fbfbf">[11/10/25 01:02:52] </span><span style="color: #008000; text-decoration-color: #008000">INFO    </span> ✅ Completed.                                                        <a href="file:///home/runner/work/caml/caml/caml/generics/decorators.py" target="_blank"><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">decorators.py</span></a><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">:</span><a href="file:///home/runner/work/caml/caml/caml/generics/decorators.py#116" target="_blank"><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">116</span></a>
+<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"><span style="color: #7fbfbf; text-decoration-color: #7fbfbf">[11/10/25 02:25:50] </span><span style="color: #008000; text-decoration-color: #008000">INFO    </span> ✅ Completed.                                                        <a href="file:///home/runner/work/caml/caml/caml/generics/decorators.py" target="_blank"><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">decorators.py</span></a><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">:</span><a href="file:///home/runner/work/caml/caml/caml/generics/decorators.py#116" target="_blank"><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">116</span></a>
 </pre>
 </div>
 </div>
@@ -1305,14 +1305,14 @@ Note
 <section id="average-treatment-effect-ate" class="level3">
 <h3 class="anchored" data-anchor-id="average-treatment-effect-ate">Average Treatment Effect (ATE)</h3>
 <p>We’ll use the <code>summarize()</code> method after obtaining our predictions above, where our the displayed mean represents our Average Treatment Effect (ATE).</p>
-<div id="2a42d742" class="cell" data-execution_count="10">
+<div id="8ad185ce" class="cell" data-execution_count="10">
 <div class="sourceCode cell-code" id="cb12"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>auto_cate.estimate_ate(data_generator.df[auto_cate.X])</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display" data-execution_count="10">
-<pre><code>-0.6124478953386817</code></pre>
+<pre><code>-0.5711042003825455</code></pre>
 </div>
 </div>
 <p>Now comparing this to our ground truth, we see the model performed well the true ATE:</p>
-<div id="dad99695" class="cell" data-execution_count="11">
+<div id="e38005c7" class="cell" data-execution_count="11">
 <div class="sourceCode cell-code" id="cb14"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>data_generator.ates</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display" data-execution_count="11">
 <div>
@@ -1343,7 +1343,7 @@ Note
 <h3 class="anchored" data-anchor-id="conditional-average-treatment-effect-cate">Conditional Average Treatment Effect (CATE)</h3>
 <p>Now we want to see how the estimator performed in modeling the true CATEs.</p>
 <p>First, we can simply compute the Precision in Estimating Heterogeneous Effects (PEHE), which is simply the Root Mean Squared Error (RMSE):</p>
-<div id="c54e4603" class="cell" data-execution_count="12">
+<div id="8bda91b8" class="cell" data-execution_count="12">
 <div class="sourceCode cell-code" id="cb15"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.metrics <span class="im">import</span> root_mean_squared_error</span>
 <span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a>cate_predictions <span class="op">=</span> auto_cate.estimate_cate(</span>
@@ -1352,11 +1352,11 @@ Note
 <span id="cb15-6"><a href="#cb15-6" aria-hidden="true" tabindex="-1"></a>true_cates <span class="op">=</span> data_generator.cates.to_numpy()</span>
 <span id="cb15-7"><a href="#cb15-7" aria-hidden="true" tabindex="-1"></a>root_mean_squared_error(true_cates, cate_predictions)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display" data-execution_count="12">
-<pre><code>0.16792049660761305</code></pre>
+<pre><code>0.30705250006166374</code></pre>
 </div>
 </div>
 <p>Not bad! Now let’s use some visualization techniques:</p>
-<div id="961f423d" class="cell" data-execution_count="13">
+<div id="c357bd2a" class="cell" data-execution_count="13">
 <div class="sourceCode cell-code" id="cb17"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> caml.extensions.plots <span class="im">import</span> cate_true_vs_estimated_plot</span>
 <span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a>cate_true_vs_estimated_plot(</span>
@@ -1370,7 +1370,7 @@ Note
 </div>
 </div>
 </div>
-<div id="48eaf978" class="cell" data-execution_count="14">
+<div id="4e22acf8" class="cell" data-execution_count="14">
 <div class="sourceCode cell-code" id="cb18"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> caml.extensions.plots <span class="im">import</span> cate_histogram_plot</span>
 <span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a>cate_histogram_plot(true_cates<span class="op">=</span>true_cates, estimated_cates<span class="op">=</span>cate_predictions)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
@@ -1382,7 +1382,7 @@ Note
 </div>
 </div>
 </div>
-<div id="f1a83e28" class="cell" data-execution_count="15">
+<div id="8ee9dcd9" class="cell" data-execution_count="15">
 <div class="sourceCode cell-code" id="cb19"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> caml.extensions.plots <span class="im">import</span> cate_line_plot</span>
 <span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb19-3"><a href="#cb19-3" aria-hidden="true" tabindex="-1"></a>cate_line_plot(</span>
@@ -1400,7 +1400,7 @@ Note
 </div>
 <p>Overall, we can see the model performed remarkably well!</p>
 <p>Now, we can also get standard errors by obtaining the <a href="https://www.pywhy.org/EconML/reference.html#inference">EconML Inference Results</a> by passing <code>return_inference=True</code> to <code>estimate_cate</code> (or <code>predict</code> or <code>effect</code>):</p>
-<div id="67f91039" class="cell" data-execution_count="16">
+<div id="9373b38b" class="cell" data-execution_count="16">
 <div class="sourceCode cell-code" id="cb20"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a>inference <span class="op">=</span> auto_cate.estimate_cate(</span>
 <span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a>    data_generator.df[auto_cate.X], return_inference<span class="op">=</span><span class="va">True</span></span>
 <span id="cb20-3"><a href="#cb20-3" aria-hidden="true" tabindex="-1"></a>)</span>
@@ -1415,7 +1415,7 @@ Note
 <div class="cell-output cell-output-display" data-execution_count="16">
 <div>
 <figure class="figure">
-<p><img src="AutoCATE_files/figure-html/cell-17-output-1.png" width="593" height="435" class="figure-img"></p>
+<p><img src="AutoCATE_files/figure-html/cell-17-output-1.png" width="593" height="437" class="figure-img"></p>
 </figure>
 </div>
 </div>
