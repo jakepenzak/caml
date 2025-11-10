@@ -61,11 +61,17 @@ dev = [
 ]
 docs = ["quarto-cli<1.7.32", "quartodoc>=0.9.1"]
 
+# TODO: Complete refactor of optional dependencies and removal of different backends (jax, polars, pyspark, etc.)
 [project.optional-dependencies]
 pyspark = ["flaml[spark]>=2.0.0", "optuna>=3.6.1", "pyspark>=3.5.2"]
+polars = ["polars>=1.17.1", "pyarrow>=20.0.0"]
 jax = ["jax>=0.5.2"]
 jax-gpu = ["jax[cuda12]>=0.5.2"]
-ray = ["flaml[ray]>=2.3.4", "pydantic<2"]
+ray = [
+    "flaml[ray]>=2.3.4",
+ "pydantic<2",
+ "ray>=1.13.0",
+]
 
 [build-system]
 requires = ["hatchling"]
