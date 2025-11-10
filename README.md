@@ -1,3 +1,4 @@
+<div align="center">
 <center>
 
 <img src="https://raw.githubusercontent.com/jakepenzak/caml/main/docs/assets/main_logo.svg" align="center" alt="CaML Logo" height="auto" width=500px/>
@@ -22,6 +23,7 @@
 **Ca**usal **M**achine **L**earning
 
 </center>
+</div>
 
 ## Welcome!
 
