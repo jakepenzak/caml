@@ -10,6 +10,7 @@ from econml import dml, dr, metalearners
 from econml._ortho_learner import _OrthoLearner
 from econml.dml.dml import NonParamDML
 from econml.inference import BootstrapInference
+from econml.inference._bootstrap import BootstrapEstimator
 from econml.score import EnsembleCateEstimator, RScorer
 from joblib import Parallel, delayed
 
@@ -49,7 +50,7 @@ class AutoCATE(BaseCamlEstimator):
 
     **AutoCATE is experimental and may change significantly in future versions.**
 
-    The CATE is defined as $\mathbb{E}[\tau|\mathbf{X}]$
+    The CATE is defined as $\mathbb{E}[\tau \mid \mathbf{X}]$
     where $\tau$ is the treatment effect and $\mathbf{X}$ is the set of features leveraged for treatment effect heterogeneity.
 
     This class is built on top of the EconML library and provides a high-level AutoML API for fitting, validating, and making predictions/inference with CATE models,
@@ -70,37 +71,37 @@ class AutoCATE(BaseCamlEstimator):
 
     Parameters
     ----------
-    Y : str
+    Y
         The str representing the column name for the outcome variable.
-    T : str
+    T
         The str representing the column name(s) for the treatment variable(s).
-    X : Sequence[str]
+    X
         The sequence of feature names representing the feature set to be utilized for estimating heterogeneity/CATE.
-    W : Sequence[str] | None
+    W
         The sequence of feature names representing the confounder/control feature set to be utilized only for nuisance function estimation. When W is passed, only Orthogonal learners will be leveraged.
-    discrete_treatment : bool
+    discrete_treatment
         A boolean indicating whether the treatment is discrete/categorical or continuous.
-    discrete_outcome : bool
+    discrete_outcome
         A boolean indicating whether the outcome is binary or continuous.
-    model_Y : dict | BaseEstimator | None
-        A dictionary of [Flaml](https://microsoft.github.io/FLAML/docs/reference/automl/automl) kwarg overrides or a BaseEstimator instance for the outcome model - $\mathbb{E}[Y | \mathbf{X},\mathbf{W}]$.
-    model_T : dict | BaseEstimator | None
-        A dictionary of [Flaml](https://microsoft.github.io/FLAML/docs/reference/automl/automl) kwarg overrides or a BaseEstimator instance for the treatment/propensity model - $\mathbb{E}[T | \mathbf{X},\mathbf{W}]$.
-    model_regression : dict | BaseEstimator | None
-        A dictionary of [Flaml](https://microsoft.github.io/FLAML/docs/reference/automl/automl) kwarg overrides or a BaseEstimator instance for the regression model - $\mathbb{E}[Y | \mathbf{X},\mathbf{W},T]$.
-    enable_categorical : bool
-        A boolean indicating whether to enable categorical encoding for the models. When set to True, pandas categorical types will be converted to ordinal encodings. For one-hot encoding, please implement it yourself.
-    n_jobs : int
-        The number of jobs to run in parallel for model training using joblib.
-    use_ray : bool
-        A boolean indicating whether to use Ray for distributed computing, utilized in both AutoML for first-stage models and AutoML for CATE models. This argument overrides the n_jobs parameter.
-    ray_remote_func_options_kwargs : dict | None
-        A dictionary of Ray remote function options for distributed computing. See [here](https://docs.ray.io/en/latest/ray-core/api/doc/ray.remote.html) for options.
-    use_spark : bool
-        A boolean indicating whether to use Spark for distributed computing, utilized only in AutoML for first-stage models.
-    verbose : int
+    model_y
+        A dictionary of [FLAML](https://microsoft.github.io/FLAML/docs/reference/automl/automl) kwarg overrides or a BaseEstimator instance for the outcome model - $\mathbb{E}[Y \mid \mathbf{X},\mathbf{W}]$.
+    model_T
+        A dictionary of [FLAML](https://microsoft.github.io/FLAML/docs/reference/automl/automl) kwarg overrides or a BaseEstimator instance for the treatment/propensity model - $\mathbb{E}[T \mid \mathbf{X},\mathbf{W}]$.
+    model_regression
+        A dictionary of [FLAML](https://microsoft.github.io/FLAML/docs/reference/automl/automl) kwarg overrides or a BaseEstimator instance for the regression model - $\mathbb{E}[Y \mid \mathbf{X},\mathbf{W},T]$.
+    enable_categorical
+        A boolean indicating whether to enable categorical encoding for the models. When set to True, pandas categorical types will be converted to ordinal encodings. For one-hot encoding, please implement it prior to passing the data to the model.
+    n_jobs
+        The number of jobs to run in parallel for model training.
+    use_ray
+        A boolean indicating whether to use Ray for distributed computing, utilized in both AutoML for first-stage models and AutoML for CATE models. `n_concurrent_tasks` defaults to 4 if not specified in FLAML kwarg overrides (e.g., for `model_*`).
+    ray_remote_func_options_kwargs
+        A dictionary of Ray remote function options for ray remote function that fits each individual CATE model. See [here](https://docs.ray.io/en/latest/ray-core/api/doc/ray.remote.html) for options.
+    use_spark
+        A boolean indicating whether to use Spark for distributed computing, utilized only in AutoML for first-stage models. `n_concurrent_tasks` defaults to 4 if not specified in FLAML kwarg overrides (e.g., for `model_*`).
+    verbose
         The verbosity level. 0 = NOTSET, 1 = DEBUG, 2 = INFO, 3 = WARNING, 4 = ERROR, 5 = CRITICAL
-    seed : int | None
+    seed
         The seed to use for the random number generator.
 
     Attributes
@@ -116,15 +117,16 @@ class AutoCATE(BaseCamlEstimator):
     available_estimators : list[str]
         A list of the available CATE estimators out of the box. Validity of estimator at runtime will depend on the outcome and treatment types and be automatically selected.
     model_Y: BaseEstimator
-        The selected outcome model - $\mathbb{E}[Y|\mathbf{X},\mathbf{W}]$.
+        The selected outcome model - $\mathbb{E}[Y \mid \mathbf{X},\mathbf{W}]$.
     model_T: BaseEstimator
-        The selected treatment model - $\mathbb{E}[T|\mathbf{X},\mathbf{W}]$.
+        The selected treatment model - $\mathbb{E}[T \mid \mathbf{X},\mathbf{W}]$.
     model_regression: BaseEstimator
-        The selected regression model - $\mathbb{E}[Y|\mathbf{X},\mathbf{W},T]$.
+        The selected regression model - $\mathbb{E}[Y \mid \mathbf{X},\mathbf{W},T]$.
     rscores : dict[str, float]
         The dictionary of the Rscores on the validation set for each CATE estimator fitted during model selection.
     test_results : dict[str, float] | EvaluationResults
-        The dictionary of the final test results on the test set for the best_estimator selected, if [RScorer](https://www.pywhy.org/EconML/_autosummary/econml.score.RScorer.html) is used, otherwise EvaluationResults returned from [DRTester.evaluate_all](https://www.pywhy.org/EconML/_autosummary/econml.validate.DRTester.html#econml.validate.DRTester.evaluate_all)
+        The dictionary of the final test results on the test set for the best_estimator selected, if [RScorer](https://www.pywhy.org/EconML/_autosummary/econml.score.RScorer.html) is used,
+        otherwise [EvaluationResults](https://www.pywhy.org/EconML/_autosummary/econml.validate.EvaluationResults.html#econml.validate.EvaluationResults) returned from [DRTester.evaluate_all](https://www.pywhy.org/EconML/_autosummary/econml.validate.DRTester.html#econml.validate.DRTester.evaluate_all)
     best_estimator : BaseCateEstimator
         The best EconML CATE estimator selected.
     best_estimator_name : str
@@ -155,8 +157,8 @@ class AutoCATE(BaseCamlEstimator):
     ```
     """
 
-    best_estimator: BaseCateEstimator | EnsembleCateEstimator = FittedAttr(
-        "_best_estimator"
+    best_estimator: BaseCateEstimator | EnsembleCateEstimator | BootstrapEstimator = (
+        FittedAttr("_best_estimator")
     )  # pyright: ignore[reportAssignmentType]
     best_estimator_name: str = FittedAttr("_best_estimator_name")  # pyright: ignore[reportAssignmentType]
     model_Y: BaseEstimator = FittedAttr("_model_Y")  # pyright: ignore[reportAssignmentType]
@@ -236,8 +238,11 @@ class AutoCATE(BaseCamlEstimator):
         *,
         cate_estimators: Sequence[str] = list(available_estimators.keys()),
         additional_cate_estimators: Sequence[AutoCateEstimator] = list(),
+        use_cached_models: bool = False,
         ensemble: bool = False,
         refit_final: bool = True,
+        bootstrap_inference: bool = False,
+        n_bootstrap_samples: int = 100,
         validation_fraction: float = 0.2,
         test_fraction: float = 0.1,
         rscorer_kwargs: dict = dict(),
@@ -248,25 +253,31 @@ class AutoCATE(BaseCamlEstimator):
 
         Parameters
         ----------
-        df : PandasConvertibleDataFrame
+        df
             The dataset to fit the CATE model on. Accepts a Pandas DataFrame or a compatible object with a `to_pandas()` or `.toPandas()` method.
-        cate_estimators : Sequence[str]
+        cate_estimators
             The out-of-the-box CATE estimators to use. Accessible via `self.available_estimators`.
-        additional_cate_estimators : Sequence[AutoCateEstimator]
+        additional_cate_estimators
             Additional CATE estimators to use.
-        ensemble : bool
+        use_cached_models
+            Whether to use cached first-stage/nuisance models, if previously fitted.
+        ensemble
             Whether to use an ensemble of CATE estimators.
-        refit_final : bool
+        refit_final
             Whether to refit the final CATE estimator on the entire dataset after model selection.
-        validation_fraction : float
+        bootstrap_inference
+            Whether to use bootstrap inference for the final CATE estimator, when other inference methods are not available (e.g., metalearners). This can be computationally expensive.
+        n_bootstrap_samples
+            The number of bootstrap samples to use for bootstrap inference, if `bootstrap_inference` is True.
+        validation_fraction
             The fraction of the dataset to use for validation.
-        test_fraction : float
+        test_fraction
             The fraction of the dataset to use for testing.
-        rscorer_kwargs : dict
+        rscorer_kwargs
             Additional keyword arguments to pass to [RScorer](https://www.pywhy.org/EconML/_autosummary/econml.score.RScorer.html).
-        n_groups_dr_tester : int
+        n_groups_dr_tester
             The number of groups to use for the [DRTester](https://www.pywhy.org/EconML/_autosummary/econml.validate.DRTester.html).
-        n_bootstrap_dr_tester : int
+        n_bootstrap_dr_tester
             The number of bootstrap samples to use for the [DRTester](https://www.pywhy.org/EconML/_autosummary/econml.validate.DRTester.html).
 
         Examples
@@ -284,7 +295,6 @@ class AutoCATE(BaseCamlEstimator):
         )
         ```
         """
-        self._fitted = False
         INFO(f"{self} \n")
 
         for ce in cate_estimators:
@@ -299,14 +309,14 @@ class AutoCATE(BaseCamlEstimator):
 
         if self._use_ray:
             if not ray.is_initialized():
-                ray.init()
+                ray.init(num_cpus=self._n_jobs if self._n_jobs > 0 else None)
 
         pd_df = self._convert_dataframe_to_pandas(df=df)
         if self._enable_categorical:
             pd_df, self._categorical_mappings = self._encode_categoricals(
                 df=pd_df, is_training=True
             )
-        self._find_nuisance_functions(df=pd_df)
+        self._find_nuisance_functions(df=pd_df, use_cached_models=use_cached_models)
         splits = self._split_data(
             df=pd_df,
             validation_fraction=validation_fraction,
@@ -333,7 +343,75 @@ class AutoCATE(BaseCamlEstimator):
         self._fitted = True
 
         if refit_final:
-            self.refit_final(df=pd_df)
+            self.refit_final(
+                df=pd_df,
+                bootstrap_inference=bootstrap_inference,
+                n_bootstrap_samples=n_bootstrap_samples,
+            )
+
+    @narrate(preamble=clg.REFIT_FINAL_PREAMBLE)
+    @timer("Refitting Final Estimator")
+    def refit_final(
+        self,
+        df: PandasConvertibleDataFrame,
+        bootstrap_inference: bool = False,
+        n_bootstrap_samples: int = 100,
+    ):
+        """Refits the final, best estimator on the provided data.
+
+        Parameters
+        ----------
+        df
+            The data to fit the estimator on.
+        bootstrap_inference
+            Whether to use bootstrap inference for the final CATE estimator, when other inference methods fail. This can be computationally expensive.
+        """
+        pd_df = self._convert_dataframe_to_pandas(df)
+        if self._enable_categorical:
+            pd_df, _ = self._encode_categoricals(
+                pd_df, categorical_mappings=self._categorical_mappings
+            )
+
+        Y = pd_df[self.Y]
+        T = pd_df[self.T]
+        X = pd_df[self.X]
+        W = pd_df[self.W]
+
+        def fit_model(est):
+            if isinstance(est, _OrthoLearner):
+                est.fit(
+                    Y=Y, T=T, X=X if not X.empty else None, W=W if not W.empty else None
+                )
+            else:
+                est.fit(Y=Y, T=T, X=X if not X.empty else None)
+
+        if isinstance(self.best_estimator, EnsembleCateEstimator):
+            for est in self.best_estimator._cate_models:
+                fit_model(est)
+        else:
+            fit_model(self.best_estimator)
+
+        if (
+            isinstance(self._best_estimator, EnsembleCateEstimator)
+            or self._best_estimator._inference is None
+        ) and bootstrap_inference:
+            WARNING(
+                f"Asymptotic inference is not supported for {self._best_estimator_name}. Falling back to bootstrap. Initial bootstrap fit will happen once and be cached. This can be computationally expensive."
+            )
+
+            self._bs_estimator = BootstrapInference(
+                n_bootstrap_samples=n_bootstrap_samples, n_jobs=self._n_jobs
+            )
+
+            self._bs_estimator.fit(
+                self._best_estimator,
+                Y=pd_df[self.Y],
+                T=pd_df[self.T],
+                X=X if not X.empty else None,
+                W=pd_df[self.W] if not pd_df[self.W].empty else None,
+            )
+        else:
+            self._bs_estimator = None
 
     @timer("Estimating ATE(s)")
     def estimate_ate(
@@ -345,14 +423,12 @@ class AutoCATE(BaseCamlEstimator):
         T1: int = 1,
         T: np.ndarray | pd.DataFrame | None = None,
         return_inference: bool = False,
-        allow_bootstrap: bool = False,
-        n_bootstrap_samples: int = 100,
         alpha: float = 0.05,
         value: int = 0,
     ) -> float | PopulationSummaryResults:
         r"""Calculate the average treatment effect(s) (ATE) $\mathbb{E}[\tau(\mathbf{X})]$.
 
-        This method can be used for group average treatment effects (GATEs) $\mathbb{E}[\tau(\mathbf{X})|G]$ by filtering the input df to a specific group.
+        This method can be used for group average treatment effects (GATEs) $\mathbb{E}[\tau(\mathbf{X}) \mid G]$ by filtering the input df to a specific group.
 
         Two effect modes are supported: `discrete` and `marginal`.
 
@@ -364,25 +440,21 @@ class AutoCATE(BaseCamlEstimator):
 
         Parameters
         ----------
-        df : PandasConvertibleDataFrame
+        df
             The dataframe containing all of the data passed to `fit` method.
-        effect_mode : str
+        effect_mode
             The mode of effect calculation. Can be "marginal" or "discrete".
-        T0 : int
+        T0
             The base treatment level when effect_mode is "discrete".
-        T1 : int
+        T1
             The target treatment level when effect_mode is "discrete".
-        T : np.ndarray | pd.DataFrame | None
+        T
             The base treatment levels for each observation when effect_mode is "marginal".
-        return_inference : bool
-            Whether to return inference results.
-        allow_bootstrap : bool
-            Whether to allow bootstrap inference when asymptotic inference is not supported by the best estimator. This can be computationally expensive.
-        n_bootstrap_samples : int
-            The number of bootstrap samples to use when return_inference is True and asymptotic inference is not supported by the best estimator.
-        alpha : float
+        return_inference
+            Whether to return [EconML inference](https://www.pywhy.org/EconML/reference.html#inference) results.
+        alpha
             The level of confidence in the reported interval.
-        value : int
+        value
             The mean value to test under the null hypothesis.
 
         Returns
@@ -421,7 +493,6 @@ class AutoCATE(BaseCamlEstimator):
             T1=T1,
             T=T,
             return_inference=return_inference,
-            n_bootstrap_samples=n_bootstrap_samples,
         )
         if return_inference:
             return res.population_summary(alpha=alpha, value=value)  # pyright: ignore[reportAttributeAccessIssue]
@@ -439,8 +510,6 @@ class AutoCATE(BaseCamlEstimator):
         T1: int = 1,
         T: np.ndarray | pd.DataFrame | None = None,
         return_inference: bool = False,
-        allow_bootstrap: bool = False,
-        n_bootstrap_samples: int = 100,
     ) -> np.ndarray | InferenceResults:
         r"""Calculate the Conditional Average Treatment Effects (CATE) $\tau(\mathbf{x})$.
 
@@ -454,22 +523,18 @@ class AutoCATE(BaseCamlEstimator):
 
         Parameters
         ----------
-        df : PandasConvertibleDataFrame
+        df
             The dataframe containing all of the data passed to `fit` method.
-        effect_mode : str
+        effect_mode
             The mode of effect calculation. Can be "marginal" or "discrete".
-        T0 : int
+        T0
             The base treatment level when effect_mode is "discrete".
-        T1 : int
+        T1
             The target treatment level when effect_mode is "discrete".
-        T : np.ndarray | pd.DataFrame | None
+        T
             The base treatment levels for each observation when effect_mode is "marginal".
-        return_inference : bool
-            Whether to return inference results.
-        allow_bootstrap : bool
-            Whether to allow bootstrap inference when asymptotic inference is not supported by the best estimator. This can be computationally expensive.
-        n_bootstrap_samples : int
-            The number of bootstrap samples to use when return_inference is True and asymptotic inference is not supported by the best estimator.
+        return_inference
+            Whether to return [EconML inference](https://www.pywhy.org/EconML/reference.html#inference) results.
 
         Returns
         -------
@@ -505,6 +570,8 @@ class AutoCATE(BaseCamlEstimator):
             raise ValueError(
                 f"Invalid effect_mode: {effect_mode} Must be either 'discrete' or 'marginal'"
             )
+        if effect_mode == "marginal" and T is None:
+            raise ValueError("'T' must be specified for marginal effect")
 
         pd_df: pd.DataFrame = self._convert_dataframe_to_pandas(df)
         if self._enable_categorical:
@@ -513,38 +580,18 @@ class AutoCATE(BaseCamlEstimator):
             )
 
         X = pd_df[self.X]
-        if T is None:
-            T = pd_df[self.T].to_numpy()
 
         if return_inference:
-            if self._best_estimator._inference is None or isinstance(  # pyright: ignore[reportAttributeAccessIssue]
-                self._best_estimator, EnsembleCateEstimator
-            ):
-                WARNING(
-                    f"Asymptotic inference is not supported for {self._best_estimator_name}. Falling back to bootstrap. Initial bootstrap fit will happen once and be cached. This can be computationally expensive."
-                )
-                if self._bs_estimator is None:
-                    self._bs_estimator = BootstrapInference(
-                        n_bootstrap_samples=n_bootstrap_samples, n_jobs=self._n_jobs
-                    )
-
-                    self._bs_estimator.fit(
-                        self._best_estimator,
-                        Y=pd_df[self.Y],
-                        T=pd_df[self.T],
-                        X=X if not X.empty else None,
-                        W=pd_df[self.W] if not pd_df[self.W].empty else None,
-                    )
-
+            if self._bs_estimator:
                 if effect_mode == "discrete":
                     inference = self._bs_estimator.effect_inference(X, T0=T0, T1=T1)
                 else:
                     inference = self._bs_estimator.marginal_effect_inference(T, X)
-
-            elif effect_mode == "discrete":
-                inference = self._best_estimator.effect_inference(X, T0=T0, T1=T1)
             else:
-                inference = self._best_estimator.marginal_effect_inference(T, X)
+                if effect_mode == "discrete":
+                    inference = self._best_estimator.effect_inference(X, T0=T0, T1=T1)  # pyright: ignore[reportAttributeAccessIssue]
+                else:
+                    inference = self._best_estimator.marginal_effect_inference(T, X)  # pyright: ignore[reportAttributeAccessIssue]
 
             return inference
         else:
@@ -569,7 +616,10 @@ class AutoCATE(BaseCamlEstimator):
 
     @narrate(preamble=clg.AUTOML_NUISANCE_PREAMBLE)
     @timer("Nuisance Function AutoML")
-    def _find_nuisance_functions(self, df: pd.DataFrame):
+    def _find_nuisance_functions(self, df: pd.DataFrame, use_cached_models: bool):
+        if self._fitted is True and use_cached_models:
+            INFO("Using cached nuisance functions.")
+            return
         base_settings = {
             "n_jobs": -1,
             "log_file_name": "",
@@ -607,6 +657,13 @@ class AutoCATE(BaseCamlEstimator):
 
             model_arg = getattr(self, f"_{model_name}_specs")
 
+            if discrete_outcome:
+                flaml_kwargs["task"] = "classification"
+                flaml_kwargs["metric"] = "log_loss"
+            else:
+                flaml_kwargs["task"] = "regression"
+                flaml_kwargs["metric"] = "mse"
+
             if isinstance(model_arg, dict):
                 flaml_kwargs.update(model_arg)
             elif model_arg is None:
@@ -617,13 +674,6 @@ class AutoCATE(BaseCamlEstimator):
 
             flaml_kwargs["label"] = outcome[0]
             flaml_kwargs["dataframe"] = df[features + outcome]
-
-            if discrete_outcome:
-                flaml_kwargs["task"] = "classification"
-                flaml_kwargs["metric"] = "log_loss"
-            else:
-                flaml_kwargs["task"] = "regression"
-                flaml_kwargs["metric"] = "mse"
 
             INFO(f"Searching for {model_name}:")
             model = self._run_automl(**flaml_kwargs)
@@ -889,34 +939,6 @@ class AutoCATE(BaseCamlEstimator):
 
             self.test_results = res
 
-    @narrate(preamble=clg.REFIT_FINAL_PREAMBLE)
-    @timer("Refitting Final Estimator")
-    def refit_final(self, df: PandasConvertibleDataFrame):
-        pd_df = self._convert_dataframe_to_pandas(df)
-        if self._enable_categorical:
-            pd_df, _ = self._encode_categoricals(
-                pd_df, categorical_mappings=self._categorical_mappings
-            )
-        estimator = self._best_estimator
-        Y = pd_df[self.Y]
-        T = pd_df[self.T]
-        X = pd_df[self.X]
-        W = pd_df[self.W]
-
-        def fit_model(est):
-            if isinstance(est, _OrthoLearner):
-                est.fit(
-                    Y=Y, T=T, X=X if not X.empty else None, W=W if not W.empty else None
-                )
-            else:
-                est.fit(Y=Y, T=T, X=X if not X.empty else None)
-
-        if isinstance(estimator, EnsembleCateEstimator):
-            for est in estimator._cate_models:
-                fit_model(est)
-        else:
-            fit_model(estimator)
-
     def _get_cate_estimators(
         self,
         *,
@@ -1017,7 +1039,7 @@ class AutoCATE(BaseCamlEstimator):
         Returns
         -------
         str
-            A string containing information about the AutoCATE object, including data backend, number of observations, UUID, outcome variable, discrete outcome, treatment variable, discrete treatment, features/confounders, random seed, nuissance models (if fitted), and final estimator (if available).
+            A string containing information about the AutoCATE object.
         """
         summary = (
             "================== AutoCATE Object ==================\n"

@@ -1,6 +1,6 @@
 import marimo
 
-__generated_with = "0.14.10"
+__generated_with = "0.17.7"
 app = marimo.App(width="medium")
 
 
@@ -12,7 +12,9 @@ def _():
 
 @app.cell
 def _(mo):
-    mo.md("""# AutoCate API Usage""")
+    mo.md("""
+    # AutoCate API Usage
+    """)
     return
 
 
@@ -27,7 +29,9 @@ def _():
 
 @app.cell
 def _(mo):
-    mo.md("""## Synthetic Data""")
+    mo.md("""
+    ## Synthetic Data
+    """)
     return
 
 
@@ -59,12 +63,20 @@ def _():
     cate_df = data.cates
     ate_df = data.ates
     dgp = data.dgp
+
+    # Generate random normal variable
     return ate_df, cate_df, dgp, synthetic_df
 
 
 @app.cell
 def _(synthetic_df):
     synthetic_df
+    return
+
+
+@app.cell
+def _():
+    # Generate numpy random variable
     return
 
 
@@ -87,19 +99,19 @@ def _(ate_df):
 
 
 @app.cell
-def _():
-    # for col in synthetic_df.columns:
-    #     if "discrete" in col:
-    #         synthetic_df[col] = synthetic_df[col].astype("category")
+def _(synthetic_df):
+    for col in synthetic_df.columns:
+        if "discrete" in col:
+            synthetic_df[col] = synthetic_df[col].astype("category")
 
-    # categories = list(synthetic_df["X7_discrete"].cat.categories)
-    # mapping = dict(
-    #     zip(
-    #         categories,
-    #         [f"A{str(i)}" for i in categories],
-    #     )
-    # )
-    # synthetic_df["X7_discrete"] = synthetic_df["X7_discrete"].map(mapping)
+    categories = list(synthetic_df["X5_discrete"].cat.categories)
+    mapping = dict(
+        zip(
+            categories,
+            [f"A{str(i)}" for i in categories],
+        )
+    )
+    synthetic_df["X5_discrete"] = synthetic_df["X5_discrete"].map(mapping)
     return
 
 
@@ -111,19 +123,25 @@ def _(synthetic_df):
 
 @app.cell
 def _(mo):
-    mo.md("""## Core API""")
+    mo.md("""
+    ## Core API
+    """)
     return
 
 
 @app.cell
 def _(mo):
-    mo.md("""### AutoCATE""")
+    mo.md("""
+    ### AutoCATE
+    """)
     return
 
 
 @app.cell
 def _(mo):
-    mo.md("""#### Class Instantiation""")
+    mo.md("""
+    #### Class Instantiation
+    """)
     return
 
 
@@ -144,9 +162,9 @@ def _(synthetic_df):
         if "binary" in treatment or "discrete" in treatment
         else False,
         discrete_outcome=True if "binary" in outcome else False,
-        model_Y={"time_budget": 10},
-        model_T={"time_budget": 10},
-        model_regression={"time_budget": 10},
+        model_Y={"time_budget": 2},
+        model_T={"time_budget": 2},
+        model_regression={"time_budget": 2},
         enable_categorical=True,
         n_jobs=-1,
         use_ray=False,
@@ -167,7 +185,7 @@ def _():
 
 @app.cell
 def _(caml, synthetic_df):
-    caml.fit(synthetic_df, cate_estimators=["LinearDML"])
+    caml.fit(synthetic_df, cate_estimators=["TLearner"], use_cached_models=True)
     return
 
 
@@ -179,32 +197,36 @@ def _(caml, synthetic_df):
 
 
 @app.cell
+def _(cate_predictions):
+    import numpy as np
+
+    cate_predictions.std() / np.sqrt(len(cate_predictions))
+    return
+
+
+@app.cell
 def _(caml, synthetic_df):
     obj2 = caml.estimate_cate(synthetic_df, return_inference=True)
-    return
+    return (obj2,)
 
 
 @app.cell
 def _(caml, synthetic_df):
     pop = caml.estimate_ate(synthetic_df, return_inference=True)
-    return (pop,)
-
-
-@app.cell
-def _(pop):
-    pop
     return
 
 
 @app.cell
-def _(ate_df):
-    ate_df
+def _(obj2):
+    sum = obj2.population_summary()
     return
 
 
 @app.cell
 def _(mo):
-    mo.md("""# Plots""")
+    mo.md("""
+    # Plots
+    """)
     return
 
 

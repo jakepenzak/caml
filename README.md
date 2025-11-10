@@ -1,4 +1,4 @@
-<div align="center">
+<center>
 
 <img src="https://raw.githubusercontent.com/jakepenzak/caml/main/docs/assets/main_logo.svg" align="center" alt="CaML Logo" height="auto" width=500px/>
 
@@ -16,12 +16,12 @@
 [![Build & Publish Docs](https://github.com/jakepenzak/caml/actions/workflows/docs.yml/badge.svg)](https://github.com/jakepenzak/caml/actions/workflows/docs.yml)
 [![Pre-Commit & Linting Checks](https://github.com/jakepenzak/caml/actions/workflows/lint.yml/badge.svg?branch=main)](https://github.com/jakepenzak/caml/actions/workflows/lint.yml)
 <br>
-[![Codacy Badge](https://app.codacy.com/project/badge/Grade/cd6cc54c704e4a7aafe20f851bc39236)](https://app.codacy.com/gh/jakepenzak/caml/dashboard?utm_source=gh&utm_medium=referral&utm_content=&utm_campaign=Badge_grade)
+<a href="https://app.codacy.com/gh/jakepenzak/caml/dashboard?utm_source=gh&utm_medium=referral&utm_content=&utm_campaign=Badge_grade"><img src="https://app.codacy.com/project/badge/Grade/cd6cc54c704e4a7aafe20f851bc39236"/></a>
 [![codecov](https://codecov.io/gh/jakepenzak/caml/graph/badge.svg?token=UBABBZXO85)](https://codecov.io/gh/jakepenzak/caml)
 
 **Ca**usal **M**achine **L**earning
 
-</div>
+</center>
 
 ## Welcome!
 

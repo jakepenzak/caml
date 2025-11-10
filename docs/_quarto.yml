@@ -53,7 +53,8 @@ website:
       title: "Home"
       style: floating
       contents:
-        - index.qmd
+        - text: Welcome!
+          href: index.qmd
         - 01_Home/installation.qmd
         - 01_Home/quickstart.qmd
     - id: Concepts
@@ -63,10 +64,10 @@ website:
         - 02_Concepts/motivation.qmd
         - 02_Concepts/theory.qmd
         - 02_Concepts/models.qmd
-    # - id: Examples
-    #   title: "Examples"
-    #   style: floating
-    #   contents: 03_Examples/*
+    - id: Examples
+      title: "Examples"
+      style: floating
+      contents: 03_Examples/*
     - id: API_Reference
       title: "Reference"
       style: floating

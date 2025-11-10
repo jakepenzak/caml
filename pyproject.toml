@@ -53,12 +53,10 @@ test = [
     "typeguard>=4.4.4",
 ]
 dev = [
-    "anthropic>=0.42.0",
     "jupyter>=1.1.0",
     "marimo>0.14",
-    "openai>=1.97.0",
+    "openai>=2.7.1",
     "pre-commit>=3.5.0",
-    "pynvim>=0.5.2",
     "ruff>=0.6.2",
 ]
 docs = ["quarto-cli<1.7.32", "quartodoc>=0.9.1"]

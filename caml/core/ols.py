@@ -134,7 +134,7 @@ class FastOLS(BaseCamlEstimator):
         W: Sequence[str] | None = None,
         *,
         xformula: str | None = None,
-        discrete_treatment: bool = False,
+        discrete_treatment: bool = True,
         engine: str = "cpu",
     ):
         DEBUG(
@@ -162,6 +162,9 @@ class FastOLS(BaseCamlEstimator):
             except RuntimeError:
                 WARNING("No available GPU detected, falling back to CPU")
                 engine = "cpu"
+        else:
+            if _HAS_JAX:
+                jax.config.update("jax_platforms", "cpu")
 
         self._engine = engine
         self.formula = self._create_formula(
@@ -170,7 +173,7 @@ class FastOLS(BaseCamlEstimator):
         self._formula = self.formula
         DEBUG(f"Created formula: {self.formula}")
         self._fitted = False
-        self._treatment_effects: Any = {}
+        self._treatment_effects: dict = {}
 
     def fit(
         self,
@@ -218,7 +221,7 @@ class FastOLS(BaseCamlEstimator):
         self._fitted = True
         if estimate_effects:
             diff_matrix = self._create_difference_matrix(pd_df)
-            self._treatment_effects = self.estimate_ate(
+            self._treatment_effects = self.estimate_ate(  # pyright: ignore[reportAttributeAccessIssue]
                 pd_df,
                 _diff_matrix=diff_matrix,
                 return_results_dict=True,
