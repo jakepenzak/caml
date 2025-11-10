@@ -2,7 +2,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
 
 <meta charset="utf-8">
-<meta name="generator" content="quarto-1.7.30">
+<meta name="generator" content="quarto-1.7.31">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
@@ -72,10 +72,10 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <script src="../site_libs/quarto-html/tippy.umd.min.js"></script>
 <script src="../site_libs/quarto-html/anchor.min.js"></script>
 <link href="../site_libs/quarto-html/tippy.css" rel="stylesheet">
-<link href="../site_libs/quarto-html/quarto-syntax-highlighting-de070a7b0ab54f8780927367ac907214.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<link href="../site_libs/quarto-html/quarto-syntax-highlighting-e1a5c8363afafaef2c763b6775fbf3ca.css" rel="stylesheet" id="quarto-text-highlighting-styles">
 <script src="../site_libs/bootstrap/bootstrap.min.js"></script>
 <link href="../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="../site_libs/bootstrap/bootstrap-90533376958dee2a2f0107557869354e.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<link href="../site_libs/bootstrap/bootstrap-9ed85366717b0d4a9233a89d8452de7f.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
 <script id="quarto-search-options" type="application/json">{
   "location": "navbar",
   "copy-button": false,
@@ -647,8 +647,8 @@ window.Quarto = {
     </a>
     <ul class="dropdown-menu" aria-labelledby="nav-menu-examples">    
         <li>
-    <a class="dropdown-item" href="../03_Examples/CamlCATE.html">
- <span class="dropdown-text">CamlCATE</span></a>
+    <a class="dropdown-item" href="../03_Examples/AutoCATE.html">
+ <span class="dropdown-text">AutoCATE</span></a>
   </li>  
         <li>
     <a class="dropdown-item" href="../03_Examples/FastOLS.html">
@@ -768,26 +768,25 @@ window.Quarto = {
 
 
 <div class="sourceCode" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>SyntheticDataGenerator(</span>
-<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>    <span class="va">self</span>,</span>
-<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>    n_obs<span class="op">=</span><span class="dv">10000</span>,</span>
-<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>    n_cont_outcomes<span class="op">=</span><span class="dv">1</span>,</span>
-<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>    n_binary_outcomes<span class="op">=</span><span class="dv">0</span>,</span>
-<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>    n_cont_treatments<span class="op">=</span><span class="dv">0</span>,</span>
-<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>    n_binary_treatments<span class="op">=</span><span class="dv">1</span>,</span>
-<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>    n_discrete_treatments<span class="op">=</span><span class="dv">0</span>,</span>
-<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>    n_cont_confounders<span class="op">=</span><span class="dv">0</span>,</span>
-<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>    n_binary_confounders<span class="op">=</span><span class="dv">0</span>,</span>
-<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>    n_discrete_confounders<span class="op">=</span><span class="dv">0</span>,</span>
-<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>    n_cont_modifiers<span class="op">=</span><span class="dv">0</span>,</span>
-<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a>    n_binary_modifiers<span class="op">=</span><span class="dv">0</span>,</span>
-<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a>    n_discrete_modifiers<span class="op">=</span><span class="dv">0</span>,</span>
-<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a>    n_confounding_modifiers<span class="op">=</span><span class="dv">0</span>,</span>
-<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a>    stddev_outcome_noise<span class="op">=</span><span class="fl">1.0</span>,</span>
-<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a>    stddev_treatment_noise<span class="op">=</span><span class="fl">1.0</span>,</span>
-<span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a>    causal_model_functional_form<span class="op">=</span><span class="st">'linear'</span>,</span>
-<span id="cb1-19"><a href="#cb1-19" aria-hidden="true" tabindex="-1"></a>    n_nonlinear_transformations<span class="op">=</span><span class="va">None</span>,</span>
-<span id="cb1-20"><a href="#cb1-20" aria-hidden="true" tabindex="-1"></a>    seed<span class="op">=</span><span class="va">None</span>,</span>
-<span id="cb1-21"><a href="#cb1-21" aria-hidden="true" tabindex="-1"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>    n_obs<span class="op">=</span><span class="dv">10000</span>,</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>    n_cont_outcomes<span class="op">=</span><span class="dv">1</span>,</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>    n_binary_outcomes<span class="op">=</span><span class="dv">0</span>,</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>    n_cont_treatments<span class="op">=</span><span class="dv">0</span>,</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>    n_binary_treatments<span class="op">=</span><span class="dv">1</span>,</span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>    n_discrete_treatments<span class="op">=</span><span class="dv">0</span>,</span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>    n_cont_confounders<span class="op">=</span><span class="dv">0</span>,</span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>    n_binary_confounders<span class="op">=</span><span class="dv">0</span>,</span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>    n_discrete_confounders<span class="op">=</span><span class="dv">0</span>,</span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>    n_cont_modifiers<span class="op">=</span><span class="dv">0</span>,</span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>    n_binary_modifiers<span class="op">=</span><span class="dv">0</span>,</span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a>    n_discrete_modifiers<span class="op">=</span><span class="dv">0</span>,</span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a>    n_confounding_modifiers<span class="op">=</span><span class="dv">0</span>,</span>
+<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a>    stddev_outcome_noise<span class="op">=</span><span class="fl">1.0</span>,</span>
+<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a>    stddev_treatment_noise<span class="op">=</span><span class="fl">1.0</span>,</span>
+<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a>    causal_model_functional_form<span class="op">=</span><span class="st">'linear'</span>,</span>
+<span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a>    n_nonlinear_transformations<span class="op">=</span><span class="va">None</span>,</span>
+<span id="cb1-19"><a href="#cb1-19" aria-hidden="true" tabindex="-1"></a>    seed<span class="op">=</span><span class="va">None</span>,</span>
+<span id="cb1-20"><a href="#cb1-20" aria-hidden="true" tabindex="-1"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <p>Generate highly flexible synthetic data for use in causal inference and CaML testing.</p>
 <p><strong>SyntheticDataGenerator is experimental and may change significantly in future versions.</strong></p>
 <p>The general form of the data generating process is:</p>
@@ -993,7 +992,7 @@ window.Quarto = {
 </section>
 <section id="examples" class="level2 doc-section doc-section-examples">
 <h2 class="doc-section doc-section-examples anchored" data-anchor-id="examples">Examples</h2>
-<div id="7eb0ac8c" class="cell" data-execution_count="1">
+<div id="97f28ebd" class="cell" data-execution_count="1">
 <div class="sourceCode cell-code" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> caml.extensions.synthetic_data <span class="im">import</span> SyntheticDataGenerator</span>
 <span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>data_generator <span class="op">=</span> SyntheticDataGenerator(n_cont_outcomes<span class="op">=</span><span class="dv">1</span>,</span>
@@ -1125,7 +1124,7 @@ window.Quarto = {
 </div>
 </div>
 </div>
-<div id="2e75450c" class="cell" data-execution_count="2">
+<div id="86183a23" class="cell" data-execution_count="2">
 <div class="sourceCode cell-code" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>data_generator.cates</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display" data-execution_count="2">
 <div>
@@ -1190,7 +1189,7 @@ window.Quarto = {
 </div>
 </div>
 </div>
-<div id="c1522c27" class="cell" data-execution_count="3">
+<div id="9bca894b" class="cell" data-execution_count="3">
 <div class="sourceCode cell-code" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>data_generator.ates</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display" data-execution_count="3">
 <div>
@@ -1216,7 +1215,7 @@ window.Quarto = {
 </div>
 </div>
 </div>
-<div id="522f1bfd" class="cell" data-execution_count="4">
+<div id="b5505b1b" class="cell" data-execution_count="4">
 <div class="sourceCode cell-code" id="cb5"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> t, df <span class="kw">in</span> data_generator.dgp.items():</span>
 <span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f"</span><span class="ch">\n</span><span class="ss">DGP for </span><span class="sc">{</span>t<span class="sc">}</span><span class="ss">:"</span>)</span>
 <span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(df)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
@@ -1225,13 +1224,13 @@ window.Quarto = {
 DGP for T1_binary:
 {'formula': '1 + W1_continuous + W2_continuous', 'params': array([ 0.4609703 ,  0.2566887 , -0.03896251]), 'noise': array([ 0.14476544, -0.51949108, -1.88624383, ..., -0.59020672,
         0.87157749,  0.0697439 ]), 'raw_scores': array([0.69496136, 0.49765524, 0.15083742, ..., 0.47633017, 0.80751307,
-       0.5669763 ]), 'function': &lt;function SyntheticDataGenerator._create_dgp_function.&lt;locals&gt;.f_binary at 0x7efca67dd3f0&gt;}
+       0.5669763 ]), 'function': &lt;function SyntheticDataGenerator._create_dgp_function.&lt;locals&gt;.f_binary at 0x7fbdf893bac0&gt;}
 
 DGP for Y1_continuous:
 {'formula': '1 + W1_continuous + W2_continuous + X1_continuous + X2_continuous + T1_binary + T1_binary*X1_continuous + T1_binary*X2_continuous', 'params': array([-1.80242342,  1.11129512, -4.1263484 , -4.82709212,  1.87319625,
         2.60635605, -0.91633948,  0.71653213]), 'noise': array([-0.12533653, -1.15370094, -0.26681987, ...,  1.85405702,
        -0.18887322, -0.45736583]), 'raw_scores': array([-10.3729005 ,  13.43724492, -51.69501383, ...,   5.99231789,
-         1.54364473, -44.11428464]), 'function': &lt;function SyntheticDataGenerator._create_dgp_function.&lt;locals&gt;.f_cont at 0x7efca67dd480&gt;}</code></pre>
+         1.54364473, -44.11428464]), 'function': &lt;function SyntheticDataGenerator._create_dgp_function.&lt;locals&gt;.f_cont at 0x7fbdb8af52d0&gt;}</code></pre>
 </div>
 </div>
 </section>
@@ -1327,7 +1326,7 @@ DGP for Y1_continuous:
 </section>
 <section id="examples-1" class="level4 doc-section doc-section-examples">
 <h4 class="doc-section doc-section-examples anchored" data-anchor-id="examples-1">Examples</h4>
-<div id="685e35a3" class="cell" data-execution_count="5">
+<div id="0fbb8c24" class="cell" data-execution_count="5">
 <div class="sourceCode cell-code" id="cb8"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
 <span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>df <span class="op">=</span> data_generator.df</span>
 <span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>dgp <span class="op">=</span> data_generator.dgp[<span class="st">'Y1_continuous'</span>]</span>
