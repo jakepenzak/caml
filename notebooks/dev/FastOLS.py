@@ -1,8 +1,6 @@
-
-
 import marimo
 
-__generated_with = "0.13.1"
+__generated_with = "0.17.7"
 app = marimo.App(width="medium")
 
 
@@ -14,7 +12,9 @@ def _():
 
 @app.cell
 def _(mo):
-    mo.md(r"""# FastOLS API Usage""")
+    mo.md(r"""
+    # FastOLS API Usage
+    """)
     return
 
 
@@ -24,18 +24,15 @@ def _():
     import numpy as np
     from caml import FastOLS
     from caml.extensions.synthetic_data import SyntheticDataGenerator
-    from caml.logging import configure_logging
     import logging
-
-    configure_logging(level=logging.DEBUG)
-    return FastOLS, SyntheticDataGenerator
+    return FastOLS, SyntheticDataGenerator, np
 
 
 @app.cell
 def _(SyntheticDataGenerator):
     data_generator = SyntheticDataGenerator(
         n_obs=10_000,
-        n_cont_outcomes=2,
+        n_cont_outcomes=1,
         n_binary_outcomes=0,
         n_cont_treatments=0,
         n_binary_treatments=1,
@@ -55,7 +52,7 @@ def _(SyntheticDataGenerator):
 @app.cell
 def _(data_generator):
     df = data_generator.df
-    # df["cates"] = data_generator.cates
+    df["cates"] = data_generator.cates
     df
     return (df,)
 
@@ -74,7 +71,9 @@ def _(df):
 
 @app.cell
 def _(mo):
-    mo.md(r"""## Fit w/ Effect Estimation in One Pass""")
+    mo.md(r"""
+    ## Fit w/ Effect Estimation in One Pass
+    """)
     return
 
 
@@ -87,7 +86,7 @@ def _(FastOLS, df):
         X=[c for c in df.columns if "X" in c and "cont" in c],
         W=[c for c in df.columns if "W" in c],
         xformula="+W1_continuous**2",
-        engine="gpu",
+        engine="cpu",
         discrete_treatment=True,
     )
     return (fu,)
@@ -106,14 +105,28 @@ def _(df, fu):
 
 
 @app.cell
-def _(fu):
-    fu.params
+def _():
+    return
+
+
+@app.cell
+def _():
+
+    import contextlib
+    import gc
+
+    """Lightly trigger GC and drop backend references."""
+    with contextlib.suppress(Exception):
+        from jax.lib import xla_bridge
+
+        del xla_bridge._backends
+    gc.collect()
     return
 
 
 @app.cell
 def _(fu):
-    fu.vcv
+    fu.vcv.device
     return
 
 
@@ -131,9 +144,27 @@ def _(fu):
 
 @app.cell
 def _(df, fu):
-    cates = fu.estimate_cate(df, return_results_dict=False)
+    cates = fu.estimate_cate(df, return_results_dict=True)
 
     cates
+    return (cates,)
+
+
+@app.cell
+def _(cates):
+    cates['cate'].mean()
+    return
+
+
+@app.cell
+def _(cates):
+    len(cates['cate'])
+    return
+
+
+@app.cell
+def _(cates, np):
+    cates['cate'].std() / np.sqrt(len(cates['cate']))
     return
 
 
@@ -152,7 +183,7 @@ def _(data_generator):
 
 @app.cell
 def _(df, fu):
-    fu.predict(df, mode="y")
+    fu.predict(df, mode="cate")
     return
 
 
@@ -190,6 +221,11 @@ def _(df, fu):
 @app.cell
 def _(df2):
     df2['cates'].mean()
+    return
+
+
+@app.cell
+def _():
     return
 
 

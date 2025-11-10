@@ -53,7 +53,8 @@ website:
       title: "Home"
       style: floating
       contents:
-        - index.qmd
+        - text: Welcome!
+          href: index.qmd
         - 01_Home/installation.qmd
         - 01_Home/quickstart.qmd
     - id: Concepts
@@ -99,7 +100,7 @@ quartodoc:
       desc: "`from caml import *` <br> <br> Core functionality of CaML for estimating causal effects with cross-sectional data."
       package: caml
       contents:
-        - name: CamlCATE
+        - name: AutoCATE
           member_order: source
         - name: FastOLS
           member_order: source
@@ -126,14 +127,16 @@ quartodoc:
         - name: cate_true_vs_estimated_plot
           signature_name: short
     - title: Developer Tools
-      desc: "Developer tools for CaML."
+      desc: "Developer tools and utilities for CaML."
       contents:
-        - generics.experimental
-        - generics.timer
-        - generics.maybe_jit
-        - generics.PandasConvertibleDataFrame
-        - logging.configure_logging
-        - logging.set_log_level
+        - name: decorators
+          package: caml.generics
+        - name: interfaces
+          package: caml.generics
+        - name: utils
+          package: caml.generics
+        - name: logging
+          package: caml.generics
 
 metadata-files:
   - _sidebar.yml

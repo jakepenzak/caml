@@ -30,7 +30,7 @@ Valid types for Caml are as follows:
 - `revert`: Reverting code changes to a previous state
 - `chore`: Routine tasks that don't fit in any of the above
 
-We use the following regex to validate PR titles ([test it!](https://regex101.com/r/yC6ZMD/1)):
+We use the following regex to validate PR titles ([test it!](https://regex101.com/r/6c1agb/1)):
 
 ```
 ^(build|chore|ci|docs|feat|fix|perf|refactor|revert|style|test|release)(.+)?(!)?:\ .+

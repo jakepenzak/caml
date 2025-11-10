@@ -1,4 +1,4 @@
-from typing import Callable, Collection
+from typing import Callable, Sequence
 
 import numpy as np
 import pandas as pd
@@ -13,7 +13,7 @@ from scipy.linalg import toeplitz
 from scipy.special import expit as sigmoid
 from scipy.special import softmax
 
-from ..generics import experimental
+from caml.generics.decorators import experimental
 
 
 def _truncate_and_renormalize_probabilities(
@@ -283,7 +283,7 @@ class SyntheticDataGenerator:
         assert np.allclose(f(design_matrix,params,noise), df['Y1_continuous'])
         ```
         """
-        return patsy.dmatrix(formula, data=df, return_type=return_type, **kwargs)  # type: ignore
+        return patsy.dmatrix(formula, data=df, return_type=return_type, **kwargs)  # pyright: ignore[reportAttributeAccessIssue]
 
     def _generate_data(self):
         """
@@ -486,7 +486,7 @@ class SyntheticDataGenerator:
 
     def _generate_dependent_variables(
         self,
-        dfs: Collection[pd.DataFrame],
+        dfs: Sequence[pd.DataFrame],
         n_continuous: int,
         n_binary: int,
         n_discrete: int,
@@ -505,7 +505,7 @@ class SyntheticDataGenerator:
 
         Parameters
         ----------
-        dfs : Collection[pd.DataFrame]
+        dfs : Sequence[pd.DataFrame]
             Dataframes to generate synthetic data from.
         n_continuous : int
             Number of continuous variables to generate.

@@ -1,4 +1,7 @@
+"""Logging utilities for CaML."""
+
 import logging
+import warnings
 
 from rich.console import Console
 from rich.logging import RichHandler
@@ -66,17 +69,53 @@ def configure_logging(level: int = logging.WARNING):
     # Configure library loggers
     logging.getLogger("patsy").setLevel(logging.WARNING)
     logging.getLogger("jax").setLevel(logging.WARNING)
+    logging.getLogger("sklearn").setLevel(logging.ERROR)
+    warnings.filterwarnings("ignore")
 
     logger.debug(f"Logging configured with level: {logging.getLevelName(level)}")
 
 
-def set_log_level(level: int):
+def get_section_header(
+    title: str, emoji: str = "", sep_char: str = "=", width: int | None = None
+) -> str:
     """
-    Change the logging level after initial configuration.
+    Generate a formatted section header with separators.
 
     Parameters
     ----------
-    level
-        The new logging level to use.
+    title : str
+        The title text to display
+    emoji : str
+        Optional emoji to include in the title
+    width : int | None
+        Width for the separators. If None, calculated from title length.
+
+    Returns
+    -------
+    str
+        Formatted header with top and bottom separators
     """
-    logger.setLevel(level)
+    if width is None:
+        # Calculate width based on title length + padding
+        width = len(title) + 5  # 2.5 chars padding on each side
+
+    separator = sep_char * width
+    formatted_title = f"|{emoji} {title}|" if emoji else f"|{title}|"
+
+    return f"\n{separator}\n{formatted_title}\n{separator}\n"
+
+
+LOGO = r"""
+  ____      __  __ _
+ / ___|__ _|  \/  | |
+| |   / _` | |\/| | |
+| |__| (_| | |  | | |___
+ \____\__,_|_|  |_|_____|
+
+"""
+
+## AutoCATE Narrations
+AUTOML_NUISANCE_PREAMBLE = get_section_header("AutoML Nuisance Functions", ":dart:")
+AUTOML_CATE_PREAMBLE = get_section_header("AutoML CATE Functions", ":dart:")
+CATE_TESTING_PREAMBLE = get_section_header("Testing Results", ":test_tube:")
+REFIT_FINAL_PREAMBLE = get_section_header("Refitting Final Estimator", ":battery:")

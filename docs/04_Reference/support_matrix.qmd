@@ -2,14 +2,14 @@
 title: "Outcome/Treatment Type Support Matrix"
 ---
 
-| Outcome     | Treatment   | [FastOLS](FastOLS.qmd) | [CamlCATE](CamlCATE.qmd)    |
+| Outcome     | Treatment   | [FastOLS](FastOLS.qmd) | [AutoCATE](AutoCATE.qmd)    |
 | :-----------: | :-----------: | :-----------: | :-----------: |
 | Continuous  | Binary      | ✅    | ✅     |
-| Continuous  | Continuous  | ✅    | 🟡[^validate]   |
+| Continuous  | Continuous  | ✅    | ✅   |
 | Continuous  | Categorical | ❌   | ✅     |
-| Binary      | Binary      | ✅      | 🟡[^validate]  |
-| Binary      | Continuous  | ✅      | 🟡[^validate]   |
-| Binary      | Categorical | ❌   | 🟡[^validate]   |
+| Binary      | Binary      | ✅      | ✅  |
+| Binary      | Continuous  | ✅      | ✅   |
+| Binary      | Categorical | ❌   | ✅   |
 | Categorical | Binary      | ❌   | ❌  |
 | Categorical | Continuous  | ❌   | ❌  |
 | Categorical | Categorical | ❌   | ❌   |
@@ -19,5 +19,3 @@ title: "Outcome/Treatment Type Support Matrix"
 ✅ - Full &nbsp;&nbsp; 🟡 - Partial &nbsp;&nbsp; ❌ - Not yet
 
 If you have a specific use case that is not covered by the current support matrix, please feel free to open an issue.
-
-[^validate]: Missing `validate` method.

@@ -1,8 +1,6 @@
-
-
 import marimo
 
-__generated_with = "0.13.1"
+__generated_with = "0.17.7"
 app = marimo.App(width="medium")
 
 
@@ -14,35 +12,31 @@ def _():
 
 @app.cell
 def _(mo):
-    mo.md(
-        r"""
-        # FastOLS
+    mo.md(r"""
+    # FastOLS
 
-        In this notebook, we'll walk through an example of generating synthetic data, estimating treatment effects (ATEs, GATEs, and CATEs) using `FastOLS`, and comparing to our ground truth.
+    In this notebook, we'll walk through an example of generating synthetic data, estimating treatment effects (ATEs, GATEs, and CATEs) using `FastOLS`, and comparing to our ground truth.
 
-        `FastOLS` is particularly useful when efficiently estimating ATEs and GATEs is of primary interest and the treatment is exogenous or confounding takes on a particularly simple functional form.
+    `FastOLS` is particularly useful when efficiently estimating ATEs and GATEs is of primary interest and the treatment is exogenous or confounding takes on a particularly simple functional form.
 
-        `FastOLS` assumes linear treatment effects & heterogeneity. This is generally sufficient for estimation of ATEs and GATEs, but can perform poorly in CATE estimation & prediction when heterogeneity is complex & nonlinear. For high quality CATE estimation, we recommend leveraging [CamlCATE](../04_Reference/CamlCATE.qmd).
-        """
-    )
+    `FastOLS` assumes linear treatment effects & heterogeneity. This is generally sufficient for estimation of ATEs and GATEs, but can perform poorly in CATE estimation & prediction when heterogeneity is complex & nonlinear. For high quality CATE estimation, we recommend leveraging [AutoCATE](../04_Reference/AutoCATE.qmd).
+    """)
     return
 
 
 @app.cell
 def _(mo):
-    mo.md(
-        """
-        ## Generate Synthetic Data
+    mo.md("""
+    ## Generate Synthetic Data
 
-        Here we'll leverage the [`SyntheticDataGenerator`](../04_Reference/SyntheticDataGenerator.qmd) class to generate a linear synthetic data generating process, with an exogenous binary treatment, a continuous & a binary outcome, and binary & continuous mediating covariates.
-        """
-    )
+    Here we'll leverage the [`SyntheticDataGenerator`](../04_Reference/SyntheticDataGenerator.qmd) class to generate a linear synthetic data generating process, with an exogenous binary treatment, a continuous & a binary outcome, and binary & continuous mediating covariates.
+    """)
     return
 
 
 @app.cell
 def _():
-    from caml.logging import configure_logging
+    from caml.generics.logging import configure_logging
     import logging
 
     configure_logging(level=logging.DEBUG)
@@ -71,7 +65,9 @@ def _():
 
 @app.cell
 def _(mo):
-    mo.md(r"""We can print our simulated data via:""")
+    mo.md(r"""
+    We can print our simulated data via:
+    """)
     return
 
 
@@ -83,7 +79,9 @@ def _(data_generator):
 
 @app.cell
 def _(mo):
-    mo.md(r"""To inspect our true data generating process, we can call `data_generator.dgp`. Furthermore, we will have our true CATEs and ATEs at our disposal via `data_generator.cates` & `data_generator.ates`, respectively. We'll use this as our source of truth for performance evaluation of our CATE estimator.""")
+    mo.md(r"""
+    To inspect our true data generating process, we can call `data_generator.dgp`. Furthermore, we will have our true CATEs and ATEs at our disposal via `data_generator.cates` & `data_generator.ates`, respectively. We'll use this as our source of truth for performance evaluation of our CATE estimator.
+    """)
     return
 
 
@@ -109,15 +107,13 @@ def _(data_generator):
 
 @app.cell
 def _(mo):
-    mo.md(
-        r"""
-        ## Running FastOLS
+    mo.md(r"""
+    ## Running FastOLS
 
-        ### Class Instantiation
+    ### Class Instantiation
 
-        We can instantiate and observe our `FastOLS` object via:
-        """
-    )
+    We can instantiate and observe our `FastOLS` object via:
+    """)
     return
 
 
@@ -150,33 +146,31 @@ def _(fo_obj):
 
 @app.cell
 def _(mo):
-    mo.md(
-        r"""
-        ### Fitting OLS model
+    mo.md(r"""
+    ### Fitting OLS model
 
-        We can now leverage the `fit` method to estimate the model outlined by `fo_obj.formula`. To capitalize on efficiency gains and parallelization in the estimation of GATEs, we will pass `estimate_effects=True`. The `n_jobs` argument will control the number of parallel jobs (GATE estimations) executed at a time. We will set `n_jobs=-1` to use all available cores for parallelization.
+    We can now leverage the `fit` method to estimate the model outlined by `fo_obj.formula`. To capitalize on efficiency gains and parallelization in the estimation of GATEs, we will pass `estimate_effects=True`. The `n_jobs` argument will control the number of parallel jobs (GATE estimations) executed at a time. We will set `n_jobs=-1` to use all available cores for parallelization.
 
-        ::: {.callout-warning}
-        When dealing with large datasets, setting `n_jobs` to a more conservative value can help prevent OOM errors.
-        :::
+    ::: {.callout-warning}
+    When dealing with large datasets, setting `n_jobs` to a more conservative value can help prevent OOM errors.
+    :::
 
-        For heteroskedasticity-robust variance estimation, we will also pass `robust_vcv=True`.
-        """
-    )
+    For heteroskedasticity-robust variance estimation, we will also pass `robust_vcv=True`.
+    """)
     return
 
 
 @app.cell
 def _(data_generator, fo_obj):
-    fo_obj.fit(
-        data_generator.df, n_jobs=-1, estimate_effects=True, cov_type="HC1"
-    )
+    fo_obj.fit(data_generator.df, n_jobs=-1, estimate_effects=True, cov_type="HC1")
     return
 
 
 @app.cell
 def _(mo):
-    mo.md(r"""We can now inspect the model fitted results and estimated treatment effects:""")
+    mo.md(r"""
+    We can now inspect the model fitted results and estimated treatment effects:
+    """)
     return
 
 
@@ -204,13 +198,11 @@ def _(fo_obj):
 
 @app.cell
 def _(mo):
-    mo.md(
-        r"""
-        Here we have direct access to the model parameters (`fo_obj.params`), variance-covariance matrices (`fo_obj.vcv]`), standard_errors (`fo_obj.std_err`), and estimated treatment effects (`fo_obj.treatment_effects`).
+    mo.md(r"""
+    Here we have direct access to the model parameters (`fo_obj.params`), variance-covariance matrices (`fo_obj.vcv]`), standard_errors (`fo_obj.std_err`), and estimated treatment effects (`fo_obj.treatment_effects`).
 
-        To make the treatment effect results more readable, we can leverage the `prettify_treatment_effects` method:
-        """
-    )
+    To make the treatment effect results more readable, we can leverage the `prettify_treatment_effects` method:
+    """)
     return
 
 
@@ -222,7 +214,9 @@ def _(fo_obj):
 
 @app.cell
 def _(mo):
-    mo.md(r"""Comparing our overall treatment effect (ATE) to the ground truth, we have:""")
+    mo.md(r"""
+    Comparing our overall treatment effect (ATE) to the ground truth, we have:
+    """)
     return
 
 
@@ -234,7 +228,9 @@ def _(data_generator):
 
 @app.cell
 def _(mo):
-    mo.md("""We can also see what our GATEs are using `data_generator.cates`. Let's choose `X4_binary` in `1` group:""")
+    mo.md("""
+    We can also see what our GATEs are using `data_generator.cates`. Let's choose `X4_binary` in `1` group:
+    """)
     return
 
 
@@ -248,13 +244,11 @@ def _(data_generator):
 
 @app.cell
 def _(mo):
-    mo.md(
-        """
-        ### Custom Group Average Treatment Effects (GATEs)
+    mo.md("""
+    ### Custom Group Average Treatment Effects (GATEs)
 
-        Let's now look at how we can estimate any arbitary GATE using `estimate_ate` method and prettify the results with `prettify_treatment_effects`.
-        """
-    )
+    Let's now look at how we can estimate any arbitary GATE using `estimate_ate` method and prettify the results with `prettify_treatment_effects`.
+    """)
     return
 
 
@@ -276,7 +270,9 @@ def _(data_generator, fo_obj):
 
 @app.cell
 def _(mo):
-    mo.md(r"""Let's compare this to the ground truth as well:""")
+    mo.md(r"""
+    Let's compare this to the ground truth as well:
+    """)
     return
 
 
@@ -288,17 +284,15 @@ def _(custom_gate_df, data_generator):
 
 @app.cell
 def _(mo):
-    mo.md(
-        """
-        ### Conditional Average Treatment Effects (CATEs)
+    mo.md("""
+    ### Conditional Average Treatment Effects (CATEs)
 
-        Let's now look at how we can estimate CATEs / approximate individual-level treatment effects via `estimate_cate` method
+    Let's now look at how we can estimate CATEs / approximate individual-level treatment effects via `estimate_cate` method
 
-        ::: {.callout-note}
-        The `predict` method is a simple alias for `estimate_cate`. Either can be used, but namespacing was created to higlight that `estimate_cate` / `predict` can be used for out of sample treatment effect prediction.
-        :::
-        """
-    )
+    ::: {.callout-note}
+    The `predict` method is a simple alias for `estimate_cate`. Either can be used, but namespacing was created to higlight that `estimate_cate` / `predict` can be used for out of sample treatment effect prediction.
+    :::
+    """)
     return
 
 
@@ -312,7 +306,9 @@ def _(data_generator, fo_obj):
 
 @app.cell
 def _(mo):
-    mo.md(r"""If we wanted additional information on CATEs (such as standard errors), we can call:""")
+    mo.md(r"""
+    If we wanted additional information on CATEs (such as standard errors), we can call:
+    """)
     return
 
 
@@ -324,7 +320,9 @@ def _(data_generator, fo_obj):
 
 @app.cell
 def _(mo):
-    mo.md(r"""Now, let's make our cate predictions:""")
+    mo.md(r"""
+    Now, let's make our cate predictions:
+    """)
     return
 
 
@@ -339,13 +337,11 @@ def _(data_generator, fo_obj):
 
 @app.cell
 def _(mo):
-    mo.md(
-        r"""
-        Let's now look at the Precision in Estimating Heterogeneous Effects (PEHE) (e.g., RMSE) and plot some results for the treatment effects on each outcome:
+    mo.md(r"""
+    Let's now look at the Precision in Estimating Heterogeneous Effects (PEHE) (e.g., RMSE) and plot some results for the treatment effects on each outcome:
 
-        #### Effect of *binary* T1 on *continuous* Y1
-        """
-    )
+    #### Effect of *binary* T1 on *continuous* Y1
+    """)
     return
 
 
@@ -397,7 +393,9 @@ def _(cate_line_plot, predicted_cates1, true_cates1):
 
 @app.cell
 def _(mo):
-    mo.md(r"""#### Effect of *binary* T1 on *binary* Y2""")
+    mo.md(r"""
+    #### Effect of *binary* T1 on *binary* Y2
+    """)
     return
 
 
@@ -433,13 +431,11 @@ def _(cate_line_plot, predicted_cates2, true_cates2):
 
 @app.cell
 def _(mo):
-    mo.md(
-        r"""
-        ::: {.callout-note}
-        The CATE estimates for binary outcome using simulated data may perform poorly b/c of non-linear transformation (sigmoid) of linear logodds. In general, `FastOLS` should be prioritized when ATEs and GATEs are of primary interest. For high quality CATE estimation, we recommend leveraging [CamlCATE](../04_Reference/CamlCATE.qmd).
-        :::
-        """
-    )
+    mo.md(r"""
+    ::: {.callout-note}
+    The CATE estimates for binary outcome using simulated data may perform poorly b/c of non-linear transformation (sigmoid) of linear logodds. In general, `FastOLS` should be prioritized when ATEs and GATEs are of primary interest. For high quality CATE estimation, we recommend leveraging [AutoCATE](../04_Reference/AutoCATE.qmd).
+    :::
+    """)
     return
 
 

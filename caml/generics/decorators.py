@@ -1,18 +1,23 @@
+"""Decorator utilities for CaML.
+
+This module provides decorators for various functionalities in CaML.
+"""
+
 import timeit
 from functools import wraps
-from typing import Any, Callable, Protocol, runtime_checkable
+from typing import Callable
 
-import pandas as pd
+from caml.generics.logging import DEBUG, INFO, WARNING
+from caml.generics.utils import is_module_available
 
-from .logging import DEBUG, WARNING
+_HAS_JAX = is_module_available("jax")
 
-try:
+if _HAS_JAX:
     import jax
 
     jax.config.update("jax_enable_x64", True)
-    _HAS_JAX = True
-except ImportError:
-    _HAS_JAX = False
+else:
+    pass
 
 
 def experimental(obj: Callable) -> Callable:
@@ -38,7 +43,35 @@ def experimental(obj: Callable) -> Callable:
     obj._experimental = True
     obj._experimental_warning_shown = False
 
-    @wraps(obj)
+    if isinstance(obj, type):
+        # For classes, wrap the __init__ method to show warning after initialization
+        original_init = obj.__init__
+
+        @wraps(original_init)
+        def wrapped_init(self, *args, **kwargs):
+            # Call the original __init__ first
+            result = original_init(self, *args, **kwargs)
+
+            # Show warning after __init__ completes (only once per class)
+            if not obj._experimental_warning_shown:
+                WARNING(warning_msg)
+                obj._experimental_warning_shown = True
+
+            return result
+
+        obj.__init__ = wrapped_init
+        return obj
+    else:
+        # For functions, keep the original behavior
+        @wraps(obj)
+        def wrapper(*args, **kwargs):
+            if not obj._experimental_warning_shown:
+                WARNING(warning_msg)
+                obj._experimental_warning_shown = True
+            return obj(*args, **kwargs)
+
+        return wrapper
+
     def wrapper(*args, **kwargs):
         if not obj._experimental_warning_shown:
             WARNING(warning_msg)
@@ -46,6 +79,46 @@ def experimental(obj: Callable) -> Callable:
         return obj(*args, **kwargs)
 
     return wrapper
+
+
+def narrate(
+    preamble: str | None = None, epilogue: str | None = ":white_check_mark: Completed."
+) -> Callable:
+    """
+    Decorator to log the execution of a function or method.
+
+    This decorator will log a pre-execution (preamble) message and a post-execution (epilogue) message.
+
+    Parameters
+    ----------
+    preamble : str
+        The message to log before the function or method execution.
+    epilogue : str
+        The message to log after the function or method execution.
+
+    Returns
+    -------
+    Callable
+        The decorated class or function
+    """
+
+    def decorator(func):
+        @wraps(func)
+        def wrapper(*args, **kwargs):
+            if preamble is None:
+                pass
+            else:
+                INFO(preamble)
+            result = func(*args, **kwargs)
+            if epilogue is None:
+                pass
+            else:
+                INFO(epilogue)
+            return result
+
+        return wrapper
+
+    return decorator
 
 
 def timer(operation_name: str | None = None) -> Callable:
@@ -107,41 +180,3 @@ def maybe_jit(func: Callable | None = None, **jit_kwargs) -> Callable:
         return maybe_jit_inner
 
     return maybe_jit_inner(func)
-
-
-@runtime_checkable
-class _PandasConvertibleDataFrame(Protocol):
-    """Protocol for DataFrame-like objects that are pandas convertible.
-
-    This includes DataFrames that are either pandas dataframes or can be converted to pandas via `to_pandas()` or `toPandas()` methods.
-    """
-
-    to_pandas: Callable[..., Any]
-    toPandas: Callable[..., Any]
-
-    @classmethod
-    def __subclasshook__(cls, subclass: type) -> bool:
-        """Method to check if a class is a subclass of specs of PandasConvertibleDataFrame."""
-        to_pandas = getattr(subclass, "to_pandas", None)
-        toPandas = getattr(subclass, "toPandas", None)
-
-        if callable(to_pandas) or callable(toPandas):
-            return True
-
-        return False
-
-
-PandasConvertibleDataFrame = pd.DataFrame | _PandasConvertibleDataFrame
-
-
-class FittedAttr:
-    def __init__(self, name):
-        self.name = name
-
-    def __get__(self, instance, owner):
-        """Custom getter for FastOLS."""
-        if instance is None:
-            return self
-        if not getattr(instance, "_fitted", False):
-            raise RuntimeError("Model has not been fitted yet. Please run fit() first.")
-        return getattr(instance, self.name)

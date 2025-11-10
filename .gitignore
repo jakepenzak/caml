@@ -32,4 +32,5 @@ __pycache__/
 
 __marimo__/
 
-local_dev
+notebooks/dev/*
+!.gitkeep
