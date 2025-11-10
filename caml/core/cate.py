@@ -83,7 +83,7 @@ class AutoCATE(BaseCamlEstimator):
         A boolean indicating whether the treatment is discrete/categorical or continuous.
     discrete_outcome
         A boolean indicating whether the outcome is binary or continuous.
-    model_y
+    model_Y
         A dictionary of [FLAML](https://microsoft.github.io/FLAML/docs/reference/automl/automl) kwarg overrides or a BaseEstimator instance for the outcome model - $\mathbb{E}[Y \mid \mathbf{X},\mathbf{W}]$.
     model_T
         A dictionary of [FLAML](https://microsoft.github.io/FLAML/docs/reference/automl/automl) kwarg overrides or a BaseEstimator instance for the treatment/propensity model - $\mathbb{E}[T \mid \mathbf{X},\mathbf{W}]$.
