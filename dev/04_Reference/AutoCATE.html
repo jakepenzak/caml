@@ -1,0 +1,2114 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.7.31">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+
+<title>autocate – CaML - Causal ML</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js" integrity="sha512-bLT0Qm9VnAYZDflyKcBaQ2gg0hSYNQrJ8RilYldYQ1FxQYoCLtUjuuRuZo+fjqhx/qtq/1itJ0C2ejDxltZVFg==" crossorigin="anonymous"></script><script src="../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../site_libs/quarto-nav/headroom.min.js"></script>
+<script src="../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../">
+<link href="../assets/logo_no_text.svg" rel="icon" type="image/svg+xml">
+<script src="../site_libs/quarto-html/quarto.js" type="module"></script>
+<script src="../site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="../site_libs/quarto-html/popper.min.js"></script>
+<script src="../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../site_libs/quarto-html/quarto-syntax-highlighting-e1a5c8363afafaef2c763b6775fbf3ca.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../site_libs/bootstrap/bootstrap-9ed85366717b0d4a9233a89d8452de7f.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+<script type="text/javascript">
+    // Enhanced Version Switcher for Quarto Documentation
+    // Provides a floating version selector with hover functionality
+
+    (function () {
+        "use strict";
+
+        // Configuration
+        const CONFIG = {
+            containerId: "version-switcher",
+            position: { bottom: "20px", right: "20px" },
+            versionsJsonPath: getVersionsJsonPath(),
+            currentVersionText: getCurrentVersionFromPath(),
+        };
+
+        // Utility function to get the correct path to versions.json
+        function getVersionsJsonPath() {
+            const path = window.location.pathname;
+            const segments = path.split("/").filter(Boolean);
+
+            return "/versions.json";
+        }
+
+        // Detect current version from URL path
+        function getCurrentVersionFromPath() {
+            const path = window.location.pathname;
+            const versionMatch = path.match(/\/v[\d\.\-\w]+\//);
+
+            if (versionMatch) {
+                return versionMatch[0].replace(/\//g, "");
+            }
+            if (path.includes("dev")) {
+                return "dev";
+            }
+
+            return "latest";
+        }
+
+        // Create version switcher HTML structure
+        function createVersionSwitcher(versions) {
+            const container = document.createElement("div");
+            container.id = CONFIG.containerId;
+            container.setAttribute("role", "navigation");
+            container.setAttribute("aria-label", "Version selector");
+
+            // Create toggle button
+            const toggleButton = document.createElement("button");
+            toggleButton.className = "version-toggle-btn";
+            toggleButton.setAttribute("aria-haspopup", "true");
+            toggleButton.setAttribute("aria-expanded", "false");
+            toggleButton.setAttribute(
+                "aria-label",
+                "Select documentation version",
+            );
+
+            const currentVersionLabel = versions.find(
+                (v) =>
+                    v.text === CONFIG.currentVersionText ||
+                    (v.text === "latest" &&
+                        CONFIG.currentVersionText === "latest"),
+            );
+
+            toggleButton.innerHTML = `
+            <span class="version-icon">📚</span>
+            <span class="version-text">${currentVersionLabel ? currentVersionLabel.text : "Version"}</span>
+            <span class="version-arrow">▼</span>
+        `;
+
+            // Create dropdown menu
+            const dropdown = document.createElement("div");
+            dropdown.className = "version-dropdown";
+            dropdown.setAttribute("role", "menu");
+            dropdown.style.display = "none";
+
+            // Create version list
+            const versionList = document.createElement("ul");
+            versionList.className = "version-list";
+            versionList.setAttribute("role", "none");
+
+            versions.forEach((version, index) => {
+                const listItem = document.createElement("li");
+                listItem.setAttribute("role", "none");
+
+                const link = document.createElement("a");
+                link.className = "version-link";
+                link.href = version.href;
+                link.textContent = version.text;
+                link.setAttribute("role", "menuitem");
+                link.setAttribute("tabindex", "-1");
+
+                // Mark current version
+                if (
+                    version.text === CONFIG.currentVersionText ||
+                    (version.text === "latest" &&
+                        CONFIG.currentVersionText === "latest")
+                ) {
+                    link.classList.add("current-version");
+                    link.setAttribute("aria-current", "page");
+                }
+
+                listItem.appendChild(link);
+                versionList.appendChild(listItem);
+            });
+
+            dropdown.appendChild(versionList);
+            container.appendChild(toggleButton);
+            container.appendChild(dropdown);
+
+            return { container, toggleButton, dropdown, versionList };
+        }
+
+        // Add event listeners for interaction
+        function addEventListeners(elements) {
+            const { container, toggleButton, dropdown, versionList } = elements;
+            let isOpen = false;
+            let hoverTimeout;
+
+            // Mouse enter - show dropdown
+            container.addEventListener("mouseenter", () => {
+                clearTimeout(hoverTimeout);
+                showDropdown();
+            });
+
+            // Mouse leave - hide dropdown with delay
+            container.addEventListener("mouseleave", () => {
+                hoverTimeout = setTimeout(() => {
+                    hideDropdown();
+                }, 300);
+            });
+
+            // Click handler for toggle button
+            toggleButton.addEventListener("click", (e) => {
+                e.preventDefault();
+                if (isOpen) {
+                    hideDropdown();
+                } else {
+                    showDropdown();
+                }
+            });
+
+            // Keyboard navigation
+            container.addEventListener("keydown", (e) => {
+                const links = versionList.querySelectorAll(".version-link");
+                const currentFocus = document.activeElement;
+                const currentIndex = Array.from(links).indexOf(currentFocus);
+
+                switch (e.key) {
+                    case "Escape":
+                        hideDropdown();
+                        toggleButton.focus();
+                        break;
+                    case "ArrowDown":
+                        e.preventDefault();
+                        if (!isOpen) {
+                            showDropdown();
+                            links[0]?.focus();
+                        } else {
+                            const nextIndex =
+                                currentIndex < links.length - 1
+                                    ? currentIndex + 1
+                                    : 0;
+                            links[nextIndex]?.focus();
+                        }
+                        break;
+                    case "ArrowUp":
+                        e.preventDefault();
+                        if (isOpen) {
+                            const prevIndex =
+                                currentIndex > 0
+                                    ? currentIndex - 1
+                                    : links.length - 1;
+                            links[prevIndex]?.focus();
+                        }
+                        break;
+                    case "Enter":
+                    case " ":
+                        if (currentFocus === toggleButton) {
+                            e.preventDefault();
+                            if (isOpen) {
+                                hideDropdown();
+                            } else {
+                                showDropdown();
+                                links[0]?.focus();
+                            }
+                        }
+                        break;
+                }
+            });
+
+            // Click outside to close
+            document.addEventListener("click", (e) => {
+                if (!container.contains(e.target)) {
+                    hideDropdown();
+                }
+            });
+
+            function showDropdown() {
+                dropdown.style.display = "block";
+                toggleButton.setAttribute("aria-expanded", "true");
+                toggleButton.classList.add("active");
+                isOpen = true;
+
+                // Animate in
+                requestAnimationFrame(() => {
+                    dropdown.style.opacity = "1";
+                    dropdown.style.transform = "translateY(0)";
+                });
+            }
+
+            function hideDropdown() {
+                dropdown.style.opacity = "0";
+                dropdown.style.transform = "translateY(-10px)";
+                toggleButton.setAttribute("aria-expanded", "false");
+                toggleButton.classList.remove("active");
+                isOpen = false;
+
+                setTimeout(() => {
+                    dropdown.style.display = "none";
+                }, 200);
+            }
+        }
+
+        // Apply CSS styles
+        function injectStyles() {
+            const styleId = "version-switcher-styles";
+            if (document.getElementById(styleId)) return;
+
+            const styles = `
+            #version-switcher {
+                position: fixed;
+                bottom: ${CONFIG.position.bottom};
+                right: ${CONFIG.position.right};
+                z-index: 9999;
+                font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+                font-size: 14px;
+            }
+
+            .version-toggle-btn {
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                background: rgba(255, 255, 255, 0.95);
+                border: 1px solid rgba(0, 0, 0, 0.1);
+                border-radius: 8px;
+                padding: 10px 16px;
+                cursor: pointer;
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+                backdrop-filter: blur(10px);
+                transition: all 0.2s ease;
+                color: #333;
+                font-weight: 500;
+                min-width: 120px;
+            }
+
+            .version-toggle-btn:hover {
+                background: rgba(255, 255, 255, 1);
+                box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
+                transform: translateY(-2px);
+                border-color: rgba(0, 109, 9, 0.3);
+            }
+
+            .version-toggle-btn.active {
+                background: rgba(255, 255, 255, 1);
+                border-color: #006d09;
+            }
+
+            .version-icon {
+                font-size: 16px;
+            }
+
+            .version-text {
+                flex: 1;
+                text-align: left;
+            }
+
+            .version-arrow {
+                transition: transform 0.2s ease;
+                font-size: 12px;
+                color: #666;
+            }
+
+            .version-toggle-btn.active .version-arrow {
+                transform: rotate(180deg);
+            }
+
+            .version-dropdown {
+                position: absolute;
+                bottom: 100%;
+                right: 0;
+                margin-bottom: 8px;
+                background: rgba(255, 255, 255, 0.98);
+                border: 1px solid rgba(0, 0, 0, 0.1);
+                border-radius: 8px;
+                box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+                backdrop-filter: blur(10px);
+                opacity: 0;
+                transform: translateY(-10px);
+                transition: all 0.2s ease;
+                min-width: 160px;
+            }
+
+            .version-list {
+                list-style: none;
+                margin: 0;
+                padding: 8px 0;
+            }
+
+            .version-link {
+                display: block;
+                padding: 10px 16px;
+                color: #333;
+                text-decoration: none;
+                transition: all 0.15s ease;
+                position: relative;
+            }
+
+            .version-link:hover,
+            .version-link:focus {
+                background: rgba(0, 109, 9, 0.1);
+                color: #006d09;
+                outline: none;
+            }
+
+            .version-link.current-version {
+                background: rgba(0, 109, 9, 0.1);
+                color: #006d09;
+                font-weight: 600;
+            }
+
+            .version-link.current-version::after {
+                content: '✓';
+                position: absolute;
+                right: 16px;
+                top: 50%;
+                transform: translateY(-50%);
+                font-size: 12px;
+            }
+
+            /* Dark mode support */
+            @media (prefers-color-scheme: dark) {
+                .version-toggle-btn {
+                    background: rgba(40, 40, 40, 0.95);
+                    border-color: rgba(255, 255, 255, 0.2);
+                    color: #e0e0e0;
+                }
+
+                .version-toggle-btn:hover {
+                    background: rgba(50, 50, 50, 1);
+                    border-color: rgba(0, 180, 15, 0.5);
+                }
+
+                .version-dropdown {
+                    background: rgba(40, 40, 40, 0.98);
+                    border-color: rgba(255, 255, 255, 0.2);
+                }
+
+                .version-link {
+                    color: #e0e0e0;
+                }
+
+                .version-link:hover,
+                .version-link:focus {
+                    background: rgba(0, 180, 15, 0.2);
+                    color: #00b80f;
+                }
+
+                .version-link.current-version {
+                    background: rgba(0, 180, 15, 0.2);
+                    color: #00b80f;
+                }
+            }
+
+            /* Mobile responsive */
+            @media (max-width: 768px) {
+                #version-switcher {
+                    bottom: 15px;
+                    right: 15px;
+                }
+
+                .version-toggle-btn {
+                    padding: 8px 12px;
+                    min-width: 100px;
+                    font-size: 13px;
+                }
+
+                .version-dropdown {
+                    min-width: 140px;
+                }
+
+                .version-link {
+                    padding: 8px 12px;
+                    font-size: 13px;
+                }
+            }
+        `;
+
+            const styleElement = document.createElement("style");
+            styleElement.id = styleId;
+            styleElement.textContent = styles;
+            document.head.appendChild(styleElement);
+        }
+
+        // Initialize the version switcher
+        function init() {
+            // Don't initialize if already exists
+            if (document.getElementById(CONFIG.containerId)) return;
+
+            fetch(CONFIG.versionsJsonPath)
+                .then((response) => {
+                    if (!response.ok) {
+                        throw new Error(
+                            `HTTP error! status: ${response.status}`,
+                        );
+                    }
+                    return response.json();
+                })
+                .then((versions) => {
+                    if (!Array.isArray(versions) || versions.length === 0) {
+                        console.warn("No versions found in versions.json");
+                        return;
+                    }
+
+                    injectStyles();
+                    const elements = createVersionSwitcher(versions);
+                    addEventListeners(elements);
+                    document.body.appendChild(elements.container);
+                })
+                .catch((error) => {
+                    console.warn("Failed to load version switcher:", error);
+                });
+        }
+
+        // Initialize when DOM is ready
+        if (document.readyState === "loading") {
+            document.addEventListener("DOMContentLoaded", init);
+        } else {
+            init();
+        }
+    })();
+</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" integrity="sha512-c3Nl8+7g4LMSTdrm621y7kf9v3SDPnhxLNhcjFJbKECVnmZHTdo+IRO05sNLTH/D3vA6u1X32ehoLC7WFVdheg==" crossorigin="anonymous"></script>
+
+<script type="application/javascript">define('jquery', [],function() {return window.jQuery;})</script>
+
+  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN") {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
+
+<link rel="stylesheet" href="../styles/styles.css">
+<meta property="og:title" content="CaML - Causal ML">
+<meta property="og:description" content="">
+<meta property="og:image" content="AutoCATE_files/figure-html/cell-3-output-20.png">
+<meta property="og:site_name" content="CaML - Causal ML">
+</head>
+
+<body class="nav-fixed quarto-light">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+    <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container mx-auto">
+    <a href="../index.html" class="navbar-brand navbar-brand-logo">
+    <img src="../assets/logo_no_text.svg" alt="" class="navbar-logo">
+    </a>
+  </div>
+            <div id="quarto-search" class="" title="Search"></div>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" role="menu" aria-expanded="false" aria-label="Toggle navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+  <span class="navbar-toggler-icon"></span>
+</button>
+          <div class="collapse navbar-collapse" id="navbarCollapse">
+            <ul class="navbar-nav navbar-nav-scroll me-auto">
+  <li class="nav-item dropdown ">
+    <a class="nav-link dropdown-toggle" href="#" id="nav-menu-home" role="link" data-bs-toggle="dropdown" aria-expanded="false">
+ <span class="menu-text">Home</span>
+    </a>
+    <ul class="dropdown-menu" aria-labelledby="nav-menu-home">    
+        <li>
+    <a class="dropdown-item" href="../index.html">
+ <span class="dropdown-text">Welcome!</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../01_Home/installation.html">
+ <span class="dropdown-text">Installation</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../01_Home/quickstart.html">
+ <span class="dropdown-text">Tutorial: Quick Start</span></a>
+  </li>  
+    </ul>
+  </li>
+  <li class="nav-item dropdown ">
+    <a class="nav-link dropdown-toggle" href="#" id="nav-menu-concepts" role="link" data-bs-toggle="dropdown" aria-expanded="false">
+ <span class="menu-text">Concepts</span>
+    </a>
+    <ul class="dropdown-menu" aria-labelledby="nav-menu-concepts">    
+        <li>
+    <a class="dropdown-item" href="../02_Concepts/motivation.html">
+ <span class="dropdown-text">Motivation</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../02_Concepts/theory.html">
+ <span class="dropdown-text">Econometric Theory</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../02_Concepts/models.html">
+ <span class="dropdown-text">Model Specifications</span></a>
+  </li>  
+    </ul>
+  </li>
+  <li class="nav-item dropdown ">
+    <a class="nav-link dropdown-toggle" href="#" id="nav-menu-examples" role="link" data-bs-toggle="dropdown" aria-expanded="false">
+ <span class="menu-text">Examples</span>
+    </a>
+    <ul class="dropdown-menu" aria-labelledby="nav-menu-examples">    
+        <li>
+    <a class="dropdown-item" href="../03_Examples/AutoCATE.html">
+ <span class="dropdown-text">AutoCATE</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../03_Examples/FastOLS.html">
+ <span class="dropdown-text">FastOLS</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../03_Examples/SyntheticDataGenerator.html">
+ <span class="dropdown-text">Caml Synthetic Data Generator</span></a>
+  </li>  
+    </ul>
+  </li>
+  <li class="nav-item dropdown ">
+    <a class="nav-link dropdown-toggle" href="#" id="nav-menu-reference" role="link" data-bs-toggle="dropdown" aria-expanded="false">
+ <span class="menu-text">Reference</span>
+    </a>
+    <ul class="dropdown-menu" aria-labelledby="nav-menu-reference">    
+        <li>
+    <a class="dropdown-item" href="../04_Reference/index.html">
+ <span class="dropdown-text">API Reference</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../04_Reference/support_matrix.html">
+ <span class="dropdown-text">Outcome/Treatment Type Support Matrix</span></a>
+  </li>  
+    </ul>
+  </li>
+</ul>
+            <ul class="navbar-nav navbar-nav-scroll ms-auto">
+  <li class="nav-item dropdown ">
+    <a class="nav-link dropdown-toggle" href="#" id="nav-menu-contributors" role="link" data-bs-toggle="dropdown" aria-expanded="false">
+ <span class="menu-text">Contributors</span>
+    </a>
+    <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="nav-menu-contributors">    
+        <li>
+    <a class="dropdown-item" href="../05_Contributors/getting_started.html">
+ <span class="dropdown-text">Contributing to CaML</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../05_Contributors/environment.html">
+ <span class="dropdown-text">Environment Setup</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../05_Contributors/documentation.html">
+ <span class="dropdown-text">Documentation</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../05_Contributors/testing.html">
+ <span class="dropdown-text">Testing</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../05_Contributors/conventional_commits.html">
+ <span class="dropdown-text">Conventional Commits</span></a>
+  </li>  
+    </ul>
+  </li>
+</ul>
+          </div> <!-- /navcollapse -->
+            <div class="quarto-navbar-tools">
+    <div class="dropdown">
+      <a href="" title="" id="quarto-navigation-tool-dropdown-0" class="quarto-navigation-tool dropdown-toggle px-1" data-bs-toggle="dropdown" aria-expanded="false" role="link" aria-label=""><i class="bi bi-github"></i></a>
+      <ul class="dropdown-menu" aria-labelledby="quarto-navigation-tool-dropdown-0">
+          <li>
+            <a class="dropdown-item quarto-navbar-tools-item" href="https://github.com/jakepenzak/caml">
+            Source code
+            </a>
+          </li>
+          <li>
+            <a class="dropdown-item quarto-navbar-tools-item" href="https://github.com/jakepenzak/caml/issues/new">
+            Report Issue
+            </a>
+          </li>
+      </ul>
+    </div>
+</div>
+      </div> <!-- /container-fluid -->
+    </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">On this page</h2>
+   
+  <ul>
+  <li><a href="#parameters" id="toc-parameters" class="nav-link active" data-scroll-target="#parameters">Parameters</a></li>
+  <li><a href="#attributes" id="toc-attributes" class="nav-link" data-scroll-target="#attributes">Attributes</a></li>
+  <li><a href="#examples" id="toc-examples" class="nav-link" data-scroll-target="#examples">Examples</a></li>
+  <li><a href="#methods" id="toc-methods" class="nav-link" data-scroll-target="#methods">Methods</a>
+  <ul class="collapse">
+  <li><a href="#caml.AutoCATE.fit" id="toc-caml.AutoCATE.fit" class="nav-link" data-scroll-target="#caml.AutoCATE.fit">fit</a></li>
+  <li><a href="#caml.AutoCATE.refit_final" id="toc-caml.AutoCATE.refit_final" class="nav-link" data-scroll-target="#caml.AutoCATE.refit_final">refit_final</a></li>
+  <li><a href="#caml.AutoCATE.estimate_ate" id="toc-caml.AutoCATE.estimate_ate" class="nav-link" data-scroll-target="#caml.AutoCATE.estimate_ate">estimate_ate</a></li>
+  <li><a href="#caml.AutoCATE.estimate_cate" id="toc-caml.AutoCATE.estimate_cate" class="nav-link" data-scroll-target="#caml.AutoCATE.estimate_cate">estimate_cate</a></li>
+  <li><a href="#caml.AutoCATE.predict" id="toc-caml.AutoCATE.predict" class="nav-link" data-scroll-target="#caml.AutoCATE.predict">predict</a></li>
+  <li><a href="#caml.AutoCATE.effect" id="toc-caml.AutoCATE.effect" class="nav-link" data-scroll-target="#caml.AutoCATE.effect">effect</a></li>
+  </ul></li>
+  </ul>
+<div class="toc-actions"><ul><li><a href="https://github.com/jakepenzak/caml/edit/main/docs/04_Reference/AutoCATE.qmd" class="toc-action"><i class="bi bi-github"></i>Edit this page</a></li><li><a href="https://github.com/jakepenzak/caml/issues/new" class="toc-action"><i class="bi empty"></i>Report an issue</a></li></ul></div></nav>
+    </div>
+<!-- main -->
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title">AutoCATE</h1>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<div class="sourceCode" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>AutoCATE(</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>    Y,</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>    T,</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>    X<span class="op">=</span><span class="va">None</span>,</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>    W<span class="op">=</span><span class="va">None</span>,</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>    <span class="op">*</span>,</span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>    discrete_treatment<span class="op">=</span><span class="va">True</span>,</span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>    discrete_outcome<span class="op">=</span><span class="va">False</span>,</span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>    model_Y<span class="op">=</span><span class="va">None</span>,</span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>    model_T<span class="op">=</span><span class="va">None</span>,</span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>    model_regression<span class="op">=</span><span class="va">None</span>,</span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>    enable_categorical<span class="op">=</span><span class="va">False</span>,</span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a>    n_jobs<span class="op">=</span><span class="dv">1</span>,</span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a>    use_ray<span class="op">=</span><span class="va">False</span>,</span>
+<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a>    ray_remote_func_options_kwargs<span class="op">=</span><span class="va">None</span>,</span>
+<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a>    use_spark<span class="op">=</span><span class="va">False</span>,</span>
+<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a>    verbose<span class="op">=</span><span class="dv">2</span>,</span>
+<span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a>    seed<span class="op">=</span><span class="va">None</span>,</span>
+<span id="cb1-19"><a href="#cb1-19" aria-hidden="true" tabindex="-1"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<p>The AutoCATE class is a high-level API facilitating an AutoML framework for CATE estimation, built on top of the EconML library.</p>
+<p><strong>AutoCATE is experimental and may change significantly in future versions.</strong></p>
+<p>The CATE is defined as <span class="math inline">\(\mathbb{E}[\tau \mid \mathbf{X}]\)</span> where <span class="math inline">\(\tau\)</span> is the treatment effect and <span class="math inline">\(\mathbf{X}\)</span> is the set of features leveraged for treatment effect heterogeneity.</p>
+<p>This class is built on top of the EconML library and provides a high-level AutoML API for fitting, validating, and making predictions/inference with CATE models, with best practices built directly into the API. The class is designed to be easy to use and understand, while still providing flexibility for advanced users.</p>
+<p>Note that first-stage models are estimated using a full AutoML framework via <a href="https://microsoft.github.io/FLAML/">Flaml</a>, whereas the second-stage models are currently estimated &amp; selected based on a pre-specified set of models (or custom CATE models) passed, thus there is no tuning of hyperparameters. This and other AutoML features are on the roadmap for future versions of AutoCATE.</p>
+<p>For technical details on the AutoCATE class, see here.</p>
+<p><strong>Note</strong>: All the standard assumptions of Causal Inference apply to this class (e.g., exogeneity/unconfoundedness, overlap, positivity, etc.). The class does not check for these assumptions and assumes that the user has already thought through these assumptions before using the class.</p>
+<p>For outcome/treatment support, see <a href="../04_Reference/support_matrix.html">matrix</a>.</p>
+<p>For a more detailed working example, see <a href="../03_Examples/AutoCATE.html">AutoCATE Example</a>.</p>
+<section id="parameters" class="level2 doc-section doc-section-parameters">
+<h2 class="doc-section doc-section-parameters anchored" data-anchor-id="parameters">Parameters</h2>
+<table class="caption-top table">
+<thead>
+<tr class="header">
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Y</td>
+<td>str</td>
+<td>The str representing the column name for the outcome variable.</td>
+<td><em>required</em></td>
+</tr>
+<tr class="even">
+<td>T</td>
+<td>str</td>
+<td>The str representing the column name(s) for the treatment variable(s).</td>
+<td><em>required</em></td>
+</tr>
+<tr class="odd">
+<td>X</td>
+<td>Sequence[str] | None</td>
+<td>The sequence of feature names representing the feature set to be utilized for estimating heterogeneity/CATE.</td>
+<td><code>None</code></td>
+</tr>
+<tr class="even">
+<td>W</td>
+<td>Sequence[str] | None</td>
+<td>The sequence of feature names representing the confounder/control feature set to be utilized only for nuisance function estimation. When W is passed, only Orthogonal learners will be leveraged.</td>
+<td><code>None</code></td>
+</tr>
+<tr class="odd">
+<td>discrete_treatment</td>
+<td>bool</td>
+<td>A boolean indicating whether the treatment is discrete/categorical or continuous.</td>
+<td><code>True</code></td>
+</tr>
+<tr class="even">
+<td>discrete_outcome</td>
+<td>bool</td>
+<td>A boolean indicating whether the outcome is binary or continuous.</td>
+<td><code>False</code></td>
+</tr>
+<tr class="odd">
+<td>model_y</td>
+<td></td>
+<td>A dictionary of <a href="https://microsoft.github.io/FLAML/docs/reference/automl/automl">FLAML</a> kwarg overrides or a BaseEstimator instance for the outcome model - <span class="math inline">\(\mathbb{E}[Y \mid \mathbf{X},\mathbf{W}]\)</span>.</td>
+<td><em>required</em></td>
+</tr>
+<tr class="even">
+<td>model_T</td>
+<td>dict | BaseEstimator | None</td>
+<td>A dictionary of <a href="https://microsoft.github.io/FLAML/docs/reference/automl/automl">FLAML</a> kwarg overrides or a BaseEstimator instance for the treatment/propensity model - <span class="math inline">\(\mathbb{E}[T \mid \mathbf{X},\mathbf{W}]\)</span>.</td>
+<td><code>None</code></td>
+</tr>
+<tr class="odd">
+<td>model_regression</td>
+<td>dict | BaseEstimator | None</td>
+<td>A dictionary of <a href="https://microsoft.github.io/FLAML/docs/reference/automl/automl">FLAML</a> kwarg overrides or a BaseEstimator instance for the regression model - <span class="math inline">\(\mathbb{E}[Y \mid \mathbf{X},\mathbf{W},T]\)</span>.</td>
+<td><code>None</code></td>
+</tr>
+<tr class="even">
+<td>enable_categorical</td>
+<td>bool</td>
+<td>A boolean indicating whether to enable categorical encoding for the models. When set to True, pandas categorical types will be converted to ordinal encodings. For one-hot encoding, please implement it prior to passing the data to the model.</td>
+<td><code>False</code></td>
+</tr>
+<tr class="odd">
+<td>n_jobs</td>
+<td>int</td>
+<td>The number of jobs to run in parallel for model training.</td>
+<td><code>1</code></td>
+</tr>
+<tr class="even">
+<td>use_ray</td>
+<td>bool</td>
+<td>A boolean indicating whether to use Ray for distributed computing, utilized in both AutoML for first-stage models and AutoML for CATE models. <code>n_concurrent_tasks</code> defaults to 4 if not specified in FLAML kwarg overrides (e.g., for <code>model_*</code>).</td>
+<td><code>False</code></td>
+</tr>
+<tr class="odd">
+<td>ray_remote_func_options_kwargs</td>
+<td>dict | None</td>
+<td>A dictionary of Ray remote function options for ray remote function that fits each individual CATE model. See <a href="https://docs.ray.io/en/latest/ray-core/api/doc/ray.remote.html">here</a> for options.</td>
+<td><code>None</code></td>
+</tr>
+<tr class="even">
+<td>use_spark</td>
+<td>bool</td>
+<td>A boolean indicating whether to use Spark for distributed computing, utilized only in AutoML for first-stage models. <code>n_concurrent_tasks</code> defaults to 4 if not specified in FLAML kwarg overrides (e.g., for <code>model_*</code>).</td>
+<td><code>False</code></td>
+</tr>
+<tr class="odd">
+<td>verbose</td>
+<td>int</td>
+<td>The verbosity level. 0 = NOTSET, 1 = DEBUG, 2 = INFO, 3 = WARNING, 4 = ERROR, 5 = CRITICAL</td>
+<td><code>2</code></td>
+</tr>
+<tr class="even">
+<td>seed</td>
+<td>int | None</td>
+<td>The seed to use for the random number generator.</td>
+<td><code>None</code></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="attributes" class="level2 doc-section doc-section-attributes">
+<h2 class="doc-section doc-section-attributes anchored" data-anchor-id="attributes">Attributes</h2>
+<table class="caption-top table">
+<thead>
+<tr class="header">
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Y</td>
+<td>list[str]</td>
+<td>The list of str representing the column names for the outcome variable <span class="math inline">\(Y\)</span>.</td>
+</tr>
+<tr class="even">
+<td>T</td>
+<td>list[str]</td>
+<td>The list of str representing the column names for the treatment variable <span class="math inline">\(T\)</span>.</td>
+</tr>
+<tr class="odd">
+<td>X</td>
+<td>list[str]</td>
+<td>The list of str representing the confounder/control feature set <span class="math inline">\(\mathbf{X}\)</span> to be utilized for estimating heterogeneity/CATE and nuisance function estimation where applicable.</td>
+</tr>
+<tr class="even">
+<td>W</td>
+<td>list[str] | None</td>
+<td>The list of str representing the confounder/control feature set <span class="math inline">\(\mathbf{W}\)</span> to be utilized only for nuisance function estimation, where applicable. These will be included by default in Meta-Learners.</td>
+</tr>
+<tr class="odd">
+<td>available_estimators</td>
+<td>list[str]</td>
+<td>A list of the available CATE estimators out of the box. Validity of estimator at runtime will depend on the outcome and treatment types and be automatically selected.</td>
+</tr>
+<tr class="even">
+<td>model_Y</td>
+<td>BaseEstimator</td>
+<td>The selected outcome model - <span class="math inline">\(\mathbb{E}[Y \mid \mathbf{X},\mathbf{W}]\)</span>.</td>
+</tr>
+<tr class="odd">
+<td>model_T</td>
+<td>BaseEstimator</td>
+<td>The selected treatment model - <span class="math inline">\(\mathbb{E}[T \mid \mathbf{X},\mathbf{W}]\)</span>.</td>
+</tr>
+<tr class="even">
+<td>model_regression</td>
+<td>BaseEstimator</td>
+<td>The selected regression model - <span class="math inline">\(\mathbb{E}[Y \mid \mathbf{X},\mathbf{W},T]\)</span>.</td>
+</tr>
+<tr class="odd">
+<td>rscores</td>
+<td>dict[str, float]</td>
+<td>The dictionary of the Rscores on the validation set for each CATE estimator fitted during model selection.</td>
+</tr>
+<tr class="even">
+<td>test_results</td>
+<td>dict[str, float] | EvaluationResults</td>
+<td>The dictionary of the final test results on the test set for the best_estimator selected, if <a href="https://www.pywhy.org/EconML/_autosummary/econml.score.RScorer.html">RScorer</a> is used, otherwise <a href="https://www.pywhy.org/EconML/_autosummary/econml.validate.EvaluationResults.html#econml.validate.EvaluationResults">EvaluationResults</a> returned from <a href="https://www.pywhy.org/EconML/_autosummary/econml.validate.DRTester.html#econml.validate.DRTester.evaluate_all">DRTester.evaluate_all</a></td>
+</tr>
+<tr class="odd">
+<td>best_estimator</td>
+<td>BaseCateEstimator</td>
+<td>The best EconML CATE estimator selected.</td>
+</tr>
+<tr class="even">
+<td>best_estimator_name</td>
+<td>str</td>
+<td>The name of the best EconML CATE estimator selected as passed to the AutoCateEstimator constructor.</td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="examples" class="level2 doc-section doc-section-examples">
+<h2 class="doc-section doc-section-examples anchored" data-anchor-id="examples">Examples</h2>
+<div id="65bf6a67" class="cell" data-execution_count="1">
+<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> caml <span class="im">import</span> AutoCATE</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> caml.extensions.synthetic_data <span class="im">import</span> SyntheticDataGenerator</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>data_generator <span class="op">=</span> SyntheticDataGenerator(seed<span class="op">=</span><span class="dv">10</span>, n_cont_modifiers<span class="op">=</span><span class="dv">1</span>, n_cont_confounders<span class="op">=</span><span class="dv">1</span>)</span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>df <span class="op">=</span> data_generator.df</span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>auto_cate <span class="op">=</span> AutoCATE(</span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>    Y<span class="op">=</span><span class="st">"Y1_continuous"</span>,</span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>    T<span class="op">=</span><span class="st">"T1_binary"</span>,</span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a>    X<span class="op">=</span>[c <span class="cf">for</span> c <span class="kw">in</span> df.columns <span class="cf">if</span> <span class="st">"X"</span> <span class="kw">in</span> c <span class="kw">or</span> <span class="st">"W"</span> <span class="kw">in</span> c],</span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a>    model_Y<span class="op">=</span>{<span class="st">"time_budget"</span>: <span class="dv">10</span>},</span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a>    model_T<span class="op">=</span>{<span class="st">"time_budget"</span>: <span class="dv">10</span>},</span>
+<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a>    model_regression<span class="op">=</span>{<span class="st">"time_budget"</span>: <span class="dv">10</span>},</span>
+<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a>    discrete_treatment<span class="op">=</span><span class="va">True</span>,</span>
+<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a>    discrete_outcome<span class="op">=</span><span class="va">False</span>,</span>
+<span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb2-17"><a href="#cb2-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-18"><a href="#cb2-18" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(auto_cate)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display">
+<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"><span style="color: #7fbfbf; text-decoration-color: #7fbfbf">[11/10/25 01:03:57] </span><span style="color: #808000; text-decoration-color: #808000">WARNING </span> AutoCATE is experimental and may change in future versions.           <a href="file:///home/runner/work/caml/caml/caml/generics/decorators.py" target="_blank"><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">decorators.py</span></a><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">:</span><a href="file:///home/runner/work/caml/caml/caml/generics/decorators.py#57" target="_blank"><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">57</span></a>
+</pre>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>================== AutoCATE Object ==================
+Outcome Variable: ['Y1_continuous']
+Discrete Outcome: False
+Treatment Variable: ['T1_binary']
+Discrete Treatment: True
+Features/Confounders for Heterogeneity (X): ['W1_continuous', 'X1_continuous']
+Features/Confounders as Controls (W): []
+Enable Categorical: False
+n Jobs: 1
+Use Ray: False
+Use Spark: False
+Random Seed: None
+</code></pre>
+</div>
+</div>
+</section>
+<section id="methods" class="level2">
+<h2 class="anchored" data-anchor-id="methods">Methods</h2>
+<table class="caption-top table">
+<thead>
+<tr class="header">
+<th>Name</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><a href="#caml.AutoCATE.fit">fit</a></td>
+<td>Run end-to-end fitting, validation &amp; model selection, and testing for CATE models.</td>
+</tr>
+<tr class="even">
+<td><a href="#caml.AutoCATE.refit_final">refit_final</a></td>
+<td>Refits the final, best estimator on the provided data.</td>
+</tr>
+<tr class="odd">
+<td><a href="#caml.AutoCATE.estimate_ate">estimate_ate</a></td>
+<td>Calculate the average treatment effect(s) (ATE) <span class="math inline">\(\mathbb{E}[\tau(\mathbf{X})]\)</span>.</td>
+</tr>
+<tr class="even">
+<td><a href="#caml.AutoCATE.estimate_cate">estimate_cate</a></td>
+<td>Calculate the Conditional Average Treatment Effects (CATE) <span class="math inline">\(\tau(\mathbf{x})\)</span>.</td>
+</tr>
+<tr class="odd">
+<td><a href="#caml.AutoCATE.predict">predict</a></td>
+<td>Alias for <code>estimate_cate</code>.</td>
+</tr>
+<tr class="even">
+<td><a href="#caml.AutoCATE.effect">effect</a></td>
+<td>Alias for <code>estimate_cate</code>.</td>
+</tr>
+</tbody>
+</table>
+<section id="caml.AutoCATE.fit" class="level3">
+<h3 class="anchored" data-anchor-id="caml.AutoCATE.fit">fit</h3>
+<div class="sourceCode" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>AutoCATE.fit(</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>    df,</span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>    <span class="op">*</span>,</span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>    cate_estimators<span class="op">=</span><span class="bu">list</span>(available_estimators.keys()),</span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>    additional_cate_estimators<span class="op">=</span><span class="bu">list</span>(),</span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>    use_cached_models<span class="op">=</span><span class="va">False</span>,</span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>    ensemble<span class="op">=</span><span class="va">False</span>,</span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a>    refit_final<span class="op">=</span><span class="va">True</span>,</span>
+<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a>    bootstrap_inference<span class="op">=</span><span class="va">False</span>,</span>
+<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a>    n_bootstrap_samples<span class="op">=</span><span class="dv">100</span>,</span>
+<span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a>    validation_fraction<span class="op">=</span><span class="fl">0.2</span>,</span>
+<span id="cb4-12"><a href="#cb4-12" aria-hidden="true" tabindex="-1"></a>    test_fraction<span class="op">=</span><span class="fl">0.1</span>,</span>
+<span id="cb4-13"><a href="#cb4-13" aria-hidden="true" tabindex="-1"></a>    rscorer_kwargs<span class="op">=</span><span class="bu">dict</span>(),</span>
+<span id="cb4-14"><a href="#cb4-14" aria-hidden="true" tabindex="-1"></a>    n_groups_dr_tester<span class="op">=</span><span class="dv">5</span>,</span>
+<span id="cb4-15"><a href="#cb4-15" aria-hidden="true" tabindex="-1"></a>    n_bootstrap_dr_tester<span class="op">=</span><span class="dv">100</span>,</span>
+<span id="cb4-16"><a href="#cb4-16" aria-hidden="true" tabindex="-1"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<p>Run end-to-end fitting, validation &amp; model selection, and testing for CATE models.</p>
+<section id="parameters-1" class="level4 doc-section doc-section-parameters">
+<h4 class="doc-section doc-section-parameters anchored" data-anchor-id="parameters-1">Parameters</h4>
+<table class="caption-top table">
+<thead>
+<tr class="header">
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>df</td>
+<td>PandasConvertibleDataFrame</td>
+<td>The dataset to fit the CATE model on. Accepts a Pandas DataFrame or a compatible object with a <code>to_pandas()</code> or <code>.toPandas()</code> method.</td>
+<td><em>required</em></td>
+</tr>
+<tr class="even">
+<td>cate_estimators</td>
+<td>Sequence[str]</td>
+<td>The out-of-the-box CATE estimators to use. Accessible via <code>self.available_estimators</code>.</td>
+<td><code>list(available_estimators.keys())</code></td>
+</tr>
+<tr class="odd">
+<td>additional_cate_estimators</td>
+<td>Sequence[AutoCateEstimator]</td>
+<td>Additional CATE estimators to use.</td>
+<td><code>list()</code></td>
+</tr>
+<tr class="even">
+<td>use_cached_models</td>
+<td>bool</td>
+<td>Whether to use cached first-stage/nuisance models, if previously fitted.</td>
+<td><code>False</code></td>
+</tr>
+<tr class="odd">
+<td>ensemble</td>
+<td>bool</td>
+<td>Whether to use an ensemble of CATE estimators.</td>
+<td><code>False</code></td>
+</tr>
+<tr class="even">
+<td>refit_final</td>
+<td>bool</td>
+<td>Whether to refit the final CATE estimator on the entire dataset after model selection.</td>
+<td><code>True</code></td>
+</tr>
+<tr class="odd">
+<td>bootstrap_inference</td>
+<td>bool</td>
+<td>Whether to use bootstrap inference for the final CATE estimator, when other inference methods are not available (e.g., metalearners). This can be computationally expensive.</td>
+<td><code>False</code></td>
+</tr>
+<tr class="even">
+<td>n_bootstrap_samples</td>
+<td>int</td>
+<td>The number of bootstrap samples to use for bootstrap inference, if <code>bootstrap_inference</code> is True.</td>
+<td><code>100</code></td>
+</tr>
+<tr class="odd">
+<td>validation_fraction</td>
+<td>float</td>
+<td>The fraction of the dataset to use for validation.</td>
+<td><code>0.2</code></td>
+</tr>
+<tr class="even">
+<td>test_fraction</td>
+<td>float</td>
+<td>The fraction of the dataset to use for testing.</td>
+<td><code>0.1</code></td>
+</tr>
+<tr class="odd">
+<td>rscorer_kwargs</td>
+<td>dict</td>
+<td>Additional keyword arguments to pass to <a href="https://www.pywhy.org/EconML/_autosummary/econml.score.RScorer.html">RScorer</a>.</td>
+<td><code>dict()</code></td>
+</tr>
+<tr class="even">
+<td>n_groups_dr_tester</td>
+<td></td>
+<td>The number of groups to use for the <a href="https://www.pywhy.org/EconML/_autosummary/econml.validate.DRTester.html">DRTester</a>.</td>
+<td><code>5</code></td>
+</tr>
+<tr class="odd">
+<td>n_bootstrap_dr_tester</td>
+<td></td>
+<td>The number of bootstrap samples to use for the <a href="https://www.pywhy.org/EconML/_autosummary/econml.validate.DRTester.html">DRTester</a>.</td>
+<td><code>100</code></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="examples-1" class="level4 doc-section doc-section-examples">
+<h4 class="doc-section doc-section-examples anchored" data-anchor-id="examples-1">Examples</h4>
+<div id="d4aaa3af" class="cell" data-execution_count="2">
+<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> caml <span class="im">import</span> AutoCateEstimator</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> econml.dml <span class="im">import</span> LinearDML</span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>my_custom_estimator <span class="op">=</span> AutoCateEstimator(name<span class="op">=</span><span class="st">"MyCustomEstimator"</span>,estimator<span class="op">=</span>LinearDML())</span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>auto_cate.fit(</span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>    df <span class="op">=</span> df,</span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a>    cate_estimators <span class="op">=</span> auto_cate.available_estimators,</span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a>    additional_cate_estimators <span class="op">=</span> [my_custom_estimator],</span>
+<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display">
+<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"><span style="color: #7fbfbf; text-decoration-color: #7fbfbf">                    </span><span style="color: #008000; text-decoration-color: #008000">INFO    </span>                                                                      <a href="file:///home/runner/work/caml/caml/caml/generics/decorators.py" target="_blank"><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">decorators.py</span></a><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">:</span><a href="file:///home/runner/work/caml/caml/caml/generics/decorators.py#111" target="_blank"><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">111</span></a>
+<span style="color: #7fbfbf; text-decoration-color: #7fbfbf">                    </span>           ____      __  __ _                                                 <span style="color: #7f7f7f; text-decoration-color: #7f7f7f">                 </span>
+<span style="color: #7fbfbf; text-decoration-color: #7fbfbf">                    </span>          <span style="color: #800080; text-decoration-color: #800080">/</span> ___|__ _|  \<span style="color: #800080; text-decoration-color: #800080">/</span>  | |                                                <span style="color: #7f7f7f; text-decoration-color: #7f7f7f">                 </span>
+<span style="color: #7fbfbf; text-decoration-color: #7fbfbf">                    </span>         | |   <span style="color: #800080; text-decoration-color: #800080">/</span> _` | |\<span style="color: #800080; text-decoration-color: #800080">/</span>| | |                                                <span style="color: #7f7f7f; text-decoration-color: #7f7f7f">                 </span>
+<span style="color: #7fbfbf; text-decoration-color: #7fbfbf">                    </span>         | |__| <span style="font-weight: bold">(</span>_| | |  | | |___                                             <span style="color: #7f7f7f; text-decoration-color: #7f7f7f">                 </span>
+<span style="color: #7fbfbf; text-decoration-color: #7fbfbf">                    </span>          \____\__,_|_|  |_|_____|                                            <span style="color: #7f7f7f; text-decoration-color: #7f7f7f">                 </span>
+<span style="color: #7fbfbf; text-decoration-color: #7fbfbf">                    </span>                                                                              <span style="color: #7f7f7f; text-decoration-color: #7f7f7f">                 </span>
+<span style="color: #7fbfbf; text-decoration-color: #7fbfbf">                    </span>                                                                              <span style="color: #7f7f7f; text-decoration-color: #7f7f7f">                 </span>
+</pre>
+</div>
+<div class="cell-output cell-output-display">
+<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"><span style="color: #7fbfbf; text-decoration-color: #7fbfbf">                    </span><span style="color: #008000; text-decoration-color: #008000">INFO    </span> ================== AutoCATE Object ==================                      <a href="file:///home/runner/work/caml/caml/caml/core/cate.py" target="_blank"><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">cate.py</span></a><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">:</span><a href="file:///home/runner/work/caml/caml/caml/core/cate.py#298" target="_blank"><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">298</span></a>
+<span style="color: #7fbfbf; text-decoration-color: #7fbfbf">                    </span>         Outcome Variable: <span style="font-weight: bold">[</span><span style="color: #008000; text-decoration-color: #008000">'Y1_continuous'</span><span style="font-weight: bold">]</span>                                        <span style="color: #7f7f7f; text-decoration-color: #7f7f7f">           </span>
+<span style="color: #7fbfbf; text-decoration-color: #7fbfbf">                    </span>         Discrete Outcome: <span style="color: #ff0000; text-decoration-color: #ff0000; font-style: italic">False</span>                                                    <span style="color: #7f7f7f; text-decoration-color: #7f7f7f">           </span>
+<span style="color: #7fbfbf; text-decoration-color: #7fbfbf">                    </span>         Treatment Variable: <span style="font-weight: bold">[</span><span style="color: #008000; text-decoration-color: #008000">'T1_binary'</span><span style="font-weight: bold">]</span>                                          <span style="color: #7f7f7f; text-decoration-color: #7f7f7f">           </span>
+<span style="color: #7fbfbf; text-decoration-color: #7fbfbf">                    </span>         Discrete Treatment: <span style="color: #00ff00; text-decoration-color: #00ff00; font-style: italic">True</span>                                                   <span style="color: #7f7f7f; text-decoration-color: #7f7f7f">           </span>
+<span style="color: #7fbfbf; text-decoration-color: #7fbfbf">                    </span>         Features/Confounders for Heterogeneity <span style="font-weight: bold">(</span>X<span style="font-weight: bold">)</span>: <span style="font-weight: bold">[</span><span style="color: #008000; text-decoration-color: #008000">'W1_continuous'</span>,              <span style="color: #7f7f7f; text-decoration-color: #7f7f7f">           </span>
+<span style="color: #7fbfbf; text-decoration-color: #7fbfbf">                    </span>         <span style="color: #008000; text-decoration-color: #008000">'X1_continuous'</span><span style="font-weight: bold">]</span>                                                           <span style="color: #7f7f7f; text-decoration-color: #7f7f7f">           </span>
+<span style="color: #7fbfbf; text-decoration-color: #7fbfbf">                    </span>         Features/Confounders as Controls <span style="font-weight: bold">(</span>W<span style="font-weight: bold">)</span>: <span style="font-weight: bold">[]</span>                                   <span style="color: #7f7f7f; text-decoration-color: #7f7f7f">           </span>
+<span style="color: #7fbfbf; text-decoration-color: #7fbfbf">                    </span>         Enable Categorical: <span style="color: #ff0000; text-decoration-color: #ff0000; font-style: italic">False</span>                                                  <span style="color: #7f7f7f; text-decoration-color: #7f7f7f">           </span>
+<span style="color: #7fbfbf; text-decoration-color: #7fbfbf">                    </span>         n Jobs: <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">1</span>                                                                  <span style="color: #7f7f7f; text-decoration-color: #7f7f7f">           </span>
+<span style="color: #7fbfbf; text-decoration-color: #7fbfbf">                    </span>         Use Ray: <span style="color: #ff0000; text-decoration-color: #ff0000; font-style: italic">False</span>                                                             <span style="color: #7f7f7f; text-decoration-color: #7f7f7f">           </span>
+<span style="color: #7fbfbf; text-decoration-color: #7fbfbf">                    </span>         Use Spark: <span style="color: #ff0000; text-decoration-color: #ff0000; font-style: italic">False</span>                                                           <span style="color: #7f7f7f; text-decoration-color: #7f7f7f">           </span>
+<span style="color: #7fbfbf; text-decoration-color: #7fbfbf">                    </span>         Random Seed: <span style="color: #800080; text-decoration-color: #800080; font-style: italic">None</span>                                                          <span style="color: #7f7f7f; text-decoration-color: #7f7f7f">           </span>
+<span style="color: #7fbfbf; text-decoration-color: #7fbfbf">                    </span>                                                                                    <span style="color: #7f7f7f; text-decoration-color: #7f7f7f">           </span>
+<span style="color: #7fbfbf; text-decoration-color: #7fbfbf">                    </span>                                                                                    <span style="color: #7f7f7f; text-decoration-color: #7f7f7f">           </span>
+</pre>
+</div>
+<div class="cell-output cell-output-display">
+<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"><span style="color: #7fbfbf; text-decoration-color: #7fbfbf">                    </span><span style="color: #008000; text-decoration-color: #008000">INFO    </span>                                                                      <a href="file:///home/runner/work/caml/caml/caml/generics/decorators.py" target="_blank"><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">decorators.py</span></a><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">:</span><a href="file:///home/runner/work/caml/caml/caml/generics/decorators.py#111" target="_blank"><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">111</span></a>
+<span style="color: #7fbfbf; text-decoration-color: #7fbfbf">                    </span>         ==============================                                       <span style="color: #7f7f7f; text-decoration-color: #7f7f7f">                 </span>
+<span style="color: #7fbfbf; text-decoration-color: #7fbfbf">                    </span>         |🎯 AutoML Nuisance Functions|                                       <span style="color: #7f7f7f; text-decoration-color: #7f7f7f">                 </span>
+<span style="color: #7fbfbf; text-decoration-color: #7fbfbf">                    </span>         ==============================                                       <span style="color: #7f7f7f; text-decoration-color: #7f7f7f">                 </span>
+<span style="color: #7fbfbf; text-decoration-color: #7fbfbf">                    </span>                                                                              <span style="color: #7f7f7f; text-decoration-color: #7f7f7f">                 </span>
+</pre>
+</div>
+<div class="cell-output cell-output-display">
+<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"><span style="color: #7fbfbf; text-decoration-color: #7fbfbf">                    </span><span style="color: #008000; text-decoration-color: #008000">INFO    </span> Searching for model_Y:                                                     <a href="file:///home/runner/work/caml/caml/caml/core/cate.py" target="_blank"><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">cate.py</span></a><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">:</span><a href="file:///home/runner/work/caml/caml/caml/core/cate.py#678" target="_blank"><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">678</span></a>
+</pre>
+</div>
+<div class="cell-output cell-output-display">
+<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"><span style="color: #7fbfbf; text-decoration-color: #7fbfbf">[11/10/25 01:04:07] </span><span style="color: #008000; text-decoration-color: #008000">INFO    </span> Best estimator: xgboost with loss <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">32.237903294121594</span> found on iteration   <a href="file:///home/runner/work/caml/caml/caml/core/_base.py" target="_blank"><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">_base.py</span></a><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">:</span><a href="file:///home/runner/work/caml/caml/caml/core/_base.py#144" target="_blank"><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">144</span></a>
+<span style="color: #7fbfbf; text-decoration-color: #7fbfbf">                    </span>         <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">135</span> in <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">7.368263483047485</span> seconds.                                         <span style="color: #7f7f7f; text-decoration-color: #7f7f7f">            </span>
+<span style="color: #7fbfbf; text-decoration-color: #7fbfbf">                    </span>                                                                                   <span style="color: #7f7f7f; text-decoration-color: #7f7f7f">            </span>
+</pre>
+</div>
+<div class="cell-output cell-output-display">
+<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"><span style="color: #7fbfbf; text-decoration-color: #7fbfbf">                    </span><span style="color: #008000; text-decoration-color: #008000">INFO    </span> Searching for model_regression:                                            <a href="file:///home/runner/work/caml/caml/caml/core/cate.py" target="_blank"><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">cate.py</span></a><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">:</span><a href="file:///home/runner/work/caml/caml/caml/core/cate.py#678" target="_blank"><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">678</span></a>
+</pre>
+</div>
+<div class="cell-output cell-output-display">
+<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"><span style="color: #7fbfbf; text-decoration-color: #7fbfbf">[11/10/25 01:04:17] </span><span style="color: #008000; text-decoration-color: #008000">INFO    </span> Best estimator: lgbm with loss <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">1.167150473177883</span> found on iteration <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">64</span> in <a href="file:///home/runner/work/caml/caml/caml/core/_base.py" target="_blank"><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">_base.py</span></a><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">:</span><a href="file:///home/runner/work/caml/caml/caml/core/_base.py#144" target="_blank"><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">144</span></a>
+<span style="color: #7fbfbf; text-decoration-color: #7fbfbf">                    </span>         <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">8.102029800415039</span> seconds.                                                <span style="color: #7f7f7f; text-decoration-color: #7f7f7f">            </span>
+<span style="color: #7fbfbf; text-decoration-color: #7fbfbf">                    </span>                                                                                   <span style="color: #7f7f7f; text-decoration-color: #7f7f7f">            </span>
+</pre>
+</div>
+<div class="cell-output cell-output-display">
+<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"><span style="color: #7fbfbf; text-decoration-color: #7fbfbf">                    </span><span style="color: #008000; text-decoration-color: #008000">INFO    </span> Searching for model_T:                                                     <a href="file:///home/runner/work/caml/caml/caml/core/cate.py" target="_blank"><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">cate.py</span></a><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">:</span><a href="file:///home/runner/work/caml/caml/caml/core/cate.py#678" target="_blank"><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">678</span></a>
+</pre>
+</div>
+<div class="cell-output cell-output-display">
+<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"><span style="color: #7fbfbf; text-decoration-color: #7fbfbf">[11/10/25 01:04:28] </span><span style="color: #008000; text-decoration-color: #008000">INFO    </span> Best estimator: lrl1 with loss <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">0.6690757715207992</span> found on iteration <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">108</span>  <a href="file:///home/runner/work/caml/caml/caml/core/_base.py" target="_blank"><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">_base.py</span></a><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">:</span><a href="file:///home/runner/work/caml/caml/caml/core/_base.py#144" target="_blank"><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">144</span></a>
+<span style="color: #7fbfbf; text-decoration-color: #7fbfbf">                    </span>         in <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">10.0403470993042</span> seconds.                                              <span style="color: #7f7f7f; text-decoration-color: #7f7f7f">            </span>
+<span style="color: #7fbfbf; text-decoration-color: #7fbfbf">                    </span>                                                                                   <span style="color: #7f7f7f; text-decoration-color: #7f7f7f">            </span>
+</pre>
+</div>
+<div class="cell-output cell-output-display">
+<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"><span style="color: #7fbfbf; text-decoration-color: #7fbfbf">                    </span><span style="color: #008000; text-decoration-color: #008000">INFO    </span> ✅ Completed.                                                        <a href="file:///home/runner/work/caml/caml/caml/generics/decorators.py" target="_blank"><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">decorators.py</span></a><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">:</span><a href="file:///home/runner/work/caml/caml/caml/generics/decorators.py#116" target="_blank"><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">116</span></a>
+</pre>
+</div>
+<div class="cell-output cell-output-display">
+<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"><span style="color: #7fbfbf; text-decoration-color: #7fbfbf">                    </span><span style="color: #008000; text-decoration-color: #008000">INFO    </span>                                                                      <a href="file:///home/runner/work/caml/caml/caml/generics/decorators.py" target="_blank"><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">decorators.py</span></a><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">:</span><a href="file:///home/runner/work/caml/caml/caml/generics/decorators.py#111" target="_blank"><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">111</span></a>
+<span style="color: #7fbfbf; text-decoration-color: #7fbfbf">                    </span>         ==========================                                           <span style="color: #7f7f7f; text-decoration-color: #7f7f7f">                 </span>
+<span style="color: #7fbfbf; text-decoration-color: #7fbfbf">                    </span>         |🎯 AutoML CATE Functions|                                           <span style="color: #7f7f7f; text-decoration-color: #7f7f7f">                 </span>
+<span style="color: #7fbfbf; text-decoration-color: #7fbfbf">                    </span>         ==========================                                           <span style="color: #7f7f7f; text-decoration-color: #7f7f7f">                 </span>
+<span style="color: #7fbfbf; text-decoration-color: #7fbfbf">                    </span>                                                                              <span style="color: #7f7f7f; text-decoration-color: #7f7f7f">                 </span>
+</pre>
+</div>
+<div class="cell-output cell-output-display">
+<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"><span style="color: #7fbfbf; text-decoration-color: #7fbfbf">[11/10/25 01:04:35] </span><span style="color: #008000; text-decoration-color: #008000">INFO    </span> Best Estimator: <span style="color: #008000; text-decoration-color: #008000">'DRLearner'</span>                                                <a href="file:///home/runner/work/caml/caml/caml/core/cate.py" target="_blank"><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">cate.py</span></a><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">:</span><a href="file:///home/runner/work/caml/caml/caml/core/cate.py#837" target="_blank"><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">837</span></a>
+</pre>
+</div>
+<div class="cell-output cell-output-display">
+<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"><span style="color: #7fbfbf; text-decoration-color: #7fbfbf">                    </span><span style="color: #008000; text-decoration-color: #008000">INFO    </span> Estimator RScores: <span style="font-weight: bold">{</span><span style="color: #008000; text-decoration-color: #008000">'LinearDML'</span>: <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">0.8560669031846578</span>, <span style="color: #008000; text-decoration-color: #008000">'CausalForestDML'</span>:    <a href="file:///home/runner/work/caml/caml/caml/core/cate.py" target="_blank"><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">cate.py</span></a><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">:</span><a href="file:///home/runner/work/caml/caml/caml/core/cate.py#838" target="_blank"><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">838</span></a>
+<span style="color: #7fbfbf; text-decoration-color: #7fbfbf">                    </span>         <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">0.8519446558375909</span>, <span style="color: #008000; text-decoration-color: #008000">'NonParamDML'</span>: <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">0.8410109556296228</span>,                     <span style="color: #7f7f7f; text-decoration-color: #7f7f7f">           </span>
+<span style="color: #7fbfbf; text-decoration-color: #7fbfbf">                    </span>         <span style="color: #008000; text-decoration-color: #008000">'SparseLinearDML-2D'</span>: <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">0.8571702523352553</span>, <span style="color: #008000; text-decoration-color: #008000">'DRLearner'</span>: <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">0.858706361968661</span>,  <span style="color: #7f7f7f; text-decoration-color: #7f7f7f">           </span>
+<span style="color: #7fbfbf; text-decoration-color: #7fbfbf">                    </span>         <span style="color: #008000; text-decoration-color: #008000">'ForestDRLearner'</span>: <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">0.8518428725579171</span>, <span style="color: #008000; text-decoration-color: #008000">'LinearDRLearner'</span>:                  <span style="color: #7f7f7f; text-decoration-color: #7f7f7f">           </span>
+<span style="color: #7fbfbf; text-decoration-color: #7fbfbf">                    </span>         <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">0.8558966465537325</span>, <span style="color: #008000; text-decoration-color: #008000">'SLearner'</span>: <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">0.8586046658112165</span>, <span style="color: #008000; text-decoration-color: #008000">'TLearner'</span>:            <span style="color: #7f7f7f; text-decoration-color: #7f7f7f">           </span>
+<span style="color: #7fbfbf; text-decoration-color: #7fbfbf">                    </span>         <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">0.8543674324398438</span>, <span style="color: #008000; text-decoration-color: #008000">'XLearner'</span>: <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">0.8546823858023365</span>, <span style="color: #008000; text-decoration-color: #008000">'MyCustomEstimator'</span>:   <span style="color: #7f7f7f; text-decoration-color: #7f7f7f">           </span>
+<span style="color: #7fbfbf; text-decoration-color: #7fbfbf">                    </span>         <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">0.8561491149494594</span><span style="font-weight: bold">}</span>                                                        <span style="color: #7f7f7f; text-decoration-color: #7f7f7f">           </span>
+</pre>
+</div>
+<div class="cell-output cell-output-display">
+<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"><span style="color: #7fbfbf; text-decoration-color: #7fbfbf">                    </span><span style="color: #008000; text-decoration-color: #008000">INFO    </span> ✅ Completed.                                                        <a href="file:///home/runner/work/caml/caml/caml/generics/decorators.py" target="_blank"><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">decorators.py</span></a><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">:</span><a href="file:///home/runner/work/caml/caml/caml/generics/decorators.py#116" target="_blank"><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">116</span></a>
+</pre>
+</div>
+<div class="cell-output cell-output-display">
+<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"><span style="color: #7fbfbf; text-decoration-color: #7fbfbf">                    </span><span style="color: #008000; text-decoration-color: #008000">INFO    </span>                                                                      <a href="file:///home/runner/work/caml/caml/caml/generics/decorators.py" target="_blank"><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">decorators.py</span></a><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">:</span><a href="file:///home/runner/work/caml/caml/caml/generics/decorators.py#111" target="_blank"><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">111</span></a>
+<span style="color: #7fbfbf; text-decoration-color: #7fbfbf">                    </span>         ====================                                                 <span style="color: #7f7f7f; text-decoration-color: #7f7f7f">                 </span>
+<span style="color: #7fbfbf; text-decoration-color: #7fbfbf">                    </span>         |🧪 Testing Results|                                                 <span style="color: #7f7f7f; text-decoration-color: #7f7f7f">                 </span>
+<span style="color: #7fbfbf; text-decoration-color: #7fbfbf">                    </span>         ====================                                                 <span style="color: #7f7f7f; text-decoration-color: #7f7f7f">                 </span>
+<span style="color: #7fbfbf; text-decoration-color: #7fbfbf">                    </span>                                                                              <span style="color: #7f7f7f; text-decoration-color: #7f7f7f">                 </span>
+</pre>
+</div>
+<div class="cell-output cell-output-display">
+<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"><span style="color: #7fbfbf; text-decoration-color: #7fbfbf">                    </span><span style="color: #008000; text-decoration-color: #008000">INFO    </span> Discrete treatment specified. Using DRTester for final testing.            <a href="file:///home/runner/work/caml/caml/caml/core/cate.py" target="_blank"><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">cate.py</span></a><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">:</span><a href="file:///home/runner/work/caml/caml/caml/core/cate.py#893" target="_blank"><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">893</span></a>
+</pre>
+</div>
+<div class="cell-output cell-output-display">
+<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"><span style="color: #7fbfbf; text-decoration-color: #7fbfbf">[11/10/25 01:04:36] </span><span style="color: #008000; text-decoration-color: #008000">INFO    </span> All validation results suggest that the model has found statistically      <a href="file:///home/runner/work/caml/caml/caml/core/cate.py" target="_blank"><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">cate.py</span></a><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">:</span><a href="file:///home/runner/work/caml/caml/caml/core/cate.py#923" target="_blank"><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">923</span></a>
+<span style="color: #7fbfbf; text-decoration-color: #7fbfbf">                    </span>         significant heterogeneity.                                                 <span style="color: #7f7f7f; text-decoration-color: #7f7f7f">           </span>
+<span style="color: #7fbfbf; text-decoration-color: #7fbfbf">                    </span>                                                                                    <span style="color: #7f7f7f; text-decoration-color: #7f7f7f">           </span>
+</pre>
+</div>
+<div class="cell-output cell-output-display">
+<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"><span style="color: #7fbfbf; text-decoration-color: #7fbfbf">                    </span><span style="color: #008000; text-decoration-color: #008000">INFO    </span>    treatment  blp_est  blp_se  blp_pval  qini_est  qini_se  qini_pval  \   <a href="file:///home/runner/work/caml/caml/caml/core/cate.py" target="_blank"><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">cate.py</span></a><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">:</span><a href="file:///home/runner/work/caml/caml/caml/core/cate.py#927" target="_blank"><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">927</span></a>
+<span style="color: #7fbfbf; text-decoration-color: #7fbfbf">                    </span>         <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">0</span>          <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">1</span>    <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">1.002</span>   <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">0.009</span>       <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">0.0</span>     <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">2.055</span>    <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">0.088</span>        <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">0.0</span>      <span style="color: #7f7f7f; text-decoration-color: #7f7f7f">           </span>
+<span style="color: #7fbfbf; text-decoration-color: #7fbfbf">                    </span>                                                                                    <span style="color: #7f7f7f; text-decoration-color: #7f7f7f">           </span>
+<span style="color: #7fbfbf; text-decoration-color: #7fbfbf">                    </span>            autoc_est  autoc_se  autoc_pval  cal_r_squared                          <span style="color: #7f7f7f; text-decoration-color: #7f7f7f">           </span>
+<span style="color: #7fbfbf; text-decoration-color: #7fbfbf">                    </span>         <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">0</span>      <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">5.917</span>     <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">0.306</span>         <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">0.0</span>          <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">0.984</span>                          <span style="color: #7f7f7f; text-decoration-color: #7f7f7f">           </span>
+</pre>
+</div>
+<div class="cell-output cell-output-display">
+<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"><span style="color: #7fbfbf; text-decoration-color: #7fbfbf">                    </span><span style="color: #008000; text-decoration-color: #008000">INFO    </span> CALIBRATION CURVE                                                          <a href="file:///home/runner/work/caml/caml/caml/core/cate.py" target="_blank"><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">cate.py</span></a><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">:</span><a href="file:///home/runner/work/caml/caml/caml/core/cate.py#930" target="_blank"><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">930</span></a>
+</pre>
+</div>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="AutoCATE_files/figure-html/cell-3-output-20.png" width="598" height="454" class="figure-img"></p>
+</figure>
+</div>
+</div>
+<div class="cell-output cell-output-display">
+<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"><span style="color: #7fbfbf; text-decoration-color: #7fbfbf">                    </span><span style="color: #008000; text-decoration-color: #008000">INFO    </span> QINI CURVE                                                                 <a href="file:///home/runner/work/caml/caml/caml/core/cate.py" target="_blank"><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">cate.py</span></a><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">:</span><a href="file:///home/runner/work/caml/caml/caml/core/cate.py#933" target="_blank"><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">933</span></a>
+</pre>
+</div>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="AutoCATE_files/figure-html/cell-3-output-22.png" width="591" height="454" class="figure-img"></p>
+</figure>
+</div>
+</div>
+<div class="cell-output cell-output-display">
+<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"><span style="color: #7fbfbf; text-decoration-color: #7fbfbf">                    </span><span style="color: #008000; text-decoration-color: #008000">INFO    </span> TOC CURVE                                                                  <a href="file:///home/runner/work/caml/caml/caml/core/cate.py" target="_blank"><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">cate.py</span></a><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">:</span><a href="file:///home/runner/work/caml/caml/caml/core/cate.py#936" target="_blank"><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">936</span></a>
+</pre>
+</div>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="AutoCATE_files/figure-html/cell-3-output-24.png" width="587" height="454" class="figure-img"></p>
+</figure>
+</div>
+</div>
+<div class="cell-output cell-output-display">
+<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"><span style="color: #7fbfbf; text-decoration-color: #7fbfbf">                    </span><span style="color: #008000; text-decoration-color: #008000">INFO    </span> ✅ Completed.                                                        <a href="file:///home/runner/work/caml/caml/caml/generics/decorators.py" target="_blank"><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">decorators.py</span></a><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">:</span><a href="file:///home/runner/work/caml/caml/caml/generics/decorators.py#116" target="_blank"><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">116</span></a>
+</pre>
+</div>
+<div class="cell-output cell-output-display">
+<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"><span style="color: #7fbfbf; text-decoration-color: #7fbfbf">                    </span><span style="color: #008000; text-decoration-color: #008000">INFO    </span>                                                                      <a href="file:///home/runner/work/caml/caml/caml/generics/decorators.py" target="_blank"><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">decorators.py</span></a><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">:</span><a href="file:///home/runner/work/caml/caml/caml/generics/decorators.py#111" target="_blank"><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">111</span></a>
+<span style="color: #7fbfbf; text-decoration-color: #7fbfbf">                    </span>         ==============================                                       <span style="color: #7f7f7f; text-decoration-color: #7f7f7f">                 </span>
+<span style="color: #7fbfbf; text-decoration-color: #7fbfbf">                    </span>         |🔋 Refitting Final Estimator|                                       <span style="color: #7f7f7f; text-decoration-color: #7f7f7f">                 </span>
+<span style="color: #7fbfbf; text-decoration-color: #7fbfbf">                    </span>         ==============================                                       <span style="color: #7f7f7f; text-decoration-color: #7f7f7f">                 </span>
+<span style="color: #7fbfbf; text-decoration-color: #7fbfbf">                    </span>                                                                              <span style="color: #7f7f7f; text-decoration-color: #7f7f7f">                 </span>
+</pre>
+</div>
+<div class="cell-output cell-output-display">
+<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"><span style="color: #7fbfbf; text-decoration-color: #7fbfbf">[11/10/25 01:04:37] </span><span style="color: #008000; text-decoration-color: #008000">INFO    </span> ✅ Completed.                                                        <a href="file:///home/runner/work/caml/caml/caml/generics/decorators.py" target="_blank"><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">decorators.py</span></a><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">:</span><a href="file:///home/runner/work/caml/caml/caml/generics/decorators.py#116" target="_blank"><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">116</span></a>
+</pre>
+</div>
+</div>
+</section>
+</section>
+<section id="caml.AutoCATE.refit_final" class="level3">
+<h3 class="anchored" data-anchor-id="caml.AutoCATE.refit_final">refit_final</h3>
+<div class="sourceCode" id="cb6"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>AutoCATE.refit_final(df, bootstrap_inference<span class="op">=</span><span class="va">False</span>, n_bootstrap_samples<span class="op">=</span><span class="dv">100</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<p>Refits the final, best estimator on the provided data.</p>
+<section id="parameters-2" class="level4 doc-section doc-section-parameters">
+<h4 class="doc-section doc-section-parameters anchored" data-anchor-id="parameters-2">Parameters</h4>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 10%">
+<col style="width: 13%">
+<col style="width: 69%">
+<col style="width: 5%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>df</td>
+<td>PandasConvertibleDataFrame</td>
+<td>The data to fit the estimator on.</td>
+<td><em>required</em></td>
+</tr>
+<tr class="even">
+<td>bootstrap_inference</td>
+<td>bool</td>
+<td>Whether to use bootstrap inference for the final CATE estimator, when other inference methods fail. This can be computationally expensive.</td>
+<td><code>False</code></td>
+</tr>
+</tbody>
+</table>
+</section>
+</section>
+<section id="caml.AutoCATE.estimate_ate" class="level3">
+<h3 class="anchored" data-anchor-id="caml.AutoCATE.estimate_ate">estimate_ate</h3>
+<div class="sourceCode" id="cb7"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>AutoCATE.estimate_ate(</span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>    df,</span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>    <span class="op">*</span>,</span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>    effect_mode<span class="op">=</span><span class="st">'discrete'</span>,</span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>    T0<span class="op">=</span><span class="dv">0</span>,</span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>    T1<span class="op">=</span><span class="dv">1</span>,</span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a>    T<span class="op">=</span><span class="va">None</span>,</span>
+<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a>    return_inference<span class="op">=</span><span class="va">False</span>,</span>
+<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a>    alpha<span class="op">=</span><span class="fl">0.05</span>,</span>
+<span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a>    value<span class="op">=</span><span class="dv">0</span>,</span>
+<span id="cb7-11"><a href="#cb7-11" aria-hidden="true" tabindex="-1"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<p>Calculate the average treatment effect(s) (ATE) <span class="math inline">\(\mathbb{E}[\tau(\mathbf{X})]\)</span>.</p>
+<p>This method can be used for group average treatment effects (GATEs) <span class="math inline">\(\mathbb{E}[\tau(\mathbf{X}) \mid G]\)</span> by filtering the input df to a specific group.</p>
+<p>Two effect modes are supported: <code>discrete</code> and <code>marginal</code>.</p>
+<p>In <code>discrete</code> mode, the effect is calculated between two specific treatment levels <code>T0</code> and <code>T1</code> - <span class="math inline">\(\mathbb{E}[\tau(\mathbf{X}, T0, T1)]\)</span>.</p>
+<p>In <code>marginal</code> mode, the effect is calculated for each observation as a gradient around their treatment levels <code>T</code> - <span class="math inline">\(\mathbb{E}[\partial_{\tau}(T,\mathbf{x})]\)</span></p>
+<p>See <a href="https://www.pywhy.org/EconML/_autosummary/econml.dml.LinearDML.html#econml.dml.LinearDML.__init__">EconML</a> for more details.</p>
+<section id="parameters-3" class="level4 doc-section doc-section-parameters">
+<h4 class="doc-section doc-section-parameters anchored" data-anchor-id="parameters-3">Parameters</h4>
+<table class="caption-top table">
+<thead>
+<tr class="header">
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>df</td>
+<td>PandasConvertibleDataFrame</td>
+<td>The dataframe containing all of the data passed to <code>fit</code> method.</td>
+<td><em>required</em></td>
+</tr>
+<tr class="even">
+<td>effect_mode</td>
+<td>str</td>
+<td>The mode of effect calculation. Can be “marginal” or “discrete”.</td>
+<td><code>'discrete'</code></td>
+</tr>
+<tr class="odd">
+<td>T0</td>
+<td>int</td>
+<td>The base treatment level when effect_mode is “discrete”.</td>
+<td><code>0</code></td>
+</tr>
+<tr class="even">
+<td>T1</td>
+<td>int</td>
+<td>The target treatment level when effect_mode is “discrete”.</td>
+<td><code>1</code></td>
+</tr>
+<tr class="odd">
+<td>T</td>
+<td>np.ndarray | pd.DataFrame | None</td>
+<td>The base treatment levels for each observation when effect_mode is “marginal”.</td>
+<td><code>None</code></td>
+</tr>
+<tr class="even">
+<td>return_inference</td>
+<td>bool</td>
+<td>Whether to return <a href="https://www.pywhy.org/EconML/reference.html#inference">EconML inference</a> results.</td>
+<td><code>False</code></td>
+</tr>
+<tr class="odd">
+<td>alpha</td>
+<td>float</td>
+<td>The level of confidence in the reported interval.</td>
+<td><code>0.05</code></td>
+</tr>
+<tr class="even">
+<td>value</td>
+<td>int</td>
+<td>The mean value to test under the null hypothesis.</td>
+<td><code>0</code></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="returns" class="level4 doc-section doc-section-returns">
+<h4 class="doc-section doc-section-returns anchored" data-anchor-id="returns">Returns</h4>
+<table class="caption-top table">
+<thead>
+<tr class="header">
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td></td>
+<td>float | PopulationSummaryResults</td>
+<td>The average treatment effect estimate if return_inference is False. Otherwise, an instance of <a href="https://www.pywhy.org/EconML/_autosummary/econml.inference.PopulationSummaryResults.html">PopulationSummaryResults</a> is returned.</td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="examples-2" class="level4 doc-section doc-section-examples">
+<h4 class="doc-section doc-section-examples anchored" data-anchor-id="examples-2">Examples</h4>
+<div id="9c9d9833" class="cell" data-execution_count="3">
+<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Return scalar ATE</span></span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>auto_cate.estimate_ate(</span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>    df <span class="op">=</span> df,</span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>    effect_mode <span class="op">=</span> <span class="st">"discrete"</span>,</span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a>    T0 <span class="op">=</span> <span class="dv">0</span>,</span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a>    T1 <span class="op">=</span> <span class="dv">1</span>,</span>
+<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="3">
+<pre><code>-7.665033167319471</code></pre>
+</div>
+</div>
+<div id="66cae68f" class="cell" data-execution_count="4">
+<div class="sourceCode cell-code" id="cb10"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Return ATE with Inference</span></span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>auto_cate.estimate_ate(</span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>    df <span class="op">=</span> df,</span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a>    effect_mode <span class="op">=</span> <span class="st">"discrete"</span>,</span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a>    T0 <span class="op">=</span> <span class="dv">0</span>,</span>
+<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a>    T1 <span class="op">=</span> <span class="dv">1</span>,</span>
+<span id="cb10-7"><a href="#cb10-7" aria-hidden="true" tabindex="-1"></a>    return_inference <span class="op">=</span> <span class="va">True</span>,</span>
+<span id="cb10-8"><a href="#cb10-8" aria-hidden="true" tabindex="-1"></a>    alpha <span class="op">=</span> <span class="fl">0.05</span>,</span>
+<span id="cb10-9"><a href="#cb10-9" aria-hidden="true" tabindex="-1"></a>    value <span class="op">=</span> <span class="dv">0</span>,</span>
+<span id="cb10-10"><a href="#cb10-10" aria-hidden="true" tabindex="-1"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="4">
+<table class="simpletable caption-top table table-sm table-striped small" data-quarto-postprocess="true">
+<caption>Uncertainty of Mean Point Estimate</caption>
+<tbody>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">mean_point</td>
+</tr>
+<tr class="even">
+<td>-7.665</td>
+</tr>
+</tbody>
+</table>
+
+
+<table class="simpletable caption-top table table-sm table-striped small" data-quarto-postprocess="true">
+<caption>Distribution of Point Estimate</caption>
+<tbody>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">std_point</td>
+<td data-quarto-table-cell-role="th">pct_point_lower</td>
+<td data-quarto-table-cell-role="th">pct_point_upper</td>
+</tr>
+<tr class="even">
+<td>8.319</td>
+<td>-25.052</td>
+<td>9.89</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</section>
+</section>
+<section id="caml.AutoCATE.estimate_cate" class="level3">
+<h3 class="anchored" data-anchor-id="caml.AutoCATE.estimate_cate">estimate_cate</h3>
+<div class="sourceCode" id="cb11"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>AutoCATE.estimate_cate(</span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>    df,</span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>    <span class="op">*</span>,</span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a>    effect_mode<span class="op">=</span><span class="st">'discrete'</span>,</span>
+<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a>    T0<span class="op">=</span><span class="dv">0</span>,</span>
+<span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a>    T1<span class="op">=</span><span class="dv">1</span>,</span>
+<span id="cb11-7"><a href="#cb11-7" aria-hidden="true" tabindex="-1"></a>    T<span class="op">=</span><span class="va">None</span>,</span>
+<span id="cb11-8"><a href="#cb11-8" aria-hidden="true" tabindex="-1"></a>    return_inference<span class="op">=</span><span class="va">False</span>,</span>
+<span id="cb11-9"><a href="#cb11-9" aria-hidden="true" tabindex="-1"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<p>Calculate the Conditional Average Treatment Effects (CATE) <span class="math inline">\(\tau(\mathbf{x})\)</span>.</p>
+<p>Two effect modes are supported: <code>discrete</code> and <code>marginal</code>.</p>
+<p>In <code>discrete</code> mode, the effect is calculated between two specific treatment levels T0 and T1 - <span class="math inline">\(\tau(\mathbf{X}, T0, T1)\)</span>.</p>
+<p>In <code>marginal</code> mode, the effect is calculated for each observation as a gradient around their treatment levels - <span class="math inline">\(\partial_{\tau}(T,\mathbf{x})\)</span></p>
+<p>See <a href="https://www.pywhy.org/EconML/_autosummary/econml.dml.LinearDML.html#econml.dml.LinearDML.__init__">EconML</a> for more details.</p>
+<section id="parameters-4" class="level4 doc-section doc-section-parameters">
+<h4 class="doc-section doc-section-parameters anchored" data-anchor-id="parameters-4">Parameters</h4>
+<table class="caption-top table">
+<thead>
+<tr class="header">
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>df</td>
+<td>PandasConvertibleDataFrame</td>
+<td>The dataframe containing all of the data passed to <code>fit</code> method.</td>
+<td><em>required</em></td>
+</tr>
+<tr class="even">
+<td>effect_mode</td>
+<td>str</td>
+<td>The mode of effect calculation. Can be “marginal” or “discrete”.</td>
+<td><code>'discrete'</code></td>
+</tr>
+<tr class="odd">
+<td>T0</td>
+<td>int</td>
+<td>The base treatment level when effect_mode is “discrete”.</td>
+<td><code>0</code></td>
+</tr>
+<tr class="even">
+<td>T1</td>
+<td>int</td>
+<td>The target treatment level when effect_mode is “discrete”.</td>
+<td><code>1</code></td>
+</tr>
+<tr class="odd">
+<td>T</td>
+<td>np.ndarray | pd.DataFrame | None</td>
+<td>The base treatment levels for each observation when effect_mode is “marginal”.</td>
+<td><code>None</code></td>
+</tr>
+<tr class="even">
+<td>return_inference</td>
+<td>bool</td>
+<td>Whether to return <a href="https://www.pywhy.org/EconML/reference.html#inference">EconML inference</a> results.</td>
+<td><code>False</code></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="returns-1" class="level4 doc-section doc-section-returns">
+<h4 class="doc-section doc-section-returns anchored" data-anchor-id="returns-1">Returns</h4>
+<table class="caption-top table">
+<thead>
+<tr class="header">
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td></td>
+<td>np.ndarray | InferenceResults</td>
+<td>The CATE estimates as an array if return_inference is False. Otherwise, the return value is an instance of <a href="https://www.pywhy.org/EconML/_autosummary/econml.inference.NormalInferenceResults.html">NormalInferenceResults</a> if asymptotic inference is available for the best estimator or <a href="https://www.pywhy.org/EconML/_autosummary/econml.inference.EmpiricalInferenceResults.html">EmpiricalInferenceResults</a> if not.</td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="examples-3" class="level4 doc-section doc-section-examples">
+<h4 class="doc-section doc-section-examples anchored" data-anchor-id="examples-3">Examples</h4>
+<div id="9c5bdd41" class="cell" data-execution_count="5">
+<div class="sourceCode cell-code" id="cb12"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Return CATEs array</span></span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>auto_cate.estimate_cate(</span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a>    df <span class="op">=</span> df,</span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a>    effect_mode <span class="op">=</span> <span class="st">"discrete"</span>,</span>
+<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a>    T0 <span class="op">=</span> <span class="dv">0</span>,</span>
+<span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a>    T1 <span class="op">=</span> <span class="dv">1</span>,</span>
+<span id="cb12-7"><a href="#cb12-7" aria-hidden="true" tabindex="-1"></a>)[:<span class="dv">5</span>]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="5">
+<pre><code>array([[ 12.37899085],
+       [ -8.70264313],
+       [-30.77315369],
+       [  3.54551431],
+       [ -5.31883128]])</code></pre>
+</div>
+</div>
+<div id="1888d2b1" class="cell" data-execution_count="6">
+<div class="sourceCode cell-code" id="cb14"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Return CATEs with Inference</span></span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>inference <span class="op">=</span> auto_cate.estimate_cate(</span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>    df <span class="op">=</span> df,</span>
+<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a>    effect_mode <span class="op">=</span> <span class="st">"discrete"</span>,</span>
+<span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a>    T0 <span class="op">=</span> <span class="dv">0</span>,</span>
+<span id="cb14-6"><a href="#cb14-6" aria-hidden="true" tabindex="-1"></a>    T1 <span class="op">=</span> <span class="dv">1</span>,</span>
+<span id="cb14-7"><a href="#cb14-7" aria-hidden="true" tabindex="-1"></a>    return_inference <span class="op">=</span> <span class="va">True</span>,</span>
+<span id="cb14-8"><a href="#cb14-8" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb14-9"><a href="#cb14-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-10"><a href="#cb14-10" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(inference)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>&lt;econml.inference._inference.NormalInferenceResults object at 0x7f9564685f60&gt;</code></pre>
+</div>
+</div>
+</section>
+</section>
+<section id="caml.AutoCATE.predict" class="level3">
+<h3 class="anchored" data-anchor-id="caml.AutoCATE.predict">predict</h3>
+<div class="sourceCode" id="cb16"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a>AutoCATE.predict(df, <span class="op">**</span>kwargs)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<p>Alias for <code>estimate_cate</code>.</p>
+</section>
+<section id="caml.AutoCATE.effect" class="level3">
+<h3 class="anchored" data-anchor-id="caml.AutoCATE.effect">effect</h3>
+<div class="sourceCode" id="cb17"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a>AutoCATE.effect(df, <span class="op">**</span>kwargs)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<p>Alias for <code>estimate_cate</code>.</p>
+
+
+</section>
+</section>
+
+<a onclick="window.scrollTo(0, 0); return false;" role="button" id="quarto-back-to-top"><i class="bi bi-arrow-up"></i> Back to top</a></main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copied!");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copied!");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+        const codeEl = trigger.previousElementSibling.cloneNode(true);
+        for (const childEl of codeEl.children) {
+          if (isCodeAnnotation(childEl)) {
+            childEl.remove();
+          }
+        }
+        return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp('/' + window.location.host + '/');
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+</div> <!-- /content -->
+<footer class="footer">
+  <div class="nav-footer">
+    <div class="nav-footer-left">
+<p>© Copyright 2024, Jacob Pieniazek</p>
+</div>   
+    <div class="nav-footer-center">
+      &nbsp;
+    <div class="toc-actions d-sm-block d-md-none"><ul><li><a href="https://github.com/jakepenzak/caml/edit/main/docs/04_Reference/AutoCATE.qmd" class="toc-action"><i class="bi bi-github"></i>Edit this page</a></li><li><a href="https://github.com/jakepenzak/caml/issues/new" class="toc-action"><i class="bi empty"></i>Report an issue</a></li></ul></div></div>
+    <div class="nav-footer-right">
+<p>Powered by: <a href="https://quarto.org/"><img src="../assets/external_logos/quarto.png" class="img-fluid" width="85"></a></p>
+</div>
+  </div>
+</footer>
+
+
+
+
+</body></html>

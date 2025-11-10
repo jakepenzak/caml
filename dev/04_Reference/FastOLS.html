@@ -2,7 +2,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
 
 <meta charset="utf-8">
-<meta name="generator" content="quarto-1.7.30">
+<meta name="generator" content="quarto-1.7.31">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
@@ -72,10 +72,10 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <script src="../site_libs/quarto-html/tippy.umd.min.js"></script>
 <script src="../site_libs/quarto-html/anchor.min.js"></script>
 <link href="../site_libs/quarto-html/tippy.css" rel="stylesheet">
-<link href="../site_libs/quarto-html/quarto-syntax-highlighting-de070a7b0ab54f8780927367ac907214.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<link href="../site_libs/quarto-html/quarto-syntax-highlighting-e1a5c8363afafaef2c763b6775fbf3ca.css" rel="stylesheet" id="quarto-text-highlighting-styles">
 <script src="../site_libs/bootstrap/bootstrap.min.js"></script>
 <link href="../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="../site_libs/bootstrap/bootstrap-90533376958dee2a2f0107557869354e.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<link href="../site_libs/bootstrap/bootstrap-9ed85366717b0d4a9233a89d8452de7f.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
 <script id="quarto-search-options" type="application/json">{
   "location": "navbar",
   "copy-button": false,
@@ -644,8 +644,8 @@ window.Quarto = {
     </a>
     <ul class="dropdown-menu" aria-labelledby="nav-menu-examples">    
         <li>
-    <a class="dropdown-item" href="../03_Examples/CamlCATE.html">
- <span class="dropdown-text">CamlCATE</span></a>
+    <a class="dropdown-item" href="../03_Examples/AutoCATE.html">
+ <span class="dropdown-text">AutoCATE</span></a>
   </li>  
         <li>
     <a class="dropdown-item" href="../03_Examples/FastOLS.html">
@@ -769,17 +769,16 @@ window.Quarto = {
 
 
 <div class="sourceCode" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>FastOLS(</span>
-<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>    <span class="va">self</span>,</span>
-<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>    Y,</span>
-<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>    T,</span>
-<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>    G<span class="op">=</span><span class="va">None</span>,</span>
-<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>    X<span class="op">=</span><span class="va">None</span>,</span>
-<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>    W<span class="op">=</span><span class="va">None</span>,</span>
-<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>    <span class="op">*</span>,</span>
-<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>    xformula<span class="op">=</span><span class="va">None</span>,</span>
-<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>    discrete_treatment<span class="op">=</span><span class="va">False</span>,</span>
-<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>    engine<span class="op">=</span><span class="st">'cpu'</span>,</span>
-<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>    Y,</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>    T,</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>    G<span class="op">=</span><span class="va">None</span>,</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>    X<span class="op">=</span><span class="va">None</span>,</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>    W<span class="op">=</span><span class="va">None</span>,</span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>    <span class="op">*</span>,</span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>    xformula<span class="op">=</span><span class="va">None</span>,</span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>    discrete_treatment<span class="op">=</span><span class="va">True</span>,</span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>    engine<span class="op">=</span><span class="st">'cpu'</span>,</span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <p>FastOLS is an optimized implementation of the OLS estimator designed specifically with treatment effect estimation in mind.</p>
 <p><strong>FastOLS is experimental and may change significantly in future versions.</strong></p>
 <p>This class estimates a standard linear regression model for any number of continuous or binary outcomes and a single continuous or binary treatment, and provides estimates for the Average Treatment Effects (ATEs) and Group Average Treatment Effects (GATEs) out of the box. Additionally, methods are provided for estimating custom GATEs &amp; Conditional Average Treatment Effects (CATEs) of individual observations, which can also be used for out-of-sample predictions. Note, this method assumes linear treatment effects and heterogeneity, which is typically sufficient when primarily concerned with ATEs and GATEs.</p>
@@ -792,8 +791,8 @@ window.Quarto = {
 <table class="caption-top table">
 <colgroup>
 <col style="width: 9%">
-<col style="width: 12%">
-<col style="width: 72%">
+<col style="width: 11%">
+<col style="width: 73%">
 <col style="width: 5%">
 </colgroup>
 <thead>
@@ -807,7 +806,7 @@ window.Quarto = {
 <tbody>
 <tr class="odd">
 <td>Y</td>
-<td>Collection[str]</td>
+<td>Sequence[str]</td>
 <td>A list of outcome variable names.</td>
 <td><em>required</em></td>
 </tr>
@@ -819,19 +818,19 @@ window.Quarto = {
 </tr>
 <tr class="odd">
 <td>G</td>
-<td>Collection[str] | None</td>
+<td>Sequence[str] | None</td>
 <td>A list of group variable names. These will be the groups for which GATEs will be estimated.</td>
 <td><code>None</code></td>
 </tr>
 <tr class="even">
 <td>X</td>
-<td>Collection[str] | None</td>
+<td>Sequence[str] | None</td>
 <td>A list of covariate variable names. These will be the covariates for which heterogeneity/CATEs can be estimated.</td>
 <td><code>None</code></td>
 </tr>
 <tr class="odd">
 <td>W</td>
-<td>Collection[str] | None</td>
+<td>Sequence[str] | None</td>
 <td>A list of additional covariate variable names to be used as controls. These will be the additional covariates not used for modeling heterogeneity/CATEs.</td>
 <td><code>None</code></td>
 </tr>
@@ -845,7 +844,7 @@ window.Quarto = {
 <td>discrete_treatment</td>
 <td>bool</td>
 <td>Whether the treatment is discrete</td>
-<td><code>False</code></td>
+<td><code>True</code></td>
 </tr>
 <tr class="even">
 <td>engine</td>
@@ -861,7 +860,7 @@ window.Quarto = {
 <table class="caption-top table">
 <colgroup>
 <col style="width: 9%">
-<col style="width: 13%">
+<col style="width: 12%">
 <col style="width: 77%">
 </colgroup>
 <thead>
@@ -874,7 +873,7 @@ window.Quarto = {
 <tbody>
 <tr class="odd">
 <td>Y</td>
-<td>Collection[str]</td>
+<td>Sequence[str]</td>
 <td>A list of outcome variable names.</td>
 </tr>
 <tr class="even">
@@ -884,17 +883,17 @@ window.Quarto = {
 </tr>
 <tr class="odd">
 <td>G</td>
-<td>Collection[str] | None</td>
+<td>Sequence[str] | None</td>
 <td>The list of group variable names. These will be the groups for which GATEs will be estimated.</td>
 </tr>
 <tr class="even">
 <td>X</td>
-<td>Collection[str] | None</td>
+<td>Sequence[str] | None</td>
 <td>The list of variable names representing the confounder/control feature set to be utilized for estimating heterogeneity/CATEs, that are in addition to G.</td>
 </tr>
 <tr class="odd">
 <td>W</td>
-<td>Collection[str] | None</td>
+<td>Sequence[str] | None</td>
 <td>The list of variable names representing the confounder/control feature <strong>not</strong> utilized for estimating heterogeneity/CATEs.</td>
 </tr>
 <tr class="even">
@@ -937,7 +936,7 @@ window.Quarto = {
 </section>
 <section id="examples" class="level2 doc-section doc-section-examples">
 <h2 class="doc-section doc-section-examples anchored" data-anchor-id="examples">Examples</h2>
-<div id="afd25628" class="cell" data-execution_count="1">
+<div id="f05a2c2e" class="cell" data-execution_count="1">
 <div class="sourceCode cell-code" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> caml <span class="im">import</span> FastOLS</span>
 <span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> caml.extensions.synthetic_data <span class="im">import</span> SyntheticDataGenerator</span>
 <span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a></span>
@@ -1058,7 +1057,7 @@ Formula: Q('Y1_continuous') + Q('Y2_binary') ~ C(Q('T1_binary')) + C(Q('X2_binar
 </section>
 <section id="examples-1" class="level4 doc-section doc-section-examples">
 <h4 class="doc-section doc-section-examples anchored" data-anchor-id="examples-1">Examples</h4>
-<div id="f637c0d8" class="cell" data-execution_count="2">
+<div id="30ad410f" class="cell" data-execution_count="2">
 <div class="sourceCode cell-code" id="cb5"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>fo_obj.fit(df, n_jobs<span class="op">=</span><span class="dv">4</span>, estimate_effects<span class="op">=</span><span class="va">True</span>, cov_type<span class="op">=</span><span class="st">'nonrobust'</span>)</span>
 <span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>fo_obj.treatment_effects.keys()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
@@ -1163,7 +1162,7 @@ Formula: Q('Y1_continuous') + Q('Y2_binary') ~ C(Q('T1_binary')) + C(Q('X2_binar
 </section>
 <section id="examples-2" class="level4 doc-section doc-section-examples">
 <h4 class="doc-section doc-section-examples anchored" data-anchor-id="examples-2">Examples</h4>
-<div id="a70f6c27" class="cell" data-execution_count="3">
+<div id="3ab77037" class="cell" data-execution_count="3">
 <div class="sourceCode cell-code" id="cb8"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>ate <span class="op">=</span> fo_obj.estimate_ate(df, return_results_dict<span class="op">=</span><span class="va">True</span>, group<span class="op">=</span><span class="st">"Overall"</span>)</span>
 <span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>ate</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
@@ -1178,7 +1177,7 @@ Formula: Q('Y1_continuous') + Q('Y2_binary') ~ C(Q('T1_binary')) + C(Q('X2_binar
   'n_control': 4940}}</code></pre>
 </div>
 </div>
-<div id="39a38344" class="cell" data-execution_count="4">
+<div id="abcd0e7c" class="cell" data-execution_count="4">
 <div class="sourceCode cell-code" id="cb10"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>df_filtered <span class="op">=</span> df.query(</span>
 <span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>    <span class="st">"X3_binary == 0 &amp; X1_continuous &lt; 5"</span></span>
 <span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>).copy()</span>
@@ -1259,7 +1258,7 @@ Formula: Q('Y1_continuous') + Q('Y2_binary') ~ C(Q('T1_binary')) + C(Q('X2_binar
 </section>
 <section id="examples-3" class="level4 doc-section doc-section-examples">
 <h4 class="doc-section doc-section-examples anchored" data-anchor-id="examples-3">Examples</h4>
-<div id="6d91d541" class="cell" data-execution_count="5">
+<div id="87e9946b" class="cell" data-execution_count="5">
 <div class="sourceCode cell-code" id="cb13"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>cates <span class="op">=</span> fo_obj.estimate_cate(df)</span>
 <span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>cates[:<span class="dv">5</span>]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display" data-execution_count="5">
@@ -1270,7 +1269,7 @@ Formula: Q('Y1_continuous') + Q('Y2_binary') ~ C(Q('T1_binary')) + C(Q('X2_binar
        [3.66232416, 0.24007028]])</code></pre>
 </div>
 </div>
-<div id="94073871" class="cell" data-execution_count="6">
+<div id="704bc7c6" class="cell" data-execution_count="6">
 <div class="sourceCode cell-code" id="cb15"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a>res <span class="op">=</span> fo_obj.estimate_cate(df, return_results_dict<span class="op">=</span><span class="va">True</span>)</span>
 <span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a>res.keys()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display" data-execution_count="6">
@@ -1350,7 +1349,7 @@ Formula: Q('Y1_continuous') + Q('Y2_binary') ~ C(Q('T1_binary')) + C(Q('X2_binar
 </section>
 <section id="examples-4" class="level4 doc-section doc-section-examples">
 <h4 class="doc-section doc-section-examples anchored" data-anchor-id="examples-4">Examples</h4>
-<div id="4be3bc8a" class="cell" data-execution_count="7">
+<div id="024a8704" class="cell" data-execution_count="7">
 <div class="sourceCode cell-code" id="cb18"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a>cates <span class="op">=</span> fo_obj.predict(df)</span>
 <span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a>cates[:<span class="dv">5</span>]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display" data-execution_count="7">
@@ -1361,7 +1360,7 @@ Formula: Q('Y1_continuous') + Q('Y2_binary') ~ C(Q('T1_binary')) + C(Q('X2_binar
        [3.66232416, 0.24007028]])</code></pre>
 </div>
 </div>
-<div id="23558172" class="cell" data-execution_count="8">
+<div id="a3448da1" class="cell" data-execution_count="8">
 <div class="sourceCode cell-code" id="cb20"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a>res <span class="op">=</span> fo_obj.predict(df, return_results_dict<span class="op">=</span><span class="va">True</span>)</span>
 <span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a>res.keys()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display" data-execution_count="8">
@@ -1423,7 +1422,7 @@ Formula: Q('Y1_continuous') + Q('Y2_binary') ~ C(Q('T1_binary')) + C(Q('X2_binar
 </section>
 <section id="examples-5" class="level4 doc-section doc-section-examples">
 <h4 class="doc-section doc-section-examples anchored" data-anchor-id="examples-5">Examples</h4>
-<div id="93456cf6" class="cell" data-execution_count="9">
+<div id="76fd780a" class="cell" data-execution_count="9">
 <div class="sourceCode cell-code" id="cb23"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a>fo_obj.prettify_treatment_effects()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display" data-execution_count="9">
 <div>
@@ -1582,7 +1581,7 @@ Formula: Q('Y1_continuous') + Q('Y2_binary') ~ C(Q('T1_binary')) + C(Q('X2_binar
 </div>
 </div>
 </div>
-<div id="11c54a7c" class="cell" data-execution_count="10">
+<div id="06c154d3" class="cell" data-execution_count="10">
 <div class="sourceCode cell-code" id="cb24"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a><span class="co">## Using a custom GATE</span></span>
 <span id="cb24-2"><a href="#cb24-2" aria-hidden="true" tabindex="-1"></a>custom_gate <span class="op">=</span> fo_obj.estimate_ate(df_filtered, return_results_dict<span class="op">=</span><span class="va">True</span>, group<span class="op">=</span><span class="st">"My Custom Group"</span>)</span>
 <span id="cb24-3"><a href="#cb24-3" aria-hidden="true" tabindex="-1"></a>fo_obj.prettify_treatment_effects(custom_gate)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
