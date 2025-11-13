@@ -2,7 +2,9 @@
 title: "Model Specifications"
 ---
 
-## [FastOLS](../04_Reference/FastOLS.qmd)
+## [InteractiveLinearRegression](../04_Reference/InteractiveLinearRegression.qmd)
+
+The outlined Interactive Linear Regression is motivated by @chernozhukov2024chapter2 and adapted.
 
 ### Model Specification
 
@@ -46,7 +48,7 @@ $$
 Within the context of (1), this can be estimated via:
 
 $$
-\mathbf{\tau} = \mathbf{\Theta'}\bar{d}
+\mathbf{\tau} = \mathbf{\Theta'}\bar{d}'
 $$
 
 where $\mathbf{\Theta'} = \left[\beta' \; \mathbf{\Gamma'} \; \mathbf{\Omega'} \; \mathbf{\Psi'}\right]$ is

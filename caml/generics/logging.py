@@ -68,7 +68,6 @@ def configure_logging(level: int = logging.WARNING):
 
     # Configure library loggers
     logging.getLogger("patsy").setLevel(logging.WARNING)
-    logging.getLogger("jax").setLevel(logging.WARNING)
     logging.getLogger("sklearn").setLevel(logging.ERROR)
     warnings.filterwarnings("ignore")
 

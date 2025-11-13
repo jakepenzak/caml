@@ -4,6 +4,8 @@ project:
   preview:
     port: 4848
 
+bibliography: references.bib
+
 format:
   html:
     theme: cosmo
@@ -64,6 +66,7 @@ website:
         - 02_Concepts/motivation.qmd
         - 02_Concepts/theory.qmd
         - 02_Concepts/models.qmd
+        - 02_Concepts/references.qmd
     - id: Examples
       title: "Examples"
       style: floating
@@ -102,7 +105,7 @@ quartodoc:
       contents:
         - name: AutoCATE
           member_order: source
-        - name: FastOLS
+        - name: InteractiveLinearRegression
           member_order: source
     - title: Synthetic Data Generation
       desc: "`from caml.extensions.synthetic_data import *` <br> <br> Synthetic data generation utilities for CaML."

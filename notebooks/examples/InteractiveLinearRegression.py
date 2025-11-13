@@ -13,13 +13,13 @@ def _():
 @app.cell
 def _(mo):
     mo.md(r"""
-    # FastOLS
+    # InteractiveLinearRegression
 
-    In this notebook, we'll walk through an example of generating synthetic data, estimating treatment effects (ATEs, GATEs, and CATEs) using `FastOLS`, and comparing to our ground truth.
+    In this notebook, we'll walk through an example of generating synthetic data, estimating treatment effects (ATEs, GATEs, and CATEs) using `InteractiveLinearRegression`, and comparing to our ground truth.
 
-    `FastOLS` is particularly useful when efficiently estimating ATEs and GATEs is of primary interest and the treatment is exogenous or confounding takes on a particularly simple functional form.
+    `InteractiveLinearRegression` is particularly useful when efficiently estimating ATEs and GATEs is of primary interest and the treatment is exogenous or confounding takes on a particularly simple functional form.
 
-    `FastOLS` assumes linear treatment effects & heterogeneity. This is generally sufficient for estimation of ATEs and GATEs, but can perform poorly in CATE estimation & prediction when heterogeneity is complex & nonlinear. For high quality CATE estimation, we recommend leveraging [AutoCATE](../04_Reference/AutoCATE.qmd).
+    `InteractiveLinearRegression` assumes linear treatment effects & heterogeneity. This is generally sufficient for estimation of ATEs and GATEs, but can perform poorly in CATE estimation & prediction when heterogeneity is complex & nonlinear. For high quality CATE estimation, we recommend leveraging [AutoCATE](../04_Reference/AutoCATE.qmd).
     """)
     return
 
@@ -108,20 +108,20 @@ def _(data_generator):
 @app.cell
 def _(mo):
     mo.md(r"""
-    ## Running FastOLS
+    ## Running InteractiveLinearRegression
 
     ### Class Instantiation
 
-    We can instantiate and observe our `FastOLS` object via:
+    We can instantiate and observe our `InteractiveLinearRegression` object via:
     """)
     return
 
 
 @app.cell
 def _(data_generator):
-    from caml import FastOLS
+    from caml import InteractiveLinearRegression
 
-    fo_obj = FastOLS(
+    ilr = InteractiveLinearRegression(
         Y=[c for c in data_generator.df.columns if "Y" in c],
         T="T1_binary",
         G=[
@@ -132,15 +132,14 @@ def _(data_generator):
         X=[c for c in data_generator.df.columns if "X" in c and "cont" in c],
         W=[c for c in data_generator.df.columns if "W" in c],
         xformula="+ W1_continuous**2",
-        engine="cpu",
         discrete_treatment=True,
     )
-    return (fo_obj,)
+    return (ilr,)
 
 
 @app.cell
-def _(fo_obj):
-    print(fo_obj)
+def _(ilr):
+    print(ilr)
     return
 
 
@@ -149,7 +148,7 @@ def _(mo):
     mo.md(r"""
     ### Fitting OLS model
 
-    We can now leverage the `fit` method to estimate the model outlined by `fo_obj.formula`. To capitalize on efficiency gains and parallelization in the estimation of GATEs, we will pass `estimate_effects=True`. The `n_jobs` argument will control the number of parallel jobs (GATE estimations) executed at a time. We will set `n_jobs=-1` to use all available cores for parallelization.
+    We can now leverage the `fit` method to estimate the model outlined by `ilr.formula`. To capitalize on efficiency gains and parallelization in the estimation of GATEs, we will pass `estimate_effects=True`. The `n_jobs` argument will control the number of parallel jobs (GATE estimations) executed at a time. We will set `n_jobs=-1` to use all available cores for parallelization.
 
     ::: {.callout-warning}
     When dealing with large datasets, setting `n_jobs` to a more conservative value can help prevent OOM errors.
@@ -161,8 +160,8 @@ def _(mo):
 
 
 @app.cell
-def _(data_generator, fo_obj):
-    fo_obj.fit(data_generator.df, n_jobs=-1, estimate_effects=True, cov_type="HC1")
+def _(data_generator, ilr):
+    ilr.fit(data_generator.df, n_jobs=-1, estimate_effects=True, cov_type="HC1")
     return
 
 
@@ -175,31 +174,31 @@ def _(mo):
 
 
 @app.cell
-def _(fo_obj):
-    fo_obj.params
-    # fo_obj.vcv
-    # fo_obj.std_err
-    # fo_obj.fitted_values
-    # fo_obj.residuals
+def _(ilr):
+    ilr.params
+    # ilr.vcv
+    # ilr.std_err
+    # ilr.fitted_values
+    # ilr.residuals
     return
 
 
 @app.cell
-def _(fo_obj):
-    fo_obj.treatment_effects.keys()
+def _(ilr):
+    ilr.treatment_effects.keys()
     return
 
 
 @app.cell
-def _(fo_obj):
-    fo_obj.treatment_effects["overall"]
+def _(ilr):
+    ilr.treatment_effects["overall"]
     return
 
 
 @app.cell
 def _(mo):
     mo.md(r"""
-    Here we have direct access to the model parameters (`fo_obj.params`), variance-covariance matrices (`fo_obj.vcv]`), standard_errors (`fo_obj.std_err`), and estimated treatment effects (`fo_obj.treatment_effects`).
+    Here we have direct access to the model parameters (`ilr.params`), variance-covariance matrices (`ilr.vcv]`), standard_errors (`ilr.std_err`), and estimated treatment effects (`ilr.treatment_effects`).
 
     To make the treatment effect results more readable, we can leverage the `prettify_treatment_effects` method:
     """)
@@ -207,8 +206,8 @@ def _(mo):
 
 
 @app.cell
-def _(fo_obj):
-    fo_obj.prettify_treatment_effects()
+def _(ilr):
+    ilr.prettify_treatment_effects()
     return
 
 
@@ -253,18 +252,18 @@ def _(mo):
 
 
 @app.cell
-def _(data_generator, fo_obj):
+def _(data_generator, ilr):
     custom_gate_df = data_generator.df.query(
         "X4_binary == 1 & X2_continuous < -3"
     ).copy()
 
-    custom_gate = fo_obj.estimate_ate(
+    custom_gate = ilr.estimate_ate(
         custom_gate_df,
         group="My Custom Group",
         membership="My Custom Membership",
         return_results_dict=True,
     )
-    fo_obj.prettify_treatment_effects(effects=custom_gate)
+    ilr.prettify_treatment_effects(effects=custom_gate)
     return (custom_gate_df,)
 
 
@@ -297,8 +296,8 @@ def _(mo):
 
 
 @app.cell
-def _(data_generator, fo_obj):
-    cates = fo_obj.estimate_cate(data_generator.df)
+def _(data_generator, ilr):
+    cates = ilr.estimate_cate(data_generator.df)
 
     cates
     return
@@ -313,8 +312,8 @@ def _(mo):
 
 
 @app.cell
-def _(data_generator, fo_obj):
-    fo_obj.estimate_cate(data_generator.df, return_results_dict=True)
+def _(data_generator, ilr):
+    ilr.estimate_cate(data_generator.df, return_results_dict=True)
     return
 
 
@@ -327,11 +326,11 @@ def _(mo):
 
 
 @app.cell
-def _(data_generator, fo_obj):
-    cate_predictions = fo_obj.predict(data_generator.df)
+def _(data_generator, ilr):
+    cate_predictions = ilr.predict(data_generator.df)
 
     ## We can also make predictions of the outcomes, if desired.
-    # fo_obj.predict(data_generator.df, mode="outcome")
+    # ilr.predict(data_generator.df, mode="outcome")
     return (cate_predictions,)
 
 
@@ -433,7 +432,7 @@ def _(cate_line_plot, predicted_cates2, true_cates2):
 def _(mo):
     mo.md(r"""
     ::: {.callout-note}
-    The CATE estimates for binary outcome using simulated data may perform poorly b/c of non-linear transformation (sigmoid) of linear logodds. In general, `FastOLS` should be prioritized when ATEs and GATEs are of primary interest. For high quality CATE estimation, we recommend leveraging [AutoCATE](../04_Reference/AutoCATE.qmd).
+    The CATE estimates for binary outcome using simulated data may perform poorly b/c of non-linear transformation (sigmoid) of linear logodds. In general, `InteractiveLinearRegression` should be prioritized when ATEs and GATEs are of primary interest. For high quality CATE estimation, we recommend leveraging [AutoCATE](../04_Reference/AutoCATE.qmd).
     :::
     """)
     return

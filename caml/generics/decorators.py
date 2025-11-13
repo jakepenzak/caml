@@ -8,16 +8,6 @@ from functools import wraps
 from typing import Callable
 
 from caml.generics.logging import DEBUG, INFO, WARNING
-from caml.generics.utils import is_module_available
-
-_HAS_JAX = is_module_available("jax")
-
-if _HAS_JAX:
-    import jax
-
-    jax.config.update("jax_enable_x64", True)
-else:
-    pass
 
 
 def experimental(obj: Callable) -> Callable:
@@ -71,14 +61,6 @@ def experimental(obj: Callable) -> Callable:
             return obj(*args, **kwargs)
 
         return wrapper
-
-    def wrapper(*args, **kwargs):
-        if not obj._experimental_warning_shown:
-            WARNING(warning_msg)
-            obj._experimental_warning_shown = True
-        return obj(*args, **kwargs)
-
-    return wrapper
 
 
 def narrate(
@@ -149,34 +131,3 @@ def timer(operation_name: str | None = None) -> Callable:
         return wrapper
 
     return decorator if operation_name else decorator(operation_name)
-
-
-def maybe_jit(func: Callable | None = None, **jit_kwargs) -> Callable:
-    """Decorator to JIT compile a function using JAX, if available.
-
-    Parameters
-    ----------
-    func : Callable | None
-        The function to be JIT compiled.
-    jit_kwargs : dict
-        Keyword arguments to be passed to jax.jit.
-
-    Returns
-    -------
-    Callable
-        The decorated function or method
-    """
-
-    def maybe_jit_inner(func):
-        @wraps(func)
-        def wrapper(*args, **kwargs):
-            if _HAS_JAX:
-                return jax.jit(func, **jit_kwargs)(*args, **kwargs)
-            return func(*args, **kwargs)
-
-        return wrapper
-
-    if func is None:
-        return maybe_jit_inner
-
-    return maybe_jit_inner(func)
