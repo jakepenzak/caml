@@ -30,7 +30,9 @@ jobs:
           version: ${{ vars.UV_VERSION }}
 
       - name: Create environment
-        run: uv sync --all-groups --frozen
+        run: |
+          uv sync --all-groups --frozen
+          uv pip install bump-my-version==0.29.0
 
       - name: Get Current Version
         id: get_version
