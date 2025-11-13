@@ -1,47 +1,35 @@
 from typing import Any, NoReturn, Sequence
 
+import numpy as np
 import pandas as pd
 import patsy
+import scipy.stats as stats
 from joblib import Parallel, delayed
 
 from caml.core._base import BaseCamlEstimator
-from caml.generics.decorators import experimental, maybe_jit, timer
+from caml.generics.decorators import experimental, timer
 from caml.generics.interfaces import FittedAttr, PandasConvertibleDataFrame
-from caml.generics.logging import DEBUG, ERROR, INFO, WARNING
-from caml.generics.utils import is_module_available
-
-_HAS_JAX = is_module_available("jax")
-
-if _HAS_JAX:
-    import jax
-    import jax.numpy as jnp
-    import jax.scipy.stats as jstats
-
-    jax.config.update("jax_enable_x64", True)
-else:
-    import numpy as jnp
-    import scipy.stats as jstats
+from caml.generics.logging import DEBUG, INFO
 
 
 @experimental
-class FastOLS(BaseCamlEstimator):
-    r"""FastOLS is an optimized implementation of the OLS estimator designed specifically with treatment effect estimation in mind.
+class InteractiveLinearRegression(BaseCamlEstimator):
+    r"""InteractiveLinearRegression is an interactive linear regression estimator with explicit treatment interaction terms, enabling precision improvements & heterogeneous treatment discovery.
 
-    **FastOLS is experimental and may change significantly in future versions.**
+    **InteractiveLinearRegression is experimental and may change significantly in future versions.**
 
-    This class estimates a standard linear regression model for any number of continuous or binary outcomes and a single continuous or binary treatment,
+    This class estimates a standard linear regression model, with treatment-covariate interaction terms, for any number of continuous or binary outcomes and a single continuous or binary treatment,
     and provides estimates for the Average Treatment Effects (ATEs) and Group Average Treatment Effects (GATEs) out of the box. Additionally,
     methods are provided for estimating custom GATEs & Conditional Average Treatment Effects (CATEs) of individual observations, which can also be used for out-of-sample predictions.
     Note, this method assumes linear treatment effects and heterogeneity, which is typically sufficient when primarily concerned with ATEs and GATEs.
 
-    This class leverages JAX for fast numerical computations, which can be installed using `pip install caml[jax]`, defaulting to NumPy if JAX is not
-    available. For GPU acceleration, install JAX with GPU support using `pip install caml[jax-gpu]`.
+    This model is designed and adapted
 
     For outcome/treatment support, see [Support Matrix](support_matrix.qmd).
 
-    For model specification details, see [Model Specifications](../02_Concepts/models.qmd#fastols).
+    For model specification details, see [Model Specifications](../02_Concepts/models.qmd#interactivelinearregression).
 
-    For a more detailed working example, see [FastOLS Example](../03_Examples/FastOLS.qmd).
+    For a more detailed working example, see [InteractiveLinearRegression Example](../03_Examples/InteractiveLinearRegression.qmd).
 
     Parameters
     ----------
@@ -50,18 +38,15 @@ class FastOLS(BaseCamlEstimator):
     T : str
         The treatment variable name.
     G : Sequence[str] | None
-        A list of group variable names. These will be the groups for which GATEs will be estimated.
+        A list of group (categorical) variable names, used for interaction terms. These will be the groups for which GATEs will be estimated.
     X : Sequence[str] | None
-        A list of covariate variable names. These will be the covariates for which heterogeneity/CATEs can be estimated.
+        A list of non-categorical covariate variable names, used for interaction terms. These will be additional covariates for which heterogeneity/CATEs can be estimated.
     W : Sequence[str] | None
-        A list of additional covariate variable names to be used as controls. These will be the additional covariates not used for modeling heterogeneity/CATEs.
+        A list of additional covariate variable names to be used as controls, not interacted with the treatment. These will be the additional covariates not used for modeling heterogeneity/CATEs.
     xformula : str | None
         Additional formula string to append to the main formula, starting with "+". For example, "+age+gender" will add age and gender as additional predictors.
     discrete_treatment : bool
         Whether the treatment is discrete
-    engine : str
-        The engine to use for computation. Can be "cpu" or "gpu". Note "gpu" requires JAX to be installed, which can be installed
-        via `pip install caml[jax-gpu]`.
 
     Attributes
     ----------
@@ -93,7 +78,7 @@ class FastOLS(BaseCamlEstimator):
     Examples
     --------
     ```{python}
-    from caml import FastOLS
+    from caml import InteractiveLinearRegression
     from caml.extensions.synthetic_data import SyntheticDataGenerator
 
     data_generator = SyntheticDataGenerator(n_cont_outcomes=1,
@@ -103,18 +88,17 @@ class FastOLS(BaseCamlEstimator):
                                                 seed=10)
     df = data_generator.df
 
-    fo_obj = FastOLS(
+    ilr = InteractiveLinearRegression(
         Y=[c for c in df.columns if "Y" in c],
         T="T1_binary",
         G=[c for c in df.columns if "X" in c and ("bin" in c or "dis" in c)],
         X=[c for c in df.columns if "X" in c and "cont" in c],
         W=[c for c in df.columns if "W" in c],
         xformula=None,
-        engine="cpu",
         discrete_treatment=True,
     )
 
-    print(fo_obj)
+    print(ilr)
     ```
     """
 
@@ -135,10 +119,9 @@ class FastOLS(BaseCamlEstimator):
         *,
         xformula: str | None = None,
         discrete_treatment: bool = True,
-        engine: str = "cpu",
     ):
         DEBUG(
-            f"Initializing {self.__class__.__name__} with parameters: Y={Y}, T={T}, G={G}, X={X}, W={W}, discrete_treatment={discrete_treatment}, engine={engine}"
+            f"Initializing {self.__class__.__name__} with parameters: Y={Y}, T={T}, G={G}, X={X}, W={W}, discrete_treatment={discrete_treatment}"
         )
         self.Y = list(Y)
         self.T = T
@@ -147,26 +130,6 @@ class FastOLS(BaseCamlEstimator):
         self.W = list(W) if W else list()
         self._discrete_treatment = discrete_treatment
 
-        if engine not in ["cpu", "gpu"]:
-            ERROR(
-                f"Invalid engine specified: {engine}. Only 'cpu' and 'gpu' are supported."
-            )
-            raise ValueError("Only 'cpu' and 'gpu' are supported for engine argument")
-
-        if engine == "gpu":
-            if not _HAS_JAX:
-                ERROR("GPU engine requested but JAX is not available")
-                raise ValueError("JAX is required for gpu engine.")
-            try:
-                len(jax.devices("gpu"))
-            except RuntimeError:
-                WARNING("No available GPU detected, falling back to CPU")
-                engine = "cpu"
-        else:
-            if _HAS_JAX:
-                jax.config.update("jax_platforms", "cpu")
-
-        self._engine = engine
         self.formula = self._create_formula(
             self.Y, self.T, self.G, self.X, self.W, self._discrete_treatment, xformula
         )
@@ -204,9 +167,9 @@ class FastOLS(BaseCamlEstimator):
         Examples
         --------
         ```{python}
-        fo_obj.fit(df, n_jobs=4, estimate_effects=True, cov_type='nonrobust')
+        ilr.fit(df, n_jobs=4, estimate_effects=True, cov_type='nonrobust')
 
-        fo_obj.treatment_effects.keys()
+        ilr.treatment_effects.keys()
         ```
         """
         if cov_type not in ("nonrobust", "HC0", "HC1"):
@@ -237,8 +200,8 @@ class FastOLS(BaseCamlEstimator):
         return_results_dict: bool = False,
         group: str = "Custom Group",
         membership: str | None = None,
-        _diff_matrix: jnp.ndarray | None = None,
-    ) -> jnp.ndarray | dict:
+        _diff_matrix: np.ndarray | None = None,
+    ) -> np.ndarray | dict:
         r"""Estimate Average Treatment Effects (ATEs) of `T` on each `Y` from fitted model.
 
         If the entire dataframe is provided, the function will estimate the ATE of the entire population, where the ATE, in the case of binary treatments, is formally defined as:
@@ -265,18 +228,18 @@ class FastOLS(BaseCamlEstimator):
             Name of the group to estimate the ATEs for.
         membership : str | None
             Name of the membership variable to estimate the ATEs for.
-        _diff_matrix : jnp.ndarray | None = None
+        _diff_matrix : np.ndarray | None = None
             Private argument used in `fit` method.
 
         Returns
         -------
-        jnp.ndarray | dict
+        np.ndarray | dict
             Estimated ATEs/GATEs or dictionary containing the estimated ATEs/GATEs and their standard errors, t-statistics, and p-values.
 
         Examples
         --------
         ```{python}
-        ate = fo_obj.estimate_ate(df, return_results_dict=True, group="Overall")
+        ate = ilr.estimate_ate(df, return_results_dict=True, group="Overall")
 
         ate
         ```
@@ -285,7 +248,7 @@ class FastOLS(BaseCamlEstimator):
             "X3_binary == 0 & X1_continuous < 5"
         ).copy()
 
-        custom_gate = fo_obj.estimate_ate(df_filtered)
+        custom_gate = ilr.estimate_ate(df_filtered)
 
         custom_gate
         ```
@@ -323,7 +286,7 @@ class FastOLS(BaseCamlEstimator):
     @timer("CATE Estimation")
     def estimate_cate(
         self, df: PandasConvertibleDataFrame, *, return_results_dict: bool = False
-    ) -> jnp.ndarray | dict:
+    ) -> np.ndarray | dict:
         r"""Estimate Conditional Average Treatment Effects (CATEs) of `T` on each `Y` from fitted model for all given observations in the dataset.
 
         The CATE, in the case of binary treatments, is formally defined as:
@@ -344,17 +307,17 @@ class FastOLS(BaseCamlEstimator):
 
         Returns
         -------
-        jnp.ndarray | dict
+        np.ndarray | dict
             CATEs or dictionary containing CATEs, standard errors, t-statistics, and p-values.
 
         Examples
         --------
         ```{python}
-        cates = fo_obj.estimate_cate(df)
+        cates = ilr.estimate_cate(df)
         cates[:5]
         ```
         ```{python}
-        res = fo_obj.estimate_cate(df, return_results_dict=True)
+        res = ilr.estimate_cate(df, return_results_dict=True)
         res.keys()
         ```
         """
@@ -386,7 +349,7 @@ class FastOLS(BaseCamlEstimator):
         *,
         return_results_dict: bool = False,
         mode: str = "cate",
-    ) -> jnp.ndarray | dict:
+    ) -> np.ndarray | dict:
         """Generate predicted conditional average treatment effects (CATEs) or outcomes.
 
         When mode is "outcome", the function returns predicted outcomes.
@@ -409,17 +372,17 @@ class FastOLS(BaseCamlEstimator):
 
         Returns
         -------
-        jnp.ndarray | dict
+        np.ndarray | dict
             CATEs or dictionary containing CATEs, standard errors, t-statistics, and p-values.
 
         Examples
         --------
         ```{python}
-        cates = fo_obj.predict(df)
+        cates = ilr.predict(df)
         cates[:5]
         ```
         ```{python}
-        res = fo_obj.predict(df, return_results_dict=True)
+        res = ilr.predict(df, return_results_dict=True)
         res.keys()
         ```
         """
@@ -454,12 +417,12 @@ class FastOLS(BaseCamlEstimator):
         Examples
         --------
         ```{python}
-        fo_obj.prettify_treatment_effects()
+        ilr.prettify_treatment_effects()
         ```
         ```{python}
         ## Using a custom GATE
-        custom_gate = fo_obj.estimate_ate(df_filtered, return_results_dict=True, group="My Custom Group")
-        fo_obj.prettify_treatment_effects(custom_gate)
+        custom_gate = ilr.estimate_ate(df_filtered, return_results_dict=True, group="My Custom Group")
+        ilr.prettify_treatment_effects(custom_gate)
         ```
         """
         if effects is None:
@@ -484,7 +447,7 @@ class FastOLS(BaseCamlEstimator):
                 for stat, value in effects_to_prettify[k].items():
                     if isinstance(value, list):
                         final_results[stat] = value.copy()
-                    elif isinstance(value, jnp.ndarray):
+                    elif isinstance(value, np.ndarray):
                         final_results[stat] = value.flatten().copy()
                     elif isinstance(value, int):
                         final_results[stat] = [value] * n_outcomes
@@ -494,8 +457,8 @@ class FastOLS(BaseCamlEstimator):
                 for stat, value in effects_to_prettify[k].items():
                     if isinstance(value, list):
                         final_results[stat] += value
-                    elif isinstance(value, jnp.ndarray):
-                        final_results[stat] = jnp.hstack(
+                    elif isinstance(value, np.ndarray):
+                        final_results[stat] = np.hstack(
                             [final_results[stat], value.flatten()]
                         )
                     elif isinstance(value, int):
@@ -504,35 +467,34 @@ class FastOLS(BaseCamlEstimator):
         return pd.DataFrame(final_results)
 
     @timer("Model Fitting")
-    def _fit(self, X: jnp.ndarray, y: jnp.ndarray, cov_type: str = "nonrobust"):
+    def _fit(self, X: np.ndarray, y: np.ndarray, cov_type: str = "nonrobust"):
         INFO("Fitting regression model...")
 
-        @maybe_jit
         def fit(X, y):
-            params, _, _, _ = jnp.linalg.lstsq(X, y, rcond=None)
+            params, _, _, _ = np.linalg.lstsq(X, y, rcond=None)
             fitted_values = X @ params
             resid = y - fitted_values
             n = X.shape[0]
             k = X.shape[1]
-            XtX_inv = jnp.linalg.pinv(X.T @ X)
+            XtX_inv = np.linalg.pinv(X.T @ X)
             if cov_type in ("HC0", "HC1"):
                 E = resid**2
                 if cov_type == "HC1":
                     E *= n / (n - k)
-                XEX = jnp.einsum("ni,nj,no->oij", X, X, E)
+                XEX = np.einsum("ni,nj,no->oij", X, X, E)
                 vcv = XtX_inv @ XEX @ XtX_inv
             else:
-                rss = jnp.sum(resid**2, axis=0)
+                rss = np.sum(resid**2, axis=0)
                 sigma_squared_hat = rss / (n - k)
-                XtX_inv = jnp.linalg.pinv(X.T @ X)
-                vcv = jnp.einsum("o,ij->oij", sigma_squared_hat, XtX_inv)
+                XtX_inv = np.linalg.pinv(X.T @ X)
+                vcv = np.einsum("o,ij->oij", sigma_squared_hat, XtX_inv)
             return params, vcv, fitted_values, resid
 
         params, vcv, fitted_values, residuals = fit(X, y)
 
         self._params = params
         self._vcv = vcv
-        self._std_err = jnp.sqrt(jnp.diagonal(vcv, axis1=1, axis2=2)).T
+        self._std_err = np.sqrt(np.diagonal(vcv, axis1=1, axis2=2)).T
         self._fitted_values = fitted_values
         self._residuals = residuals
         self._treatment_effects = {}
@@ -540,19 +502,15 @@ class FastOLS(BaseCamlEstimator):
     @timer("Design Matrix Creation")
     def _create_design_matrix(
         self, df: pd.DataFrame
-    ) -> tuple[jnp.ndarray, jnp.ndarray] | NoReturn:
+    ) -> tuple[np.ndarray, np.ndarray] | NoReturn:
         try:
             DEBUG("Creating model design matrix...")
             y, X = patsy.dmatrices(self.formula, data=df, NA_action="raise")  # pyright: ignore[reportAttributeAccessIssue]
 
             self._X_design_info = X.design_info
 
-            if _HAS_JAX:
-                y = jnp.array(y, device=jax.devices(self._engine)[0])  # pyright: ignore[reportCallIssue]
-                X = jnp.array(X, device=jax.devices(self._engine)[0])  # pyright: ignore[reportCallIssue]
-            else:
-                y = jnp.array(y)
-                X = jnp.array(X)
+            y = np.array(y)
+            X = np.array(X)
 
             return y, X
         except patsy.PatsyError as e:
@@ -566,7 +524,7 @@ class FastOLS(BaseCamlEstimator):
             raise e
 
     @timer("Difference Matrix Creation")
-    def _create_difference_matrix(self, df: pd.DataFrame) -> jnp.ndarray | NoReturn:
+    def _create_difference_matrix(self, df: pd.DataFrame) -> np.ndarray | NoReturn:
         try:
             DEBUG("Creating treatment difference matrix...")
             original_t = df[self.T].copy()
@@ -586,12 +544,8 @@ class FastOLS(BaseCamlEstimator):
 
             df[self.T] = original_t
 
-            if _HAS_JAX:
-                X1 = jnp.array(X1, device=jax.devices(self._engine)[0])  # pyright: ignore[reportCallIssue]
-                X0 = jnp.array(X0, device=jax.devices(self._engine)[0])  # pyright: ignore[reportCallIssue]
-            else:
-                X1 = jnp.array(X1)
-                X0 = jnp.array(X0)
+            X1 = np.array(X1)
+            X0 = np.array(X0)
 
             diff = X1 - X0
 
@@ -608,9 +562,9 @@ class FastOLS(BaseCamlEstimator):
 
     @staticmethod
     def _compute_effects(
-        diff_matrix: jnp.ndarray,
-        params: jnp.ndarray,
-        vcv: jnp.ndarray,
+        diff_matrix: np.ndarray,
+        params: np.ndarray,
+        vcv: np.ndarray,
         n_treated: int | None = None,
         is_cates: bool = False,
         include_inference: bool = True,
@@ -618,17 +572,17 @@ class FastOLS(BaseCamlEstimator):
         if is_cates:
             d = diff_matrix
         else:
-            d = jnp.mean(diff_matrix, axis=0).reshape(1, -1)
+            d = np.mean(diff_matrix, axis=0).reshape(1, -1)
 
         effect = d @ params
+        n = diff_matrix.shape[0]
         if include_inference:
-            std_err = jnp.sqrt(jnp.einsum("nj,ojk,nk->no", d, vcv, d))
-            t_stat = jnp.where(std_err > 0, effect / std_err, 0)
-            pval = 2 * (1 - jstats.norm.cdf(jnp.abs(t_stat)))
+            std_err = np.sqrt(np.einsum("nj,ojk,nk->no", d, vcv, d))
+            t_stat = np.where(std_err > 0, effect / std_err, 0)
+            pval = 2 * (1 - stats.t.cdf(np.abs(t_stat), df=n - params.shape[0]))
         else:
             std_err, t_stat, pval = None, None, None
 
-        n = diff_matrix.shape[0]
         if n_treated is not None:
             n_control = n - n_treated
         else:
@@ -658,7 +612,7 @@ class FastOLS(BaseCamlEstimator):
         df: pd.DataFrame,
         *,
         n_jobs: int = -1,
-        _diff_matrix: jnp.ndarray,
+        _diff_matrix: np.ndarray,
     ):
         if self.G is None:
             DEBUG("No groups specified for GATE estimation. Skipping.")
@@ -672,9 +626,9 @@ class FastOLS(BaseCamlEstimator):
         group_info = []
         for group in groups:
             for membership in groups[group]:
-                mask = jnp.array(df[group] == membership)
+                mask = np.array(df[group] == membership)
                 treated_mask = (
-                    jnp.array(df[df[group] == membership][self.T] == 1)
+                    np.array(df[df[group] == membership][self.T] == 1)
                     if self._discrete_treatment
                     else None
                 )
@@ -737,16 +691,15 @@ class FastOLS(BaseCamlEstimator):
 
     def __str__(self):
         """
-        Returns a string representation of the FastOLS object.
+        Returns a string representation of the InteractiveLinearRegression object.
 
         Returns
         -------
         str
-            A string containing information about the FastOLS object.
+            A string containing information about the InteractiveLinearRegression object.
         """
         summary = (
-            "================== FastOLS Object ==================\n"
-            + f"Engine: {self._engine}\n"
+            "================== InteractiveLinearRegression Object ==================\n"
             + f"Outcome Variable: {self.Y}\n"
             + f"Treatment Variable: {self.T}\n"
             + f"Discrete Treatment: {self._discrete_treatment}\n"

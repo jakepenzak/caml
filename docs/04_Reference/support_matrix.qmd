@@ -2,7 +2,7 @@
 title: "Outcome/Treatment Type Support Matrix"
 ---
 
-| Outcome     | Treatment   | [FastOLS](FastOLS.qmd) | [AutoCATE](AutoCATE.qmd)    |
+| Outcome     | Treatment   | [InteractiveLinearRegression](InteractiveLinearRegression.qmd) | [AutoCATE](AutoCATE.qmd)    |
 | :-----------: | :-----------: | :-----------: | :-----------: |
 | Continuous  | Binary      | ✅    | ✅     |
 | Continuous  | Continuous  | ✅    | ✅   |

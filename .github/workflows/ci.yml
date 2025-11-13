@@ -3,6 +3,8 @@ name: Caml CI/CD
 on:
   push:
     branches: ["main", "develop"]
+  pull_request:
+    types: [opened, reopened, synchronize]
   workflow_dispatch:
 
 jobs:
@@ -31,13 +33,8 @@ jobs:
         if: runner.os == 'macOS'
         run: brew install libomp
 
-      - name: Install the project (Linux)
-        if: runner.os == 'Linux'
+      - name: Install the project
         run: uv sync --all-extras --all-groups --frozen
-
-      - name: Install the project (Windows & MacOS)
-        if: runner.os == 'Windows' || runner.os == 'macOS'
-        run: uv sync --all-groups --extra pyspark --extra polars --extra jax --frozen
 
       - name: Run tests
         run: uv run pytest tests

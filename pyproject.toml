@@ -9,7 +9,6 @@ dependencies = [
     "rich>=13.9.4",
     "patsy>=1.0.1",
     "llvmlite>0.40",
-    "numpy<2",
 ]
 description = "Extensions & abstractions of advanced econometric techniques leveraging machine learning."
 name = "caml"
@@ -46,6 +45,7 @@ Documentation = "https://caml-docs.com/"
 test = [
     "polars>=1.31.0",
     "pyarrow>=20.0.0",
+    "pyspark>=3.5.2",
     "pytest>=8.3.2",
     "pytest-cov>=5.0.0",
     "pytest-html>=4.1.1",
@@ -61,15 +61,9 @@ dev = [
 ]
 docs = ["quarto-cli<1.7.32", "quartodoc>=0.9.1"]
 
-# TODO: Complete refactor of optional dependencies and removal of different backends (jax, polars, pyspark, etc.)
 [project.optional-dependencies]
-pyspark = ["flaml[spark]>=2.0.0", "optuna>=3.6.1", "pyspark>=3.5.2"]
-polars = ["polars>=1.17.1", "pyarrow>=20.0.0"]
-jax = ["jax>=0.5.2"]
-jax-gpu = ["jax[cuda12]>=0.5.2"]
-ray = [
- "ray[tune]>=2.51.1",
-]
+spark = ["flaml[spark]>=2.0.0", "optuna>=3.6.1", "pyspark>=3.5.2"]
+ray = ["ray[tune]>=2.51.1"]
 
 [build-system]
 requires = ["hatchling"]
@@ -117,7 +111,7 @@ convention = "numpy"
 filterwarnings = "ignore::DeprecationWarning"
 addopts = "--cov=caml/ --cov-branch --cov-report=term-missing --cov-report=html:tests/reports/htmlcov --cov-report=xml:tests/reports/coverage.xml"
 markers = [
-    "ols: mark tests for the FastOLS/ols module",
+    "ols: mark tests for the InteractiveLinearRegression/ols module",
     "core: mark tests for the core module",
     "extensions: mark tests for the extensions module",
     "synthetic_data: mark tests for the synthetic data module`",

@@ -5,6 +5,6 @@ import matplotlib.pyplot as plt
 from caml._version import __version__
 from caml.core.cate import AutoCATE
 from caml.core.modeling.model_bank import AutoCateEstimator
-from caml.core.ols import FastOLS
+from caml.core.ols import InteractiveLinearRegression
 
 plt.style.use("ggplot")
