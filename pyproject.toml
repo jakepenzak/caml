@@ -13,7 +13,7 @@ dependencies = [
 description = "Extensions & abstractions of advanced econometric techniques leveraging machine learning."
 name = "caml"
 requires-python = ">= 3.10"
-version = "0.0.0-dev16"
+version = "0.0.0-dev17"
 license = { text = "MIT" }
 readme = "README.md"
 keywords = [
@@ -124,7 +124,7 @@ typeguard-forward-ref-policy = "ERROR"
 omit = ["caml/logging.py", "caml/extensions/plots.py"]
 
 [tool.bumpversion]
-current_version = "0.0.0-dev16"
+current_version = "0.0.0-dev17"
 parse = """(?x)
     (?P<major>0|[1-9]\\d*)\\.
     (?P<minor>0|[1-9]\\d*)\\.
