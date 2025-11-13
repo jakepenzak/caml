@@ -1,0 +1,18 @@
+[
+  {
+    "text": "latest",
+    "href": "/"
+  },
+  {
+    "text": "dev",
+    "href": "/dev/"
+  },
+  {
+    "text": "v0.0.0-dev15",
+    "href": "/v0.0.0-dev15/"
+  },
+  {
+    "text": "v0.0.0-dev14",
+    "href": "/v0.0.0-dev14/"
+  }
+]

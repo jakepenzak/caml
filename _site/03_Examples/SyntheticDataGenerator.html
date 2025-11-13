@@ -65,7 +65,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <script src="../site_libs/quarto-search/fuse.min.js"></script>
 <script src="../site_libs/quarto-search/quarto-search.js"></script>
 <meta name="quarto:offset" content="../">
-<link href="../03_Examples/FastOLS.html" rel="prev">
+<link href="../03_Examples/InteractiveLinearRegression.html" rel="prev">
 <link href="../assets/logo_no_text.svg" rel="icon" type="image/svg+xml">
 <script src="../site_libs/quarto-html/quarto.js" type="module"></script>
 <script src="../site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
@@ -608,6 +608,10 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     <a class="dropdown-item" href="../02_Concepts/models.html">
  <span class="dropdown-text">Model Specifications</span></a>
   </li>  
+        <li>
+    <a class="dropdown-item" href="../02_Concepts/references.html">
+ <span class="dropdown-text">References</span></a>
+  </li>  
     </ul>
   </li>
   <li class="nav-item dropdown ">
@@ -620,8 +624,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
  <span class="dropdown-text">AutoCATE</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="../03_Examples/FastOLS.html">
- <span class="dropdown-text">FastOLS</span></a>
+    <a class="dropdown-item" href="../03_Examples/InteractiveLinearRegression.html">
+ <span class="dropdown-text">InteractiveLinearRegression</span></a>
   </li>  
         <li>
     <a class="dropdown-item" href="../03_Examples/SyntheticDataGenerator.html">
@@ -719,8 +723,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </li>
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../03_Examples/FastOLS.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text">FastOLS</span></a>
+  <a href="../03_Examples/InteractiveLinearRegression.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">InteractiveLinearRegression</span></a>
   </div>
 </li>
         <li class="sidebar-item">
@@ -769,13 +773,13 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </header>
 
 
-<div id="e703da9a" class="cell" data-execution_count="1">
+<div id="28801698" class="cell" data-execution_count="1">
 <div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> caml.extensions.synthetic_data <span class="im">import</span> SyntheticDataGenerator</span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <section id="generate-data" class="level2">
 <h2 class="anchored" data-anchor-id="generate-data">Generate Data</h2>
-<div id="833011d1" class="cell" data-execution_count="2">
+<div id="e7782f03" class="cell" data-execution_count="2">
 <div class="sourceCode cell-code" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>data_generator <span class="op">=</span> SyntheticDataGenerator(</span>
 <span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>    n_obs<span class="op">=</span><span class="dv">10_000</span>,</span>
 <span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>    n_cont_outcomes<span class="op">=</span><span class="dv">1</span>,</span>
@@ -800,7 +804,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </section>
 <section id="simulated-dataframe" class="level2">
 <h2 class="anchored" data-anchor-id="simulated-dataframe">Simulated Dataframe</h2>
-<div id="964c8552" class="cell" data-execution_count="3">
+<div id="7f7c83da" class="cell" data-execution_count="3">
 <div class="sourceCode cell-code" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>data_generator.df</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display" data-execution_count="3">
 <div>
@@ -988,7 +992,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </section>
 <section id="true-conditional-average-treatment-effects-cates" class="level2">
 <h2 class="anchored" data-anchor-id="true-conditional-average-treatment-effects-cates">True Conditional Average Treatment Effects (CATEs)</h2>
-<div id="f77eaea2" class="cell" data-execution_count="4">
+<div id="63957162" class="cell" data-execution_count="4">
 <div class="sourceCode cell-code" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>data_generator.cates</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display" data-execution_count="4">
 <div>
@@ -1188,7 +1192,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </section>
 <section id="true-average-treatment-effects-ates" class="level2">
 <h2 class="anchored" data-anchor-id="true-average-treatment-effects-ates">True Average Treatment Effects (ATEs)</h2>
-<div id="dbbd17dd" class="cell" data-execution_count="5">
+<div id="c4e19576" class="cell" data-execution_count="5">
 <div class="sourceCode cell-code" id="cb5"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>data_generator.ates</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display" data-execution_count="5">
 <div>
@@ -1272,19 +1276,19 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </section>
 <section id="true-data-generating-process" class="level2">
 <h2 class="anchored" data-anchor-id="true-data-generating-process">True Data Generating Process</h2>
-<div id="4d7b6f52" class="cell" data-execution_count="6">
+<div id="0760dfc7" class="cell" data-execution_count="6">
 <div class="sourceCode cell-code" id="cb6"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> k, v <span class="kw">in</span> data_generator.dgp.items():</span>
 <span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f"DGP for </span><span class="sc">{</span>k<span class="sc">}</span><span class="ss">:"</span>)</span>
 <span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(v)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>DGP for T1_continuous:
 {'formula': '1 + W1_continuous + W2_binary + W3_discrete + X1_continuous', 'params': array([ 0.06058085,  1.16021218, -1.96203513,  0.36371696, -2.17056973]), 'noise': array([-3.62397606, -0.4328875 ,  0.44179631, ..., -4.88301257,
-       -1.79886609,  7.66507059]), 'raw_scores': array([-3.72676077, -3.43899217, -2.80623211, ..., -7.29150054,
-       -4.19616712,  5.56335924]), 'function': &lt;function SyntheticDataGenerator._create_dgp_function.&lt;locals&gt;.f_cont at 0x7f2894ea79a0&gt;}
+       -1.79886609,  7.66507059], shape=(10000,)), 'raw_scores': array([-3.72676077, -3.43899217, -2.80623211, ..., -7.29150054,
+       -4.19616712,  5.56335924], shape=(10000,)), 'function': &lt;function SyntheticDataGenerator._create_dgp_function.&lt;locals&gt;.f_cont at 0x7f38844fc820&gt;}
 DGP for T2_binary:
 {'formula': '1 + W1_continuous + W2_binary + W3_discrete + X1_continuous', 'params': array([ 0.40298227,  0.46731892, -0.04221048, -1.01745299,  0.75777365]), 'noise': array([ 0.61588584,  3.23845316, -4.20232967, ..., -5.30465767,
-       -4.77383245, -3.11883147]), 'raw_scores': array([0.62118342, 0.98880257, 0.01598516, ..., 0.01117315, 0.0234736 ,
-       0.02722537]), 'function': &lt;function SyntheticDataGenerator._create_dgp_function.&lt;locals&gt;.f_binary at 0x7f2894ea7910&gt;}
+       -4.77383245, -3.11883147], shape=(10000,)), 'raw_scores': array([0.62118342, 0.98880257, 0.01598516, ..., 0.01117315, 0.0234736 ,
+       0.02722537], shape=(10000,)), 'function': &lt;function SyntheticDataGenerator._create_dgp_function.&lt;locals&gt;.f_binary at 0x7f38844fc790&gt;}
 DGP for T3_discrete:
 {'formula': '1 + W1_continuous + W2_binary + W3_discrete + X1_continuous', 'params': array([[ 0.28408456, -0.41400534,  0.89869683, -0.21225787, -0.51305644],
        [-0.19632837,  0.02928109, -0.76527952, -1.08498952, -0.10759088],
@@ -1296,32 +1300,33 @@ DGP for T3_discrete:
        ...,
        [-0.31659162,  7.97101022, -0.80878524, -2.60107951, -1.99808469],
        [-2.55599124,  2.33060302, -1.21559451,  1.39676363, -1.08090999],
-       [-0.93239336,  1.08707538,  3.1621623 , -3.38126668, -1.0282605 ]]), 'raw_scores': array([[0.2, 0.2, 0.2, 0.2, 0.2],
+       [-0.93239336,  1.08707538,  3.1621623 , -3.38126668, -1.0282605 ]],
+      shape=(10000, 5)), 'raw_scores': array([[0.2, 0.2, 0.2, 0.2, 0.2],
        [0.2, 0.2, 0.2, 0.2, 0.2],
        [0.2, 0.2, 0.2, 0.2, 0.2],
        ...,
        [0.2, 0.2, 0.2, 0.2, 0.2],
        [0.2, 0.2, 0.2, 0.2, 0.2],
-       [0.2, 0.2, 0.2, 0.2, 0.2]]), 'function': &lt;function SyntheticDataGenerator._create_dgp_function.&lt;locals&gt;.f_discrete at 0x7f2854fd1360&gt;}
+       [0.2, 0.2, 0.2, 0.2, 0.2]], shape=(10000, 5)), 'function': &lt;function SyntheticDataGenerator._create_dgp_function.&lt;locals&gt;.f_discrete at 0x7f3847750c10&gt;}
 DGP for Y1_continuous:
 {'formula': '1 + W1_continuous + W2_binary + W3_discrete + X1_continuous + X2_binary + X3_discrete + T1_continuous + T2_binary + T3_discrete + T1_continuous*X1_continuous + T1_continuous*X2_binary + T1_continuous*X3_discrete + T2_binary*X1_continuous + T2_binary*X2_binary + T2_binary*X3_discrete + T3_discrete*X1_continuous + T3_discrete*X2_binary + T3_discrete*X3_discrete', 'params': array([-1.24245918, -2.15840213,  1.21168055,  1.88903987, -1.66394546,
        -2.8238776 ,  2.19040025,  1.56437294, -1.2158549 ,  1.1796722 ,
         1.85630525,  0.40119701,  4.06451821,  2.44944857, -0.75652854,
         2.2728199 ,  1.29513067,  1.243022  , -0.35985222]), 'noise': array([ 1.68788239,  4.68077263, -4.52386602, ...,  0.73772796,
-        5.84175262, -3.42458613]), 'raw_scores': array([ -20.92714575,   -9.74770328,  -17.37000412, ..., -105.68343735,
-          0.84757356,  113.30196785]), 'function': &lt;function SyntheticDataGenerator._create_dgp_function.&lt;locals&gt;.f_cont at 0x7f2854fd1510&gt;}
+        5.84175262, -3.42458613], shape=(10000,)), 'raw_scores': array([ -20.92714575,   -9.74770328,  -17.37000412, ..., -105.68343735,
+          0.84757356,  113.30196785], shape=(10000,)), 'function': &lt;function SyntheticDataGenerator._create_dgp_function.&lt;locals&gt;.f_cont at 0x7f3847750dc0&gt;}
 DGP for Y2_binary:
 {'formula': '1 + W1_continuous + W2_binary + W3_discrete + X1_continuous + X2_binary + X3_discrete + T1_continuous + T2_binary + T3_discrete + T1_continuous*X1_continuous + T1_continuous*X2_binary + T1_continuous*X3_discrete + T2_binary*X1_continuous + T2_binary*X2_binary + T2_binary*X3_discrete + T3_discrete*X1_continuous + T3_discrete*X2_binary + T3_discrete*X3_discrete', 'params': array([ 3.10830726e-01, -8.76756219e-02,  5.06943774e-01,  3.63265570e-01,
         8.10885598e-02,  1.61061427e-01, -2.64294557e-04, -2.93078750e-01,
        -6.41686816e-01, -2.78041378e-01, -9.20270247e-02, -1.89629801e-01,
         2.13406730e-01,  5.55264734e-01, -7.14195311e-01,  5.33709717e-01,
        -3.91935251e-01, -6.16656576e-01, -6.84033929e-01]), 'noise': array([-2.0490385 ,  0.51909257,  0.81681174, ...,  5.05902104,
-       -2.13548014, -1.22267512]), 'raw_scores': array([0.28372465, 0.05238531, 0.97803581, ..., 0.99      , 0.03363826,
-       0.01      ]), 'function': &lt;function SyntheticDataGenerator._create_dgp_function.&lt;locals&gt;.f_binary at 0x7f2854fd1630&gt;}</code></pre>
+       -2.13548014, -1.22267512], shape=(10000,)), 'raw_scores': array([0.28372465, 0.05238531, 0.97803581, ..., 0.99      , 0.03363826,
+       0.01      ], shape=(10000,)), 'function': &lt;function SyntheticDataGenerator._create_dgp_function.&lt;locals&gt;.f_binary at 0x7f3847750ca0&gt;}</code></pre>
 </div>
 </div>
 <p>We can recreate the raw scores of our treatment and outcome variables too:</p>
-<div id="4f1734b4" class="cell" data-execution_count="7">
+<div id="7d794ddc" class="cell" data-execution_count="7">
 <div class="sourceCode cell-code" id="cb8"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Recreate Y1_continuous</span></span>
 <span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>df <span class="op">=</span> data_generator.df</span>
 <span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>dgp <span class="op">=</span> data_generator.dgp[<span class="st">"Y1_continuous"</span>]</span>
@@ -1354,7 +1359,7 @@ Length: 10000, dtype: float64</code></pre>
 </div>
 </div>
 <p>For treatment variables, we get back the probabilities:</p>
-<div id="56cd7878" class="cell" data-execution_count="8">
+<div id="715293b6" class="cell" data-execution_count="8">
 <div class="sourceCode cell-code" id="cb10"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Recreate Y2_binary</span></span>
 <span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>dgp_bin <span class="op">=</span> data_generator.dgp[<span class="st">"Y2_binary"</span>]</span>
 <span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a></span>
@@ -1790,8 +1795,8 @@ Length: 10000, dtype: float64</code></pre>
   </script>
 <nav class="page-navigation">
   <div class="nav-page nav-page-previous">
-      <a href="../03_Examples/FastOLS.html" class="pagination-link" aria-label="FastOLS">
-        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text">FastOLS</span>
+      <a href="../03_Examples/InteractiveLinearRegression.html" class="pagination-link" aria-label="InteractiveLinearRegression">
+        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text">InteractiveLinearRegression</span>
       </a>          
   </div>
   <div class="nav-page nav-page-next">

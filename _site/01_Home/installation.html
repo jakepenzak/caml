@@ -606,6 +606,10 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     <a class="dropdown-item" href="../02_Concepts/models.html">
  <span class="dropdown-text">Model Specifications</span></a>
   </li>  
+        <li>
+    <a class="dropdown-item" href="../02_Concepts/references.html">
+ <span class="dropdown-text">References</span></a>
+  </li>  
     </ul>
   </li>
   <li class="nav-item dropdown ">
@@ -618,8 +622,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
  <span class="dropdown-text">AutoCATE</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="../03_Examples/FastOLS.html">
- <span class="dropdown-text">FastOLS</span></a>
+    <a class="dropdown-item" href="../03_Examples/InteractiveLinearRegression.html">
+ <span class="dropdown-text">InteractiveLinearRegression</span></a>
   </li>  
         <li>
     <a class="dropdown-item" href="../03_Examples/SyntheticDataGenerator.html">
@@ -763,7 +767,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <div class="sourceCode" id="cb2"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">pip</span> install caml=={version}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <p>To install optional/extra dependencies, run:</p>
 <div class="sourceCode" id="cb3"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">pip</span> install <span class="st">'caml[extra]'</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<p>We currently support the following extras: <code>pyspark</code> &amp; <code>polars</code>.</p>
+<p>We currently support the following extras: <code>spark</code> &amp; <code>ray</code>. These can be leveraged when running <code>AutoCATE</code> class with <code>spark</code> or <code>ray</code> backend.</p>
 <p><strong>Note:</strong> CaML is in a highly experimental state and no stable release exists. Breaking changes to the API may occur at any time.</p>
 
 
