@@ -784,17 +784,17 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <section id="generate-synthetic-data" class="level2">
 <h2 class="anchored" data-anchor-id="generate-synthetic-data">Generate Synthetic Data</h2>
 <p>Here we’ll leverage the <a href="../04_Reference/SyntheticDataGenerator.html"><code>SyntheticDataGenerator</code></a> class to generate a linear synthetic data generating process, with an exogenous binary treatment, a continuous &amp; a binary outcome, and binary &amp; continuous mediating covariates.</p>
-<div id="f29200a6" class="cell" data-execution_count="1">
+<div id="967f0fd1" class="cell" data-execution_count="1">
 <div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> caml.generics.logging <span class="im">import</span> configure_logging</span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> logging</span>
 <span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>configure_logging(level<span class="op">=</span>logging.DEBUG)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display">
-<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"><span style="color: #7fbfbf; text-decoration-color: #7fbfbf">[11/13/25 16:27:47] </span><span style="color: #008080; text-decoration-color: #008080">DEBUG   </span> Logging configured with level: DEBUG                                     <a href="file:///home/runner/work/caml/caml/caml/generics/logging.py" target="_blank"><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">logging.py</span></a><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">:</span><a href="file:///home/runner/work/caml/caml/caml/generics/logging.py#74" target="_blank"><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">74</span></a>
+<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"><span style="color: #7fbfbf; text-decoration-color: #7fbfbf">[11/13/25 16:42:27] </span><span style="color: #008080; text-decoration-color: #008080">DEBUG   </span> Logging configured with level: DEBUG                                     <a href="file:///home/runner/work/caml/caml/caml/generics/logging.py" target="_blank"><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">logging.py</span></a><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">:</span><a href="file:///home/runner/work/caml/caml/caml/generics/logging.py#74" target="_blank"><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">74</span></a>
 </pre>
 </div>
 </div>
-<div id="56c01734" class="cell" data-execution_count="2">
+<div id="b491ce1d" class="cell" data-execution_count="2">
 <div class="sourceCode cell-code" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> caml.extensions.synthetic_data <span class="im">import</span> SyntheticDataGenerator</span>
 <span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>data_generator <span class="op">=</span> SyntheticDataGenerator(</span>
@@ -817,7 +817,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </div>
 </div>
 <p>We can print our simulated data via:</p>
-<div id="b3f16c22" class="cell" data-execution_count="3">
+<div id="b22742dd" class="cell" data-execution_count="3">
 <div class="sourceCode cell-code" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>data_generator.df</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display" data-execution_count="3">
 <div>
@@ -991,7 +991,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </div>
 </div>
 <p>To inspect our true data generating process, we can call <code>data_generator.dgp</code>. Furthermore, we will have our true CATEs and ATEs at our disposal via <code>data_generator.cates</code> &amp; <code>data_generator.ates</code>, respectively. We’ll use this as our source of truth for performance evaluation of our CATE estimator.</p>
-<div id="aaa57b0b" class="cell" data-execution_count="4">
+<div id="1375adf0" class="cell" data-execution_count="4">
 <div class="sourceCode cell-code" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> t, df <span class="kw">in</span> data_generator.dgp.items():</span>
 <span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f"</span><span class="ch">\n</span><span class="ss">DGP for </span><span class="sc">{</span>t<span class="sc">}</span><span class="ss">:"</span>)</span>
 <span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(df)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
@@ -1000,24 +1000,24 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 DGP for T1_binary:
 {'formula': '1 + W1_continuous + W2_continuous', 'params': array([0.00323235, 0.14809798, 0.00393589]), 'noise': array([ 0.41708078,  2.72097405, -0.05882655, ...,  0.53984804,
         1.50464572, -0.08231107], shape=(10000,)), 'raw_scores': array([0.6130131 , 0.9436502 , 0.50082704, ..., 0.6447923 , 0.83198225,
-       0.48696005], shape=(10000,)), 'function': &lt;function SyntheticDataGenerator._create_dgp_function.&lt;locals&gt;.f_binary at 0x7ff5f0bf4820&gt;}
+       0.48696005], shape=(10000,)), 'function': &lt;function SyntheticDataGenerator._create_dgp_function.&lt;locals&gt;.f_binary at 0x7f8ea0a20820&gt;}
 
 DGP for Y1_continuous:
 {'formula': '1 + W1_continuous + W2_continuous + X1_continuous + X2_continuous + X3_continuous + X4_binary + X5_binary + T1_binary + T1_binary*X1_continuous + T1_binary*X2_continuous + T1_binary*X3_continuous + T1_binary*X4_binary + T1_binary*X5_binary', 'params': array([-0.35986539, -3.30656481, -1.08522702, -2.03156347,  4.15748518,
        -3.7649075 ,  2.0412171 , -4.06259065,  1.19724956, -1.49108621,
        -0.33216768,  1.0519125 , -0.68252501,  0.57505328]), 'noise': array([ 0.19963494, -0.500903  ,  1.15056187, ..., -1.08977141,
         0.79262583,  1.81566293], shape=(10000,)), 'raw_scores': array([-11.31940995,   9.16782505, -21.01031565, ...,  -1.03763754,
-        -0.23595847, -20.00791171], shape=(10000,)), 'function': &lt;function SyntheticDataGenerator._create_dgp_function.&lt;locals&gt;.f_cont at 0x7ff57a487880&gt;}
+        -0.23595847, -20.00791171], shape=(10000,)), 'function': &lt;function SyntheticDataGenerator._create_dgp_function.&lt;locals&gt;.f_cont at 0x7f8e1a1c3880&gt;}
 
 DGP for Y2_binary:
 {'formula': '1 + W1_continuous + W2_continuous + X1_continuous + X2_continuous + X3_continuous + X4_binary + X5_binary + T1_binary + T1_binary*X1_continuous + T1_binary*X2_continuous + T1_binary*X3_continuous + T1_binary*X4_binary + T1_binary*X5_binary', 'params': array([-0.69301323,  0.54152509,  0.39837891,  0.15335688,  0.39980853,
        -0.31388112, -0.18490127,  0.25395436,  0.19802621, -0.84703988,
        -0.12066193,  0.09225998,  0.37205785, -0.20954318]), 'noise': array([ 1.07352996,  0.43383419, -1.01413765, ..., -1.15478882,
         0.58572912,  0.22523345], shape=(10000,)), 'raw_scores': array([0.06237408, 0.99      , 0.75869455, ..., 0.65949716, 0.91015409,
-       0.77628529], shape=(10000,)), 'function': &lt;function SyntheticDataGenerator._create_dgp_function.&lt;locals&gt;.f_binary at 0x7ff57a487a30&gt;}</code></pre>
+       0.77628529], shape=(10000,)), 'function': &lt;function SyntheticDataGenerator._create_dgp_function.&lt;locals&gt;.f_binary at 0x7f8e1a1c3a30&gt;}</code></pre>
 </div>
 </div>
-<div id="7479e051" class="cell" data-execution_count="5">
+<div id="ab4a0055" class="cell" data-execution_count="5">
 <div class="sourceCode cell-code" id="cb6"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>data_generator.cates</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display" data-execution_count="5">
 <div>
@@ -1094,7 +1094,7 @@ DGP for Y2_binary:
 </div>
 </div>
 </div>
-<div id="9c5581c8" class="cell" data-execution_count="6">
+<div id="4555921c" class="cell" data-execution_count="6">
 <div class="sourceCode cell-code" id="cb7"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>data_generator.ates</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display" data-execution_count="6">
 <div>
@@ -1131,7 +1131,7 @@ DGP for Y2_binary:
 <section id="class-instantiation" class="level3">
 <h3 class="anchored" data-anchor-id="class-instantiation">Class Instantiation</h3>
 <p>We can instantiate and observe our <code>InteractiveLinearRegression</code> object via:</p>
-<div id="1c83e10d" class="cell" data-execution_count="7">
+<div id="e9357b36" class="cell" data-execution_count="7">
 <div class="sourceCode cell-code" id="cb8"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> caml <span class="im">import</span> InteractiveLinearRegression</span>
 <span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>ilr <span class="op">=</span> InteractiveLinearRegression(</span>
@@ -1168,7 +1168,7 @@ DGP for Y2_binary:
 </pre>
 </div>
 </div>
-<div id="4463a795" class="cell" data-execution_count="8">
+<div id="720b55c6" class="cell" data-execution_count="8">
 <div class="sourceCode cell-code" id="cb9"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(ilr)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>================== InteractiveLinearRegression Object ==================
@@ -1200,7 +1200,7 @@ Warning
 </div>
 </div>
 <p>For heteroskedasticity-robust variance estimation, we will also pass <code>robust_vcv=True</code>.</p>
-<div id="46677b70" class="cell" data-execution_count="9">
+<div id="c49888f4" class="cell" data-execution_count="9">
 <div class="sourceCode cell-code" id="cb11"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>ilr.fit(data_generator.df, n_jobs<span class="op">=-</span><span class="dv">1</span>, estimate_effects<span class="op">=</span><span class="va">True</span>, cov_type<span class="op">=</span><span class="st">"HC1"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display">
 <pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"><span style="color: #7fbfbf; text-decoration-color: #7fbfbf">                    </span><span style="color: #008080; text-decoration-color: #008080">DEBUG   </span> Creating model design matrix<span style="color: #808000; text-decoration-color: #808000">...</span>                                             <a href="file:///home/runner/work/caml/caml/caml/core/ols.py" target="_blank"><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">ols.py</span></a><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">:</span><a href="file:///home/runner/work/caml/caml/caml/core/ols.py#507" target="_blank"><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">507</span></a>
@@ -1223,7 +1223,7 @@ Warning
 </pre>
 </div>
 <div class="cell-output cell-output-display">
-<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"><span style="color: #7fbfbf; text-decoration-color: #7fbfbf">                    </span><span style="color: #008080; text-decoration-color: #008080">DEBUG   </span> Difference Matrix Creation completed in <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">0.11</span> seconds                 <a href="file:///home/runner/work/caml/caml/caml/generics/decorators.py" target="_blank"><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">decorators.py</span></a><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">:</span><a href="file:///home/runner/work/caml/caml/caml/generics/decorators.py#128" target="_blank"><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">128</span></a>
+<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"><span style="color: #7fbfbf; text-decoration-color: #7fbfbf">                    </span><span style="color: #008080; text-decoration-color: #008080">DEBUG   </span> Difference Matrix Creation completed in <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">0.12</span> seconds                 <a href="file:///home/runner/work/caml/caml/caml/generics/decorators.py" target="_blank"><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">decorators.py</span></a><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">:</span><a href="file:///home/runner/work/caml/caml/caml/generics/decorators.py#128" target="_blank"><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">128</span></a>
 </pre>
 </div>
 <div class="cell-output cell-output-display">
@@ -1248,7 +1248,7 @@ Warning
 </div>
 </div>
 <p>We can now inspect the model fitted results and estimated treatment effects:</p>
-<div id="fa57442a" class="cell" data-execution_count="10">
+<div id="e0dd9b60" class="cell" data-execution_count="10">
 <div class="sourceCode cell-code" id="cb12"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>ilr.params</span>
 <span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a><span class="co"># ilr.vcv</span></span>
 <span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a><span class="co"># ilr.std_err</span></span>
@@ -1272,13 +1272,13 @@ Warning
        [-1.63464173,  0.03581225]])</code></pre>
 </div>
 </div>
-<div id="10002fde" class="cell" data-execution_count="11">
+<div id="58d3e4d5" class="cell" data-execution_count="11">
 <div class="sourceCode cell-code" id="cb14"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>ilr.treatment_effects.keys()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display" data-execution_count="11">
 <pre><code>dict_keys(['overall', 'X4_binary-0', 'X4_binary-1', 'X5_binary-0', 'X5_binary-1'])</code></pre>
 </div>
 </div>
-<div id="a8c42578" class="cell" data-execution_count="12">
+<div id="452f87e9" class="cell" data-execution_count="12">
 <div class="sourceCode cell-code" id="cb16"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a>ilr.treatment_effects[<span class="st">"overall"</span>]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display" data-execution_count="12">
 <pre><code>{'outcome': ['Y1_continuous', 'Y2_binary'],
@@ -1293,7 +1293,7 @@ Warning
 </div>
 <p>Here we have direct access to the model parameters (<code>ilr.params</code>), variance-covariance matrices (<code>ilr.vcv]</code>), standard_errors (<code>ilr.std_err</code>), and estimated treatment effects (<code>ilr.treatment_effects</code>).</p>
 <p>To make the treatment effect results more readable, we can leverage the <code>prettify_treatment_effects</code> method:</p>
-<div id="54b17332" class="cell" data-execution_count="13">
+<div id="9ad3a1bd" class="cell" data-execution_count="13">
 <div class="sourceCode cell-code" id="cb18"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a>ilr.prettify_treatment_effects()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display" data-execution_count="13">
 <div>
@@ -1453,7 +1453,7 @@ Warning
 </div>
 </div>
 <p>Comparing our overall treatment effect (ATE) to the ground truth, we have:</p>
-<div id="dd0b1da4" class="cell" data-execution_count="14">
+<div id="0664bebf" class="cell" data-execution_count="14">
 <div class="sourceCode cell-code" id="cb19"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a>data_generator.ates</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display" data-execution_count="14">
 <div>
@@ -1485,7 +1485,7 @@ Warning
 </div>
 </div>
 <p>We can also see what our GATEs are using <code>data_generator.cates</code>. Let’s choose <code>X4_binary</code> in <code>1</code> group:</p>
-<div id="14ebe99f" class="cell" data-execution_count="15">
+<div id="9e960ce9" class="cell" data-execution_count="15">
 <div class="sourceCode cell-code" id="cb20"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a>data_generator.cates.iloc[</span>
 <span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a>    data_generator.df.query(<span class="st">"X4_binary == 1"</span>).index</span>
 <span id="cb20-3"><a href="#cb20-3" aria-hidden="true" tabindex="-1"></a>].mean()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
@@ -1499,7 +1499,7 @@ dtype: float64</code></pre>
 <section id="custom-group-average-treatment-effects-gates" class="level3">
 <h3 class="anchored" data-anchor-id="custom-group-average-treatment-effects-gates">Custom Group Average Treatment Effects (GATEs)</h3>
 <p>Let’s now look at how we can estimate any arbitary GATE using <code>estimate_ate</code> method and prettify the results with <code>prettify_treatment_effects</code>.</p>
-<div id="42eeeb86" class="cell" data-execution_count="16">
+<div id="99e8128d" class="cell" data-execution_count="16">
 <div class="sourceCode cell-code" id="cb22"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a>custom_gate_df <span class="op">=</span> data_generator.df.query(</span>
 <span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a>    <span class="st">"X4_binary == 1 &amp; X2_continuous &lt; -3"</span></span>
 <span id="cb22-3"><a href="#cb22-3" aria-hidden="true" tabindex="-1"></a>).copy()</span>
@@ -1520,7 +1520,7 @@ dtype: float64</code></pre>
 </pre>
 </div>
 <div class="cell-output cell-output-display">
-<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"><span style="color: #7fbfbf; text-decoration-color: #7fbfbf">                    </span><span style="color: #008080; text-decoration-color: #008080">DEBUG   </span> Difference Matrix Creation completed in <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">0.02</span> seconds                 <a href="file:///home/runner/work/caml/caml/caml/generics/decorators.py" target="_blank"><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">decorators.py</span></a><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">:</span><a href="file:///home/runner/work/caml/caml/caml/generics/decorators.py#128" target="_blank"><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">128</span></a>
+<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"><span style="color: #7fbfbf; text-decoration-color: #7fbfbf">                    </span><span style="color: #008080; text-decoration-color: #008080">DEBUG   </span> Difference Matrix Creation completed in <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">0.03</span> seconds                 <a href="file:///home/runner/work/caml/caml/caml/generics/decorators.py" target="_blank"><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">decorators.py</span></a><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">:</span><a href="file:///home/runner/work/caml/caml/caml/generics/decorators.py#128" target="_blank"><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">128</span></a>
 </pre>
 </div>
 <div class="cell-output cell-output-display">
@@ -1581,7 +1581,7 @@ dtype: float64</code></pre>
 </div>
 </div>
 <p>Let’s compare this to the ground truth as well:</p>
-<div id="abc77524" class="cell" data-execution_count="17">
+<div id="3666a8bb" class="cell" data-execution_count="17">
 <div class="sourceCode cell-code" id="cb23"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a>data_generator.cates.iloc[custom_gate_df.index].mean()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display" data-execution_count="17">
 <pre><code>CATE_of_T1_binary_on_Y1_continuous    0.530934
@@ -1606,7 +1606,7 @@ Note
 <p>The <code>predict</code> method is a simple alias for <code>estimate_cate</code>. Either can be used, but namespacing was created to higlight that <code>estimate_cate</code> / <code>predict</code> can be used for out of sample treatment effect prediction.</p>
 </div>
 </div>
-<div id="7b96ed23" class="cell" data-execution_count="18">
+<div id="8729feb3" class="cell" data-execution_count="18">
 <div class="sourceCode cell-code" id="cb25"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a>cates <span class="op">=</span> ilr.estimate_cate(data_generator.df)</span>
 <span id="cb25-2"><a href="#cb25-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb25-3"><a href="#cb25-3" aria-hidden="true" tabindex="-1"></a>cates</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
@@ -1619,7 +1619,7 @@ Note
 </pre>
 </div>
 <div class="cell-output cell-output-display">
-<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"><span style="color: #7fbfbf; text-decoration-color: #7fbfbf">                    </span><span style="color: #008080; text-decoration-color: #008080">DEBUG   </span> Difference Matrix Creation completed in <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">0.08</span> seconds                 <a href="file:///home/runner/work/caml/caml/caml/generics/decorators.py" target="_blank"><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">decorators.py</span></a><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">:</span><a href="file:///home/runner/work/caml/caml/caml/generics/decorators.py#128" target="_blank"><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">128</span></a>
+<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"><span style="color: #7fbfbf; text-decoration-color: #7fbfbf">                    </span><span style="color: #008080; text-decoration-color: #008080">DEBUG   </span> Difference Matrix Creation completed in <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">0.09</span> seconds                 <a href="file:///home/runner/work/caml/caml/caml/generics/decorators.py" target="_blank"><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">decorators.py</span></a><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">:</span><a href="file:///home/runner/work/caml/caml/caml/generics/decorators.py#128" target="_blank"><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">128</span></a>
 </pre>
 </div>
 <div class="cell-output cell-output-display">
@@ -1637,7 +1637,7 @@ Note
 </div>
 </div>
 <p>If we wanted additional information on CATEs (such as standard errors), we can call:</p>
-<div id="2bea0dbd" class="cell" data-execution_count="19">
+<div id="8a387957" class="cell" data-execution_count="19">
 <div class="sourceCode cell-code" id="cb27"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a>ilr.estimate_cate(data_generator.df, return_results_dict<span class="op">=</span><span class="va">True</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display">
 <pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"><span style="color: #7fbfbf; text-decoration-color: #7fbfbf">                    </span><span style="color: #008000; text-decoration-color: #008000">INFO    </span> Estimating Conditional Average Treatment Effects <span style="font-weight: bold">(</span>CATEs<span style="font-weight: bold">)</span><span style="color: #808000; text-decoration-color: #808000">...</span>                 <a href="file:///home/runner/work/caml/caml/caml/core/ols.py" target="_blank"><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">ols.py</span></a><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">:</span><a href="file:///home/runner/work/caml/caml/caml/core/ols.py#324" target="_blank"><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">324</span></a>
@@ -1648,11 +1648,11 @@ Note
 </pre>
 </div>
 <div class="cell-output cell-output-display">
-<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"><span style="color: #7fbfbf; text-decoration-color: #7fbfbf">                    </span><span style="color: #008080; text-decoration-color: #008080">DEBUG   </span> Difference Matrix Creation completed in <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">0.08</span> seconds                 <a href="file:///home/runner/work/caml/caml/caml/generics/decorators.py" target="_blank"><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">decorators.py</span></a><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">:</span><a href="file:///home/runner/work/caml/caml/caml/generics/decorators.py#128" target="_blank"><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">128</span></a>
+<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"><span style="color: #7fbfbf; text-decoration-color: #7fbfbf">[11/13/25 16:42:28] </span><span style="color: #008080; text-decoration-color: #008080">DEBUG   </span> Difference Matrix Creation completed in <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">0.09</span> seconds                 <a href="file:///home/runner/work/caml/caml/caml/generics/decorators.py" target="_blank"><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">decorators.py</span></a><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">:</span><a href="file:///home/runner/work/caml/caml/caml/generics/decorators.py#128" target="_blank"><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">128</span></a>
 </pre>
 </div>
 <div class="cell-output cell-output-display">
-<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"><span style="color: #7fbfbf; text-decoration-color: #7fbfbf">                    </span><span style="color: #008080; text-decoration-color: #008080">DEBUG   </span> CATE Estimation completed in <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">0.10</span> seconds                            <a href="file:///home/runner/work/caml/caml/caml/generics/decorators.py" target="_blank"><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">decorators.py</span></a><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">:</span><a href="file:///home/runner/work/caml/caml/caml/generics/decorators.py#128" target="_blank"><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">128</span></a>
+<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"><span style="color: #7fbfbf; text-decoration-color: #7fbfbf">                    </span><span style="color: #008080; text-decoration-color: #008080">DEBUG   </span> CATE Estimation completed in <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">0.11</span> seconds                            <a href="file:///home/runner/work/caml/caml/caml/generics/decorators.py" target="_blank"><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">decorators.py</span></a><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">:</span><a href="file:///home/runner/work/caml/caml/caml/generics/decorators.py#128" target="_blank"><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">128</span></a>
 </pre>
 </div>
 <div class="cell-output cell-output-display" data-execution_count="19">
@@ -1688,7 +1688,7 @@ Note
 </div>
 </div>
 <p>Now, let’s make our cate predictions:</p>
-<div id="b8ec2ec2" class="cell" data-execution_count="20">
+<div id="ac9e9a71" class="cell" data-execution_count="20">
 <div class="sourceCode cell-code" id="cb29"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a>cate_predictions <span class="op">=</span> ilr.predict(data_generator.df)</span>
 <span id="cb29-2"><a href="#cb29-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb29-3"><a href="#cb29-3" aria-hidden="true" tabindex="-1"></a><span class="co">## We can also make predictions of the outcomes, if desired.</span></span>
@@ -1713,7 +1713,7 @@ Note
 <p>Let’s now look at the Precision in Estimating Heterogeneous Effects (PEHE) (e.g., RMSE) and plot some results for the treatment effects on each outcome:</p>
 <section id="effect-of-binary-t1-on-continuous-y1" class="level4">
 <h4 class="anchored" data-anchor-id="effect-of-binary-t1-on-continuous-y1">Effect of <em>binary</em> T1 on <em>continuous</em> Y1</h4>
-<div id="077f01a6" class="cell" data-execution_count="21">
+<div id="ecdedee8" class="cell" data-execution_count="21">
 <div class="sourceCode cell-code" id="cb30"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb30-1"><a href="#cb30-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.metrics <span class="im">import</span> root_mean_squared_error</span>
 <span id="cb30-2"><a href="#cb30-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> caml.extensions.plots <span class="im">import</span> (</span>
 <span id="cb30-3"><a href="#cb30-3" aria-hidden="true" tabindex="-1"></a>    cate_true_vs_estimated_plot,</span>
@@ -1721,7 +1721,7 @@ Note
 <span id="cb30-5"><a href="#cb30-5" aria-hidden="true" tabindex="-1"></a>    cate_line_plot,</span>
 <span id="cb30-6"><a href="#cb30-6" aria-hidden="true" tabindex="-1"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
-<div id="7d44ad20" class="cell" data-execution_count="22">
+<div id="39dc1b18" class="cell" data-execution_count="22">
 <div class="sourceCode cell-code" id="cb31"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb31-1"><a href="#cb31-1" aria-hidden="true" tabindex="-1"></a>true_cates1 <span class="op">=</span> data_generator.cates.iloc[:, <span class="dv">0</span>]</span>
 <span id="cb31-2"><a href="#cb31-2" aria-hidden="true" tabindex="-1"></a>predicted_cates1 <span class="op">=</span> cate_predictions[:, <span class="dv">0</span>]</span>
 <span id="cb31-3"><a href="#cb31-3" aria-hidden="true" tabindex="-1"></a>root_mean_squared_error(true_cates1, predicted_cates1)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
@@ -1729,7 +1729,7 @@ Note
 <pre><code>0.054197542640946</code></pre>
 </div>
 </div>
-<div id="2a48c372" class="cell" data-execution_count="23">
+<div id="57f792da" class="cell" data-execution_count="23">
 <div class="sourceCode cell-code" id="cb33"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb33-1"><a href="#cb33-1" aria-hidden="true" tabindex="-1"></a>cate_true_vs_estimated_plot(</span>
 <span id="cb33-2"><a href="#cb33-2" aria-hidden="true" tabindex="-1"></a>    true_cates<span class="op">=</span>true_cates1, estimated_cates<span class="op">=</span>predicted_cates1</span>
 <span id="cb33-3"><a href="#cb33-3" aria-hidden="true" tabindex="-1"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
@@ -1741,7 +1741,7 @@ Note
 </div>
 </div>
 </div>
-<div id="8f83e90d" class="cell" data-execution_count="24">
+<div id="fff425e2" class="cell" data-execution_count="24">
 <div class="sourceCode cell-code" id="cb34"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb34-1"><a href="#cb34-1" aria-hidden="true" tabindex="-1"></a>cate_histogram_plot(true_cates<span class="op">=</span>true_cates1, estimated_cates<span class="op">=</span>predicted_cates1)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display" data-execution_count="24">
 <div>
@@ -1751,7 +1751,7 @@ Note
 </div>
 </div>
 </div>
-<div id="a0b1f898" class="cell" data-execution_count="25">
+<div id="32b25cea" class="cell" data-execution_count="25">
 <div class="sourceCode cell-code" id="cb35"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb35-1"><a href="#cb35-1" aria-hidden="true" tabindex="-1"></a>cate_line_plot(</span>
 <span id="cb35-2"><a href="#cb35-2" aria-hidden="true" tabindex="-1"></a>    true_cates<span class="op">=</span>true_cates1, estimated_cates<span class="op">=</span>predicted_cates1, window<span class="op">=</span><span class="dv">20</span></span>
 <span id="cb35-3"><a href="#cb35-3" aria-hidden="true" tabindex="-1"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
@@ -1766,7 +1766,7 @@ Note
 </section>
 <section id="effect-of-binary-t1-on-binary-y2" class="level4">
 <h4 class="anchored" data-anchor-id="effect-of-binary-t1-on-binary-y2">Effect of <em>binary</em> T1 on <em>binary</em> Y2</h4>
-<div id="44c2f98b" class="cell" data-execution_count="26">
+<div id="10c3a35b" class="cell" data-execution_count="26">
 <div class="sourceCode cell-code" id="cb36"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb36-1"><a href="#cb36-1" aria-hidden="true" tabindex="-1"></a>true_cates2 <span class="op">=</span> data_generator.cates.iloc[:, <span class="dv">1</span>]</span>
 <span id="cb36-2"><a href="#cb36-2" aria-hidden="true" tabindex="-1"></a>predicted_cates2 <span class="op">=</span> cate_predictions[:, <span class="dv">1</span>]</span>
 <span id="cb36-3"><a href="#cb36-3" aria-hidden="true" tabindex="-1"></a>root_mean_squared_error(true_cates2, predicted_cates2)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
@@ -1774,7 +1774,7 @@ Note
 <pre><code>0.15683038625127854</code></pre>
 </div>
 </div>
-<div id="f418497c" class="cell" data-execution_count="27">
+<div id="05a2558b" class="cell" data-execution_count="27">
 <div class="sourceCode cell-code" id="cb38"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb38-1"><a href="#cb38-1" aria-hidden="true" tabindex="-1"></a>cate_true_vs_estimated_plot(</span>
 <span id="cb38-2"><a href="#cb38-2" aria-hidden="true" tabindex="-1"></a>    true_cates<span class="op">=</span>true_cates2, estimated_cates<span class="op">=</span>predicted_cates2</span>
 <span id="cb38-3"><a href="#cb38-3" aria-hidden="true" tabindex="-1"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
@@ -1786,7 +1786,7 @@ Note
 </div>
 </div>
 </div>
-<div id="b71aee06" class="cell" data-execution_count="28">
+<div id="d78d64d4" class="cell" data-execution_count="28">
 <div class="sourceCode cell-code" id="cb39"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb39-1"><a href="#cb39-1" aria-hidden="true" tabindex="-1"></a>cate_histogram_plot(true_cates<span class="op">=</span>true_cates2, estimated_cates<span class="op">=</span>predicted_cates2)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display" data-execution_count="28">
 <div>
@@ -1796,7 +1796,7 @@ Note
 </div>
 </div>
 </div>
-<div id="e522ef85" class="cell" data-execution_count="29">
+<div id="263e831a" class="cell" data-execution_count="29">
 <div class="sourceCode cell-code" id="cb40"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb40-1"><a href="#cb40-1" aria-hidden="true" tabindex="-1"></a>cate_line_plot(</span>
 <span id="cb40-2"><a href="#cb40-2" aria-hidden="true" tabindex="-1"></a>    true_cates<span class="op">=</span>true_cates2, estimated_cates<span class="op">=</span>predicted_cates2, window<span class="op">=</span><span class="dv">20</span></span>
 <span id="cb40-3"><a href="#cb40-3" aria-hidden="true" tabindex="-1"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
