@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 
-<title>Environment Setup – CaML - Causal ML</title>
+<title>References – CaML - Causal ML</title>
 <style>
 code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
@@ -20,7 +20,27 @@ ul.task-list li input[type="checkbox"] {
   margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
   vertical-align: middle;
 }
-</style>
+/* CSS for citations */
+div.csl-bib-body { }
+div.csl-entry {
+  clear: both;
+  margin-bottom: 0em;
+}
+.hanging-indent div.csl-entry {
+  margin-left:2em;
+  text-indent:-2em;
+}
+div.csl-left-margin {
+  min-width:2em;
+  float:left;
+}
+div.csl-right-inline {
+  margin-left:2em;
+  padding-left:1em;
+}
+div.csl-indent {
+  margin-left: 2em;
+}</style>
 
 
 <script src="../site_libs/quarto-nav/quarto-nav.js"></script>
@@ -30,8 +50,7 @@ ul.task-list li input[type="checkbox"] {
 <script src="../site_libs/quarto-search/fuse.min.js"></script>
 <script src="../site_libs/quarto-search/quarto-search.js"></script>
 <meta name="quarto:offset" content="../">
-<link href="../05_Contributors/documentation.html" rel="next">
-<link href="../05_Contributors/getting_started.html" rel="prev">
+<link href="../02_Concepts/models.html" rel="prev">
 <link href="../assets/logo_no_text.svg" rel="icon" type="image/svg+xml">
 <script src="../site_libs/quarto-html/quarto.js" type="module"></script>
 <script src="../site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
@@ -513,8 +532,7 @@ ul.task-list li input[type="checkbox"] {
 
 
 <link rel="stylesheet" href="../styles/styles.css">
-<meta property="og:title" content="Environment Setup – CaML - Causal ML">
-<meta property="og:description" content="">
+<meta property="og:title" content="References – CaML - Causal ML">
 <meta property="og:site_name" content="CaML - Causal ML">
 </head>
 
@@ -571,6 +589,10 @@ ul.task-list li input[type="checkbox"] {
     <a class="dropdown-item" href="../02_Concepts/models.html">
  <span class="dropdown-text">Model Specifications</span></a>
   </li>  
+        <li>
+    <a class="dropdown-item" href="../02_Concepts/references.html">
+ <span class="dropdown-text">References</span></a>
+  </li>  
     </ul>
   </li>
   <li class="nav-item dropdown ">
@@ -583,8 +605,8 @@ ul.task-list li input[type="checkbox"] {
  <span class="dropdown-text">AutoCATE</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="../03_Examples/FastOLS.html">
- <span class="dropdown-text">FastOLS</span></a>
+    <a class="dropdown-item" href="../03_Examples/InteractiveLinearRegression.html">
+ <span class="dropdown-text">InteractiveLinearRegression</span></a>
   </li>  
         <li>
     <a class="dropdown-item" href="../03_Examples/SyntheticDataGenerator.html">
@@ -662,7 +684,7 @@ ul.task-list li input[type="checkbox"] {
       <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
         <i class="bi bi-layout-text-sidebar-reverse"></i>
       </button>
-        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../05_Contributors/environment.html">Environment Setup</a></li></ol></nav>
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../02_Concepts/references.html">References</a></li></ol></nav>
         <a class="flex-grow-1" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
         </a>
     </div>
@@ -676,32 +698,26 @@ ul.task-list li input[type="checkbox"] {
     <ul class="list-unstyled mt-1">
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../05_Contributors/getting_started.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text">Contributing to CaML</span></a>
+  <a href="../02_Concepts/motivation.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Motivation</span></a>
   </div>
 </li>
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../05_Contributors/environment.html" class="sidebar-item-text sidebar-link active">
- <span class="menu-text">Environment Setup</span></a>
+  <a href="../02_Concepts/theory.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Econometric Theory</span></a>
   </div>
 </li>
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../05_Contributors/documentation.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text">Documentation</span></a>
+  <a href="../02_Concepts/models.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Model Specifications</span></a>
   </div>
 </li>
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../05_Contributors/testing.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text">Testing</span></a>
-  </div>
-</li>
-        <li class="sidebar-item">
-  <div class="sidebar-item-container"> 
-  <a href="../05_Contributors/conventional_commits.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text">Conventional Commits</span></a>
+  <a href="../02_Concepts/references.html" class="sidebar-item-text sidebar-link active">
+ <span class="menu-text">References</span></a>
   </div>
 </li>
     </ul>
@@ -709,31 +725,15 @@ ul.task-list li input[type="checkbox"] {
 </nav>
 <div id="quarto-sidebar-glass" class="quarto-sidebar-collapse-item" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item"></div>
 <!-- margin-sidebar -->
-    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
-        <nav id="TOC" role="doc-toc" class="toc-active">
-    <h2 id="toc-title">On this page</h2>
-   
-  <ul>
-  <li><a href="#with-vscode-devcontainers" id="toc-with-vscode-devcontainers" class="nav-link active" data-scroll-target="#with-vscode-devcontainers">With VSCode Devcontainers</a>
-  <ul class="collapse">
-  <li><a href="#prerequisites" id="toc-prerequisites" class="nav-link" data-scroll-target="#prerequisites">Prerequisites</a></li>
-  <li><a href="#setup" id="toc-setup" class="nav-link" data-scroll-target="#setup">Setup</a></li>
-  </ul></li>
-  <li><a href="#without-devcontainers" id="toc-without-devcontainers" class="nav-link" data-scroll-target="#without-devcontainers">Without Devcontainers</a>
-  <ul class="collapse">
-  <li><a href="#prerequisites-1" id="toc-prerequisites-1" class="nav-link" data-scroll-target="#prerequisites-1">Prerequisites</a></li>
-  <li><a href="#setup-1" id="toc-setup-1" class="nav-link" data-scroll-target="#setup-1">Setup</a></li>
-  </ul></li>
-  <li><a href="#project-package-dependency-management" id="toc-project-package-dependency-management" class="nav-link" data-scroll-target="#project-package-dependency-management">Project &amp; Package Dependency Management</a></li>
-  </ul>
-<div class="toc-actions"><ul><li><a href="https://github.com/jakepenzak/caml/edit/main/docs/05_Contributors/environment.qmd" class="toc-action"><i class="bi bi-github"></i>Edit this page</a></li><li><a href="https://github.com/jakepenzak/caml/issues/new" class="toc-action"><i class="bi empty"></i>Report an issue</a></li></ul></div></nav>
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar zindex-bottom">
+        
     </div>
 <!-- main -->
 <main class="content" id="quarto-document-content">
 
 <header id="title-block-header" class="quarto-title-block default">
 <div class="quarto-title">
-<h1 class="title">Environment Setup</h1>
+<h1 class="title">References</h1>
 </div>
 
 
@@ -750,51 +750,13 @@ ul.task-list li input[type="checkbox"] {
 </header>
 
 
-<section id="with-vscode-devcontainers" class="level2">
-<h2 class="anchored" data-anchor-id="with-vscode-devcontainers">With VSCode Devcontainers</h2>
-<p>To help aid in environment setup, we’ve created a <a href="https://code.visualstudio.com/docs/devcontainers/containers">VS Code devcontainer</a> for quick, isolated, and standardized environment creation.</p>
-<section id="prerequisites" class="level3">
-<h3 class="anchored" data-anchor-id="prerequisites">Prerequisites</h3>
-<ul>
-<li><a href="https://www.docker.com/">Docker Desktop</a> or your choice of docker engine</li>
-<li><a href="https://code.visualstudio.com/">Visual Studio Code</a></li>
-</ul>
-</section>
-<section id="setup" class="level3">
-<h3 class="anchored" data-anchor-id="setup">Setup</h3>
-<ol type="1">
-<li>Ensure docker engine is running</li>
-<li>Open VSCode in cloned project directory</li>
-<li>Install VSCode <a href="https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers">Dev Containers extension</a></li>
-<li>Open the current folder in dev container</li>
-</ol>
-</section>
-</section>
-<section id="without-devcontainers" class="level2">
-<h2 class="anchored" data-anchor-id="without-devcontainers">Without Devcontainers</h2>
-<section id="prerequisites-1" class="level3">
-<h3 class="anchored" data-anchor-id="prerequisites-1">Prerequisites</h3>
-<ul>
-<li><a href="https://docs.astral.sh/uv/">uv</a></li>
-<li><a href="https://www.python.org/downloads/">python</a> v3.10</li>
-</ul>
-</section>
-<section id="setup-1" class="level3">
-<h3 class="anchored" data-anchor-id="setup-1">Setup</h3>
-<ol type="1">
-<li>Open repository in ide of choice</li>
-<li>Run <code>uv sync --all-groups --frozen</code> from command line</li>
-<li>Activate the virtual environment via <code>source .venv/bin/activate</code></li>
-<li>Run <code>pre-commit install</code> to install pre-commit hooks</li>
-</ol>
-</section>
-</section>
-<section id="project-package-dependency-management" class="level2">
-<h2 class="anchored" data-anchor-id="project-package-dependency-management">Project &amp; Package Dependency Management</h2>
-<p>We use <a href="https://docs.astral.sh/uv/">uv</a> for dependency &amp; project management. See uv <a href="https://docs.astral.sh/uv/">docs</a> for details.</p>
+<div id="refs" class="references csl-bib-body hanging-indent" data-entry-spacing="0" role="list">
+<div id="ref-chernozhukov2024chapter2" class="csl-entry" role="listitem">
+Chernozhukov, Victor, Christian Hansen, Nathan Kallus, Martin Spindler, and Vasilis Syrgkanis. 2024. <span>“Causal Inference via Randomized Experiments.”</span> In <em>Applied Causal Inference Powered by ML and AI</em>. CausalML-book.org. <a href="https://chapters.causalml-book.org/CausalML_chap_2.pdf">https://chapters.causalml-book.org/CausalML_chap_2.pdf</a>.
+</div>
+</div>
 
 
-</section>
 
 <a onclick="window.scrollTo(0, 0); return false;" role="button" id="quarto-back-to-top"><i class="bi bi-arrow-up"></i> Back to top</a></main> <!-- /main -->
 <script id="quarto-html-after-body" type="application/javascript">
@@ -1198,14 +1160,11 @@ ul.task-list li input[type="checkbox"] {
   </script>
 <nav class="page-navigation">
   <div class="nav-page nav-page-previous">
-      <a href="../05_Contributors/getting_started.html" class="pagination-link" aria-label="Contributing to CaML">
-        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text">Contributing to CaML</span>
+      <a href="../02_Concepts/models.html" class="pagination-link" aria-label="Model Specifications">
+        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text">Model Specifications</span>
       </a>          
   </div>
   <div class="nav-page nav-page-next">
-      <a href="../05_Contributors/documentation.html" class="pagination-link" aria-label="Documentation">
-        <span class="nav-page-text">Documentation</span> <i class="bi bi-arrow-right-short"></i>
-      </a>
   </div>
 </nav>
 </div> <!-- /content -->
@@ -1216,7 +1175,7 @@ ul.task-list li input[type="checkbox"] {
 </div>   
     <div class="nav-footer-center">
       &nbsp;
-    <div class="toc-actions d-sm-block d-md-none"><ul><li><a href="https://github.com/jakepenzak/caml/edit/main/docs/05_Contributors/environment.qmd" class="toc-action"><i class="bi bi-github"></i>Edit this page</a></li><li><a href="https://github.com/jakepenzak/caml/issues/new" class="toc-action"><i class="bi empty"></i>Report an issue</a></li></ul></div></div>
+    <div class="toc-actions"><ul><li><a href="https://github.com/jakepenzak/caml/edit/main/docs/02_Concepts/references.qmd" class="toc-action"><i class="bi bi-github"></i>Edit this page</a></li><li><a href="https://github.com/jakepenzak/caml/issues/new" class="toc-action"><i class="bi empty"></i>Report an issue</a></li></ul></div></div>
     <div class="nav-footer-right">
 <p>Powered by: <a href="https://quarto.org/"><img src="../assets/external_logos/quarto.png" class="img-fluid" width="85"></a></p>
 </div>

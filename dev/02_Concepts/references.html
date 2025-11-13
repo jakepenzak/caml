@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 
-<title>Conventional Commits – CaML - Causal ML</title>
+<title>References – CaML - Causal ML</title>
 <style>
 code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
@@ -20,7 +20,27 @@ ul.task-list li input[type="checkbox"] {
   margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
   vertical-align: middle;
 }
-</style>
+/* CSS for citations */
+div.csl-bib-body { }
+div.csl-entry {
+  clear: both;
+  margin-bottom: 0em;
+}
+.hanging-indent div.csl-entry {
+  margin-left:2em;
+  text-indent:-2em;
+}
+div.csl-left-margin {
+  min-width:2em;
+  float:left;
+}
+div.csl-right-inline {
+  margin-left:2em;
+  padding-left:1em;
+}
+div.csl-indent {
+  margin-left: 2em;
+}</style>
 
 
 <script src="../site_libs/quarto-nav/quarto-nav.js"></script>
@@ -30,7 +50,7 @@ ul.task-list li input[type="checkbox"] {
 <script src="../site_libs/quarto-search/fuse.min.js"></script>
 <script src="../site_libs/quarto-search/quarto-search.js"></script>
 <meta name="quarto:offset" content="../">
-<link href="../05_Contributors/testing.html" rel="prev">
+<link href="../02_Concepts/models.html" rel="prev">
 <link href="../assets/logo_no_text.svg" rel="icon" type="image/svg+xml">
 <script src="../site_libs/quarto-html/quarto.js" type="module"></script>
 <script src="../site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
@@ -512,8 +532,7 @@ ul.task-list li input[type="checkbox"] {
 
 
 <link rel="stylesheet" href="../styles/styles.css">
-<meta property="og:title" content="Conventional Commits – CaML - Causal ML">
-<meta property="og:description" content="">
+<meta property="og:title" content="References – CaML - Causal ML">
 <meta property="og:site_name" content="CaML - Causal ML">
 </head>
 
@@ -570,6 +589,10 @@ ul.task-list li input[type="checkbox"] {
     <a class="dropdown-item" href="../02_Concepts/models.html">
  <span class="dropdown-text">Model Specifications</span></a>
   </li>  
+        <li>
+    <a class="dropdown-item" href="../02_Concepts/references.html">
+ <span class="dropdown-text">References</span></a>
+  </li>  
     </ul>
   </li>
   <li class="nav-item dropdown ">
@@ -582,8 +605,8 @@ ul.task-list li input[type="checkbox"] {
  <span class="dropdown-text">AutoCATE</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="../03_Examples/FastOLS.html">
- <span class="dropdown-text">FastOLS</span></a>
+    <a class="dropdown-item" href="../03_Examples/InteractiveLinearRegression.html">
+ <span class="dropdown-text">InteractiveLinearRegression</span></a>
   </li>  
         <li>
     <a class="dropdown-item" href="../03_Examples/SyntheticDataGenerator.html">
@@ -661,7 +684,7 @@ ul.task-list li input[type="checkbox"] {
       <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
         <i class="bi bi-layout-text-sidebar-reverse"></i>
       </button>
-        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../05_Contributors/conventional_commits.html">Conventional Commits</a></li></ol></nav>
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../02_Concepts/references.html">References</a></li></ol></nav>
         <a class="flex-grow-1" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
         </a>
     </div>
@@ -675,32 +698,26 @@ ul.task-list li input[type="checkbox"] {
     <ul class="list-unstyled mt-1">
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../05_Contributors/getting_started.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text">Contributing to CaML</span></a>
+  <a href="../02_Concepts/motivation.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Motivation</span></a>
   </div>
 </li>
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../05_Contributors/environment.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text">Environment Setup</span></a>
+  <a href="../02_Concepts/theory.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Econometric Theory</span></a>
   </div>
 </li>
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../05_Contributors/documentation.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text">Documentation</span></a>
+  <a href="../02_Concepts/models.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Model Specifications</span></a>
   </div>
 </li>
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../05_Contributors/testing.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text">Testing</span></a>
-  </div>
-</li>
-        <li class="sidebar-item">
-  <div class="sidebar-item-container"> 
-  <a href="../05_Contributors/conventional_commits.html" class="sidebar-item-text sidebar-link active">
- <span class="menu-text">Conventional Commits</span></a>
+  <a href="../02_Concepts/references.html" class="sidebar-item-text sidebar-link active">
+ <span class="menu-text">References</span></a>
   </div>
 </li>
     </ul>
@@ -716,7 +733,7 @@ ul.task-list li input[type="checkbox"] {
 
 <header id="title-block-header" class="quarto-title-block default">
 <div class="quarto-title">
-<h1 class="title">Conventional Commits</h1>
+<h1 class="title">References</h1>
 </div>
 
 
@@ -733,30 +750,11 @@ ul.task-list li input[type="checkbox"] {
 </header>
 
 
-<p>This project uses <a href="https://www.conventionalcommits.org/en/v1.0.0/">conventional commits</a> for Pull Request titles, as they are ultimately used as the commit names on the main branch. What are conventional commits? In the words of the official documentation:</p>
-<blockquote class="blockquote">
-<p>The Conventional Commits specification is a lightweight convention on top of commit messages. It provides an easy set of rules for creating an explicit commit history; which makes it easier to write automated tools on top of.</p>
-</blockquote>
-<p>The PR titles should thus take the general form:</p>
-<p><code>&lt;type&gt;[optional scope]: &lt;description&gt;</code></p>
-<p>An example would be:</p>
-<p><code>fix(types): make all floats double</code></p>
-<p>Valid types for Caml are as follows:</p>
-<ul>
-<li><code>build</code>: Changes that affect the build system or external dependencies</li>
-<li><code>ci</code>: Changes to our CI/CD configuration files and scripts</li>
-<li><code>docs</code>: Documentation only changes</li>
-<li><code>feat</code>: A new feature</li>
-<li><code>fix</code>: A bug fix</li>
-<li><code>perf</code>: A code change that improves performance</li>
-<li><code>refactor</code>: A code change that neither fixes a bug nor adds a feature</li>
-<li><code>style</code>: Changes that do not affect the meaning of the code (white-space, formatting, missing semi-colons, etc)</li>
-<li><code>test</code>: Adding missing tests or correcting existing tests</li>
-<li><code>revert</code>: Reverting code changes to a previous state</li>
-<li><code>chore</code>: Routine tasks that don’t fit in any of the above</li>
-</ul>
-<p>We use the following regex to validate PR titles (<a href="https://regex101.com/r/6c1agb/1">test it!</a>):</p>
-<pre><code>^(build|chore|ci|docs|feat|fix|perf|refactor|revert|style|test|release)(.+)?(!)?:\ .+</code></pre>
+<div id="refs" class="references csl-bib-body hanging-indent" data-entry-spacing="0" role="list">
+<div id="ref-chernozhukov2024chapter2" class="csl-entry" role="listitem">
+Chernozhukov, Victor, Christian Hansen, Nathan Kallus, Martin Spindler, and Vasilis Syrgkanis. 2024. <span>“Causal Inference via Randomized Experiments.”</span> In <em>Applied Causal Inference Powered by ML and AI</em>. CausalML-book.org. <a href="https://chapters.causalml-book.org/CausalML_chap_2.pdf">https://chapters.causalml-book.org/CausalML_chap_2.pdf</a>.
+</div>
+</div>
 
 
 
@@ -1162,8 +1160,8 @@ ul.task-list li input[type="checkbox"] {
   </script>
 <nav class="page-navigation">
   <div class="nav-page nav-page-previous">
-      <a href="../05_Contributors/testing.html" class="pagination-link" aria-label="Testing">
-        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text">Testing</span>
+      <a href="../02_Concepts/models.html" class="pagination-link" aria-label="Model Specifications">
+        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text">Model Specifications</span>
       </a>          
   </div>
   <div class="nav-page nav-page-next">
@@ -1177,7 +1175,7 @@ ul.task-list li input[type="checkbox"] {
 </div>   
     <div class="nav-footer-center">
       &nbsp;
-    <div class="toc-actions"><ul><li><a href="https://github.com/jakepenzak/caml/edit/main/docs/05_Contributors/conventional_commits.qmd" class="toc-action"><i class="bi bi-github"></i>Edit this page</a></li><li><a href="https://github.com/jakepenzak/caml/issues/new" class="toc-action"><i class="bi empty"></i>Report an issue</a></li></ul></div></div>
+    <div class="toc-actions"><ul><li><a href="https://github.com/jakepenzak/caml/edit/main/docs/02_Concepts/references.qmd" class="toc-action"><i class="bi bi-github"></i>Edit this page</a></li><li><a href="https://github.com/jakepenzak/caml/issues/new" class="toc-action"><i class="bi empty"></i>Report an issue</a></li></ul></div></div>
     <div class="nav-footer-right">
 <p>Powered by: <a href="https://quarto.org/"><img src="../assets/external_logos/quarto.png" class="img-fluid" width="85"></a></p>
 </div>

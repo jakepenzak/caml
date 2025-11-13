@@ -20,7 +20,27 @@ ul.task-list li input[type="checkbox"] {
   margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
   vertical-align: middle;
 }
-</style>
+/* CSS for citations */
+div.csl-bib-body { }
+div.csl-entry {
+  clear: both;
+  margin-bottom: 0em;
+}
+.hanging-indent div.csl-entry {
+  margin-left:2em;
+  text-indent:-2em;
+}
+div.csl-left-margin {
+  min-width:2em;
+  float:left;
+}
+div.csl-right-inline {
+  margin-left:2em;
+  padding-left:1em;
+}
+div.csl-indent {
+  margin-left: 2em;
+}</style>
 
 
 <script src="../site_libs/quarto-nav/quarto-nav.js"></script>
@@ -30,6 +50,7 @@ ul.task-list li input[type="checkbox"] {
 <script src="../site_libs/quarto-search/fuse.min.js"></script>
 <script src="../site_libs/quarto-search/quarto-search.js"></script>
 <meta name="quarto:offset" content="../">
+<link href="../02_Concepts/references.html" rel="next">
 <link href="../02_Concepts/theory.html" rel="prev">
 <link href="../assets/logo_no_text.svg" rel="icon" type="image/svg+xml">
 <script src="../site_libs/quarto-html/quarto.js" type="module"></script>
@@ -542,6 +563,7 @@ window.Quarto = {
 
 <link rel="stylesheet" href="../styles/styles.css">
 <meta property="og:title" content="Model Specifications – CaML - Causal ML">
+<meta property="og:description" content="">
 <meta property="og:site_name" content="CaML - Causal ML">
 </head>
 
@@ -598,6 +620,10 @@ window.Quarto = {
     <a class="dropdown-item" href="../02_Concepts/models.html">
  <span class="dropdown-text">Model Specifications</span></a>
   </li>  
+        <li>
+    <a class="dropdown-item" href="../02_Concepts/references.html">
+ <span class="dropdown-text">References</span></a>
+  </li>  
     </ul>
   </li>
   <li class="nav-item dropdown ">
@@ -610,8 +636,8 @@ window.Quarto = {
  <span class="dropdown-text">AutoCATE</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="../03_Examples/FastOLS.html">
- <span class="dropdown-text">FastOLS</span></a>
+    <a class="dropdown-item" href="../03_Examples/InteractiveLinearRegression.html">
+ <span class="dropdown-text">InteractiveLinearRegression</span></a>
   </li>  
         <li>
     <a class="dropdown-item" href="../03_Examples/SyntheticDataGenerator.html">
@@ -719,6 +745,12 @@ window.Quarto = {
  <span class="menu-text">Model Specifications</span></a>
   </div>
 </li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../02_Concepts/references.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">References</span></a>
+  </div>
+</li>
     </ul>
     </div>
 </nav>
@@ -729,7 +761,7 @@ window.Quarto = {
     <h2 id="toc-title">On this page</h2>
    
   <ul>
-  <li><a href="#fastols" id="toc-fastols" class="nav-link active" data-scroll-target="#fastols">FastOLS</a>
+  <li><a href="#interactivelinearregression" id="toc-interactivelinearregression" class="nav-link active" data-scroll-target="#interactivelinearregression">InteractiveLinearRegression</a>
   <ul class="collapse">
   <li><a href="#model-specification" id="toc-model-specification" class="nav-link" data-scroll-target="#model-specification">Model Specification</a></li>
   <li><a href="#treatment-effect-estimation-inference" id="toc-treatment-effect-estimation-inference" class="nav-link" data-scroll-target="#treatment-effect-estimation-inference">Treatment Effect Estimation &amp; Inference</a></li>
@@ -759,8 +791,9 @@ window.Quarto = {
 </header>
 
 
-<section id="fastols" class="level2">
-<h2 class="anchored" data-anchor-id="fastols"><a href="../04_Reference/FastOLS.html">FastOLS</a></h2>
+<section id="interactivelinearregression" class="level2">
+<h2 class="anchored" data-anchor-id="interactivelinearregression"><a href="../04_Reference/InteractiveLinearRegression.html">InteractiveLinearRegression</a></h2>
+<p>The outlined Interactive Linear Regression is motivated by <span class="citation" data-cites="chernozhukov2024chapter2">Chernozhukov et al. (<a href="#ref-chernozhukov2024chapter2" role="doc-biblioref">2024</a>)</span> and adapted.</p>
 <section id="model-specification" class="level3">
 <h3 class="anchored" data-anchor-id="model-specification">Model Specification</h3>
 <p>The model is given by: <span class="math display">\[
@@ -795,7 +828,7 @@ window.Quarto = {
 \]</span></p>
 <p>Within the context of (1), this can be estimated via:</p>
 <p><span class="math display">\[
-\mathbf{\tau} = \mathbf{\Theta'}\bar{d}
+\mathbf{\tau} = \mathbf{\Theta'}\bar{d}'
 \]</span></p>
 <p>where <span class="math inline">\(\mathbf{\Theta'} = \left[\beta' \; \mathbf{\Gamma'} \; \mathbf{\Omega'} \; \mathbf{\Psi'}\right]\)</span> is the horizontally concatenated matrix of transposed coefficient matrices, and <span class="math inline">\(\bar{d} = \mathbb{E}_n\left[D_{T=1} - D_{T=0}\right]\)</span> is the the average difference in the design matrix <span class="math inline">\(D\)</span> of (1) from toggling the treatment variable across all observations.</p>
 <p>Furthermore, for each outcome <span class="math inline">\(k \in \{1,2,...,p\}\)</span>, we can estimate the standard error of the ATE as follows: <span class="math display">\[
@@ -805,10 +838,15 @@ window.Quarto = {
 <p>This logic extends naturally to the estimation of GATEs and CATEs (e.g., <span class="math inline">\(\bar{d} = \mathbb{E}_n\left[D_{T=1} - D_{T=0} | \mathbf{G}=g\right]\)</span>, <span class="math inline">\(\bar{d} = \mathbb{E}_n\left[D_{T=1} - D_{T=0} | \mathbf{G}=g, \mathbf{X}=x\right]\)</span>, <span class="math inline">\(\dots\)</span>, etc.) and to continuous treatments (e.g., <span class="math inline">\(\bar{d} = \mathbb{E}_n\left[D_{T=t+1} - D_{T=t}\right]\)</span>, <span class="math inline">\(\dots\)</span>, etc.).</p>
 
 
+
 </section>
 </section>
 
-<a onclick="window.scrollTo(0, 0); return false;" role="button" id="quarto-back-to-top"><i class="bi bi-arrow-up"></i> Back to top</a></main> <!-- /main -->
+<a onclick="window.scrollTo(0, 0); return false;" role="button" id="quarto-back-to-top"><i class="bi bi-arrow-up"></i> Back to top</a><div id="quarto-appendix" class="default"><section class="quarto-appendix-contents" role="doc-bibliography" id="quarto-bibliography"><h2 class="anchored quarto-appendix-heading">References</h2><div id="refs" class="references csl-bib-body hanging-indent" data-entry-spacing="0" role="list">
+<div id="ref-chernozhukov2024chapter2" class="csl-entry" role="listitem">
+Chernozhukov, Victor, Christian Hansen, Nathan Kallus, Martin Spindler, and Vasilis Syrgkanis. 2024. <span>“Causal Inference via Randomized Experiments.”</span> In <em>Applied Causal Inference Powered by ML and AI</em>. CausalML-book.org. <a href="https://chapters.causalml-book.org/CausalML_chap_2.pdf">https://chapters.causalml-book.org/CausalML_chap_2.pdf</a>.
+</div>
+</div></section></div></main> <!-- /main -->
 <script id="quarto-html-after-body" type="application/javascript">
   window.document.addEventListener("DOMContentLoaded", function (event) {
     const icon = "";
@@ -1215,6 +1253,9 @@ window.Quarto = {
       </a>          
   </div>
   <div class="nav-page nav-page-next">
+      <a href="../02_Concepts/references.html" class="pagination-link" aria-label="References">
+        <span class="nav-page-text">References</span> <i class="bi bi-arrow-right-short"></i>
+      </a>
   </div>
 </nav>
 </div> <!-- /content -->
