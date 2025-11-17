@@ -41,12 +41,12 @@ def _():
 
     data = SyntheticDataGenerator(
         n_obs=10_000,
-        n_cont_outcomes=1,
-        n_binary_outcomes=0,
+        n_cont_outcomes=0,
+        n_binary_outcomes=1,
         n_binary_treatments=1,
         n_discrete_treatments=0,
         n_cont_treatments=0,
-        n_cont_confounders=0,
+        n_cont_confounders=2,
         n_binary_confounders=0,
         n_discrete_confounders=0,
         n_cont_modifiers=2,
@@ -54,7 +54,7 @@ def _():
         n_discrete_modifiers=1,
         stddev_outcome_noise=1,
         stddev_treatment_noise=1,
-        causal_model_functional_form="linear",
+        causal_model_functional_form="nonlinear",
         seed=None,
     )
 
@@ -71,12 +71,6 @@ def _():
 @app.cell
 def _(synthetic_df):
     synthetic_df
-    return
-
-
-@app.cell
-def _():
-    # Generate numpy random variable
     return
 
 
@@ -162,9 +156,9 @@ def _(synthetic_df):
         if "binary" in treatment or "discrete" in treatment
         else False,
         discrete_outcome=True if "binary" in outcome else False,
-        model_Y={"time_budget": 2},
-        model_T={"time_budget": 2},
-        model_regression={"time_budget": 2},
+        model_Y={"time_budget": 15},
+        model_T={"time_budget": 15},
+        model_regression={"time_budget": 15},
         enable_categorical=True,
         n_jobs=-1,
         use_ray=False,
@@ -185,7 +179,7 @@ def _():
 
 @app.cell
 def _(caml, synthetic_df):
-    caml.fit(synthetic_df, cate_estimators=["TLearner"], use_cached_models=True)
+    caml.fit(synthetic_df, cate_estimators=['CausalForestDML'], use_cached_models=True)
     return
 
 
@@ -194,14 +188,6 @@ def _(caml, synthetic_df):
     cate_predictions = caml.estimate_cate(synthetic_df)
     caml.estimate_ate(synthetic_df)
     return (cate_predictions,)
-
-
-@app.cell
-def _(cate_predictions):
-    import numpy as np
-
-    cate_predictions.std() / np.sqrt(len(cate_predictions))
-    return
 
 
 @app.cell
@@ -219,6 +205,18 @@ def _(caml, synthetic_df):
 @app.cell
 def _(obj2):
     sum = obj2.population_summary()
+    return (sum,)
+
+
+@app.cell
+def _(sum):
+    sum
+    return
+
+
+@app.cell
+def _(ate_df):
+    ate_df
     return
 
 

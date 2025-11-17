@@ -8,12 +8,12 @@ from flaml import AutoML
 from sklearn.base import BaseEstimator
 from sklearn.model_selection import train_test_split
 
-from caml.generics.interfaces import (
+from caml.shared.interfaces import (
     PandasConvertibleDataFrame,
     to_pandasConvertible,
     toPandasConvertible,
 )
-from caml.generics.logging import DEBUG, ERROR, INFO
+from caml.shared.logging import DEBUG, ERROR, INFO
 
 
 class BaseCamlEstimator(metaclass=abc.ABCMeta):
