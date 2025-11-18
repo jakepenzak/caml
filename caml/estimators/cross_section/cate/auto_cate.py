@@ -14,17 +14,17 @@ from econml.inference._bootstrap import BootstrapEstimator
 from econml.score import EnsembleCateEstimator, RScorer
 from joblib import Parallel, delayed
 
-from caml.core._base import BaseCamlEstimator
-from caml.core.modeling.model_bank import (
+from caml._base.abstract import BaseCamlEstimator
+from caml._generics import logging as clg
+from caml._generics.decorators import experimental, narrate, timer
+from caml._generics.interfaces import FittedAttr, PandasConvertibleDataFrame
+from caml._generics.logging import DEBUG, INFO, WARNING
+from caml._generics.monkey_patch import DRTester
+from caml._generics.utils import is_module_available
+from caml.estimators.cross_section.cate.modeling.model_bank import (
     AutoCateEstimator,
     available_estimators,
 )
-from caml.generics import logging as clg
-from caml.generics.decorators import experimental, narrate, timer
-from caml.generics.interfaces import FittedAttr, PandasConvertibleDataFrame
-from caml.generics.logging import DEBUG, INFO, WARNING
-from caml.generics.monkey_patch import DRTester
-from caml.generics.utils import is_module_available
 
 _HAS_PYSPARK = is_module_available("pyspark")
 _HAS_RAY = is_module_available("ray")

@@ -1,5 +1,7 @@
-# Monkey patches for EconML scoring & validation utilities.
-# This will be overhauled when we build out the new scoring & validation utilities.
+"""Monkey patches for EconML scoring & validation utilities.
+
+This will be overhauled when we build out the new scoring & validation utilities.
+"""
 
 import numpy as np
 from econml.validate import DRTester

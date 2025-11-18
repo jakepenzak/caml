@@ -7,7 +7,7 @@ import timeit
 from functools import wraps
 from typing import Callable
 
-from caml.generics.logging import DEBUG, INFO, WARNING
+from caml._generics.logging import DEBUG, INFO, WARNING
 
 
 def experimental(obj: Callable) -> Callable:

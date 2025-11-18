@@ -6,14 +6,15 @@ import patsy
 import scipy.stats as stats
 from joblib import Parallel, delayed
 
-from caml.core._base import BaseCamlEstimator
-from caml.generics.decorators import experimental, timer
-from caml.generics.interfaces import FittedAttr, PandasConvertibleDataFrame
-from caml.generics.logging import DEBUG, INFO
+from caml._base.abstract import BaseCamlEstimator
+from caml._base.mixins import OLSMixin
+from caml._generics.decorators import experimental, timer
+from caml._generics.interfaces import FittedAttr, PandasConvertibleDataFrame
+from caml._generics.logging import DEBUG, INFO
 
 
 @experimental
-class InteractiveLinearRegression(BaseCamlEstimator):
+class InteractiveLinearRegression(BaseCamlEstimator, OLSMixin):
     r"""InteractiveLinearRegression is an interactive linear regression estimator with explicit treatment interaction terms, enabling precision improvements & heterogeneous treatment discovery.
 
     **InteractiveLinearRegression is experimental and may change significantly in future versions.**
@@ -172,176 +173,49 @@ class InteractiveLinearRegression(BaseCamlEstimator):
         ilr.treatment_effects.keys()
         ```
         """
-        if cov_type not in ("nonrobust", "HC0", "HC1"):
-            raise ValueError("cov_type must be 'nonrobust', 'HC0', or 'HC1'")
-
         pd_df = self._convert_dataframe_to_pandas(df, self.G)
         if self._discrete_treatment:
             if len(pd_df[self.T].unique()) != 2:
                 raise ValueError("Treatment variable must be binary")
-        y, X = self._create_design_matrix(pd_df)
-        self._fit(X, y, cov_type=cov_type)
+        y, X, self._X_design_info = self._create_design_matrix(pd_df, self.formula)
+        res = self._fit_ols(X, y, cov_type=cov_type)
+        self._params, self._vcv, self._std_err, self._fitted_values, self._residuals = (
+            res.values()
+        )
+        self._treatment_effects = {}
         self._fitted = True
         if estimate_effects:
             diff_matrix = self._create_difference_matrix(pd_df)
-            self._treatment_effects = self.estimate_ate(  # pyright: ignore[reportAttributeAccessIssue]
+            self._treatment_effects = self.estimate(  # pyright: ignore[reportAttributeAccessIssue]
                 pd_df,
-                _diff_matrix=diff_matrix,
+                estimand="ate",
+                query=None,
                 return_results_dict=True,
-                group="overall",
+                _diff_matrix=diff_matrix,
             )
-            self._estimate_gates(pd_df, _diff_matrix=diff_matrix, n_jobs=n_jobs)
+            self._estimate_gates_parallel(
+                pd_df, _diff_matrix=diff_matrix, n_jobs=n_jobs
+            )
 
-    @timer("ATE Estimation")
-    def estimate_ate(
+    def estimate(
         self,
         df: PandasConvertibleDataFrame,
         *,
+        estimand: str,
+        query: str | None = None,
         return_results_dict: bool = False,
-        group: str = "Custom Group",
-        membership: str | None = None,
         _diff_matrix: np.ndarray | None = None,
-    ) -> np.ndarray | dict:
-        r"""Estimate Average Treatment Effects (ATEs) of `T` on each `Y` from fitted model.
-
-        If the entire dataframe is provided, the function will estimate the ATE of the entire population, where the ATE, in the case of binary treatments, is formally defined as:
-            $$
-            \tau = \mathbb{E}_n[\mathbf{Y}_1 - \mathbf{Y}_0]
-            $$
-
-        If a subset of the dataframe is provided, the function will estimate the ATE of the subset (e.g., GATEs), where the GATE, in the case of binary treatments, is formally defined as:
-            $$
-            \tau = \mathbb{E}_n[\mathbf{Y}_1 - \mathbf{Y}_0|\mathbf{G}=G]
-            $$
-
-        For more details on treatment effect estimation, see [Model Specifications](../02_Concepts/models.qmd#treatment-effect-estimation-inference).
-
-        Parameters
-        ----------
-        df : PandasConvertibleDataFrame
-            Dataframe containing the data to estimate the ATEs. Supported formats:
-            pandas DataFrame, PySpark DataFrame, Polars DataFrame, or Any object with `toPandas()` or `to_pandas()` method
-        return_results_dict : bool
-            If True, the function returns a dictionary containing ATEs/GATEs, standard errors, t-statistics, and p-values.
-            If False, the function returns a numpy array containing ATEs/GATEs alone.
-        group : str
-            Name of the group to estimate the ATEs for.
-        membership : str | None
-            Name of the membership variable to estimate the ATEs for.
-        _diff_matrix : np.ndarray | None = None
-            Private argument used in `fit` method.
-
-        Returns
-        -------
-        np.ndarray | dict
-            Estimated ATEs/GATEs or dictionary containing the estimated ATEs/GATEs and their standard errors, t-statistics, and p-values.
-
-        Examples
-        --------
-        ```{python}
-        ate = ilr.estimate_ate(df, return_results_dict=True, group="Overall")
-
-        ate
-        ```
-        ```{python}
-        df_filtered = df.query(
-            "X3_binary == 0 & X1_continuous < 5"
-        ).copy()
-
-        custom_gate = ilr.estimate_ate(df_filtered)
-
-        custom_gate
-        ```
-        """
-        INFO("Estimating Average Treatment Effects (ATEs)...")
+    ) -> Any:
+        """ """
+        all_kwargs = {
+            "return_results_dict": return_results_dict,
+            "_diff_matrix": _diff_matrix,
+        }
 
         if not self._fitted:
             raise RuntimeError("Model must be fitted before estimating ATEs.")
 
-        pd_df = self._convert_dataframe_to_pandas(df, self.G)
-        if _diff_matrix is None:
-            diff_matrix = self._create_difference_matrix(pd_df)
-        else:
-            diff_matrix = _diff_matrix
-
-        n_treated = int(pd_df[self.T].sum()) if self._discrete_treatment else None
-
-        effects = self._compute_effects(
-            diff_matrix=diff_matrix,
-            params=self._params,
-            vcv=self._vcv,
-            n_treated=n_treated,
-            include_inference=return_results_dict,
-        )
-
-        if return_results_dict:
-            results = {}
-            key = group if membership is None else f"{group}-{membership}"
-            results[key] = {"outcome": self.Y}
-            results[key].update(effects)
-            return results
-
-        return effects["ate"]
-
-    @timer("CATE Estimation")
-    def estimate_cate(
-        self, df: PandasConvertibleDataFrame, *, return_results_dict: bool = False
-    ) -> np.ndarray | dict:
-        r"""Estimate Conditional Average Treatment Effects (CATEs) of `T` on each `Y` from fitted model for all given observations in the dataset.
-
-        The CATE, in the case of binary treatments, is formally defined as:
-            $$
-            \tau = \mathbb{E}_n[\mathbf{Y}_1 - \mathbf{Y}_0|\mathbf{Q}=Q]
-            $$
-
-        For more details on treatment effect estimation, see [Model Specifications](../02_Concepts/models.qmd#treatment-effect-estimation-inference).
-
-        Parameters
-        ----------
-        df : PandasConvertibleDataFrame
-            Dataframe containing the data to estimate CATEs for. Supported formats:
-                pandas DataFrame, PySpark DataFrame, Polars DataFrame, or Any object with `toPandas()` or `to_pandas()` method
-        return_results_dict : bool
-            If True, the function returns a dictionary containing CATEs, standard errors, t-statistics, and p-values.
-            If False, the function returns a numpy array containing CATEs alone.
-
-        Returns
-        -------
-        np.ndarray | dict
-            CATEs or dictionary containing CATEs, standard errors, t-statistics, and p-values.
-
-        Examples
-        --------
-        ```{python}
-        cates = ilr.estimate_cate(df)
-        cates[:5]
-        ```
-        ```{python}
-        res = ilr.estimate_cate(df, return_results_dict=True)
-        res.keys()
-        ```
-        """
-        INFO("Estimating Conditional Average Treatment Effects (CATEs)...")
-
-        if not self._fitted:
-            raise RuntimeError("Model must be fitted before estimating ATEs.")
-
-        pd_df = self._convert_dataframe_to_pandas(df, self.G)
-        diff_matrix = self._create_difference_matrix(pd_df)
-
-        effects = self._compute_effects(
-            diff_matrix,
-            self._params,
-            self._vcv,
-            is_cates=True,
-            include_inference=return_results_dict,
-        )
-
-        if return_results_dict:
-            results = {"outcome": self.Y}
-            results.update(effects)
-            return results
-        return effects["cate"]
+        return super().estimate(df, estimand=estimand, query=query, **all_kwargs)
 
     def predict(
         self,
@@ -387,10 +261,12 @@ class InteractiveLinearRegression(BaseCamlEstimator):
         ```
         """
         if mode == "cate":
-            return self.estimate_cate(df, return_results_dict=return_results_dict)
+            return self.estimate(
+                df, estimand="cate", query=None, return_results_dict=return_results_dict
+            )
         elif mode == "outcome":
             pd_df = self._convert_dataframe_to_pandas(df, self.G)
-            _, X = self._create_design_matrix(pd_df)
+            _, X, _ = self._create_design_matrix(pd_df, self._formula)
             return X @ self.params
         else:
             raise ValueError(
@@ -436,14 +312,14 @@ class InteractiveLinearRegression(BaseCamlEstimator):
 
         for i, k in enumerate(effects_to_prettify.keys()):
             try:
-                group = k.split("-")[0]
-                membership = k.split("-")[1]
+                estimand = k.split("--")[0]
+                group = k.split("--")[1]
             except IndexError:
-                group = k
-                membership = None
+                estimand = k
+                group = None
             if i == 0:
+                final_results["estimand"] = [estimand] * n_outcomes
                 final_results["group"] = [group] * n_outcomes
-                final_results["membership"] = [membership] * n_outcomes
                 for stat, value in effects_to_prettify[k].items():
                     if isinstance(value, list):
                         final_results[stat] = value.copy()
@@ -452,8 +328,8 @@ class InteractiveLinearRegression(BaseCamlEstimator):
                     elif isinstance(value, int):
                         final_results[stat] = [value] * n_outcomes
             else:
+                final_results["estimand"] += [estimand] * n_outcomes
                 final_results["group"] += [group] * n_outcomes
-                final_results["membership"] += [membership] * n_outcomes
                 for stat, value in effects_to_prettify[k].items():
                     if isinstance(value, list):
                         final_results[stat] += value
@@ -466,62 +342,139 @@ class InteractiveLinearRegression(BaseCamlEstimator):
 
         return pd.DataFrame(final_results)
 
-    @timer("Model Fitting")
-    def _fit(self, X: np.ndarray, y: np.ndarray, cov_type: str = "nonrobust"):
-        INFO("Fitting regression model...")
+    @timer("ATE Estimation")
+    def _estimate_ate(
+        self,
+        df: pd.DataFrame,
+        return_results_dict: bool,
+        _diff_matrix: np.ndarray | None = None,
+    ) -> np.ndarray | dict:
+        INFO("Estimating Average Treatment Effect (ATE)...")
 
-        def fit(X, y):
-            params, _, _, _ = np.linalg.lstsq(X, y, rcond=None)
-            fitted_values = X @ params
-            resid = y - fitted_values
-            n = X.shape[0]
-            k = X.shape[1]
-            XtX_inv = np.linalg.pinv(X.T @ X)
-            if cov_type in ("HC0", "HC1"):
-                E = resid**2
-                if cov_type == "HC1":
-                    E *= n / (n - k)
-                XEX = np.einsum("ni,nj,no->oij", X, X, E)
-                vcv = XtX_inv @ XEX @ XtX_inv
-            else:
-                rss = np.sum(resid**2, axis=0)
-                sigma_squared_hat = rss / (n - k)
-                XtX_inv = np.linalg.pinv(X.T @ X)
-                vcv = np.einsum("o,ij->oij", sigma_squared_hat, XtX_inv)
-            return params, vcv, fitted_values, resid
+        return self._estimate_effect_common(
+            df,
+            return_results_dict=return_results_dict,
+            estimand="ATE",
+            group_name="Overall",
+            _diff_matrix=_diff_matrix,
+        )
 
-        params, vcv, fitted_values, residuals = fit(X, y)
+    @timer("GATE Estimation")
+    def _estimate_gate(
+        self,
+        df: pd.DataFrame,
+        query: str,
+        return_results_dict: bool,
+        _diff_matrix: np.ndarray | None = None,
+    ) -> np.ndarray | dict:
+        INFO("Estimating Group Average Treatment Effect (GATE)...")
 
-        self._params = params
-        self._vcv = vcv
-        self._std_err = np.sqrt(np.diagonal(vcv, axis1=1, axis2=2)).T
-        self._fitted_values = fitted_values
-        self._residuals = residuals
-        self._treatment_effects = {}
+        df_filtered = df.query(query)
 
-    @timer("Design Matrix Creation")
-    def _create_design_matrix(
-        self, df: pd.DataFrame
-    ) -> tuple[np.ndarray, np.ndarray] | NoReturn:
-        try:
-            DEBUG("Creating model design matrix...")
-            y, X = patsy.dmatrices(self.formula, data=df, NA_action="raise")  # pyright: ignore[reportAttributeAccessIssue]
+        return self._estimate_effect_common(
+            df_filtered,
+            return_results_dict=return_results_dict,
+            estimand="GATE",
+            group_name=query,
+            _diff_matrix=_diff_matrix,
+        )
 
-            self._X_design_info = X.design_info
+    @timer("ATT Estimation")
+    def _estimate_att(
+        self,
+        df: pd.DataFrame,
+        return_results_dict: bool,
+        _diff_matrix: np.ndarray | None = None,
+    ) -> np.ndarray | dict:
+        INFO("Estimating Average Treatment Effect on the Treated (ATT)...")
 
-            y = np.array(y)
-            X = np.array(X)
+        if self._discrete_treatment:
+            df_filtered = df.query(f"{self.T} == 1")
+        else:
+            raise ValueError(
+                "ATT estimation is not supported for continuous treatments."
+            )
 
-            return y, X
-        except patsy.PatsyError as e:
-            if "factor contains missing values" in str(e):
-                raise ValueError(
-                    "Input DataFrame contains missing values. Please handle missing values before proceeding."
-                )
-            else:
-                raise e
-        except Exception as e:
-            raise e
+        return self._estimate_effect_common(
+            df_filtered,
+            return_results_dict=return_results_dict,
+            estimand="ATT",
+            group_name="Treated",
+            _diff_matrix=_diff_matrix,
+        )
+
+    @timer("ATC Estimation")
+    def _estimate_atc(
+        self,
+        df: pd.DataFrame,
+        return_results_dict: bool,
+        _diff_matrix: np.ndarray | None = None,
+    ) -> np.ndarray | dict:
+        INFO("Estimating Average Treatment Effect on the Control (ATC)...")
+
+        if self._discrete_treatment:
+            df_filtered = df.query(f"{self.T} == 0")
+        else:
+            raise ValueError(
+                "ATC estimation is not supported for continuous treatments."
+            )
+
+        return self._estimate_effect_common(
+            df_filtered,
+            return_results_dict=return_results_dict,
+            estimand="ATC",
+            group_name="Control",
+            _diff_matrix=_diff_matrix,
+        )
+
+    @timer("CATE Estimation")
+    def _estimate_cate(
+        self,
+        df: pd.DataFrame,
+        return_results_dict: bool,
+        _diff_matrix: np.ndarray | None = None,
+    ) -> np.ndarray | dict:
+        INFO("Estimating Conditional Average Treatment Effects (CATEs)...")
+        return self._estimate_effect_common(
+            df,
+            return_results_dict=return_results_dict,
+            estimand="cate",
+            group_name="",
+            _diff_matrix=_diff_matrix,
+        )
+
+    def _estimate_effect_common(
+        self,
+        df: pd.DataFrame,
+        return_results_dict: bool,
+        estimand: str,
+        group_name: str,
+        _diff_matrix: np.ndarray | None = None,
+    ) -> np.ndarray | dict:
+        if _diff_matrix is None:
+            diff_matrix = self._create_difference_matrix(df)
+        else:
+            diff_matrix = _diff_matrix
+
+        n_treated = int(df[self.T].sum()) if self._discrete_treatment else None
+
+        effects = self._compute_effects(
+            diff_matrix=diff_matrix,
+            params=self._params,
+            vcv=self._vcv,
+            n_treated=n_treated,
+            is_cates=True if estimand == "cate" else False,
+            include_inference=return_results_dict,
+        )
+
+        if return_results_dict:
+            results = {}
+            key = f"{estimand}--{group_name}"
+            results[key] = {"outcome": self.Y}
+            results[key].update(effects)
+            return results
+
+        return effects["effect"]
 
     @timer("Difference Matrix Creation")
     def _create_difference_matrix(self, df: pd.DataFrame) -> np.ndarray | NoReturn:
@@ -529,8 +482,9 @@ class InteractiveLinearRegression(BaseCamlEstimator):
             DEBUG("Creating treatment difference matrix...")
             original_t = df[self.T].copy()
             if self._X_design_info is None:
-                y, X = patsy.dmatrices(self.formula, data=df, NA_action="raise")  # pyright: ignore[reportAttributeAccessIssue]
-                self._X_design_info = X.design_info
+                _, _, self._X_design_info = self._create_design_matrix(
+                    df, formula=self._formula
+                )
 
             if self._discrete_treatment:
                 df[self.T] = 0
@@ -588,26 +542,21 @@ class InteractiveLinearRegression(BaseCamlEstimator):
         else:
             n_control = None
 
-        if is_cates:
-            return {
-                "cate": effect,
-                "std_err": std_err,
-                "t_stat": t_stat,
-                "pval": pval,
-            }
-        else:
-            return {
-                "ate": effect,
-                "std_err": std_err,
-                "t_stat": t_stat,
-                "pval": pval,
-                "n": n,
-                "n_treated": n_treated,
-                "n_control": n_control,
-            }
+        results = {
+            "effect": effect,
+            "std_err": std_err,
+            "t_stat": t_stat,
+            "pval": pval,
+        }
+        if not is_cates:
+            results["n"] = n
+            results["n_treated"] = n_treated
+            results["n_control"] = n_control
+
+        return results
 
     @timer("Prespecified GATE Estimation")
-    def _estimate_gates(
+    def _estimate_gates_parallel(
         self,
         df: pd.DataFrame,
         *,
@@ -632,7 +581,7 @@ class InteractiveLinearRegression(BaseCamlEstimator):
                     if self._discrete_treatment
                     else None
                 )
-                group_key = f"{group}-{membership}"
+                group_key = f"{group}={membership}"
                 group_info.append((group_key, mask, treated_mask))
 
         def process_group(group_key, mask, treated_mask):
@@ -653,8 +602,8 @@ class InteractiveLinearRegression(BaseCamlEstimator):
         )
 
         for group_key, effects in results:
-            self._treatment_effects[group_key] = {"outcome": self.Y}
-            self._treatment_effects[group_key].update(effects)
+            self._treatment_effects[f"GATE--{group_key}"] = {"outcome": self.Y}
+            self._treatment_effects[f"GATE--{group_key}"].update(effects)
 
     @staticmethod
     def _create_formula(

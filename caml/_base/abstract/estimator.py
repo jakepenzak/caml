@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-import abc
+from abc import ABCMeta, abstractmethod
 from typing import Any, Sequence
 
 import pandas as pd
@@ -8,20 +8,16 @@ from flaml import AutoML
 from sklearn.base import BaseEstimator
 from sklearn.model_selection import train_test_split
 
-from caml.shared.interfaces import (
+from caml._generics.interfaces import (
     PandasConvertibleDataFrame,
     to_pandasConvertible,
     toPandasConvertible,
 )
-from caml.shared.logging import DEBUG, ERROR, INFO
+from caml._generics.logging import DEBUG, ERROR, INFO
 
 
-class BaseCamlEstimator(metaclass=abc.ABCMeta):
-    """
-    Base ABC class for core Caml classes.
-
-    This class contains the shared methods and properties for the Caml classes.
-    """
+class BaseCamlEstimator(metaclass=ABCMeta):
+    """Base ABC class for CaML estimators."""
 
     X: list[str]
     W: list[str]
@@ -32,27 +28,111 @@ class BaseCamlEstimator(metaclass=abc.ABCMeta):
     def __init__(self):
         pass
 
-    @abc.abstractmethod
-    def fit(self):
+    @abstractmethod
+    def fit(self, df: PandasConvertibleDataFrame, **kwargs) -> "BaseCamlEstimator":
+        """Fit the estimator to the data.
+
+        Must be implemented by child classes.
+        """
         pass
 
-    @abc.abstractmethod
-    def predict(self):
+    @abstractmethod
+    def predict(self, df: PandasConvertibleDataFrame, **kwargs) -> Any:
+        """Predict method.
+
+        Must be implemented by child classes. Should primarily be alias for cate estimation
+        and optionally to predict outcome y.
+        """
         pass
 
-    @abc.abstractmethod
-    def estimate_ate(self):
-        pass
+    @abstractmethod
+    def estimate(
+        self,
+        df: PandasConvertibleDataFrame,
+        *,
+        estimand: str,
+        query: str | None = None,
+        **kwargs,
+    ) -> Any:  # TODO: Change return type
+        """Base estimate method that handles estimand routing.
 
-    @abc.abstractmethod
-    def estimate_cate(self):
-        pass
+        Child classes should override this method to accept additional kwargs, but
+        should call super().estimate() to leverage the base routing logic.
+
+        Parameters
+        ----------
+        df
+            Input dataframe
+        estimand
+            Type of estimand to estimate ("ate", "cate", "gate", etc.)
+        query
+            Query string for group-based estimates (required for "gate")
+        **kwargs
+            Additional arguments that child classes may need
+
+        Returns
+        -------
+        Any
+            Estimated value of the specified estimand
+        """
+        df = self._convert_dataframe_to_pandas(df)
+        estimand = estimand.lower()
+        if estimand == "ate":
+            return self._estimate_ate(df, **kwargs)
+        elif estimand == "cate":
+            return self._estimate_cate(df, **kwargs)
+        elif estimand == "gate":
+            if query is None:
+                raise ValueError("Query string is required for GATE estimation")
+            return self._estimate_gate(df, query=query, **kwargs)
+        elif estimand == "gatt":
+            return self._estimate_gatt(df, **kwargs)
+        elif estimand == "att":
+            return self._estimate_att(df, **kwargs)
+        elif estimand == "atc":
+            return self._estimate_atc(df, **kwargs)
+        else:
+            raise ValueError(f"Invalid estimand: {estimand}")
+
+    def _estimate_gate(self, df: pd.DataFrame, query: str, **kwargs):
+        raise NotImplementedError(
+            f"GATE estimation is not supported for {self.__class__.__name__}"
+        )
+
+    def _estimate_ate(self, df: pd.DataFrame, **kwargs):
+        raise NotImplementedError(
+            f"ATE estimation is not supported for {self.__class__.__name__}"
+        )
+
+    def _estimate_cate(self, df: pd.DataFrame, **kwargs):
+        raise NotImplementedError(
+            f"CATE estimation is not supported for {self.__class__.__name__}"
+        )
+
+    def _estimate_att(self, df: pd.DataFrame, **kwargs):
+        raise NotImplementedError(
+            f"ATT estimation is not supported for {self.__class__.__name__}"
+        )
+
+    def _estimate_atc(self, df: pd.DataFrame, **kwargs):
+        raise NotImplementedError(
+            f"ATC estimation is not supported for {self.__class__.__name__}"
+        )
+
+    def _estimate_gatt(self, df: pd.DataFrame, **kwargs):
+        raise NotImplementedError(
+            f"GATT estimation is not supported for {self.__class__.__name__}"
+        )
 
     def interpret(self):
-        raise NotImplementedError
+        raise NotImplementedError(
+            f"Interpretation is not supported for {self.__class__.__name__}"
+        )
 
     def dose_response(self):
-        raise NotImplementedError
+        raise NotImplementedError(
+            f"Dose-response estimation is not supported for {self.__class__.__name__}"
+        )
 
     def _split_data(
         self,

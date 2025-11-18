@@ -36,7 +36,7 @@ def _(mo):
 
 @app.cell
 def _():
-    from caml.generics.logging import configure_logging
+    from caml._generics.logging import configure_logging
     import logging
 
     configure_logging(level=logging.DEBUG)
@@ -45,14 +45,14 @@ def _():
 
 @app.cell
 def _():
-    from caml.extensions.synthetic_data import SyntheticDataGenerator
+    from caml.extensions import SyntheticDataGenerator
 
     data_generator = SyntheticDataGenerator(
-        n_obs=10_000,
+        n_obs=1_000,
         n_cont_outcomes=1,
         n_binary_outcomes=1,
         n_binary_treatments=1,
-        n_cont_confounders=2,
+        n_cont_confounders=4,
         n_cont_modifiers=3,
         n_binary_modifiers=2,
         stddev_outcome_noise=1,
@@ -119,7 +119,7 @@ def _(mo):
 
 @app.cell
 def _(data_generator):
-    from caml import InteractiveLinearRegression
+    from caml.cross_section import InteractiveLinearRegression
 
     ilr = InteractiveLinearRegression(
         Y=[c for c in data_generator.df.columns if "Y" in c],
@@ -191,7 +191,7 @@ def _(ilr):
 
 @app.cell
 def _(ilr):
-    ilr.treatment_effects["overall"]
+    ilr.treatment_effects["ATE--Overall"]
     return
 
 
@@ -222,6 +222,12 @@ def _(mo):
 @app.cell
 def _(data_generator):
     data_generator.ates
+    return
+
+
+@app.cell
+def _(data_generator):
+    data_generator.df
     return
 
 
