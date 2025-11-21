@@ -1,0 +1,25 @@
+name: Caml - Dependency Canary
+
+on:
+  schedule:
+    - cron: "0 3 * * 1" # weekly (Mon 03:00 UTC); adjust as needed
+  workflow_dispatch:
+
+jobs:
+  upgrade_tests:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install uv & Set Python
+        uses: astral-sh/setup-uv@22695119d769bdb6f7032ad67b9bca0ef8c4a174
+        with:
+          version: ${{ vars.UV_VERSION }}
+          python-version: "3.12"
+
+      - name: Install newest dependencies (canary)
+        run: uv sync --all-extras --all-groups --upgrade
+
+      - name: Run tests
+        run: uv run pytest tests
