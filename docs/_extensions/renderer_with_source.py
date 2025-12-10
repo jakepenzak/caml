@@ -22,3 +22,14 @@ class Renderer(MdRenderer):
             return result
         else:
             return header
+
+
+    @dispatch
+    def signature(self, el: layout.Doc) -> str:
+        sig = super().signature(el) # pyright: ignore[reportArgumentType]
+        if hasattr(el.obj, "source_link") and el.obj.source_link:
+            source_link = f'\n\n<div style="text-align: right;"> [View Source Code]({el.obj.source_link} "View Source Code") </div>'
+            result = sig + source_link
+            return result
+        else:
+            return sig

@@ -105,7 +105,7 @@ quartodoc:
     - title: CaML Estimators
       desc: Core CaML estimators for causal effects, organized by input data structure.
     - subtitle: Cross-Sectional Estimators
-      desc: "`from caml.cross_section import *` \n \n Econometric estimators for causal effects with cross-sectional data."
+      desc: "`caml.cross_section` \n \n Econometric estimators for causal effects with cross-sectional data."
       package: caml.cross_section
       contents:
           - name: InteractiveLinearRegression
@@ -122,7 +122,7 @@ quartodoc:
     - title: CaML Extensions
       desc: Additional utilities and tools for working with CaML.
     - subtitle: Synthetic Data Generation
-      desc: "`from caml.synthetic_data import *` <br> <br> Synthetic data generation utilities for CaML."
+      desc: "`caml.synthetic_data` <br> <br> Synthetic data generation utilities for CaML."
       package: caml.synthetic_data
       contents:
         - name: SyntheticDataGenerator
@@ -134,7 +134,7 @@ quartodoc:
         - name: make_fully_heterogeneous_dataset
           signature_name: short
     - subtitle: Plots
-      desc: "`from caml.plots import *` <br> <br> Plotting utilities for CaML."
+      desc: "`caml.plots` <br> <br> Plotting utilities for CaML."
       package: caml.plots
       contents:
         - name: cate_histogram_plot
