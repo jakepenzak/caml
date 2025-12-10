@@ -1,13 +1,10 @@
-"""Extensions for CaML including plotting utilities and synthetic data generation.
+"""Internal extensions for CaML including plotting utilities and synthetic data generation.
 
-Import utilities and extensions that work across all data types.
-Usage: from caml.extensions import SyntheticDataGenerator, plots
+Note: Users should import from caml.plots, caml.synthetic_data, etc.
+This internal structure is for code organization only.
 """
 
-from . import plots
-from .synthetic_data import SyntheticDataGenerator
+from . import plots, synthetic_data
 
-__all__ = [
-    "SyntheticDataGenerator",
-    "plots",
-]
+# Internal use only - not in __all__ to discourage direct usage
+# Users should use caml.synthetic_data instead of caml.extensions.synthetic_data

@@ -15,16 +15,14 @@ from caml._generics.logging import DEBUG, INFO
 
 @experimental
 class InteractiveLinearRegression(BaseCamlEstimator, OLSMixin):
-    r"""InteractiveLinearRegression is an interactive linear regression estimator with explicit treatment interaction terms, enabling precision improvements & heterogeneous treatment discovery.
+    r"""Interactive linear regression estimator with explicit treatment interaction terms, enabling precision improvements & heterogeneous treatment effect discovery.
 
-    **InteractiveLinearRegression is experimental and may change significantly in future versions.**
+    **`InteractiveLinearRegression` is experimental and may change significantly in future versions.**
 
     This class estimates a standard linear regression model, with treatment-covariate interaction terms, for any number of continuous or binary outcomes and a single continuous or binary treatment,
     and provides estimates for the Average Treatment Effects (ATEs) and Group Average Treatment Effects (GATEs) out of the box. Additionally,
     methods are provided for estimating custom GATEs & Conditional Average Treatment Effects (CATEs) of individual observations, which can also be used for out-of-sample predictions.
     Note, this method assumes linear treatment effects and heterogeneity, which is typically sufficient when primarily concerned with ATEs and GATEs.
-
-    This model is designed and adapted
 
     For outcome/treatment support, see [Support Matrix](support_matrix.qmd).
 
@@ -79,7 +77,7 @@ class InteractiveLinearRegression(BaseCamlEstimator, OLSMixin):
     Examples
     --------
     ```{python}
-    from caml import InteractiveLinearRegression
+    from caml.cross_section import InteractiveLinearRegression
     from caml.extensions.synthetic_data import SyntheticDataGenerator
 
     data_generator = SyntheticDataGenerator(n_cont_outcomes=1,
@@ -296,8 +294,7 @@ class InteractiveLinearRegression(BaseCamlEstimator, OLSMixin):
         ilr.prettify_treatment_effects()
         ```
         ```{python}
-        ## Using a custom GATE
-        custom_gate = ilr.estimate_ate(df_filtered, return_results_dict=True, group="My Custom Group")
+        custom_gate = ilr.estimate(df, estimand="gate", query="X3_binary == 0 & X1_continuous < 5", return_results_dict=True)
         ilr.prettify_treatment_effects(custom_gate)
         ```
         """

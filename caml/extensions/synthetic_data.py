@@ -3,8 +3,8 @@ from typing import Callable, Sequence
 import numpy as np
 import pandas as pd
 import patsy
-from doubleml.datasets import (
-    make_heterogeneous_data,
+from doubleml.irm.datasets import make_heterogeneous_data
+from doubleml.plm.datasets import (
     make_plr_CCDDHNR2018,
     make_plr_turrell2018,
 )

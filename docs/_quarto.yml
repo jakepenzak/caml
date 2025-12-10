@@ -67,10 +67,10 @@ website:
         - 02_Concepts/theory.qmd
         - 02_Concepts/models.qmd
         - 02_Concepts/references.qmd
-    - id: Examples
-      title: "Examples"
-      style: floating
-      contents: 03_Examples/*
+    # - id: Examples
+    #   title: "Examples"
+    #   style: floating
+      # contents: 03_Examples/*
     - id: API_Reference
       title: "Reference"
       style: floating
@@ -91,25 +91,39 @@ website:
     border: false
     left: "© Copyright 2024, Jacob Pieniazek"
     right: |
-      Powered by: [![](../assets/external_logos/quarto.png){width=85px}](https://quarto.org/)
+      Powered by: [![](/assets/external_logos/quarto.png){width=85px}](https://quarto.org/)
 
 quartodoc:
   package: caml
   dir: 04_Reference
   title: API Reference
   sidebar: 04_Reference/_sidebar.yml
+  source_dir: ../caml
+  renderer:
+    style: _extensions.renderer_with_source.py
   sections:
-    - title: CaML Core
-      desc: "`from caml import *` <br> <br> Core functionality of CaML for estimating causal effects with cross-sectional data."
-      package: caml
+    - title: CaML Estimators
+      desc: Core CaML estimators for causal effects, organized by input data structure.
+    - subtitle: Cross-Sectional Estimators
+      desc: "`from caml.cross_section import *` \n \n Econometric estimators for causal effects with cross-sectional data."
+      package: caml.cross_section
       contents:
-        - name: AutoCATE
-          member_order: source
-        - name: InteractiveLinearRegression
-          member_order: source
-    - title: Synthetic Data Generation
-      desc: "`from caml.extensions.synthetic_data import *` <br> <br> Synthetic data generation utilities for CaML."
-      package: caml.extensions.synthetic_data
+          - name: InteractiveLinearRegression
+            member_order: source
+        # - name: AutoCATE
+        #   member_order: source
+    - subtitle: Panel Estimators
+      desc: "Econometric estimators for causal effects with panel data. \n \n *Forthcoming* "
+      package: caml.panel
+    - subtitle: Time Series Estimators
+      desc: "Econometric estimators for causal effects with time series data. \n \n *Forthcoming* "
+      package: caml.time_series
+
+    - title: CaML Extensions
+      desc: Additional utilities and tools for working with CaML.
+    - subtitle: Synthetic Data Generation
+      desc: "`from caml.synthetic_data import *` <br> <br> Synthetic data generation utilities for CaML."
+      package: caml.synthetic_data
       contents:
         - name: SyntheticDataGenerator
           signature_name: short
@@ -119,9 +133,9 @@ quartodoc:
           signature_name: short
         - name: make_fully_heterogeneous_dataset
           signature_name: short
-    - title: Plots
-      desc: "`from caml.extensions.plots import *` <br> <br> Plotting utilities for CaML."
-      package: caml.extensions.plots
+    - subtitle: Plots
+      desc: "`from caml.plots import *` <br> <br> Plotting utilities for CaML."
+      package: caml.plots
       contents:
         - name: cate_histogram_plot
           signature_name: short
@@ -129,17 +143,17 @@ quartodoc:
           signature_name: short
         - name: cate_true_vs_estimated_plot
           signature_name: short
-    - title: Developer Tools
-      desc: "Developer tools and utilities for CaML."
-      contents:
-        - name: decorators
-          package: caml.generics
-        - name: interfaces
-          package: caml.generics
-        - name: utils
-          package: caml.generics
-        - name: logging
-          package: caml.generics
+    # - title: Developer Tools
+    #   desc: "Developer tools and utilities for CaML."
+    #   contents:
+    #     - name: decorators
+    #       package: caml.generics
+    #     - name: interfaces
+    #       package: caml.generics
+    #     - name: utils
+    #       package: caml.generics
+    #     - name: logging
+    #       package: caml.generics
 
 metadata-files:
   - _sidebar.yml

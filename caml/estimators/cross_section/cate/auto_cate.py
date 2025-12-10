@@ -136,7 +136,7 @@ class AutoCATE(BaseCamlEstimator):
     Examples
     --------
     ```{python}
-    from caml import AutoCATE
+    from caml.cross_section import AutoCATE
     from caml.extensions.synthetic_data import SyntheticDataGenerator
 
     data_generator = SyntheticDataGenerator(seed=10, n_cont_modifiers=1, n_cont_confounders=1)
@@ -283,7 +283,7 @@ class AutoCATE(BaseCamlEstimator):
         Examples
         --------
         ```{python}
-        from caml import AutoCateEstimator
+        from caml.cross_section import AutoCateEstimator
         from econml.dml import LinearDML
 
         my_custom_estimator = AutoCateEstimator(name="MyCustomEstimator",estimator=LinearDML())

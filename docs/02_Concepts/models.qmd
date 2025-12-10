@@ -4,7 +4,7 @@ title: "Model Specifications"
 
 ## [InteractiveLinearRegression](../04_Reference/InteractiveLinearRegression.qmd)
 
-The outlined Interactive Linear Regression is motivated by @chernozhukov2024chapter2 and adapted.
+The outlined Interactive Linear Regression is motivated by and adapted from @chernozhukov2024chapter2.
 
 ### Model Specification
 
