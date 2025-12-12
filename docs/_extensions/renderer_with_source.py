@@ -16,20 +16,8 @@ class Renderer(MdRenderer):
     def render_header(self, el: layout.Doc) -> str:
         header = super().render_header(el) # pyright: ignore[reportArgumentType]
         if hasattr(el.obj, "source_link") and el.obj.source_link:
-            split_header = header.split("{")
-            source_link = f'[↗]({el.obj.source_link} "View Source Code")'
-            result = split_header[0] + source_link + "{" + split_header[1]
+            source_link = f'\n<small class="text-muted">↗[View Source Code]({el.obj.source_link})</small>'
+            result = header + source_link
             return result
         else:
             return header
-
-
-    @dispatch
-    def signature(self, el: layout.Doc) -> str:
-        sig = super().signature(el) # pyright: ignore[reportArgumentType]
-        if hasattr(el.obj, "source_link") and el.obj.source_link:
-            source_link = f'\n\n<div style="text-align: right;"> [View Source Code]({el.obj.source_link} "View Source Code") </div>'
-            result = sig + source_link
-            return result
-        else:
-            return sig
