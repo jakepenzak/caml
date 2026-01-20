@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from abc import ABCMeta, abstractmethod
+from abc import ABC, abstractmethod
 from typing import Any, Sequence
 
 import pandas as pd
@@ -16,7 +16,7 @@ from caml._generics.interfaces import (
 from caml._generics.logging import DEBUG, ERROR, INFO
 
 
-class BaseCamlEstimator(metaclass=ABCMeta):
+class BaseCamlEstimator(ABC):
     """Base ABC class for CaML estimators."""
 
     X: list[str]
@@ -45,7 +45,6 @@ class BaseCamlEstimator(metaclass=ABCMeta):
         """
         pass
 
-    @abstractmethod
     def estimate(
         self,
         df: PandasConvertibleDataFrame,
@@ -56,43 +55,26 @@ class BaseCamlEstimator(metaclass=ABCMeta):
     ) -> Any:  # TODO: Change return type
         """Base estimate method that handles estimand routing.
 
-        Child classes should override this method to accept additional kwargs, but
-        should call super().estimate() to leverage the base routing logic.
-
-        Parameters
-        ----------
-        df
-            Input dataframe
-        estimand
-            Type of estimand to estimate ("ate", "cate", "gate", etc.)
-        query
-            Query string for group-based estimates (required for "gate")
-        **kwargs
-            Additional arguments that child classes may need
-
-        Returns
-        -------
-        Any
-            Estimated value of the specified estimand
+        Child classes may override this method to accept additional kwargs, but
+        should call `super().estimate()` to leverage the base routing logic.
         """
         df = self._convert_dataframe_to_pandas(df)
         estimand = estimand.lower()
         if estimand == "ate":
             return self._estimate_ate(df, **kwargs)
-        elif estimand == "cate":
+        if estimand == "cate":
             return self._estimate_cate(df, **kwargs)
-        elif estimand == "gate":
+        if estimand == "gate":
             if query is None:
                 raise ValueError("Query string is required for GATE estimation")
             return self._estimate_gate(df, query=query, **kwargs)
-        elif estimand == "gatt":
+        if estimand == "gatt":
             return self._estimate_gatt(df, **kwargs)
-        elif estimand == "att":
+        if estimand == "att":
             return self._estimate_att(df, **kwargs)
-        elif estimand == "atc":
+        if estimand == "atc":
             return self._estimate_atc(df, **kwargs)
-        else:
-            raise ValueError(f"Invalid estimand: {estimand}")
+        raise ValueError(f"Invalid estimand: {estimand}")
 
     def _estimate_gate(self, df: pd.DataFrame, query: str, **kwargs):
         raise NotImplementedError(
