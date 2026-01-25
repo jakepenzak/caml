@@ -1,6 +1,5 @@
 """Shared fixtures for synthetic data and extensions testing."""
 
-import numpy as np
 import pytest
 
 from caml.extensions.synthetic_data import SyntheticDataGenerator

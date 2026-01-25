@@ -65,22 +65,22 @@ See Also
 ```python
 def effect(self, x: np.ndarray) -> np.ndarray:
     """Estimate CATE for given covariates.
-    
+
     Parameters
     ----------
     x
         Covariate matrix.
-    
+
     Returns
     -------
     np.ndarray
         Estimated CATE values.
-    
+
     Examples
     --------
     ```{python}
     from caml.extensions.synthetic_data import SyntheticDataGenerator
-    
+
     gen = SyntheticDataGenerator(n_samples=500)
     data = gen.generate()
     # ... use data
@@ -145,6 +145,6 @@ When starting work:
 
 ---
 
-**Last updated**: 2026-01-24  
-**Next task**: `caml/estimators/wrappers/dml.py`  
+**Last updated**: 2026-01-24
+**Next task**: `caml/estimators/wrappers/dml.py`
 **Detailed docs**: See `.context/REFACTORING_PLAN.md` and `.context/CODE_EXAMPLES.md`

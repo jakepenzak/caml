@@ -1,7 +1,6 @@
 """Tests for caml.inference.results."""
 
 import numpy as np
-import pytest
 
 from caml.inference.inference_schema import InferenceType
 from caml.inference.results import InferenceResult

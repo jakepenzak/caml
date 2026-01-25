@@ -141,10 +141,10 @@ Comprehensive `InferenceProvider` Protocol with three methods:
 1. `effect_interval(X, alpha, method, **kwargs)` -> tuple[lower, upper]
    - Supports 'auto', 'analytic', 'bootstrap' methods
    - Returns confidence interval bounds
-   
+
 2. `effect_stderr(X, method, **kwargs)` -> np.ndarray
    - Returns standard errors for each observation
-   
+
 3. `effect_inference(X, alpha, method, **kwargs)` -> InferenceResult
    - Returns complete InferenceResult with point estimates, CIs, stderr, metadata
 
@@ -209,10 +209,10 @@ Current status:
 class InteractiveLinearRegression(BaseCamlEstimator, OLSMixin):
     def __init__(self, Y, T, G=None, X=None, W=None, xformula=None, discrete_treatment=False):
         # Formula-based initialization
-        
+
     def fit(self, df: pd.DataFrame):
         # Currently expects DataFrame directly
-        
+
     def predict(self, df, mode='outcome'):
         # mode can be 'outcome', 'cate', 'ate', 'gate'
 ```
@@ -229,10 +229,10 @@ class InteractiveLinearRegression(BaseCamlEstimator, OLSMixin):
             estimands={Estimand.ATE, Estimand.GATE, Estimand.CATE},
             supports_inference=True
         )
-    
+
     def fit(self, data: CausalDataset, **kwargs):
         # Adapt to use CausalDataset
-        
+
     def effect(self, X, **kwargs):
         # Map to existing predict(mode='cate')
 ```
@@ -1686,7 +1686,7 @@ Based on REFACTORING_PLAN.md Phase breakdown (UPDATED PRIORITY):
 
 ### Phase 2: 🔶 TODO - Estimator Wrappers (IMMEDIATE PRIORITY)
 - [ ] Implement `estimators/wrappers/dml.py` - 4 DML wrappers
-- [ ] Implement `estimators/wrappers/dr.py` - 2 DR wrappers  
+- [ ] Implement `estimators/wrappers/dr.py` - 2 DR wrappers
 - [ ] Implement `estimators/wrappers/meta.py` - 3 meta-learner wrappers
 - [ ] Implement `estimators/wrappers/orf.py` - 2 ORF wrappers
 - [ ] Implement `registry/registry.py` - Estimator auto-discovery

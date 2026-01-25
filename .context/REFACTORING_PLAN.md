@@ -1296,7 +1296,7 @@ Based on actual implementation inspection (Jan 24, 2026):
 1. **Directory Naming**:
    - `sampling/` used instead of `validation/`
    - `registry/` used instead of `modeling/`
-   
+
 2. **File Naming**:
    - `uplift_.py` (with underscore) instead of `uplift.py`
    - `_validation.py` (private module) instead of `validation.py`
