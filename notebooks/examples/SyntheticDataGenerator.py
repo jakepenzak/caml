@@ -1,6 +1,6 @@
 import marimo
 
-__generated_with = "0.13.6"
+__generated_with = "0.18.0"
 app = marimo.App(width="medium")
 
 
@@ -12,7 +12,9 @@ def _():
 
 @app.cell
 def _(mo):
-    mo.md(r"""# Caml Synthetic Data Generator""")
+    mo.md(r"""
+    # Caml Synthetic Data Generator
+    """)
     return
 
 
@@ -25,7 +27,9 @@ def _():
 
 @app.cell
 def _(mo):
-    mo.md(r"""## Generate Data""")
+    mo.md(r"""
+    ## Generate Data
+    """)
     return
 
 
@@ -56,7 +60,9 @@ def _(SyntheticDataGenerator):
 
 @app.cell
 def _(mo):
-    mo.md(r"""## Simulated Dataframe""")
+    mo.md(r"""
+    ## Simulated Dataframe
+    """)
     return
 
 
@@ -68,7 +74,9 @@ def _(data_generator):
 
 @app.cell
 def _(mo):
-    mo.md(r"""## True Conditional Average Treatment Effects (CATEs)""")
+    mo.md(r"""
+    ## True Conditional Average Treatment Effects (CATEs)
+    """)
     return
 
 
@@ -80,7 +88,9 @@ def _(data_generator):
 
 @app.cell
 def _(mo):
-    mo.md(r"""## True Average Treatment Effects (ATEs)""")
+    mo.md(r"""
+    ## True Average Treatment Effects (ATEs)
+    """)
     return
 
 
@@ -92,7 +102,9 @@ def _(data_generator):
 
 @app.cell
 def _(mo):
-    mo.md(r"""## True Data Generating Process""")
+    mo.md(r"""
+    ## True Data Generating Process
+    """)
     return
 
 
@@ -106,7 +118,9 @@ def _(data_generator):
 
 @app.cell
 def _(mo):
-    mo.md(r"""We can recreate the raw scores of our treatment and outcome variables too:""")
+    mo.md(r"""
+    We can recreate the raw scores of our treatment and outcome variables too:
+    """)
     return
 
 
@@ -133,7 +147,9 @@ def _(data_generator, np):
 
 @app.cell
 def _(mo):
-    mo.md(r"""For treatment variables, we get back the probabilities:""")
+    mo.md(r"""
+    For treatment variables, we get back the probabilities:
+    """)
     return
 
 
@@ -153,6 +169,11 @@ def _(data_generator, df, np):
     assert np.allclose(raw_scores_bin, dgp_bin["raw_scores"])
 
     raw_scores_bin
+    return
+
+
+@app.cell
+def _():
     return
 
 

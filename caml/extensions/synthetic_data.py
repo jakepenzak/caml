@@ -1,3 +1,5 @@
+"""Synthetic Data generating utilities."""
+
 from typing import Callable, Sequence
 
 import numpy as np
@@ -207,6 +209,13 @@ class SyntheticDataGenerator:
         if n_obs <= 0:
             raise ValueError("Number of observations must be greater than 0.")
 
+        total_modifiers = n_cont_modifiers + n_binary_modifiers + n_discrete_modifiers
+        if n_confounding_modifiers > total_modifiers:
+            raise ValueError(
+                f"n_confounding_modifiers ({n_confounding_modifiers}) cannot exceed "
+                f"total number of modifiers ({total_modifiers})"
+            )
+
         self._n_obs = n_obs
         self._n_cont_outcomes = n_cont_outcomes
         self._n_binary_outcomes = n_binary_outcomes
@@ -232,7 +241,7 @@ class SyntheticDataGenerator:
             else None
         )
         self._seed = seed if seed is not None else np.random.randint(1, 1000)
-        self._rng = np.random.default_rng(seed)
+        self._rng = np.random.default_rng(self._seed)
 
         self._generate_data()
 
@@ -593,7 +602,7 @@ class SyntheticDataGenerator:
             df=df,
             n_nonlinear_transformations=n_nonlinear_transformations,
             include_heterogeneity=include_heterogeneity,
-            seed=self._seed,
+            rng=self._rng,
         )
 
         if formula != "":
@@ -630,7 +639,7 @@ class SyntheticDataGenerator:
         df: pd.DataFrame,
         n_nonlinear_transformations: int | None = None,
         include_heterogeneity: bool = False,
-        seed: int | None = None,
+        rng: np.random.Generator | None = None,
     ) -> str:
         """Create design matrix formula to be used with patsy.
 
@@ -642,8 +651,8 @@ class SyntheticDataGenerator:
             Number of nonlinear transformations to apply to the covariates, by default None
         include_heterogeneity : bool, optional
             Whether to include heterogeneity in the design matrix (via interaction terms), by default False
-        seed : int | None, optional
-            Seed for the random number generator, by default None
+        rng : np.random.Generator | None, optional
+            Random number generator for reproducible formula generation, by default None
 
         Returns
         -------
@@ -658,7 +667,8 @@ class SyntheticDataGenerator:
 
         non_treat_columns = [c for c in columns if "T" not in c]
         if n_nonlinear_transformations is not None and len(non_treat_columns) > 0:
-            np.random.seed(seed)
+            if rng is None:
+                rng = np.random.default_rng()
 
             transformations = [
                 # lambda x: f"I({x}**2)",  # square(x)
@@ -671,12 +681,12 @@ class SyntheticDataGenerator:
             interaction_prob = 1 / (1 + len(transformations))
             terms = set()
             while len(terms) < n_nonlinear_transformations:
-                if np.random.uniform() < interaction_prob and len(df) > 2:
-                    x1, x2 = np.random.choice(non_treat_columns, 2)
+                if rng.uniform() < interaction_prob and len(df) > 2:
+                    x1, x2 = rng.choice(non_treat_columns, 2, replace=False)
                     term = f"{x1}*{x2}"
                 else:
-                    x = np.random.choice(non_treat_columns)
-                    transform = np.random.choice(np.array(transformations))
+                    x = rng.choice(non_treat_columns)
+                    transform = rng.choice(np.array(transformations))
                     term = transform(x)
                 terms.add(term)
 
@@ -759,7 +769,7 @@ class SyntheticDataGenerator:
                 raw = x @ params + noise
 
                 probs = sigmoid(raw)
-                return _truncate_and_renormalize_probabilities(probs)
+                return _truncate_and_renormalize_probabilities(np.array(probs))
 
             f = f_binary
             scores = np.array(f(df, params, noise))
@@ -773,11 +783,11 @@ class SyntheticDataGenerator:
                 raw = x @ params + noise
 
                 probs = softmax(raw)
-                return _truncate_and_renormalize_probabilities(probs)
+                return _truncate_and_renormalize_probabilities(np.array(probs))
 
             f = f_discrete
             scores = np.array(f(df, params, noise))
-            dep = np.array([rng.choice(range(n_categories)) for prob in scores])
+            dep = np.array([rng.choice(range(n_categories), p=prob) for prob in scores])
 
         return dep, params, noise, scores, f
 
@@ -885,9 +895,9 @@ class SyntheticDataGenerator:
                 design_control = self.create_design_matrix(
                     data_control, formula=formula
                 )
-                noise = np.zeros_like(noise)
-                cates[f"{lev}_v_0"] = f(design_treat, params, noise) - f(
-                    design_control, params, noise
+                noise_counterfactual = np.zeros_like(noise)
+                cates[f"{lev}_v_0"] = f(design_treat, params, noise_counterfactual) - f(
+                    design_control, params, noise_counterfactual
                 )
 
         if len(cates) == 1:

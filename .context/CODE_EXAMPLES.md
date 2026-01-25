@@ -23,24 +23,135 @@ This document provides detailed code examples for every file in the proposed dir
 
 ## 1. data/
 
-See REFACTORING_PLAN.md for complete examples of:
-- `data/__init__.py`
-- `data/schema.py`
-- `data/dataset.py` (full CausalDataset implementation)
-- `data/validation.py`
+### data/__init__.py
 
-Key files already documented in the main plan.
+```python
+"""Data containers and validation."""
+from caml.data.dataset import CausalDataset
+from caml.data.data_schema import TreatmentType, OutcomeType, Estimand
+
+__all__ = ["CausalDataset", "TreatmentType", "OutcomeType", "Estimand"]
+```
+
+### data/data_schema.py
+
+**Status**: ✅ **IMPLEMENTED**
+
+```python
+from enum import Enum
+
+
+class TreatmentType(Enum):
+    """Categories of treatment variables."""
+
+    BINARY = "binary"
+    MULTI = "multi"
+    CONTINUOUS = "continuous"
+
+    def is_discrete(self) -> bool:
+        return self in {TreatmentType.BINARY, TreatmentType.MULTI}
+
+
+class OutcomeType(Enum):
+    """Categories of outcome variables."""
+
+    BINARY = "binary"
+    CONTINUOUS = "continuous"
+
+    def is_discrete(self) -> bool:
+        return self == OutcomeType.BINARY
+
+
+class Estimand(Enum):
+    """Categories of target estimands."""
+
+    ATE = "ate"  # Average Treatment Effect
+    ATT = "att"  # Average Treatment Effect on Treated
+    ATC = "atc"  # Average Treatment Effect on Control
+    CATE = "cate"  # Conditional ATE
+    GATE = "gate"  # Group ATE
+```
+
+### data/dataset.py
+
+**Status**: ✅ **IMPLEMENTED**
+
+The actual implementation is in `/home/jadmin/projects/caml/caml/data/dataset.py` and matches the design from REFACTORING_PLAN.md with:
+- Core data fields (X, T, Y, W)
+- Metadata (treatment_type, outcome_type)
+- Feature names tracking
+- `validate()` method
+- `from_dataframe()` class method
+- Automatic validation on initialization via `__post_init__`
+
+### data/_validation.py
+
+**Status**: ✅ **IMPLEMENTED**
+
+Complete validation utilities including:
+- `check_shapes_match()` - Verify all arrays have compatible shapes
+- `check_1d_targets()` - Ensure treatment and outcome are 1-dimensional
+- `check_missing_data()` - Check for missing values and return summary
+- `check_treatment_type_matches_data()` - Verify declared treatment type matches data
+- `check_outcome_type_matches_data()` - Verify declared outcome type matches data
+- Helper functions for robust array handling (pandas/numpy)
 
 ---
 
 ## 2. protocols/
 
-See REFACTORING_PLAN.md for complete examples of:
-- `protocols/__init__.py`
-- `protocols/estimator.py` (CATEEstimator Protocol, EstimatorCapabilities)
-- `protocols/inference.py` (InferenceProvider Protocol)
+### protocols/__init__.py
 
-Key files already documented in the main plan.
+```python
+"""Protocol definitions for estimators and inference providers."""
+from caml.protocols.estimator import CATEEstimator, EstimatorCapabilites
+from caml.protocols.inference import InferenceProvider
+
+__all__ = ["CATEEstimator", "EstimatorCapabilites", "InferenceProvider"]
+```
+
+### protocols/estimator.py
+
+**Status**: ✅ **IMPLEMENTED**
+
+Key implementation details:
+- `EstimatorCapabilites` dataclass (frozen) with:
+  - `treatment_types`: set of supported TreatmentType
+  - `outcome_types`: set of supported OutcomeType
+  - `inference_types`: set of supported InferenceType
+  - `estimands`: set of supported Estimand
+  - `requires_propensity`: bool flag
+  - `supports_inference`: bool flag
+  - `is_compatible(data)`: method to check dataset compatibility
+
+- `CATEEstimator` Protocol with:
+  - `capabilities`: EstimatorCapabilites property
+  - `fit(data: CausalDataset, **kwargs)`: fit method
+  - `effect(X, **kwargs)`: predict CATE method (note: uses "effect" not "predict_cate")
+  - `get_params(deep=True)`: sklearn-compatible param getter
+  - `set_params(**params)`: sklearn-compatible param setter
+
+**Note**: The actual implementation uses `effect()` instead of `predict_cate()` as the main prediction method.
+
+### protocols/inference.py
+
+**Status**: ✅ **IMPLEMENTED**
+
+Comprehensive `InferenceProvider` Protocol with three methods:
+1. `effect_interval(X, alpha, method, **kwargs)` -> tuple[lower, upper]
+   - Supports 'auto', 'analytic', 'bootstrap' methods
+   - Returns confidence interval bounds
+   
+2. `effect_stderr(X, method, **kwargs)` -> np.ndarray
+   - Returns standard errors for each observation
+   
+3. `effect_inference(X, alpha, method, **kwargs)` -> InferenceResult
+   - Returns complete InferenceResult with point estimates, CIs, stderr, metadata
+
+Method parameter allows flexibility:
+- 'auto': Use estimator's preferred method
+- 'analytic': Use analytic/asymptotic standard errors
+- 'bootstrap': Use bootstrap resampling
 
 ---
 
@@ -77,84 +188,72 @@ __all__ = ["InteractiveLinearRegression"]
 
 ### estimators/benchmark/interactive_ols.py
 
-**Note**: Refactor existing `caml/estimators/interactive_ols.py` to implement the CATEEstimator protocol.
+**Status**: ⚠️ **PARTIALLY IMPLEMENTED** - Exists but needs protocol adaptation
 
-Key changes needed:
-1. Add `capabilities` property
-2. Change `fit()` to accept `CausalDataset`
-3. Keep existing OLS logic
-4. Implement `get_params()`/`set_params()`
+Current status:
+- File exists at `/home/jadmin/projects/caml/caml/estimators/benchmark/interactive_ols.py` (24,781 bytes)
+- Implements existing `BaseCamlEstimator` and `OLSMixin` patterns
+- Uses Patsy formula-based design matrix creation
+- Supports formula-based model specification with interaction terms
+- Methods include: `fit()`, `predict()`, `_estimate_ate()`, `_estimate_gate()`, `_estimate_cate()`
 
+**Refactoring needed**:
+1. Add `capabilities` property returning `EstimatorCapabilites`
+2. Adapt `fit()` to accept `CausalDataset` (currently expects DataFrame)
+3. Add/adapt `effect()` method to match `CATEEstimator` protocol
+4. Ensure `get_params()`/`set_params()` are compatible with sklearn interface
+5. Consider adding `InferenceProvider` protocol implementation (analytic inference already supported)
+
+**Current signature** (to be adapted):
 ```python
-"""Refactored InteractiveLinearRegression to use CausalDataset."""
+class InteractiveLinearRegression(BaseCamlEstimator, OLSMixin):
+    def __init__(self, Y, T, G=None, X=None, W=None, xformula=None, discrete_treatment=False):
+        # Formula-based initialization
+        
+    def fit(self, df: pd.DataFrame):
+        # Currently expects DataFrame directly
+        
+    def predict(self, df, mode='outcome'):
+        # mode can be 'outcome', 'cate', 'ate', 'gate'
+```
 
-from caml.protocols.estimator import CATEEstimator, EstimatorCapabilities
-from caml.data.schema import TreatmentType, OutcomeType
-from caml.data.dataset import CausalDataset
-from caml._base.mixins.ols import OLSMixin
-# ... rest of existing imports
-
-class InteractiveLinearRegression(OLSMixin):
-    """Interactive linear regression (refactored)."""
-
-    def __init__(self, Y, T, G=None, X=None, W=None, **kwargs):
-        # Existing __init__ logic
-        self._capabilities = EstimatorCapabilities(
+**Target signature** (protocol-compliant):
+```python
+class InteractiveLinearRegression(BaseCamlEstimator, OLSMixin):
+    @property
+    def capabilities(self) -> EstimatorCapabilites:
+        return EstimatorCapabilites(
             treatment_types={TreatmentType.BINARY, TreatmentType.CONTINUOUS},
             outcome_types={OutcomeType.CONTINUOUS, OutcomeType.BINARY},
-            supports_inference=True,
-            inference_method="analytic",
-            requires_W=False
+            inference_types={InferenceType.ANALYTIC},
+            estimands={Estimand.ATE, Estimand.GATE, Estimand.CATE},
+            supports_inference=True
         )
-
-    @property
-    def capabilities(self):
-        return self._capabilities
-
+    
     def fit(self, data: CausalDataset, **kwargs):
-        """Fit using CausalDataset."""
-        # Convert CausalDataset to DataFrame for existing logic
-        import pandas as pd
-        df = pd.DataFrame({
-            **{f"X_{i}": data.X.iloc[:, i] for i in range(data.X.shape[1])},
-            self.T: data.T,
-            **{f"Y_{i}": data.Y.iloc[:, i] if data.Y.ndim > 1 else data.Y}
-        })
-
-        # Call existing fit logic (refactor as needed)
-        # ... existing fit code ...
-        return self
-
-    def predict_cate(self, X, **kwargs):
-        """Alias for existing predict() with mode='cate'."""
-        return self.predict(X, mode='cate', **kwargs)
-
-    def get_params(self, deep=True):
-        return {
-            "Y": self.Y,
-            "T": self.T,
-            "G": self.G,
-            "X": self.X,
-            "W": self.W,
-        }
-
-    def set_params(self, **params):
-        for key, value in params.items():
-            setattr(self, key, value)
-        return self
-
-    # Keep all existing methods (_estimate_ate, _estimate_gate, etc.)
+        # Adapt to use CausalDataset
+        
+    def effect(self, X, **kwargs):
+        # Map to existing predict(mode='cate')
 ```
 
 ### estimators/wrappers/__init__.py
 
+**Status**: 🔶 **NOT YET IMPLEMENTED** (empty file exists)
+
 ```python
 """EconML estimator wrappers."""
+# TODO: Import wrapper modules once implemented
+# from caml.estimators.wrappers import dml, dr, meta, orf
 
 __all__ = ["dml", "dr", "meta", "orf"]
 ```
 
 ### estimators/wrappers/dml.py
+
+**Status**: 🔶 **NOT YET IMPLEMENTED** (empty file exists)
+
+**Target implementation** (from REFACTORING_PLAN.md):
 
 ```python
 """Wrappers for EconML DML estimators."""
@@ -167,7 +266,7 @@ from econml.dml import (
     KernelDML
 )
 from caml.protocols.estimator import EstimatorCapabilities
-from caml.data.schema import TreatmentType, OutcomeType
+from caml.data.data_schema import TreatmentType, OutcomeType
 from caml.data.dataset import CausalDataset
 import numpy as np
 import pandas as pd
@@ -278,7 +377,7 @@ class WrappedKernelDML:
 
 from econml.dr import DRLearner, LinearDRLearner, SparseLinearDRLearner, ForestDRLearner
 from caml.protocols.estimator import EstimatorCapabilities
-from caml.data.schema import TreatmentType, OutcomeType
+from caml.data.data_schema import TreatmentType, OutcomeType
 # ... same pattern as dml.py
 
 
@@ -331,7 +430,7 @@ class WrappedForestDRLearner:
 
 from econml.metalearners import SLearner, TLearner, XLearner
 from caml.protocols.estimator import EstimatorCapabilities
-from caml.data.schema import TreatmentType, OutcomeType
+from caml.data.data_schema import TreatmentType, OutcomeType
 
 
 class WrappedSLearner:
@@ -372,7 +471,7 @@ class WrappedXLearner:
 
 from econml.orf import DMLOrthoForest, DROrthoForest
 from caml.protocols.estimator import EstimatorCapabilities
-from caml.data.schema import TreatmentType, OutcomeType
+from caml.data.data_schema import TreatmentType, OutcomeType
 
 
 class WrappedDMLOrthoForest:
@@ -389,17 +488,24 @@ class WrappedDROrthoForest:
 
 ## 4. nuisance/
 
+**Status**: 🔶 **NOT YET IMPLEMENTED** (directory structure exists, all files empty)
+
 ### nuisance/__init__.py
 
 ```python
 """Nuisance model estimation."""
-from caml.nuisance.tuner import NuisanceTuner
-from caml.nuisance.spec import NuisanceSpec
+# TODO: Import once implemented
+# from caml.nuisance.tuner import NuisanceTuner
+# from caml.nuisance.spec import NuisanceSpec
 
-__all__ = ["NuisanceTuner", "NuisanceSpec"]
+# __all__ = ["NuisanceTuner", "NuisanceSpec"]
 ```
 
 ### nuisance/spec.py
+
+**Status**: 🔶 **NOT YET IMPLEMENTED**
+
+Planned implementation from REFACTORING_PLAN.md:
 
 ```python
 """Nuisance specification."""
@@ -457,27 +563,36 @@ def prepare_features_for_regression(data):
 
 ## 5. scoring/
 
+**Status**: 🔶 **NOT YET IMPLEMENTED** (directory structure exists, all files empty)
+
+Note: The directory uses `sampling/` instead of `validation/` for cross-fitting utilities.
+
 ### scoring/__init__.py
 
 ```python
 """Scoring and evaluation metrics."""
-from caml.scoring.r_loss import RLoss
-from caml.scoring.dr_loss import DRLoss
-from caml.scoring.uplift import QiniScorer, AUUCScorer
-from caml.scoring.policy import PolicyValueScorer
-from caml.scoring.calibration import CalibrationScorer
+# TODO: Import once implemented
+# from caml.scoring.r_loss import RLoss
+# from caml.scoring.dr_loss import DRLoss
+# from caml.scoring.uplift_ import QiniScorer, AUUCScorer
+# from caml.scoring.policy import PolicyValueScorer
+# from caml.scoring.calibration import CalibrationScorer
 
-__all__ = [
-    "RLoss",
-    "DRLoss",
-    "QiniScorer",
-    "AUUCScorer",
-    "PolicyValueScorer",
-    "CalibrationScorer",
-]
+# __all__ = [
+#     "RLoss",
+#     "DRLoss",
+#     "QiniScorer",
+#     "AUUCScorer",
+#     "PolicyValueScorer",
+#     "CalibrationScorer",
+# ]
 ```
 
 ### scoring/base.py
+
+**Status**: 🔶 **NOT YET IMPLEMENTED**
+
+Planned implementation from REFACTORING_PLAN.md:
 
 ```python
 """Base scorer class."""
@@ -509,15 +624,21 @@ class BaseScorer(ABC):
 
 ### scoring/r_loss.py
 
-See REFACTORING_PLAN.md for complete RLoss implementation.
+**Status**: 🔶 **NOT YET IMPLEMENTED** (empty file exists)
+
+See REFACTORING_PLAN.md for complete RLoss implementation (Section 4.2).
 
 ### scoring/dr_loss.py
 
-See REFACTORING_PLAN.md for complete DRLoss implementation.
+**Status**: 🔶 **NOT YET IMPLEMENTED** (empty file exists)
 
-### scoring/uplift.py
+See REFACTORING_PLAN.md for complete DRLoss implementation (Section 4.3).
 
-See REFACTORING_PLAN.md for complete QiniScorer implementation.
+### scoring/uplift_.py
+
+**Status**: 🔶 **NOT YET IMPLEMENTED** (empty file exists, note underscore suffix)
+
+See REFACTORING_PLAN.md for complete QiniScorer implementation (Section 4.4).
 
 Additional scorer:
 
@@ -680,24 +801,35 @@ def compute_rank_stability(rankings: list[list[str]]) -> float:
 
 ---
 
-## 6. validation/
+## 6. sampling/ (formerly validation/)
 
-### validation/__init__.py
+**Status**: 🔶 **NOT YET IMPLEMENTED** (directory structure exists as `sampling/`, all files empty)
+
+**Note**: The actual directory is named `sampling/` rather than `validation/` as originally planned.
+
+### sampling/__init__.py
 
 ```python
 """Cross-fitting and validation utilities."""
-from caml.validation.cross_fit import CrossFitter
-from caml.validation.splitters import create_splitter
-from caml.validation.bootstrap import BootstrapInference
+# TODO: Import once implemented
+# from caml.sampling.cross_fit import CrossFitter
+# from caml.sampling.splitters import create_splitter
+# from caml.sampling.bootstrap import BootstrapInference
 
-__all__ = ["CrossFitter", "create_splitter", "BootstrapInference"]
+# __all__ = ["CrossFitter", "create_splitter", "BootstrapInference"]
 ```
 
-### validation/cross_fit.py
+### sampling/cross_fit.py
 
-See REFACTORING_PLAN.md for complete CrossFitter implementation.
+**Status**: 🔶 **NOT YET IMPLEMENTED** (empty file exists)
 
-### validation/splitters.py
+See REFACTORING_PLAN.md Section 5 for complete CrossFitter implementation.
+
+### sampling/splitters.py
+
+**Status**: 🔶 **NOT YET IMPLEMENTED** (empty file exists)
+
+Planned implementation from REFACTORING_PLAN.md:
 
 ```python
 """Splitter utilities."""
@@ -732,7 +864,11 @@ def create_splitter(cv=3, groups=None, time_series=False, random_state=None):
         return KFold(n_splits=cv, shuffle=True, random_state=random_state)
 ```
 
-### validation/bootstrap.py
+### sampling/bootstrap.py
+
+**Status**: 🔶 **NOT YET IMPLEMENTED** (empty file exists)
+
+Planned implementation from REFACTORING_PLAN.md:
 
 ```python
 """Bootstrap inference."""
@@ -806,16 +942,29 @@ class BootstrapInference:
 
 ## 7. automl/
 
+**Status**: 🔶 **NOT YET IMPLEMENTED** (directory structure exists, all files empty)
+
 ### automl/__init__.py
 
 ```python
 """AutoCATE and AutoML components."""
-from caml.automl.auto_cate import AutoCATE
+# TODO: Import once implemented
+# from caml.automl.auto_cate import AutoCATE
 
-__all__ = ["AutoCATE"]
+# __all__ = ["AutoCATE"]
 ```
 
 ### automl/auto_cate.py
+
+**Status**: 🔶 **NOT YET IMPLEMENTED** (empty file exists)
+
+See REFACTORING_PLAN.md Section 4 for planned AutoCATE implementation with Optuna.
+
+### automl/search_space.py
+
+**Status**: 🔶 **NOT YET IMPLEMENTED** (empty file exists)
+
+Planned implementation from REFACTORING_PLAN.md:
 
 ```python
 """Refactored AutoCATE with Optuna."""
@@ -1037,6 +1186,10 @@ class SearchSpace:
 
 ### automl/backends/base.py
 
+**Status**: 🔶 **NOT YET IMPLEMENTED** (empty file exists)
+
+Planned implementation from REFACTORING_PLAN.md:
+
 ```python
 """Base tuner backend protocol."""
 
@@ -1052,6 +1205,10 @@ class TunerBackend(Protocol):
 ```
 
 ### automl/backends/optuna_backend.py
+
+**Status**: 🔶 **NOT YET IMPLEMENTED** (empty file exists)
+
+Planned implementation from REFACTORING_PLAN.md:
 
 ```python
 """Optuna backend implementation."""
@@ -1081,6 +1238,10 @@ class OptunaBackend:
 ```
 
 ### automl/objectives.py
+
+**Status**: 🔶 **NOT YET IMPLEMENTED** (empty file exists)
+
+Planned implementation from REFACTORING_PLAN.md:
 
 ```python
 """Optuna objective functions."""
@@ -1113,92 +1274,101 @@ def create_dr_loss_objective(propensity_model, outcome_model, data, cv=3, random
 
 ## 8. inference/
 
+**Status**: ✅ **PARTIALLY IMPLEMENTED**
+
 ### inference/__init__.py
 
 ```python
 """Inference utilities."""
-from caml.inference.results import EffectResult, InferenceResult
-from caml.inference.bootstrap import BootstrapInference
+# TODO: Add bootstrap inference once implemented
+# from caml.inference.results import InferenceResult
+# from caml.inference.bootstrap import BootstrapInference
 
-__all__ = ["EffectResult", "InferenceResult", "BootstrapInference"]
+# __all__ = ["InferenceResult", "BootstrapInference"]
 ```
 
 ### inference/results.py
 
-```python
-"""Result containers."""
+**Status**: ✅ **IMPLEMENTED**
 
+```python
+"""Result containers for inference."""
 from dataclasses import dataclass
 import numpy as np
-
-
-@dataclass
-class EffectResult:
-    """Container for effect estimates with inference.
-
-    Parameters
-    ----------
-    value : float | np.ndarray
-        Point estimate
-    stderr : float | np.ndarray | None
-        Standard error
-    ci_lower : float | np.ndarray | None
-        Lower confidence bound
-    ci_upper : float | np.ndarray | None
-        Upper confidence bound
-    alpha : float
-        Significance level
-    n_obs : int | None
-        Number of observations
-    """
-
-    value: float | np.ndarray
-    stderr: float | np.ndarray | None = None
-    ci_lower: float | np.ndarray | None = None
-    ci_upper: float | np.ndarray | None = None
-    alpha: float = 0.05
-    n_obs: int | None = None
-
-    def __repr__(self):
-        if self.stderr is not None:
-            return f"EffectResult(value={self.value:.4f}, stderr={self.stderr:.4f})"
-        else:
-            return f"EffectResult(value={self.value:.4f})"
+from caml.inference.inference_schema import InferenceType
 
 
 @dataclass
 class InferenceResult:
-    """Container for CATE inference results."""
+    """Container for Effect inference results (can be scalar or vector of effects)."""
 
-    point_estimate: np.ndarray
-    stderr: np.ndarray | None = None
-    ci_lower: np.ndarray | None = None
-    ci_upper: np.ndarray | None = None
+    point_estimate: float | np.ndarray
+    stderr: float | np.ndarray | None = None
+    ci_lower: float | np.ndarray | None = None
+    ci_upper: float | np.ndarray | None = None
     alpha: float = 0.05
-    method: str = "unknown"  # "analytic", "bootstrap"
+    method: InferenceType | None = None
+    n_bootstrap: int | None = None  # If bootstrap was used
+
+    def __len__(self):
+        return (
+            len(self.point_estimate)
+            if isinstance(self.point_estimate, np.ndarray)
+            else 1
+        )
+
+    def __repr__(self):
+        n = len(self)
+        if self.stderr is not None:
+            return f"InferenceResult(n={n}, method={self.method.value if self.method else 'unknown'})"
+        return f"InferenceResult(n={n})"
+```
+
+### inference/inference_schema.py
+
+**Status**: ✅ **IMPLEMENTED**
+
+```python
+from enum import Enum
+
+
+class InferenceType(Enum):
+    """Categories of Supported Inference Types."""
+
+    ANALYTIC = "analytic"
+    BOOTSTRAP = "bootstrap"
 ```
 
 ### inference/bootstrap.py
 
-See validation/bootstrap.py - same implementation.
+**Status**: 🔶 **NOT YET IMPLEMENTED**
+
+This was referenced in REFACTORING_PLAN.md but file doesn't exist yet. See `sampling/bootstrap.py` for planned implementation.
 
 ---
 
-## 9. modeling/
+## 9. registry/ (formerly modeling/)
 
-### modeling/__init__.py
+**Status**: 🔶 **NOT YET IMPLEMENTED** (directory structure exists as `registry/`, all files empty)
+
+**Note**: The actual directory is named `registry/` rather than `modeling/` as originally planned.
+
+### registry/__init__.py
 
 ```python
 """Model registry and discovery."""
-from caml.modeling.model_bank import available_estimators
-from caml.modeling.registry import get_compatible_estimators, register_estimator
+# TODO: Import once implemented
+# from caml.registry.model_bank import available_estimators
+# from caml.registry.registry import get_compatible_estimators, register_estimator
 
-__all__ = ["available_estimators", "get_compatible_estimators", "register_estimator"]
+# __all__ = ["available_estimators", "get_compatible_estimators", "register_estimator"]
 ```
 
-### modeling/model_bank.py
+### registry/model_bank.py
 
-Keep existing file, but enhance with wrappers:
+**Status**: 🔶 **NOT YET IMPLEMENTED** (empty file exists)
+
+Keep existing file, but enhance with wrappers once implemented:
 
 ```python
 """AutoCateEstimator definitions (existing + new wrappers)."""
@@ -1249,7 +1419,11 @@ available_estimators = {
 }
 ```
 
-### modeling/registry.py
+### registry/registry.py
+
+**Status**: 🔶 **NOT YET IMPLEMENTED** (empty file exists)
+
+Planned implementation from REFACTORING_PLAN.md:
 
 ```python
 """Estimator registry and auto-discovery."""
@@ -1319,7 +1493,64 @@ def register_estimator(name: str, estimator):
 
 ---
 
-## 10. benchmarking/
+## 10. extensions/
+
+**Status**: ✅ **IMPLEMENTED** (New module not in original REFACTORING_PLAN)
+
+This module was added and contains utilities for synthetic data generation and plotting.
+
+### extensions/__init__.py
+
+```python
+"""Extensions and utilities."""
+from caml.extensions.synthetic_data import SyntheticDataGenerator
+
+__all__ = ["SyntheticDataGenerator"]
+```
+
+### extensions/synthetic_data.py
+
+**Status**: ✅ **IMPLEMENTED** (Large file, ~48KB based on inspection)
+
+Comprehensive synthetic data generator for causal inference testing:
+- Generates flexible synthetic datasets with configurable:
+  - Number and types of outcomes (continuous/binary)
+  - Number and types of treatments (binary/continuous/multi-valued)
+  - Number and types of effect modifiers (continuous/binary/discrete)
+  - Number and types of confounders
+  - Treatment effect heterogeneity patterns
+  - Nonlinear relationships via GAMs
+- Uses DoubleML datasets as building blocks
+- Supports both linear and nonlinear data generating processes
+- Includes probability truncation/renormalization for positivity
+- Marked as `@experimental`
+
+### extensions/plots.py
+
+**Status**: ✅ **IMPLEMENTED**
+
+Plotting utilities for causal inference (file exists, details not inspected).
+
+---
+
+## Summary of Implementation Status
+
+### ✅ **FULLY IMPLEMENTED**
+1. **data/** - Complete with CausalDataset, schema, validation
+2. **protocols/** - Complete with CATEEstimator and InferenceProvider protocols
+3. **inference/** - Partial (results.py and inference_schema.py implemented)
+4. **extensions/** - Complete with SyntheticDataGenerator
+
+### ⚠️ **PARTIALLY IMPLEMENTED**
+5. **estimators/benchmark/** - InteractiveLinearRegression exists but needs protocol adaptation
+
+### 🔶 **NOT YET IMPLEMENTED** (Structure exists, files empty)
+6. **estimators/wrappers/** - All empty (dml.py, dr.py, meta.py, orf.py)
+7. **nuisance/** - All empty (spec.py, tuner.py, models.py)
+8. **scoring/** - All empty (r_loss.py, dr_loss.py, uplift_.py, policy.py, calibration.py, diagnostics.py)
+9. **sampling/** - All empty (cross_fit.py, splitters.py, bootstrap.py)
+10. **automl/** - All empty (auto_cate.py, search_space.py, objectives.py, backends/)
+11. **registry/** - All empty (model_bank.py, registry.py)
 
 ### benchmarking/__init__.py
 
@@ -1415,19 +1646,105 @@ class BenchmarkHarness:
 
 ---
 
-## Summary
+---
 
-This CODE_EXAMPLES.md provides:
+## Directory Structure (Actual vs. Planned)
 
-1. **Complete code examples** for all major files in the proposed structure
-2. **Implementation patterns** showing how wrappers, scorers, and utilities work
-3. **Realistic stubs** for files that follow similar patterns
-4. **Integration examples** showing how components work together
+### Actual Structure
+```
+caml/
+├── data/                    ✅ IMPLEMENTED
+├── protocols/               ✅ IMPLEMENTED
+├── estimators/
+│   ├── benchmark/           ⚠️ PARTIAL (needs protocol adaptation)
+│   └── wrappers/            🔶 EMPTY
+├── nuisance/                🔶 EMPTY
+├── scoring/                 🔶 EMPTY
+├── sampling/                🔶 EMPTY (renamed from validation/)
+├── automl/                  🔶 EMPTY
+├── inference/               ⚠️ PARTIAL (results & schema done)
+├── registry/                🔶 EMPTY (renamed from modeling/)
+└── extensions/              ✅ IMPLEMENTED (new, not in original plan)
+```
 
-The examples in REFACTORING_PLAN.md (CausalDataset, CrossFitter, RLoss, DRLoss, QiniScorer, PolicyValueScorer, NuisanceTuner) are already comprehensive and should be referenced for those files.
+### Notable Differences from REFACTORING_PLAN.md
+1. **`sampling/` vs `validation/`**: Directory renamed to `sampling/`
+2. **`registry/` vs `modeling/`**: Directory renamed to `registry/`
+3. **`extensions/`**: New module added with SyntheticDataGenerator and plots
+4. **`effect()` vs `predict_cate()`**: Protocol uses `effect()` as method name
+5. **`EstimatorCapabilites` vs `EstimatorCapabilities`**: Typo in implementation (missing 'i')
+6. **`uplift_.py` vs `uplift.py`**: File has underscore suffix
 
-All other files follow the patterns demonstrated here. The key is consistency in:
-- Protocol satisfaction for estimators
-- Scorer __call__ signature
-- CausalDataset as the primary data interface
-- Clear capability discovery
+---
+
+## Next Implementation Steps (Priority Order)
+
+Based on REFACTORING_PLAN.md Phase breakdown (UPDATED PRIORITY):
+
+### Phase 1: ✅ COMPLETE
+- CausalDataset, schema, validation, protocols
+
+### Phase 2: 🔶 TODO - Estimator Wrappers (IMMEDIATE PRIORITY)
+- [ ] Implement `estimators/wrappers/dml.py` - 4 DML wrappers
+- [ ] Implement `estimators/wrappers/dr.py` - 2 DR wrappers  
+- [ ] Implement `estimators/wrappers/meta.py` - 3 meta-learner wrappers
+- [ ] Implement `estimators/wrappers/orf.py` - 2 ORF wrappers
+- [ ] Implement `registry/registry.py` - Estimator auto-discovery
+- [ ] **Complete NumPy-style docstrings for all public classes/methods**
+- [ ] Tests validating wrapper outputs match EconML
+
+### Phase 3: 🔶 TODO - Nuisance Models
+- [ ] Implement `nuisance/spec.py` - NuisanceSpec dataclass
+- [ ] Implement `nuisance/tuner.py` - Extract NuisanceTuner from old AutoCATE
+- [ ] Implement `nuisance/models.py` - Helper functions
+- [ ] Refactor to use CausalDataset
+- [ ] **Complete NumPy-style docstrings for all public classes/methods**
+- [ ] Tests validating same outputs as old AutoCATE
+
+### Phase 4: 🔶 TODO - Cross-Fitting & Scoring
+- [ ] Implement `sampling/splitters.py` - Splitting strategies
+- [ ] Implement `sampling/cross_fit.py` - CrossFitter class
+- [ ] Implement `scoring/r_loss.py` - R-loss implementation
+- [ ] Implement `scoring/dr_loss.py` - DR-loss implementation
+- [ ] Implement `scoring/uplift_.py` - Qini, AUUC, uplift metrics
+- [ ] Implement `scoring/policy.py` - Policy value scoring
+- [ ] Implement `scoring/calibration.py` - Calibration metrics
+- [ ] Implement `scoring/diagnostics.py` - CATE-specific diagnostics
+- [ ] **Complete NumPy-style docstrings for all public classes/methods**
+- [ ] Tests for scoring on synthetic data
+
+### Phase 5: 🔶 TODO - Refactor AutoCATE
+- [ ] Implement `automl/backends/base.py` - TunerBackend protocol
+- [ ] Implement `automl/backends/optuna_backend.py` - Optuna implementation
+- [ ] Implement `automl/objectives.py` - Optuna objective functions
+- [ ] Implement `automl/search_space.py` - Search space definitions
+- [ ] Refactor `automl/auto_cate.py` - Use NuisanceTuner + Optuna
+- [ ] **Complete NumPy-style docstrings for all public classes/methods**
+- [ ] End-to-end AutoCATE tests
+
+### Phase 6: ⚠️ TODO - Refactor InteractiveLinearRegression
+- [ ] Add `capabilities` property to InteractiveLinearRegression
+- [ ] Adapt `fit()` to accept CausalDataset
+- [ ] Add `effect()` method (or adapt predict)
+- [ ] Ensure sklearn-compatible get_params/set_params
+- [ ] Consider adding InferenceProvider protocol
+- [ ] **Complete NumPy-style docstrings for all public methods**
+- [ ] Ensure existing tests still pass
+
+### Phase 7: 🔶 TODO - Testing & Documentation
+- [ ] Integration tests: Full AutoCATE workflow
+- [ ] Benchmarking: New vs old performance
+- [ ] Migration guide
+- [ ] API documentation updates
+- [ ] Example notebooks
+- [ ] **Final docstring audit across all modules**
+
+---
+
+## Critical Notes for Implementation
+
+1. **Method naming**: Use `effect()` not `predict_cate()` per protocol
+2. **Typo fix**: `EstimatorCapabilites` should be `EstimatorCapabilities`
+3. **Directory names**: Use actual names (`sampling/`, `registry/`) not planned names
+4. **SyntheticDataGenerator**: Already available for testing implementations
+5. **InteractiveLinearRegression**: Preserve existing functionality while adding protocol compliance

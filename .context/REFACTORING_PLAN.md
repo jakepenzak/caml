@@ -1,12 +1,14 @@
 # CaML AutoCATE Refactoring Plan
 
-**Version:** 1.0
-**Date:** January 2026
-**Status:** Final - Ready for Implementation
+**Version:** 1.1
+**Date:** January 24, 2026
+**Status:** In Progress - Phase 1 Complete, Phase 2 Starting
 
 ---
 
 ## Executive Summary
+
+**UPDATE (Jan 24, 2026)**: Phase 1 is complete! Core data structures and protocols are implemented and tested.
 
 This plan refactors CaML into a focused **AutoCATE modeling package** with:
 
@@ -18,8 +20,9 @@ This plan refactors CaML into a focused **AutoCATE modeling package** with:
 - **All treatment types supported**: Binary, multi-valued, continuous from day one
 - **First-class inference**: Confidence intervals and standard errors as core functionality
 
-**Timeline**: 7 weeks
-**Lines of Code (estimate)**: ~3,500 new, ~500 refactored
+**Progress**: ~30% complete (Phase 1 of 7)
+**Timeline**: 5-6 weeks remaining (originally 7 weeks total)
+**Lines of Code**: ~500 implemented, ~3,000 remaining
 
 ---
 
@@ -92,104 +95,89 @@ caml/
 ├── README.md
 ├── REFACTORING_PLAN.md          # This document
 │
-├── data/                         # Data containers & validation
+├── data/                         # ✅ IMPLEMENTED - Data containers & validation
 │   ├── __init__.py
-│   ├── dataset.py                # CausalDataset class
-│   ├── schema.py                 # TreatmentType, OutcomeType enums
-│   └── validation.py             # Overlap, positivity, missing data checks
+│   ├── dataset.py                # ✅ CausalDataset class
+│   ├── data_schema.py            # ✅ TreatmentType, OutcomeType, Estimand enums
+│   └── _validation.py            # ✅ Overlap, positivity, missing data checks
 │
-├── protocols/                    # Core interfaces
+├── protocols/                    # ✅ IMPLEMENTED - Core interfaces
 │   ├── __init__.py
-│   ├── estimator.py              # CATEEstimator Protocol + EstimatorCapabilities
-│   └── inference.py              # InferenceProvider Protocol
+│   ├── estimator.py              # ✅ CATEEstimator Protocol + EstimatorCapabilites
+│   └── inference.py              # ✅ InferenceProvider Protocol
 │
-├── estimators/                   # CATE estimators
+├── estimators/                   # ⚠️ PARTIAL - CATE estimators
 │   ├── __init__.py
-│   ├── base.py                   # BaseEstimator mixin (minimal, optional)
-│   ├── benchmark/                # Benchmark estimators
+│   ├── base.py                   # 🔶 Empty (optional mixin, low priority)
+│   ├── benchmark/                # ⚠️ Needs refactoring
 │   │   ├── __init__.py
-│   │   └── interactive_ols.py    # Refactored InteractiveLinearRegression
-│   └── wrappers/                 # EconML wrappers
-│       ├── __init__.py
-│       ├── dml.py                # Wrap LinearDML, CausalForestDML, etc.
-│       ├── dr.py                 # Wrap DRLearner, ForestDRLearner, etc.
-│       ├── meta.py               # Wrap SLearner, TLearner, XLearner
-│       └── orf.py                # Wrap DMLOrthoForest, DROrthoForest
+│   │   └── interactive_ols.py    # ⚠️ EXISTS - Needs protocol adaptation
+│   └── wrappers/                 # 🔶 TODO - EconML wrappers
+│       ├── __init__.py           # 🔶 Empty
+│       ├── dml.py                # 🔶 Empty - Wrap LinearDML, CausalForestDML, etc.
+│       ├── dr.py                 # 🔶 Empty - Wrap DRLearner, ForestDRLearner, etc.
+│       ├── meta.py               # 🔶 Empty - Wrap SLearner, TLearner, XLearner
+│       └── orf.py                # 🔶 Empty - Wrap DMLOrthoForest, DROrthoForest
 │
-├── nuisance/                     # First-stage nuisance estimation
-│   ├── __init__.py
-│   ├── tuner.py                  # NuisanceTuner (FLAML-based)
-│   ├── spec.py                   # NuisanceSpec dataclass
-│   └── models.py                 # Helper functions for propensity/outcome models
+├── nuisance/                     # 🔶 TODO - First-stage nuisance estimation
+│   ├── __init__.py               # 🔶 Empty
+│   ├── tuner.py                  # 🔶 Empty - NuisanceTuner (FLAML-based)
+│   ├── spec.py                   # 🔶 Empty - NuisanceSpec dataclass
+│   └── models.py                 # 🔶 Empty - Helper functions
 │
-├── scoring/                      # Scoring & evaluation (ALL CUSTOM)
-│   ├── __init__.py
-│   ├── base.py                   # BaseScorer abstract class
-│   ├── r_loss.py                 # R-learner loss (orthogonal score)
-│   ├── dr_loss.py                # Doubly-robust loss
-│   ├── uplift.py                 # Qini, AUUC, uplift curves
-│   ├── policy.py                 # Policy value (IPS, DR policy evaluation)
-│   ├── calibration.py            # CATE calibration diagnostics
-│   └── diagnostics.py            # Stability, sensitivity, overlap checks
+├── scoring/                      # 🔶 TODO - Scoring & evaluation (ALL CUSTOM)
+│   ├── __init__.py               # 🔶 Empty
+│   ├── base.py                   # 🔶 Empty - BaseScorer abstract class
+│   ├── r_loss.py                 # 🔶 Empty - R-learner loss (orthogonal score)
+│   ├── dr_loss.py                # 🔶 Empty - Doubly-robust loss
+│   ├── uplift_.py                # 🔶 Empty - Qini, AUUC, uplift curves (note underscore)
+│   ├── policy.py                 # 🔶 Empty - Policy value (IPS, DR policy evaluation)
+│   ├── calibration.py            # 🔶 Empty - CATE calibration diagnostics
+│   └── diagnostics.py            # 🔶 Empty - Stability, sensitivity, overlap checks
 │
-├── validation/                   # Cross-fitting & resampling
-│   ├── __init__.py
-│   ├── cross_fit.py              # CrossFitter class (core engine)
-│   ├── splitters.py              # KFold, GroupKFold, TimeSeriesSplit wrappers
-│   └── bootstrap.py              # Bootstrap inference wrapper
+├── sampling/                     # 🔶 TODO - Cross-fitting & resampling (renamed from validation/)
+│   ├── __init__.py               # 🔶 Empty
+│   ├── cross_fit.py              # 🔶 Empty - CrossFitter class (core engine)
+│   ├── splitters.py              # 🔶 Empty - KFold, GroupKFold, TimeSeriesSplit wrappers
+│   └── bootstrap.py              # 🔶 Empty - Bootstrap inference wrapper
 │
-├── automl/                       # AutoCATE orchestration
-│   ├── __init__.py
-│   ├── auto_cate.py              # Main AutoCATE class
-│   ├── search_space.py           # Optuna search space definitions
+├── automl/                       # 🔶 TODO - AutoCATE orchestration
+│   ├── __init__.py               # 🔶 Empty
+│   ├── auto_cate.py              # 🔶 Empty - Main AutoCATE class
+│   ├── search_space.py           # 🔶 Empty - Optuna search space definitions
 │   ├── backends/
-│   │   ├── __init__.py
-│   │   ├── base.py               # TunerBackend Protocol
-│   │   └── optuna_backend.py     # Optuna implementation for CATE selection
-│   └── objectives.py             # Optuna objectives (R-loss, DR-loss, multi-metric)
+│   │   ├── __init__.py           # 🔶 Empty
+│   │   ├── base.py               # 🔶 Empty - TunerBackend Protocol
+│   │   └── optuna_backend.py     # 🔶 Empty - Optuna implementation for CATE selection
+│   └── objectives.py             # 🔶 Empty - Optuna objectives (R-loss, DR-loss, multi-metric)
 │
-├── inference/                    # Inference utilities
-│   ├── __init__.py
-│   ├── bootstrap.py              # Bootstrap confidence intervals
-│   └── results.py                # EffectResult, InferenceResult dataclasses
+├── inference/                    # ⚠️ PARTIAL - Inference utilities
+│   ├── __init__.py               # 🔶 Empty
+│   ├── results.py                # ✅ InferenceResult dataclass
+│   └── inference_schema.py                 # ✅ InferenceType enum
 │
-├── modeling/                     # Model registry
-│   ├── __init__.py
-│   ├── model_bank.py             # Existing AutoCateEstimator definitions
-│   └── registry.py               # Auto-discovery of wrapped estimators
+├── registry/                     # 🔶 TODO - Model registry (renamed from modeling/)
+│   ├── __init__.py               # 🔶 Empty
+│   ├── model_bank.py             # 🔶 Empty - AutoCateEstimator definitions
+│   └── registry.py               # 🔶 Empty - Auto-discovery of wrapped estimators
 │
-├── core/                         # Existing core (minimal changes)
-│   ├── __init__.py
-│   ├── estimands.py              # Keep as-is
-│   ├── specs.py                  # Enhance with CausalDataSpec
-│   └── contracts.py              # Gradually deprecate in favor of protocols/
+├── extensions/                   # ✅ IMPLEMENTED - New utilities (not in original plan)
+│   ├── __init__.py               # ✅ Implemented
+│   ├── synthetic_data.py         # ✅ SyntheticDataGenerator
+│   └── plots.py                  # ✅ Plotting utilities
 │
-├── _base/                        # Existing base classes (keep for compatibility)
-│   ├── abstract/
-│   │   └── estimator.py          # BaseCamlEstimator (may deprecate later)
-│   └── mixins/
-│       ├── ols.py                # Keep for InteractiveLinearRegression
-│       └── ...
-│
-├── _generics/                    # Existing utilities (keep)
+├── _generics/                    # ✅ EXISTING - Utilities (keep)
 │   ├── logging.py
 │   ├── decorators.py
-│   ├── interfaces.py
 │   └── utils.py
 │
-└── benchmarking/                 # Benchmarking harness
-    ├── __init__.py
-    └── harness.py                # Compare estimators, AutoCATE versions
+└── (other existing modules preserved for compatibility)
 ```
 
-**Key Additions**:
-- `data/` - Unified data container
-- `protocols/` - Interface definitions
-- `estimators/wrappers/` - EconML wrappers
-- `nuisance/` - Extracted nuisance tuning logic
-- **`scoring/` - Custom scoring infrastructure** ⭐
-- **`validation/cross_fit.py` - Custom cross-fitting engine** ⭐
-- `automl/` - Refactored AutoCATE with Optuna
+**Legend**:
+- ✅ **IMPLEMENTED** - Complete and tested
+- ⚠️ **PARTIAL** - Exists but needs work
+- 🔶 **TODO** - Not yet implemented (may have empty file)
 
 ---
 
@@ -204,7 +192,7 @@ from dataclasses import dataclass, field
 from typing import Optional
 import pandas as pd
 import numpy as np
-from caml.data.schema import TreatmentType, OutcomeType
+from caml.data.data_schema import TreatmentType, OutcomeType
 
 @dataclass
 class CausalDataset:
@@ -279,7 +267,7 @@ from typing import Protocol, runtime_checkable
 from dataclasses import dataclass
 import numpy as np
 from caml.data.dataset import CausalDataset
-from caml.data.schema import TreatmentType, OutcomeType
+from caml.data.data_schema import TreatmentType, OutcomeType
 
 @dataclass(frozen=True)
 class EstimatorCapabilities:
@@ -322,7 +310,7 @@ class CATEEstimator(Protocol):
 ```python
 from econml.dml import LinearDML
 from caml.protocols.estimator import CATEEstimator, EstimatorCapabilities
-from caml.data.schema import TreatmentType, OutcomeType
+from caml.data.data_schema import TreatmentType, OutcomeType
 from caml.data.dataset import CausalDataset
 import numpy as np
 
@@ -979,97 +967,167 @@ class CrossFitter:
 
 ## 6. Migration Strategy
 
-### Phase 1: Foundation (Week 1)
+### Phase 1: Foundation (Week 1) ✅ **COMPLETE**
 **Goal**: Core data structures and protocols
 
-1. Create `data/dataset.py` - `CausalDataset` class
-2. Create `data/schema.py` - `TreatmentType`, `OutcomeType` enums
-3. Create `data/validation.py` - validation functions
-4. Create `protocols/estimator.py` - `CATEEstimator` protocol, `EstimatorCapabilities`
-5. Create `inference/results.py` - `EffectResult` dataclass
-6. **Tests**: Validate `CausalDataset.from_dataframe()`, validation logic
+1. ✅ Create `data/dataset.py` - `CausalDataset` class
+2. ✅ Create `data/data_schema.py` - `TreatmentType`, `OutcomeType`, `Estimand` enums
+3. ✅ Create `data/_validation.py` - validation functions
+4. ✅ Create `protocols/estimator.py` - `CATEEstimator` protocol, `EstimatorCapabilites`
+5. ✅ Create `inference/results.py` - `InferenceResult` dataclass
+6. ✅ Create `inference/inference_schema.py` - `InferenceType` enum
+7. ✅ Create `protocols/inference.py` - `InferenceProvider` protocol
+8. ✅ **Tests**: Validate `CausalDataset.from_dataframe()`, validation logic
 
-**Deliverable**: Working `CausalDataset` with tests
+**Deliverable**: ✅ Working `CausalDataset` with comprehensive tests
 
----
-
-### Phase 2: Cross-Fitting & Scoring (Week 2)
-**Goal**: Custom scoring infrastructure
-
-7. Create `validation/cross_fit.py` - `CrossFitter` class
-8. Create `scoring/r_loss.py` - `RLoss` scorer
-9. Create `scoring/dr_loss.py` - `DRLoss` scorer
-10. Create `scoring/uplift.py` - `QiniScorer`
-11. Create `scoring/policy.py` - `PolicyValueScorer`
-12. **Tests**: Validate scoring on synthetic data with known ground truth
-
-**Deliverable**: Working scoring module with tests
+**Notes**:
+- Implementation uses `EstimatorCapabilites` (typo - missing 'i')
+- Protocol uses `effect()` method name instead of `predict_cate()`
+- Bonus: `extensions/` module added with `SyntheticDataGenerator` for testing
 
 ---
 
-### Phase 3: Nuisance Tuner (Week 3)
-**Goal**: Extract from AutoCATE
-
-13. Create `nuisance/spec.py` - `NuisanceSpec` dataclass
-14. Create `nuisance/tuner.py` - Extract `NuisanceTuner` from `AutoCATE._find_nuisance_functions()`
-15. Refactor to use `CausalDataset`
-16. **Tests**: Validate `NuisanceTuner` produces same models as old AutoCATE
-
-**Deliverable**: Standalone `NuisanceTuner` with tests
-
----
-
-### Phase 4: Estimator Wrappers (Week 4)
+### Phase 2: Estimator Wrappers (Week 2) 🔶 **IN PROGRESS**
 **Goal**: Wrap EconML estimators
 
-17. Create `modeling/registry.py` - Estimator auto-discovery
-18. Create `estimators/wrappers/dml.py` - Wrap 5 DML estimators
-19. Create `estimators/wrappers/dr.py` - Wrap 4 DR estimators
-20. Create `estimators/wrappers/meta.py` - Wrap S/T/X learners
-21. Create `estimators/wrappers/orf.py` - Wrap ORF estimators
-22. **Tests**: Validate wrapper outputs match EconML directly
+7. 🔶 Create `estimators/wrappers/dml.py` - Wrap 4 DML estimators
+8. 🔶 Create `estimators/wrappers/dr.py` - Wrap 2 DR estimators
+9. 🔶 Create `estimators/wrappers/meta.py` - Wrap S/T/X learners
+10. 🔶 Create `estimators/wrappers/orf.py` - Wrap ORF estimators
+11. 🔶 Create `registry/registry.py` - Estimator auto-discovery (note: directory renamed from `modeling/`)
+12. 🔶 **Docstrings**: Complete NumPy-style docstrings for all public classes/methods with runnable examples
+13. 🔶 **Tests**: Validate wrapper outputs match EconML directly
 
-**Deliverable**: 14 wrapped estimators with tests
+**Deliverable**: 14 wrapped estimators with complete docstrings and tests
+
+**Implementation Notes**:
+- Directory is `registry/` not `modeling/`
+- Each wrapper must implement `CATEEstimator` protocol
+- Use `effect()` method name (not `predict_cate()`)
+- Set `capabilities` property correctly
+- Follow wrapper pattern from REFACTORING_PLAN.md Section 3.3
+- **CRITICAL**: Docstrings are mandatory before marking phase complete
 
 ---
 
-### Phase 5: Refactor AutoCATE (Week 5)
+### Phase 3: Nuisance Models (Week 3) 🔶 **TODO**
+**Goal**: Extract from AutoCATE
+
+14. 🔶 Create `nuisance/spec.py` - `NuisanceSpec` dataclass
+15. 🔶 Create `nuisance/tuner.py` - Extract `NuisanceTuner` from old `AutoCATE._find_nuisance_functions()`
+16. 🔶 Create `nuisance/models.py` - Helper functions for nuisance models
+17. 🔶 Refactor to use `CausalDataset`
+18. 🔶 **Docstrings**: Complete NumPy-style docstrings for all public classes/methods with runnable examples
+19. 🔶 **Tests**: Validate `NuisanceTuner` produces same models as old AutoCATE
+
+**Deliverable**: Standalone `NuisanceTuner` with complete docstrings and tests
+
+**Implementation Notes**:
+- Look for existing AutoCATE implementation to extract logic
+- Follow REFACTORING_PLAN.md Section 3.4 for detailed implementation
+- **CRITICAL**: Docstrings are mandatory before marking phase complete
+
+---
+
+### Phase 4: Cross-Fitting & Scoring (Week 4) 🔶 **TODO**
+**Goal**: Custom scoring infrastructure
+
+20. 🔶 Create `sampling/splitters.py` - Splitting strategies
+21. 🔶 Create `sampling/cross_fit.py` - `CrossFitter` class (note: directory renamed from `validation/`)
+22. 🔶 Create `scoring/r_loss.py` - `RLoss` scorer
+23. 🔶 Create `scoring/dr_loss.py` - `DRLoss` scorer
+24. 🔶 Create `scoring/uplift_.py` - `QiniScorer` (note: underscore suffix in filename)
+25. 🔶 Create `scoring/policy.py` - `PolicyValueScorer`
+26. 🔶 Create `scoring/calibration.py` - Calibration metrics
+27. 🔶 Create `scoring/diagnostics.py` - CATE diagnostics
+28. 🔶 **Docstrings**: Complete NumPy-style docstrings for all public classes/methods with runnable examples
+29. 🔶 **Tests**: Validate scoring on synthetic data with known ground truth (use `SyntheticDataGenerator`)
+
+**Deliverable**: Working scoring module with complete docstrings and tests
+
+**Implementation Notes**:
+- Directory is `sampling/` not `validation/`
+- File is `uplift_.py` (with underscore) not `uplift.py`
+- Use `SyntheticDataGenerator` from `extensions/` for test data
+- Follow examples in REFACTORING_PLAN.md Sections 4.2-4.5
+- **CRITICAL**: Docstrings are mandatory before marking phase complete
+- **Dependencies**: Phase 3 complete (nuisance models needed for DR-loss)
+
+---
+
+### Phase 5: Refactor AutoCATE (Week 5) 🔶 **TODO**
 **Goal**: New AutoCATE with Optuna
 
-23. Create `automl/backends/base.py` - `TunerBackend` protocol
-24. Create `automl/backends/optuna_backend.py` - Optuna implementation
-25. Create `automl/objectives.py` - Optuna objective functions
-26. Create `automl/search_space.py` - Search space definitions
-27. Refactor `automl/auto_cate.py` - Use `NuisanceTuner` + Optuna + registry
-28. **Tests**: End-to-end AutoCATE on synthetic data
+30. 🔶 Create `automl/backends/base.py` - `TunerBackend` protocol
+31. 🔶 Create `automl/backends/optuna_backend.py` - Optuna implementation
+32. 🔶 Create `automl/objectives.py` - Optuna objective functions
+33. 🔶 Create `automl/search_space.py` - Search space definitions
+34. 🔶 Refactor `automl/auto_cate.py` - Use `NuisanceTuner` + Optuna + registry
+35. 🔶 **Docstrings**: Complete NumPy-style docstrings for all public classes/methods with runnable examples
+36. 🔶 **Tests**: End-to-end AutoCATE on synthetic data
 
-**Deliverable**: New AutoCATE with tests
+**Deliverable**: New AutoCATE with complete docstrings and tests
+
+**Implementation Notes**:
+- Leverage `registry.get_compatible_estimators()` for candidate selection
+- Use scoring functions from Phase 4
+- Use `NuisanceTuner` from Phase 3
+- Follow REFACTORING_PLAN.md Section 7 for API examples
+- **CRITICAL**: Docstrings are mandatory before marking phase complete
 
 ---
 
-### Phase 6: Refactor InteractiveLinearRegression (Week 6)
+### Phase 6: Refactor InteractiveLinearRegression (Week 6) ⚠️ **TODO**
 **Goal**: Implement protocol, integrate with CausalDataset
 
-29. Move to `estimators/benchmark/interactive_ols.py`
-30. Implement `CATEEstimator` protocol
-31. Add `capabilities` property
-32. Integrate with `CausalDataset`
-33. **Tests**: Ensure existing tests pass
+37. ⚠️ Add `capabilities` property to `InteractiveLinearRegression`
+38. ⚠️ Adapt `fit()` to accept `CausalDataset` (current signature expects DataFrame)
+39. ⚠️ Add `effect()` method (or adapt existing `predict(mode='cate')`)
+40. ⚠️ Ensure `get_params()`/`set_params()` are sklearn-compatible
+41. ⚠️ Consider implementing `InferenceProvider` protocol (analytic inference already exists)
+42. ⚠️ **Docstrings**: Complete NumPy-style docstrings for all public methods with runnable examples
+43. ⚠️ **Tests**: Ensure existing tests pass + new protocol compliance tests
 
-**Deliverable**: Refactored `InteractiveLinearRegression`
+**Deliverable**: Protocol-compliant `InteractiveLinearRegression` with complete docstrings
+
+**Implementation Notes**:
+- Existing file at `/home/jadmin/projects/caml/caml/estimators/benchmark/interactive_ols.py`
+- Already has formula-based design matrix creation with Patsy
+- Already has `_estimate_ate()`, `_estimate_gate()`, `_estimate_cate()` methods
+- Already inherits from `BaseCamlEstimator` and `OLSMixin`
+- See CODE_EXAMPLES.md Section 3 for detailed current/target signatures
+- **DO NOT** break existing functionality - add protocol compliance alongside
+- **CRITICAL**: Docstrings are mandatory before marking phase complete
 
 ---
 
-### Phase 7: Testing & Documentation (Week 7)
+### Phase 7: Testing & Documentation (Week 7) 🔶 **TODO**
 **Goal**: Comprehensive validation
 
-34. Integration tests: Full AutoCATE workflow
-35. Benchmarking: New vs old AutoCATE performance
-36. Write migration guide
-37. Update API documentation
-38. Create example notebooks
+44. 🔶 Integration tests: Full AutoCATE workflow
+45. 🔶 Benchmarking: New vs old AutoCATE performance
+46. 🔶 Write migration guide
+47. 🔶 Update API documentation
+48. 🔶 Create example notebooks
+49. 🔶 **Final docstring audit**: Ensure all public APIs have complete NumPy-style docstrings
 
-**Deliverable**: Production-ready v1
+**Deliverable**: Production-ready v1 with complete documentation
+
+---
+
+## Implementation Progress Summary
+
+| Phase | Status | Completion | Key Deliverables |
+|-------|--------|------------|------------------|
+| 1. Foundation | ✅ Complete | 100% | CausalDataset, Protocols, Schema |
+| 2. Estimator Wrappers | 🔶 TODO | ~7% | 14 EconML wrappers + registry |
+| 3. Nuisance Models | 🔶 TODO | 0% | NuisanceTuner, NuisanceSpec |
+| 4. Cross-Fitting & Scoring | 🔶 TODO | 0% | CrossFitter, RLoss, DRLoss, Qini |
+| 5. AutoCATE | 🔶 TODO | 0% | New AutoCATE with Optuna |
+| 6. InteractiveOLS | ⚠️ Partial | 70% | Protocol adaptation needed |
+| 7. Documentation | 🔶 TODO | 0% | Tests, docs, examples |
+| **TOTAL** | **~30%** | **~30%** | **5-6 weeks remaining** |
 
 ---
 
@@ -1079,7 +1137,7 @@ class CrossFitter:
 
 ```python
 from caml.data.dataset import CausalDataset
-from caml.data.schema import TreatmentType, OutcomeType
+from caml.data.data_schema import TreatmentType, OutcomeType
 from caml.automl.auto_cate import AutoCATE
 
 # Load your data
@@ -1217,7 +1275,8 @@ cate = estimator.predict_cate(data.X)
 ### 8.3 Code Quality
 - [ ] 80%+ test coverage on all new modules
 - [ ] Type hints on all public APIs
-- [ ] Docstrings (numpy style) on all public functions
+- [ ] **Docstrings (numpy style) on all public functions - MANDATORY for phase completion**
+- [ ] All docstrings include runnable examples using `SyntheticDataGenerator`
 - [ ] Pre-commit hooks pass (ruff, mypy)
 
 ### 8.4 Usability
@@ -1228,11 +1287,81 @@ cate = estimator.predict_cate(data.X)
 
 ---
 
-## Appendix: Key Design Decisions
+## Appendix A: Implementation Notes
 
-### A.1 Why Build Scoring Instead of Wrapping EconML?
+### Key Differences from Original Plan
 
-**Reasons**:
+Based on actual implementation inspection (Jan 24, 2026):
+
+1. **Directory Naming**:
+   - `sampling/` used instead of `validation/`
+   - `registry/` used instead of `modeling/`
+   
+2. **File Naming**:
+   - `uplift_.py` (with underscore) instead of `uplift.py`
+   - `_validation.py` (private module) instead of `validation.py`
+
+3. **Protocol Method Names**:
+   - Use `effect()` instead of `predict_cate()` as per `CATEEstimator` protocol
+   - This matches EconML's naming convention
+
+4. **Typo in Implementation**:
+   - `EstimatorCapabilites` (missing 'i') instead of `EstimatorCapabilities`
+   - Consider fixing in future iteration
+
+5. **Bonus Module**:
+   - `extensions/` module added (not in original plan)
+   - Contains `SyntheticDataGenerator` - very useful for testing!
+   - Contains `plots.py` for visualization
+
+6. **Schema Enhancements**:
+   - `Estimand` enum added to `data/data_schema.py`
+   - `InferenceType` enum in separate `inference/inference_schema.py`
+
+### Testing Strategy
+
+With `SyntheticDataGenerator` available:
+
+```python
+from caml.extensions.synthetic_data import SyntheticDataGenerator
+from caml.data.dataset import CausalDataset
+
+# Generate test data
+generator = SyntheticDataGenerator(
+    n_cont_outcomes=1,
+    n_binary_outcomes=0,
+    n_cont_modifiers=3,
+    n_binary_modifiers=2,
+    seed=42
+)
+df = generator.df
+
+# Create CausalDataset
+data = CausalDataset.from_dataframe(
+    df,
+    X=[c for c in df.columns if "X" in c],
+    T="T1_binary",
+    Y="Y1_cont",
+    W=[c for c in df.columns if "W" in c]
+)
+
+# Use for testing scorers, estimators, etc.
+```
+
+### Code Style Observations
+
+From implemented files:
+
+1. **Type hints**: Modern syntax used (`list[str]`, `dict`, `tuple[float, float]`)
+2. **Dataclasses**: Preferred for data containers (`@dataclass`)
+3. **Protocols**: Using `@runtime_checkable` for duck typing
+4. **Enums**: Used for categorical types
+5. **Validation**: Robust handling of both pandas and numpy arrays
+6. **Error messages**: Descriptive with expected vs actual values
+
+## Appendix B: Key Design Decisions
+
+### B.1 Why Build Scoring Instead of Wrapping EconML?
 1. **Full control**: Custom implementations allow us to optimize, extend, and debug without upstream dependencies
 2. **Flexibility**: Can add new metrics (stability, sensitivity) without waiting for EconML
 3. **Consistency**: All scoring follows same patterns, easier to understand and maintain
@@ -1246,7 +1375,7 @@ cate = estimator.predict_cate(data.X)
 
 **Mitigation**: Comprehensive testing against known ground truth, validation on semi-synthetic data
 
-### A.2 Why Optuna Over FLAML for CATE Selection?
+### B.2 Why Optuna Over FLAML for CATE Selection?
 
 **FLAML strengths**:
 - Fast, proven for supervised learning
@@ -1260,7 +1389,7 @@ cate = estimator.predict_cate(data.X)
 
 **Decision**: Use FLAML for nuisance (standard supervised learning), Optuna for CATE (custom objectives)
 
-### A.3 Why CausalDataset Over DataFrame?
+### B.3 Why CausalDataset Over DataFrame?
 
 **Benefits**:
 1. **Type safety**: Know treatment/outcome types at runtime
@@ -1277,18 +1406,51 @@ cate = estimator.predict_cate(data.X)
 
 ---
 
-## Next Steps
+## Next Steps (Updated Jan 24, 2026)
 
-1. **Review & approve this plan**
-2. **Set up project board** with tasks from Phase 1-7
-3. **Start Phase 1**: Implement `CausalDataset` and protocols
-4. **Iterate weekly**: Review progress, adjust timeline as needed
+### Immediate Priorities (Phase 2)
 
-**Estimated completion**: 7 weeks from start date
+1. **Implement DML Wrappers** (`estimators/wrappers/dml.py`)
+   - Wrap LinearDML, SparseLinearDML, CausalForestDML, KernelDML
+   - Each must implement `CATEEstimator` protocol
+   - See REFACTORING_PLAN.md Section 3.3 for wrapper pattern
+
+2. **Implement DR Wrappers** (`estimators/wrappers/dr.py`)
+   - Wrap DRLearner, ForestDRLearner
+   - Follow same pattern as DML wrappers
+   - Test with SyntheticDataGenerator
+
+3. **Implement Meta-Learner Wrappers** (`estimators/wrappers/meta.py`)
+   - Wrap SLearner, TLearner, XLearner
+   - Simpler than DML/DR (no nuisance models)
+   - Test with binary treatment data
+
+4. **Implement ORF Wrappers** (`estimators/wrappers/orf.py`)
+   - Wrap DMLOrthoForest, DROrthoForest
+   - Test with various treatment types
+
+5. **Implement Estimator Registry** (`registry/registry.py`)
+   - Auto-discovery of wrapped estimators
+   - Compatibility filtering based on data
+   - See CODE_EXAMPLES.md Section 9 for implementation
+
+### Medium-Term (Phases 3-4)
+
+- Extract NuisanceTuner from existing AutoCATE codebase
+- Implement cross-fitting and scoring infrastructure
+- Build AutoCATE with Optuna backend
+
+### Long-Term (Phases 5-7)
+
+- Refactor AutoCATE with Optuna backend
+- Adapt InteractiveLinearRegression to protocols
+- Comprehensive testing and documentation
+
+**Estimated completion**: Early March 2026 (5-6 weeks from Jan 24)
 
 ---
 
 **Document Control**
 - **Author**: OpenCode + User
-- **Last Updated**: January 2026
-- **Version**: 1.0 Final
+- **Last Updated**: January 24, 2026
+- **Version**: 1.1 (Updated with implementation status)

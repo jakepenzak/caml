@@ -11,8 +11,11 @@ format:
     theme: cosmo
     css: styles/styles.css
     toc: true
+    toc-depth: 5
+    toc-expand: 2
     table-scroll: true
     include-in-header: version-switcher.html
+    highlight-style: github
 
 website:
   title: CaML - Causal ML
@@ -70,7 +73,7 @@ website:
     # - id: Examples
     #   title: "Examples"
     #   style: floating
-      # contents: 03_Examples/*
+    # contents: 03_Examples/*
     - id: API_Reference
       title: "Reference"
       style: floating
@@ -102,58 +105,76 @@ quartodoc:
   renderer:
     style: _extensions.renderer_with_source.py
   sections:
-    - title: CaML Estimators
-      desc: Core CaML estimators for causal effects, organized by input data structure.
-    - subtitle: Cross-Sectional Estimators
-      desc: "`caml.cross_section` \n \n Econometric estimators for causal effects with cross-sectional data."
-      package: caml.cross_section
+    - title: CaML Core
+      desc: "`caml` \n\n Core CaML modules."
+
+    - subtitle: AutoML
+      desc: "`caml.automl` \n\n Primary AutoML Estimator."
+      package: caml.automl
+
+    - subtitle: Data
+      desc: "`caml.data` \n\n CaML Data Containers and schemas."
+      package: caml.data
       contents:
-          - name: InteractiveLinearRegression
-            member_order: source
-        # - name: AutoCATE
-        #   member_order: source
-    - subtitle: Panel Estimators
-      desc: "Econometric estimators for causal effects with panel data. \n \n *Forthcoming* "
-      package: caml.panel
-    - subtitle: Time Series Estimators
-      desc: "Econometric estimators for causal effects with time series data. \n \n *Forthcoming* "
-      package: caml.time_series
+        - name: dataset
+          member_order: source
+        - name: data_schema
+          member_order: source
+
+    - subtitle: Estimators
+      desc: "`caml.estimators` \n\n Native and wrapped CATE estimators."
+      package: caml.estimators
+
+    - subtitle: Inference
+      desc: "`caml.inference` \n\n Inference objects and schemas."
+      package: caml.inference
+      contents:
+        - name: results
+          member_order: source
+        - name: inference_schema
+          member_order: source
+
+    - subtitle: Nuisance
+      desc: "`caml.nuisance` \n\n First-stage nuisance estimation objects."
+      package: caml.nuisance
+
+    - subtitle: Protocols
+      desc: "`caml.protocols` \n\n Primary CaML interfaces."
+      package: caml.protocols
+      contents:
+        - name: estimator
+          member_order: source
+        - name: inference
+          member_order: source
+
+    - subtitle: Registry
+      desc: "`caml.registry` \n\n AutoCATE estimator registry."
+      package: caml.registry
+
+    - subtitle: Sampling
+      desc: "`caml.sampling` \n\n Primary CATE sampling utilities and objects."
+      package: caml.sampling
+
+    - subtitle: Scoring
+      desc: "`caml.scoring` \n\n Primary CATE scoring metrics."
+      package: caml.scoring
 
     - title: CaML Extensions
-      desc: Additional utilities and tools for working with CaML.
+      desc: "`caml.extensions` \n\n Additional utilities and tools for working in CaML."
+
     - subtitle: Synthetic Data Generation
-      desc: "`caml.synthetic_data` <br> <br> Synthetic data generation utilities for CaML."
-      package: caml.synthetic_data
+      desc: "`caml.extensions.synthetic_data` <br> <br> Synthetic data generation utilities for CaML."
+      package: caml.extensions
       contents:
-        - name: SyntheticDataGenerator
-          signature_name: short
-        - name: make_partially_linear_dataset_simple
-          signature_name: short
-        - name: make_partially_linear_dataset_constant
-          signature_name: short
-        - name: make_fully_heterogeneous_dataset
-          signature_name: short
+        - name: synthetic_data
+          member_order: source
+
     - subtitle: Plots
-      desc: "`caml.plots` <br> <br> Plotting utilities for CaML."
-      package: caml.plots
+      desc: "`caml.extensions.plots` <br> <br> Plotting utilities for CaML."
+      package: caml.extensions
       contents:
-        - name: cate_histogram_plot
-          signature_name: short
-        - name: cate_line_plot
-          signature_name: short
-        - name: cate_true_vs_estimated_plot
-          signature_name: short
-    # - title: Developer Tools
-    #   desc: "Developer tools and utilities for CaML."
-    #   contents:
-    #     - name: decorators
-    #       package: caml.generics
-    #     - name: interfaces
-    #       package: caml.generics
-    #     - name: utils
-    #       package: caml.generics
-    #     - name: logging
-    #       package: caml.generics
+        - name: plots
+          member_order: source
 
 metadata-files:
   - _sidebar.yml
