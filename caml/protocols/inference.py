@@ -1,16 +1,16 @@
 """Inference provider protocol for uncertainty quantification.
 
 Defines ``InferenceProvider`` protocol for CATE estimators that provide statistical
-inference (confidence intervals, standard errors). Separate from ``CATEEstimator`` to
+inference (confidence intervals, standard errors). Separate from ``AutoCateEstimator`` to
 support flexible composition via native implementation or wrapper-based inference.
 """
 
-from typing import Literal, Protocol, runtime_checkable
+from typing import Protocol, runtime_checkable
 
 import numpy as np
 import pandas as pd
 
-from caml.inference import InferenceResult
+from caml.inference import InferenceResult, InferenceType
 
 
 @runtime_checkable
@@ -18,11 +18,11 @@ class InferenceProvider(Protocol):
     """Protocol for estimators providing statistical inference for CATE estimates.
 
     Defines interface for uncertainty quantification via confidence intervals and
-    standard errors. Separate from ``CATEEstimator`` to enable flexible composition.
+    standard errors. Separate from ``AutoCateEstimator`` to enable flexible composition.
 
     See Also
     --------
-    [`CATEEstimator`](estimator.qmd#caml.protocols.estimator.CATEEstimator) : Core protocol for CATE estimation.
+    [`AutoCateEstimator`](estimator.qmd#caml.protocols.estimator.AutoCateEstimator) : Core protocol for CATE estimation.
 
     [`InferenceResult`](results.qmd#caml.inference.results.InferenceResult) : Dataclass for inference outputs.
 
@@ -31,7 +31,7 @@ class InferenceProvider(Protocol):
     Notes
     -----
     - Runtime-checkable via ``isinstance(obj, InferenceProvider)``
-    - Estimators can implement both ``CATEEstimator`` and ``InferenceProvider``
+    - Estimators can implement both ``AutoCateEstimator`` and ``InferenceProvider``
     - For estimators without native inference, use ``BootstrapInferenceWrapper``
     - Method parameter ``'auto'`` delegates to estimator's preferred inference method
 
@@ -41,7 +41,7 @@ class InferenceProvider(Protocol):
     import numpy as np
     from caml.data import CausalDataset, TreatmentType, OutcomeType, Estimand
     from caml.inference import InferenceType, InferenceResult
-    from caml.protocols import CATEEstimator, EstimatorCapabilities, InferenceProvider
+    from caml.protocols import AutoCateEstimator, EstimatorCapabilities, InferenceProvider
 
     class InferenceCapableEstimator:
         capabilities = EstimatorCapabilities(
@@ -66,20 +66,8 @@ class InferenceProvider(Protocol):
             n = len(X) if hasattr(X, '__len__') else 1
             return np.full(n, self.effect_value)
 
-        def effect_interval(self, X, alpha=0.05, method='auto', **kwargs):
-            cate = self.effect(X)
-            se = np.full_like(cate, self.se_value)
-            z = 1.96
-            return cate - z * se, cate + z * se
-
-        def effect_stderr(self, X, method='auto', **kwargs):
-            n = len(X) if hasattr(X, '__len__') else 1
-            return np.full(n, self.se_value)
-
-        def effect_inference(self, X, alpha=0.05, method='auto', **kwargs):
-            cate = self.effect(X)
-            se = self.effect_stderr(X, method=method)
-            ci_lower, ci_upper = self.effect_interval(X, alpha, method)
+        def effect_inference(self, X, **effect_inference_kwargs):
+            cate = self._estimator.effect_inference(X, )
             return InferenceResult(
                 point_estimate=cate,
                 stderr=se,
@@ -99,90 +87,26 @@ class InferenceProvider(Protocol):
     ```
     """
 
-    def effect_interval(
-        self,
-        X: np.ndarray | pd.DataFrame,
-        alpha: float = 0.05,
-        method: Literal["auto", "analytic", "bootstrap"] = "auto",
-        **kwargs,
-    ) -> tuple[np.ndarray, np.ndarray]:
-        """Compute confidence intervals for CATE estimates.
-
-        Parameters
-        ----------
-        X
-            Feature matrix for inference.
-        alpha
-            Significance level (e.g., 0.05 for 95% CI).
-        method
-            Inference method: ``'auto'``, ``'analytic'``, or ``'bootstrap'``.
-        **kwargs
-            Additional arguments (e.g., ``n_bootstrap`` for bootstrap).
-
-        Returns
-        -------
-        ci_lower
-            Lower confidence bounds.
-        ci_upper
-            Upper confidence bounds.
-
-        Raises
-        ------
-        ValueError
-            If method not supported (check ``capabilities.inference_types``).
-        """
-        ...
-
-    def effect_stderr(
-        self,
-        X: np.ndarray | pd.DataFrame,
-        method: Literal["auto", "analytic", "bootstrap"] = "auto",
-        **kwargs,
-    ) -> np.ndarray:
-        """Compute standard errors for CATE estimates.
-
-        Parameters
-        ----------
-        X
-            Feature matrix for inference.
-        method
-            Inference method: ``'auto'``, ``'analytic'``, or ``'bootstrap'``.
-        **kwargs
-            Additional arguments (e.g., ``n_bootstrap`` for bootstrap).
-
-        Returns
-        -------
-        np.ndarray
-            Standard errors for each observation.
-
-        Raises
-        ------
-        ValueError
-            If method not supported.
-        """
-        ...
-
     def effect_inference(
         self,
         X: np.ndarray | pd.DataFrame,
-        alpha: float = 0.05,
-        method: Literal["auto", "analytic", "bootstrap"] = "auto",
-        **kwargs,
+        inference_type: InferenceType | None = None,
+        bootstrapper: bool | None = None,
+        **effect_inference_kwargs,
     ) -> InferenceResult:
         """Get complete inference results for CATE estimates.
 
-        Returns point estimates, standard errors, confidence intervals, and metadata
-        in a single ``InferenceResult`` object.
+        Returns results in a single ``InferenceResult`` object, which can be used for hypothesis testing and confidence interval generation.
 
         Parameters
         ----------
         X
             Feature matrix for inference.
-        alpha
-            Significance level for confidence intervals.
-        method
-            Inference method: ``'auto'``, ``'analytic'``, or ``'bootstrap'``.
-        **kwargs
+        inference_type
+            Inference method to use (``InferenceType.ANALYTIC``, ``InferenceType.BOOTSTRAP``, or ``None`` for auto-selection).
+        bootstrapper
+            Bootstrap sampler to use if ``inference_type`` is ``InferenceType.BOOTSTRAP``. If ``None``, uses default bootstrapper.
+        **effect_inference_kwargs
             Additional arguments (e.g., ``n_bootstrap``, ``random_state``).
 
         Returns

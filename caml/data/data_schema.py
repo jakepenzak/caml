@@ -122,7 +122,7 @@ class Estimand(Enum):
     --------
     [`EstimatorCapabilities`](estimator.qmd#caml.protocols.estimator.EstimatorCapabilities) : Metadata including supported estimands.
 
-    [`CATEEstimator`](estimator.qmd#caml.protocols.estimator.CATEEstimator) : Protocol for CATE estimators.
+    [`AutoCateEstimator`](estimator.qmd#caml.protocols.estimator.AutoCateEstimator) : Protocol for CATE estimators.
 
     Examples
     --------

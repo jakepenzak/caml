@@ -54,7 +54,7 @@ class EstimatorCapabilities:
 
     [`Estimand`](data_schema.qmd#caml.data.data_schema.Estimand) : Target estimand types.
 
-    [`CATEEstimator`](estimator.qmd#caml.protocols.estimator.CATEEstimator) : Protocol using this metadata.
+    [`AutoCateEstimator`](estimator.qmd#caml.protocols.estimator.AutoCateEstimator) : Protocol using this metadata.
 
     Examples
     --------
@@ -128,7 +128,7 @@ class EstimatorCapabilities:
 
 
 @runtime_checkable
-class CATEEstimator(Protocol):
+class AutoCateEstimator(Protocol):
     """Core protocol defining the interface for CATE estimators.
 
     All CATE estimators in CaML must implement this protocol. Defines minimal interface
@@ -142,7 +142,7 @@ class CATEEstimator(Protocol):
     Notes
     -----
     - This is a Protocol (structural subtyping), not a base class
-    - Runtime-checkable via ``isinstance(obj, CATEEstimator)``
+    - Runtime-checkable via ``isinstance(obj, AutoCateEstimator)``
     - Method name is ``effect()`` not ``predict_cate()`` per CaML conventions
 
     See Also
@@ -158,7 +158,7 @@ class CATEEstimator(Protocol):
     ```{python}
     import numpy as np
     from caml.data import CausalDataset, TreatmentType, OutcomeType, Estimand
-    from caml.protocols import CATEEstimator, EstimatorCapabilities
+    from caml.protocols import AutoCateEstimator, EstimatorCapabilities
 
     class SimpleEstimator:
         capabilities = EstimatorCapabilities(
@@ -167,6 +167,8 @@ class CATEEstimator(Protocol):
             inference_types=set(),
             estimands={Estimand.CATE}
         )
+
+        clean_name = "SimpleEstimator"
 
         def __init__(self):
             self.effect_value = None
@@ -187,13 +189,14 @@ class CATEEstimator(Protocol):
         def set_params(self, **params):
             return self
 
-    print(isinstance(SimpleEstimator(), CATEEstimator))  # True
+    print(isinstance(SimpleEstimator(), AutoCateEstimator))  # True
     ```
     """
 
     capabilities: EstimatorCapabilities
+    clean_name: str
 
-    def fit(self, data: CausalDataset, **kwargs) -> CATEEstimator:
+    def fit(self, data: CausalDataset, **kwargs) -> AutoCateEstimator:
         """Fit the CATE estimator on causal data.
 
         Parameters
@@ -205,7 +208,7 @@ class CATEEstimator(Protocol):
 
         Returns
         -------
-        CATEEstimator
+        AutoCateEstimator
             Fitted estimator instance (self).
 
         Raises

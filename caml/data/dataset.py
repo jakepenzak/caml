@@ -64,7 +64,7 @@ class CausalDataset:
 
     [`OutcomeType`](data_schema.qmd#caml.data.data_schema.OutcomeType) : Outcome variable categories.
 
-    [`CATEEstimator`](estimator.qmd#caml.protocols.estimator.CATEEstimator) : Protocol for CATE estimators.
+    [`AutoCateEstimator`](estimator.qmd#caml.protocols.estimator.AutoCateEstimator) : Protocol for CATE estimators.
 
     Notes
     -----

@@ -124,6 +124,43 @@ quartodoc:
     - subtitle: Estimators
       desc: "`caml.estimators` \n\n Native and wrapped CATE estimators."
       package: caml.estimators
+      contents:
+        - name: base
+          member_order: source
+        - name: dml
+          member_order: source
+          member_options:
+            include_inherited: true
+          members:
+            - WrappedLinearDML
+            - WrappedSparseLinearDML
+            - WrappedCausalForestDML
+            - WrappedNonParamDML
+            - WrappedKernelDML
+        - name: dr
+          member_order: source
+          member_options:
+            include_inherited: true
+          members:
+            - WrappedDRLearner
+            - WrappedLinearDRLearner
+            - WrappedSparseLinearDRLearner
+            - WrappedForestDRLearner
+        - name: meta
+          member_order: source
+          member_options:
+            include_inherited: true
+          members:
+            - WrappedSLearner
+            - WrappedTLearner
+            - WrappedXLearner
+        - name: orf
+          member_order: source
+          member_options:
+            include_inherited: true
+          members:
+            - WrappedDMLOrthoForest
+            - WrappedDROrthoForest
 
     - subtitle: Inference
       desc: "`caml.inference` \n\n Inference objects and schemas."

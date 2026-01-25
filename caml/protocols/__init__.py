@@ -1,4 +1,4 @@
-from .estimator import CATEEstimator, EstimatorCapabilities
+from .estimator import AutoCateEstimator, EstimatorCapabilities
 from .inference import InferenceProvider
 
-__all__ = ["EstimatorCapabilities", "CATEEstimator", "InferenceProvider"]
+__all__ = ["EstimatorCapabilities", "AutoCateEstimator", "InferenceProvider"]

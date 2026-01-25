@@ -7,7 +7,7 @@ import pytest
 from caml.data.data_schema import Estimand, OutcomeType, TreatmentType
 from caml.data.dataset import CausalDataset
 from caml.inference.inference_schema import InferenceType
-from caml.protocols.estimator import CATEEstimator, EstimatorCapabilities
+from caml.protocols.estimator import AutoCateEstimator, EstimatorCapabilities
 
 
 class TestEstimatorCapabilities:
@@ -157,20 +157,23 @@ class TestEstimatorCapabilities:
         assert caps.is_compatible(data2) is True
 
 
-class TestCATEEstimatorProtocol:
-    """Tests for CATEEstimator Protocol."""
+class TestAutoCateEstimatorProtocol:
+    """Tests for AutoCateEstimator Protocol."""
 
     def test_protocol_implementation_minimal(self):
-        """Test implementing minimal CATEEstimator protocol."""
+        """Test implementing minimal AutoCateEstimator protocol."""
 
         class MinimalEstimator:
+            capabilities = EstimatorCapabilities(
+                treatment_types={TreatmentType.BINARY},
+                outcome_types={OutcomeType.CONTINUOUS},
+                inference_types={InferenceType.BOOTSTRAP},
+                estimands={Estimand.CATE},
+            )
+            clean_name = "Minimal Estimator"
+
             def __init__(self):
-                self.capabilities = EstimatorCapabilities(
-                    treatment_types={TreatmentType.BINARY},
-                    outcome_types={OutcomeType.CONTINUOUS},
-                    inference_types={InferenceType.BOOTSTRAP},
-                    estimands={Estimand.CATE},
-                )
+                pass
 
             def fit(self, data: CausalDataset, **kwargs):
                 return self
@@ -185,10 +188,10 @@ class TestCATEEstimatorProtocol:
                 return {}
 
         estimator = MinimalEstimator()
-        assert isinstance(estimator, CATEEstimator)
+        assert isinstance(estimator, AutoCateEstimator)
 
     def test_protocol_implementation_missing_capabilities(self):
-        """Test implementing CATEEstimator without capabilities fails."""
+        """Test implementing AutoCateEstimator without capabilities fails."""
 
         class NoCapabilitiesEstimator:
             def fit(self, data: CausalDataset, **kwargs):
@@ -204,19 +207,22 @@ class TestCATEEstimatorProtocol:
                 return {}
 
         estimator = NoCapabilitiesEstimator()
-        assert not isinstance(estimator, CATEEstimator)
+        assert not isinstance(estimator, AutoCateEstimator)
 
     def test_protocol_implementation_missing_fit(self):
-        """Test implementing CATEEstimator without fit fails."""
+        """Test implementing AutoCateEstimator without fit fails."""
 
         class NoFitEstimator:
+            capabilities = EstimatorCapabilities(
+                treatment_types={TreatmentType.BINARY},
+                outcome_types={OutcomeType.CONTINUOUS},
+                inference_types={InferenceType.BOOTSTRAP},
+                estimands={Estimand.CATE},
+            )
+            clean_name = "NoFitEstimator"
+
             def __init__(self):
-                self.capabilities = EstimatorCapabilities(
-                    treatment_types={TreatmentType.BINARY},
-                    outcome_types={OutcomeType.CONTINUOUS},
-                    inference_types={InferenceType.BOOTSTRAP},
-                    estimands={Estimand.CATE},
-                )
+                pass
 
             def effect(self, X: np.ndarray | pd.DataFrame, **kwargs) -> np.ndarray:
                 return np.zeros(len(X))
@@ -228,19 +234,22 @@ class TestCATEEstimatorProtocol:
                 return {}
 
         estimator = NoFitEstimator()
-        assert not isinstance(estimator, CATEEstimator)
+        assert not isinstance(estimator, AutoCateEstimator)
 
     def test_protocol_implementation_missing_effect(self):
-        """Test implementing CATEEstimator without effect fails."""
+        """Test implementing AutoCateEstimator without effect fails."""
 
         class NoEffectEstimator:
+            capabilities = EstimatorCapabilities(
+                treatment_types={TreatmentType.BINARY},
+                outcome_types={OutcomeType.CONTINUOUS},
+                inference_types={InferenceType.BOOTSTRAP},
+                estimands={Estimand.CATE},
+            )
+            clean_name = "No Effect Estimator"
+
             def __init__(self):
-                self.capabilities = EstimatorCapabilities(
-                    treatment_types={TreatmentType.BINARY},
-                    outcome_types={OutcomeType.CONTINUOUS},
-                    inference_types={InferenceType.BOOTSTRAP},
-                    estimands={Estimand.CATE},
-                )
+                pass
 
             def fit(self, data: CausalDataset, **kwargs):
                 return self
@@ -252,10 +261,10 @@ class TestCATEEstimatorProtocol:
                 return {}
 
         estimator = NoEffectEstimator()
-        assert not isinstance(estimator, CATEEstimator)
+        assert not isinstance(estimator, AutoCateEstimator)
 
     def test_protocol_implementation_missing_get_params(self):
-        """Test implementing CATEEstimator without get_params fails."""
+        """Test implementing AutoCateEstimator without get_params fails."""
 
         class NoGetParamsEstimator:
             def __init__(self):
@@ -265,6 +274,7 @@ class TestCATEEstimatorProtocol:
                     inference_types={InferenceType.BOOTSTRAP},
                     estimands={Estimand.CATE},
                 )
+                self.clean_name = "No Get Params Estimator"
 
             def fit(self, data: CausalDataset, **kwargs):
                 return self
@@ -276,10 +286,10 @@ class TestCATEEstimatorProtocol:
                 return {}
 
         estimator = NoGetParamsEstimator()
-        assert not isinstance(estimator, CATEEstimator)
+        assert not isinstance(estimator, AutoCateEstimator)
 
     def test_protocol_implementation_missing_set_params(self):
-        """Test implementing CATEEstimator without set_params fails."""
+        """Test implementing AutoCateEstimator without set_params fails."""
 
         class NoSetParamsEstimator:
             def __init__(self):
@@ -289,6 +299,7 @@ class TestCATEEstimatorProtocol:
                     inference_types={InferenceType.BOOTSTRAP},
                     estimands={Estimand.CATE},
                 )
+                self.clean_name = "No Set Params Estimator"
 
             def fit(self, data: CausalDataset, **kwargs):
                 return self
@@ -300,10 +311,10 @@ class TestCATEEstimatorProtocol:
                 return {}
 
         estimator = NoSetParamsEstimator()
-        assert not isinstance(estimator, CATEEstimator)
+        assert not isinstance(estimator, AutoCateEstimator)
 
     def test_protocol_full_implementation(self):
-        """Test full CATEEstimator implementation with realistic behavior."""
+        """Test full AutoCateEstimator implementation with realistic behavior."""
 
         class FullEstimator:
             def __init__(self, param1=1.0, param2="default"):
@@ -315,6 +326,7 @@ class TestCATEEstimatorProtocol:
                     requires_propensity=False,
                     supports_inference=True,
                 )
+                self.clean_name = "Full Estimator"
                 self.param1 = param1
                 self.param2 = param2
                 self._is_fitted = False
@@ -338,7 +350,7 @@ class TestCATEEstimatorProtocol:
                 return params
 
         estimator = FullEstimator()
-        assert isinstance(estimator, CATEEstimator)
+        assert isinstance(estimator, AutoCateEstimator)
 
         # Test fit
         X = np.array([[1, 2], [3, 4]])
