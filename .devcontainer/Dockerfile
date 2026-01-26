@@ -1,9 +1,13 @@
 # See here for image contents: https://github.com/microsoft/vscode-dev-containers/tree/v0.224.2/containers/python-3/.devcontainer/base.Dockerfile
 
-ARG VARIANT="3.13-bullseye"
+ARG VARIANT="3.13-bookworm"
 FROM mcr.microsoft.com/devcontainers/python:${VARIANT}
 
 ARG UV_VERSION=0.9.26
+
+# Remove broken Yarn repo that causes apt failures
+RUN rm -f /etc/apt/sources.list.d/yarn.list \
+    && rm -f /etc/apt/sources.list.d/yarnpkg.list
 
 # Install some base dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
@@ -37,3 +41,6 @@ RUN echo 'eval "$(starship init bash)"' >> ~/.bashrc
 
 # Ensure venv activation on opening terminal
 RUN echo 'source .venv/bin/activate' >> ~/.bashrc
+
+
+ENV SHELL=/bin/bash
