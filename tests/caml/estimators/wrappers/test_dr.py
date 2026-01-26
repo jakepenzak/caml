@@ -15,7 +15,6 @@ from caml.estimators.wrappers.dr import (
 )
 from caml.inference import InferenceType
 
-
 # All DR estimators
 DR_ESTIMATORS = [
     WrappedDRLearner,

@@ -1,11 +1,9 @@
 """Tests for registry functions."""
 
 import pytest
-from sklearn.ensemble import RandomForestClassifier, RandomForestRegressor
-from sklearn.linear_model import LinearRegression, LogisticRegression
 
 from caml.data import CausalDataset, Estimand, OutcomeType, TreatmentType
-from caml.estimators.base import AutoCateEstimator, EstimatorCapabilities
+from caml.estimators.base import EstimatorCapabilities
 from caml.extensions.synthetic_data import SyntheticDataGenerator
 from caml.registry import (
     available_estimators,

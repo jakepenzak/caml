@@ -8,7 +8,6 @@ from caml.estimators import AutoCateEstimator
 from caml.estimators.wrappers.orf import WrappedDMLOrthoForest, WrappedDROrthoForest
 from caml.inference import InferenceType
 
-
 # All ORF estimators
 ORF_ESTIMATORS = [
     WrappedDMLOrthoForest,

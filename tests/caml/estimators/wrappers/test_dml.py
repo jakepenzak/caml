@@ -3,9 +3,9 @@
 import numpy as np
 import pytest
 from sklearn.ensemble import GradientBoostingClassifier, GradientBoostingRegressor
-from sklearn.linear_model import LassoCV, LinearRegression, LogisticRegression
+from sklearn.linear_model import LinearRegression, LogisticRegression
 
-from caml.data import OutcomeType, TreatmentType
+from caml.data import TreatmentType
 from caml.estimators import AutoCateEstimator, InferenceProvider
 from caml.estimators.wrappers.dml import (
     WrappedCausalForestDML,

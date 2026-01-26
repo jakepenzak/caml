@@ -1,9 +1,6 @@
 """Tests for model bank structure."""
 
-import pytest
-
-from caml.data import CausalDataset
-from caml.estimators.base import AutoCateEstimator, EstimatorCapabilities
+from caml.estimators.base import EstimatorCapabilities
 from caml.registry.model_bank import available_estimators
 
 

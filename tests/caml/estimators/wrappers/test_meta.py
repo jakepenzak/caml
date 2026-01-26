@@ -13,7 +13,6 @@ from caml.estimators.wrappers.meta import (
 )
 from caml.inference import InferenceType
 
-
 # All meta-learner estimators
 META_ESTIMATORS = [
     WrappedSLearner,
