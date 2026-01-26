@@ -38,9 +38,9 @@ class WrappedLinearDML(BaseWrapperMixin):
     ----------
     capabilities : EstimatorCapabilities
         Metadata describing the estimator's supported treatment/outcome types,
-        estimands, and inference methods.
+        estimands, and inference methods (class attribute).
     clean_name : str
-        Human-readable name for the estimator ("LinearDML").
+        Human-readable name for the estimator ("LinearDML") (class attribute).
 
     See Also
     --------
@@ -95,41 +95,35 @@ class WrappedLinearDML(BaseWrapperMixin):
     ```
     """
 
+    # Class attributes
+    clean_name: str = "LinearDML"
+    capabilities: EstimatorCapabilities = EstimatorCapabilities(
+        treatment_types={
+            TreatmentType.BINARY,
+            TreatmentType.CONTINUOUS,
+            TreatmentType.MULTI,
+        },
+        outcome_types={OutcomeType.CONTINUOUS, OutcomeType.BINARY},
+        inference_types={InferenceType.ANALYTIC, InferenceType.BOOTSTRAP},
+        estimands={
+            Estimand.ATE,
+            Estimand.ATT,
+            Estimand.ATC,
+            Estimand.CATE,
+            Estimand.GATE,
+        },
+        supports_controls_in_first_stage_only=True,
+        supports_weights=True,
+        requires_treatment_model=True,
+        requires_outcome_model=True,
+        requires_regression_model=False,
+        supports_inference=True,
+    )
+
     def __init__(self, **econml_kwargs):
         self._econml_kwargs = econml_kwargs
         self._estimator = LinearDML(**self._econml_kwargs)
         self._is_fitted = False
-
-    @property
-    def capabilities(self) -> EstimatorCapabilities:
-        """Metadata describing the estimator's supported treatment/outcome types, estimands, and inference methods."""
-        return EstimatorCapabilities(
-            treatment_types={
-                TreatmentType.BINARY,
-                TreatmentType.CONTINUOUS,
-                TreatmentType.MULTI,
-            },
-            outcome_types={OutcomeType.CONTINUOUS, OutcomeType.BINARY},
-            inference_types={InferenceType.ANALYTIC, InferenceType.BOOTSTRAP},
-            estimands={
-                Estimand.ATE,
-                Estimand.ATT,
-                Estimand.ATC,
-                Estimand.CATE,
-                Estimand.GATE,
-            },
-            supports_controls_in_first_stage_only=True,
-            supports_weights=True,
-            requires_treatment_model=True,
-            requires_outcome_model=True,
-            requires_regression_model=False,
-            supports_inference=True,
-        )
-
-    @property
-    def clean_name(self) -> str:
-        """Human-readable name for the estimator."""
-        return "LinearDML"
 
     def fit(
         self,
@@ -245,41 +239,35 @@ class WrappedSparseLinearDML(BaseWrapperMixin):
     ```
     """
 
+    # Class attributes
+    clean_name: str = "SparseLinearDML"
+    capabilities: EstimatorCapabilities = EstimatorCapabilities(
+        treatment_types={
+            TreatmentType.BINARY,
+            TreatmentType.CONTINUOUS,
+            TreatmentType.MULTI,
+        },
+        outcome_types={OutcomeType.CONTINUOUS, OutcomeType.BINARY},
+        inference_types={InferenceType.ANALYTIC, InferenceType.BOOTSTRAP},
+        estimands={
+            Estimand.ATE,
+            Estimand.ATT,
+            Estimand.ATC,
+            Estimand.CATE,
+            Estimand.GATE,
+        },
+        supports_controls_in_first_stage_only=True,
+        supports_weights=True,
+        requires_treatment_model=True,
+        requires_outcome_model=True,
+        requires_regression_model=False,
+        supports_inference=True,
+    )
+
     def __init__(self, **econml_kwargs):
         self._econml_kwargs = econml_kwargs
         self._estimator = SparseLinearDML(**self._econml_kwargs)
         self._is_fitted = False
-
-    @property
-    def capabilities(self) -> EstimatorCapabilities:
-        """Metadata describing the estimator's supported treatment/outcome types, estimands, and inference methods."""
-        return EstimatorCapabilities(
-            treatment_types={
-                TreatmentType.BINARY,
-                TreatmentType.CONTINUOUS,
-                TreatmentType.MULTI,
-            },
-            outcome_types={OutcomeType.CONTINUOUS, OutcomeType.BINARY},
-            inference_types={InferenceType.ANALYTIC, InferenceType.BOOTSTRAP},
-            estimands={
-                Estimand.ATE,
-                Estimand.ATT,
-                Estimand.ATC,
-                Estimand.CATE,
-                Estimand.GATE,
-            },
-            supports_controls_in_first_stage_only=True,
-            supports_weights=True,
-            requires_treatment_model=True,
-            requires_outcome_model=True,
-            requires_regression_model=False,
-            supports_inference=True,
-        )
-
-    @property
-    def clean_name(self) -> str:
-        """Human-readable name for the estimator."""
-        return "SparseLinearDML"
 
     def fit(
         self,
@@ -414,41 +402,35 @@ class WrappedCausalForestDML(BaseWrapperMixin):
     ```
     """
 
+    # Class attributes
+    clean_name: str = "CausalForestDML"
+    capabilities: EstimatorCapabilities = EstimatorCapabilities(
+        treatment_types={
+            TreatmentType.BINARY,
+            TreatmentType.CONTINUOUS,
+            TreatmentType.MULTI,
+        },
+        outcome_types={OutcomeType.CONTINUOUS, OutcomeType.BINARY},
+        inference_types={InferenceType.BOOTSTRAP},
+        estimands={
+            Estimand.ATE,
+            Estimand.ATT,
+            Estimand.ATC,
+            Estimand.CATE,
+            Estimand.GATE,
+        },
+        supports_controls_in_first_stage_only=True,
+        supports_weights=True,
+        requires_treatment_model=True,
+        requires_outcome_model=True,
+        requires_regression_model=False,
+        supports_inference=True,
+    )
+
     def __init__(self, **econml_kwargs):
         self._econml_kwargs = econml_kwargs
         self._estimator = CausalForestDML(**self._econml_kwargs)
         self._is_fitted = False
-
-    @property
-    def capabilities(self) -> EstimatorCapabilities:
-        """Metadata describing the estimator's supported treatment/outcome types, estimands, and inference methods."""
-        return EstimatorCapabilities(
-            treatment_types={
-                TreatmentType.BINARY,
-                TreatmentType.CONTINUOUS,
-                TreatmentType.MULTI,
-            },
-            outcome_types={OutcomeType.CONTINUOUS, OutcomeType.BINARY},
-            inference_types={InferenceType.BOOTSTRAP},
-            estimands={
-                Estimand.ATE,
-                Estimand.ATT,
-                Estimand.ATC,
-                Estimand.CATE,
-                Estimand.GATE,
-            },
-            supports_controls_in_first_stage_only=True,
-            supports_weights=True,
-            requires_treatment_model=True,
-            requires_outcome_model=True,
-            requires_regression_model=False,
-            supports_inference=True,
-        )
-
-    @property
-    def clean_name(self) -> str:
-        """Human-readable name for the estimator."""
-        return "CausalForestDML"
 
     def fit(
         self,
@@ -579,40 +561,34 @@ class WrappedNonParamDML(BaseWrapperMixin):
     ```
     """
 
+    # Class attributes
+    clean_name: str = "NonParamDML"
+    capabilities: EstimatorCapabilities = EstimatorCapabilities(
+        treatment_types={
+            TreatmentType.BINARY,
+            TreatmentType.CONTINUOUS,
+        },
+        outcome_types={OutcomeType.CONTINUOUS, OutcomeType.BINARY},
+        inference_types={InferenceType.BOOTSTRAP},
+        estimands={
+            Estimand.ATE,
+            Estimand.ATT,
+            Estimand.ATC,
+            Estimand.CATE,
+            Estimand.GATE,
+        },
+        supports_controls_in_first_stage_only=True,
+        supports_weights=True,
+        requires_treatment_model=True,
+        requires_outcome_model=True,
+        requires_regression_model=False,
+        supports_inference=True,
+    )
+
     def __init__(self, **econml_kwargs):
         self._econml_kwargs = econml_kwargs
         self._estimator = NonParamDML(**self._econml_kwargs)
         self._is_fitted = False
-
-    @property
-    def capabilities(self) -> EstimatorCapabilities:
-        """Metadata describing the estimator's supported treatment/outcome types, estimands, and inference methods."""
-        return EstimatorCapabilities(
-            treatment_types={
-                TreatmentType.BINARY,
-                TreatmentType.CONTINUOUS,
-            },
-            outcome_types={OutcomeType.CONTINUOUS, OutcomeType.BINARY},
-            inference_types={InferenceType.BOOTSTRAP},
-            estimands={
-                Estimand.ATE,
-                Estimand.ATT,
-                Estimand.ATC,
-                Estimand.CATE,
-                Estimand.GATE,
-            },
-            supports_controls_in_first_stage_only=True,
-            supports_weights=True,
-            requires_treatment_model=True,
-            requires_outcome_model=True,
-            requires_regression_model=False,
-            supports_inference=True,
-        )
-
-    @property
-    def clean_name(self) -> str:
-        """Human-readable name for the estimator."""
-        return "NonParamDML"
 
     def fit(
         self,
@@ -742,41 +718,35 @@ class WrappedKernelDML(BaseWrapperMixin):
     ```
     """
 
+    # Class attributes
+    clean_name: str = "KernelDML"
+    capabilities: EstimatorCapabilities = EstimatorCapabilities(
+        treatment_types={
+            TreatmentType.BINARY,
+            TreatmentType.CONTINUOUS,
+            TreatmentType.MULTI,
+        },
+        outcome_types={OutcomeType.CONTINUOUS, OutcomeType.BINARY},
+        inference_types={InferenceType.BOOTSTRAP, InferenceType.ANALYTIC},
+        estimands={
+            Estimand.ATE,
+            Estimand.ATT,
+            Estimand.ATC,
+            Estimand.CATE,
+            Estimand.GATE,
+        },
+        supports_controls_in_first_stage_only=True,
+        supports_weights=True,
+        requires_treatment_model=True,
+        requires_outcome_model=True,
+        requires_regression_model=False,
+        supports_inference=True,
+    )
+
     def __init__(self, **econml_kwargs):
         self._econml_kwargs = econml_kwargs
         self._estimator = KernelDML(**self._econml_kwargs)
         self._is_fitted = False
-
-    @property
-    def capabilities(self) -> EstimatorCapabilities:
-        """Metadata describing the estimator's supported treatment/outcome types, estimands, and inference methods."""
-        return EstimatorCapabilities(
-            treatment_types={
-                TreatmentType.BINARY,
-                TreatmentType.CONTINUOUS,
-                TreatmentType.MULTI,
-            },
-            outcome_types={OutcomeType.CONTINUOUS, OutcomeType.BINARY},
-            inference_types={InferenceType.BOOTSTRAP, InferenceType.ANALYTIC},
-            estimands={
-                Estimand.ATE,
-                Estimand.ATT,
-                Estimand.ATC,
-                Estimand.CATE,
-                Estimand.GATE,
-            },
-            supports_controls_in_first_stage_only=True,
-            supports_weights=True,
-            requires_treatment_model=True,
-            requires_outcome_model=True,
-            requires_regression_model=False,
-            supports_inference=True,
-        )
-
-    @property
-    def clean_name(self) -> str:
-        """Human-readable name for the estimator."""
-        return "KernelDML"
 
     def fit(
         self,

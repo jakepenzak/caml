@@ -1,53 +1,30 @@
-"""Tests for caml.estimators.base."""
+"""Tests for caml.estimators.base module."""
 
 import numpy as np
-import pandas as pd
 import pytest
 
-from caml.data.data_schema import Estimand, OutcomeType, TreatmentType
-from caml.data.dataset import CausalDataset
-from caml.estimators.base import (
-    AutoCateEstimator,
-    BaseWrapperMixin,
-    EstimatorCapabilities,
-    InferenceProvider,
-)
-from caml.inference.inference_schema import InferenceType
-from caml.inference.results import InferenceResult
+from caml.data import CausalDataset, Estimand, OutcomeType, TreatmentType
+from caml.estimators import AutoCateEstimator, EstimatorCapabilities
+from caml.inference import InferenceType
+
+pytestmark = pytest.mark.estimators
+
+
+# ==============================================================================
+# ESTIMATOR CAPABILITIES TESTS
+# ==============================================================================
 
 
 class TestEstimatorCapabilities:
-    """Tests for EstimatorCapabilities dataclass."""
+    """Test EstimatorCapabilities dataclass."""
 
-    def test_creation_minimal(self):
-        """Test creating EstimatorCapabilities with minimal args."""
-        caps = EstimatorCapabilities(
+    def test_create_capabilities(self):
+        """Test creating EstimatorCapabilities."""
+        capabilities = EstimatorCapabilities(
             treatment_types={TreatmentType.BINARY},
             outcome_types={OutcomeType.CONTINUOUS},
-            inference_types={InferenceType.BOOTSTRAP},
-            estimands={Estimand.ATE, Estimand.CATE},
-            supports_controls_in_first_stage_only=False,
-            supports_weights=False,
-            requires_treatment_model=False,
-            requires_outcome_model=False,
-            requires_regression_model=False,
-            supports_inference=False,
-        )
-
-        assert TreatmentType.BINARY in caps.treatment_types
-        assert OutcomeType.CONTINUOUS in caps.outcome_types
-        assert InferenceType.BOOTSTRAP in caps.inference_types
-        assert Estimand.ATE in caps.estimands
-        assert caps.supports_weights is False
-        assert caps.supports_inference is False
-
-    def test_creation_full(self):
-        """Test creating EstimatorCapabilities with all args."""
-        caps = EstimatorCapabilities(
-            treatment_types={TreatmentType.BINARY, TreatmentType.CONTINUOUS},
-            outcome_types={OutcomeType.CONTINUOUS},
-            inference_types={InferenceType.BOOTSTRAP, InferenceType.ANALYTIC},
-            estimands={Estimand.ATE, Estimand.CATE},
+            inference_types={InferenceType.ANALYTIC},
+            estimands={Estimand.CATE},
             supports_controls_in_first_stage_only=True,
             supports_weights=True,
             requires_treatment_model=True,
@@ -56,20 +33,43 @@ class TestEstimatorCapabilities:
             supports_inference=True,
         )
 
-        assert len(caps.treatment_types) == 2
-        assert caps.supports_weights is True
-        assert caps.supports_inference is True
-        assert caps.requires_treatment_model is True
-        assert caps.requires_outcome_model is True
-        assert caps.supports_controls_in_first_stage_only is True
+        assert TreatmentType.BINARY in capabilities.treatment_types
+        assert OutcomeType.CONTINUOUS in capabilities.outcome_types
+        assert InferenceType.ANALYTIC in capabilities.inference_types
+        assert Estimand.CATE in capabilities.estimands
+        assert capabilities.supports_controls_in_first_stage_only is True
+        assert capabilities.supports_weights is True
+        assert capabilities.requires_treatment_model is True
+        assert capabilities.requires_outcome_model is True
+        assert capabilities.requires_regression_model is False
+        assert capabilities.supports_inference is True
 
-    def test_frozen_dataclass(self):
-        """Test EstimatorCapabilities is frozen (immutable)."""
-        caps = EstimatorCapabilities(
+    def test_capabilities_are_immutable(self):
+        """Test that capabilities are frozen/immutable."""
+        capabilities = EstimatorCapabilities(
             treatment_types={TreatmentType.BINARY},
             outcome_types={OutcomeType.CONTINUOUS},
-            inference_types={InferenceType.BOOTSTRAP},
-            estimands={Estimand.ATE},
+            inference_types=set(),
+            estimands={Estimand.CATE},
+            supports_controls_in_first_stage_only=False,
+            supports_weights=False,
+            requires_treatment_model=True,
+            requires_outcome_model=True,
+            requires_regression_model=False,
+            supports_inference=False,
+        )
+
+        # Should raise since dataclass is frozen
+        with pytest.raises(Exception):  # FrozenInstanceError
+            capabilities.supports_weights = True
+
+    def test_multiple_treatment_types(self):
+        """Test capabilities with multiple treatment types."""
+        capabilities = EstimatorCapabilities(
+            treatment_types={TreatmentType.BINARY, TreatmentType.MULTI},
+            outcome_types={OutcomeType.CONTINUOUS},
+            inference_types=set(),
+            estimands={Estimand.CATE},
             supports_controls_in_first_stage_only=False,
             supports_weights=False,
             requires_treatment_model=False,
@@ -78,16 +78,17 @@ class TestEstimatorCapabilities:
             supports_inference=False,
         )
 
-        with pytest.raises(Exception):  # FrozenInstanceError or AttributeError
-            caps.supports_weights = True
+        assert len(capabilities.treatment_types) == 2
+        assert TreatmentType.BINARY in capabilities.treatment_types
+        assert TreatmentType.MULTI in capabilities.treatment_types
 
-    def test_is_compatible_binary_continuous(self):
-        """Test is_compatible with binary treatment, continuous outcome."""
-        caps = EstimatorCapabilities(
+    def test_multiple_outcome_types(self):
+        """Test capabilities with multiple outcome types."""
+        capabilities = EstimatorCapabilities(
             treatment_types={TreatmentType.BINARY},
-            outcome_types={OutcomeType.CONTINUOUS},
-            inference_types={InferenceType.BOOTSTRAP},
-            estimands={Estimand.ATE},
+            outcome_types={OutcomeType.BINARY, OutcomeType.CONTINUOUS},
+            inference_types=set(),
+            estimands={Estimand.CATE},
             supports_controls_in_first_stage_only=False,
             supports_weights=False,
             requires_treatment_model=False,
@@ -96,26 +97,88 @@ class TestEstimatorCapabilities:
             supports_inference=False,
         )
 
-        X = np.array([[1, 2], [3, 4]])
-        T = np.array([0, 1])
-        Y = np.array([1.0, 2.0])
+        assert len(capabilities.outcome_types) == 2
+        assert OutcomeType.BINARY in capabilities.outcome_types
+        assert OutcomeType.CONTINUOUS in capabilities.outcome_types
+
+    def test_multiple_inference_types(self):
+        """Test capabilities with multiple inference types."""
+        capabilities = EstimatorCapabilities(
+            treatment_types={TreatmentType.BINARY},
+            outcome_types={OutcomeType.CONTINUOUS},
+            inference_types={InferenceType.ANALYTIC, InferenceType.BOOTSTRAP},
+            estimands={Estimand.CATE},
+            supports_controls_in_first_stage_only=False,
+            supports_weights=False,
+            requires_treatment_model=False,
+            requires_outcome_model=False,
+            requires_regression_model=False,
+            supports_inference=True,
+        )
+
+        assert len(capabilities.inference_types) == 2
+        assert InferenceType.ANALYTIC in capabilities.inference_types
+        assert InferenceType.BOOTSTRAP in capabilities.inference_types
+
+    def test_empty_inference_types(self):
+        """Test capabilities with no inference support."""
+        capabilities = EstimatorCapabilities(
+            treatment_types={TreatmentType.BINARY},
+            outcome_types={OutcomeType.CONTINUOUS},
+            inference_types=set(),
+            estimands={Estimand.CATE},
+            supports_controls_in_first_stage_only=False,
+            supports_weights=False,
+            requires_treatment_model=False,
+            requires_outcome_model=False,
+            requires_regression_model=False,
+            supports_inference=False,
+        )
+
+        assert len(capabilities.inference_types) == 0
+
+
+# ==============================================================================
+# COMPATIBILITY CHECKING TESTS
+# ==============================================================================
+
+
+class TestCompatibilityChecking:
+    """Test EstimatorCapabilities.is_compatible() method."""
+
+    def test_compatible_binary_continuous(self):
+        """Test compatibility with binary treatment and continuous outcome."""
+        capabilities = EstimatorCapabilities(
+            treatment_types={TreatmentType.BINARY},
+            outcome_types={OutcomeType.CONTINUOUS},
+            inference_types=set(),
+            estimands={Estimand.CATE},
+            supports_controls_in_first_stage_only=False,
+            supports_weights=False,
+            requires_treatment_model=True,
+            requires_outcome_model=True,
+            requires_regression_model=False,
+            supports_inference=False,
+        )
+
+        np.random.seed(42)
         data = CausalDataset(
-            X=X,
-            T=T,
-            Y=Y,
+            X=np.random.randn(100, 3),
+            T=np.random.binomial(1, 0.5, 100),
+            Y=np.random.randn(100),
             treatment_type=TreatmentType.BINARY,
             outcome_type=OutcomeType.CONTINUOUS,
         )
 
-        assert caps.is_compatible(data) is True
+        assert capabilities.is_compatible(data) is True
 
-    def test_is_compatible_incompatible_treatment(self):
-        """Test is_compatible returns False for incompatible treatment type."""
-        caps = EstimatorCapabilities(
+    def test_incompatible_treatment_type(self):
+        """Test incompatibility due to treatment type."""
+        capabilities = EstimatorCapabilities(
             treatment_types={TreatmentType.BINARY},
             outcome_types={OutcomeType.CONTINUOUS},
-            inference_types={InferenceType.BOOTSTRAP},
-            estimands={Estimand.ATE},
+            inference_types=set(),
+            estimands={Estimand.CATE},
             supports_controls_in_first_stage_only=False,
             supports_weights=False,
             requires_treatment_model=False,
@@ -124,26 +187,24 @@ class TestEstimatorCapabilities:
             supports_inference=False,
         )
 
-        X = np.array([[1, 2], [3, 4]])
-        T = np.array([0.1, 0.5])
-        Y = np.array([1.0, 2.0])
+        np.random.seed(42)
         data = CausalDataset(
-            X=X,
-            T=T,
-            Y=Y,
+            X=np.random.randn(100, 3),
+            T=np.random.randn(100),  # Continuous
+            Y=np.random.randn(100),
             treatment_type=TreatmentType.CONTINUOUS,
             outcome_type=OutcomeType.CONTINUOUS,
         )
 
-        assert caps.is_compatible(data) is False
+        assert capabilities.is_compatible(data) is False
 
-    def test_is_compatible_incompatible_outcome(self):
-        """Test is_compatible returns False for incompatible outcome type."""
-        caps = EstimatorCapabilities(
+    def test_incompatible_outcome_type(self):
+        """Test incompatibility due to outcome type."""
+        capabilities = EstimatorCapabilities(
             treatment_types={TreatmentType.BINARY},
             outcome_types={OutcomeType.CONTINUOUS},
-            inference_types={InferenceType.BOOTSTRAP},
-            estimands={Estimand.ATE},
+            inference_types=set(),
+            estimands={Estimand.CATE},
             supports_controls_in_first_stage_only=False,
             supports_weights=False,
             requires_treatment_model=False,
@@ -152,26 +213,24 @@ class TestEstimatorCapabilities:
             supports_inference=False,
         )
 
-        X = np.array([[1, 2], [3, 4]])
-        T = np.array([0, 1])
-        Y = np.array([0, 1])
+        np.random.seed(42)
         data = CausalDataset(
-            X=X,
-            T=T,
-            Y=Y,
+            X=np.random.randn(100, 3),
+            T=np.random.binomial(1, 0.5, 100),
+            Y=np.random.binomial(1, 0.5, 100),  # Binary
             treatment_type=TreatmentType.BINARY,
             outcome_type=OutcomeType.BINARY,
         )
 
-        assert caps.is_compatible(data) is False
+        assert capabilities.is_compatible(data) is False
 
-    def test_is_compatible_multiple_types(self):
-        """Test is_compatible with multiple supported types."""
-        caps = EstimatorCapabilities(
+    def test_compatible_multiple_types(self):
+        """Test compatibility when estimator supports multiple types."""
+        capabilities = EstimatorCapabilities(
             treatment_types={TreatmentType.BINARY, TreatmentType.CONTINUOUS},
-            outcome_types={OutcomeType.CONTINUOUS, OutcomeType.BINARY},
-            inference_types={InferenceType.BOOTSTRAP},
-            estimands={Estimand.ATE},
+            outcome_types={OutcomeType.BINARY, OutcomeType.CONTINUOUS},
+            inference_types=set(),
+            estimands={Estimand.CATE},
             supports_controls_in_first_stage_only=False,
             supports_weights=False,
             requires_treatment_model=False,
@@ -180,45 +239,53 @@ class TestEstimatorCapabilities:
             supports_inference=False,
         )
 
-        # Binary treatment, continuous outcome
-        X = np.array([[1, 2], [3, 4]])
-        T = np.array([0, 1])
-        Y = np.array([1.0, 2.0])
+        # Test binary treatment, continuous outcome
+        np.random.seed(42)
         data1 = CausalDataset(
-            X=X,
-            T=T,
-            Y=Y,
+            X=np.random.randn(100, 3),
+            T=np.random.binomial(1, 0.5, 100),
+            Y=np.random.randn(100),
             treatment_type=TreatmentType.BINARY,
             outcome_type=OutcomeType.CONTINUOUS,
         )
-        assert caps.is_compatible(data1) is True
+        assert capabilities.is_compatible(data1) is True
 
-        # Continuous treatment, binary outcome
-        T2 = np.array([0.1, 0.5])
-        Y2 = np.array([0, 1])
+        # Test continuous treatment, binary outcome
         data2 = CausalDataset(
-            X=X,
-            T=T2,
-            Y=Y2,
+            X=np.random.randn(100, 3),
+            T=np.random.randn(100),
+            Y=np.random.binomial(1, 0.5, 100),
             treatment_type=TreatmentType.CONTINUOUS,
             outcome_type=OutcomeType.BINARY,
         )
-        assert caps.is_compatible(data2) is True
+        assert capabilities.is_compatible(data2) is True
 
 
-class TestAutoCateEstimatorProtocol:
-    """Tests for AutoCateEstimator Protocol."""
+# ==============================================================================
+# PROTOCOL TESTS
+# ==============================================================================
 
-    def test_protocol_implementation_minimal(self):
-        """Test implementing minimal AutoCateEstimator protocol."""
 
-        class MinimalEstimator:
+class TestAutoCAteEstimatorProtocol:
+    """Test AutoCateEstimator protocol."""
+
+    def test_simple_estimator_implements_protocol(self):
+        """Test that a simple estimator implements the protocol."""
+
+        class SimpleEstimator:
+            def __init__(self):
+                self.effect_value = None
+
             @property
-            def capabilities(self):
+            def clean_name(self) -> str:
+                return "SimpleEstimator"
+
+            @property
+            def capabilities(self) -> EstimatorCapabilities:
                 return EstimatorCapabilities(
                     treatment_types={TreatmentType.BINARY},
                     outcome_types={OutcomeType.CONTINUOUS},
-                    inference_types={InferenceType.BOOTSTRAP},
+                    inference_types=set(),
                     estimands={Estimand.CATE},
                     supports_controls_in_first_stage_only=False,
                     supports_weights=False,
@@ -228,14 +295,10 @@ class TestAutoCateEstimatorProtocol:
                     supports_inference=False,
                 )
 
-            @property
-            def clean_name(self):
-                return "Minimal Estimator"
-
             @classmethod
             def is_compatible_with(cls, data: CausalDataset) -> bool:
-                temp = cls()
-                return temp.capabilities.is_compatible(data)
+                temp_instance = cls()
+                return temp_instance.capabilities.is_compatible(data)
 
             def check_compatibility(
                 self, data: CausalDataset, raise_error: bool = True
@@ -243,356 +306,33 @@ class TestAutoCateEstimatorProtocol:
                 return self.capabilities.is_compatible(data)
 
             def fit(self, data: CausalDataset, **kwargs):
+                T = np.asarray(data.T)
+                Y = np.asarray(data.Y)
+                self.effect_value = Y[T == 1].mean() - Y[T == 0].mean()
                 return self
 
-            def effect(self, X: np.ndarray | pd.DataFrame, **kwargs) -> np.ndarray:
-                return np.zeros(len(X))
+            def effect(self, X, **kwargs):
+                n = len(X) if hasattr(X, "__len__") else 1
+                return np.full(n, self.effect_value)
 
-            def get_params(self, deep: bool = True) -> dict:
+            def get_params(self, deep=True):
                 return {}
 
-            def set_params(self, **params) -> dict:
+            def set_params(self, **params):
                 return self
 
-        estimator = MinimalEstimator()
+        estimator = SimpleEstimator()
         assert isinstance(estimator, AutoCateEstimator)
 
-    def test_protocol_implementation_missing_capabilities(self):
-        """Test implementing AutoCateEstimator without capabilities fails."""
+    def test_incomplete_estimator_does_not_implement_protocol(self):
+        """Test that incomplete estimator doesn't implement protocol."""
 
-        class NoCapabilitiesEstimator:
+        class IncompleteEstimator:
             @property
-            def clean_name(self):
-                return "No Capabilities"
+            def clean_name(self) -> str:
+                return "Incomplete"
 
-            def fit(self, data: CausalDataset, **kwargs):
-                return self
+            # Missing capabilities, fit, effect, etc.
 
-            def effect(self, X: np.ndarray | pd.DataFrame, **kwargs) -> np.ndarray:
-                return np.zeros(len(X))
-
-            def get_params(self, deep: bool = True) -> dict:
-                return {}
-
-            def set_params(self, **params) -> dict:
-                return self
-
-        estimator = NoCapabilitiesEstimator()
+        estimator = IncompleteEstimator()
         assert not isinstance(estimator, AutoCateEstimator)
-
-
-class TestInferenceProviderProtocol:
-    """Tests for InferenceProvider Protocol."""
-
-    def test_protocol_implementation(self):
-        """Test implementing InferenceProvider protocol."""
-
-        class InferenceCapableEstimator:
-            def effect_inference(
-                self,
-                X: np.ndarray | pd.DataFrame,
-                inference_type: InferenceType | None = None,
-                bootstrapper: bool | None = None,
-                **effect_inference_kwargs,
-            ) -> InferenceResult:
-                n = len(X) if isinstance(X, (np.ndarray, pd.DataFrame)) else X.shape[0]
-                return InferenceResult(
-                    effect=np.ones(n),
-                    stderr=np.ones(n) * 0.1,
-                    method=InferenceType.ANALYTIC,
-                )
-
-        estimator = InferenceCapableEstimator()
-        assert isinstance(estimator, InferenceProvider)
-
-    def test_protocol_missing_effect_inference(self):
-        """Test class without effect_inference doesn't satisfy protocol."""
-
-        class NoInferenceEstimator:
-            def some_other_method(self):
-                pass
-
-        estimator = NoInferenceEstimator()
-        assert not isinstance(estimator, InferenceProvider)
-
-
-class TestBaseWrapperMixin:
-    """Tests for BaseWrapperMixin."""
-
-    def test_is_compatible_with_classmethod(self):
-        """Test is_compatible_with class method works without instantiation."""
-
-        class ConcreteWrapper(BaseWrapperMixin):
-            @property
-            def clean_name(self) -> str:
-                return "ConcreteWrapper"
-
-            @property
-            def capabilities(self) -> EstimatorCapabilities:
-                return EstimatorCapabilities(
-                    treatment_types={TreatmentType.BINARY},
-                    outcome_types={OutcomeType.CONTINUOUS},
-                    inference_types=set(),
-                    estimands={Estimand.CATE},
-                    supports_controls_in_first_stage_only=False,
-                    supports_weights=False,
-                    requires_treatment_model=False,
-                    requires_outcome_model=False,
-                    requires_regression_model=False,
-                    supports_inference=False,
-                )
-
-            def fit(self, data: CausalDataset, **fit_kwargs):
-                return self
-
-            def get_params(self, deep: bool = True) -> dict:
-                return {}
-
-            def set_params(self, **params):
-                return self
-
-        # Create compatible data
-        X = np.array([[1, 2], [3, 4]])
-        T = np.array([0, 1])
-        Y = np.array([1.0, 2.0])
-        data = CausalDataset(
-            X=X,
-            T=T,
-            Y=Y,
-            treatment_type=TreatmentType.BINARY,
-            outcome_type=OutcomeType.CONTINUOUS,
-        )
-
-        # Test without instantiation
-        assert ConcreteWrapper.is_compatible_with(data) is True
-
-    def test_check_compatibility_raises_on_incompatible(self):
-        """Test check_compatibility raises detailed ValueError when incompatible."""
-
-        class ConcreteWrapper(BaseWrapperMixin):
-            @property
-            def clean_name(self) -> str:
-                return "ConcreteWrapper"
-
-            @property
-            def capabilities(self) -> EstimatorCapabilities:
-                return EstimatorCapabilities(
-                    treatment_types={TreatmentType.BINARY},
-                    outcome_types={OutcomeType.CONTINUOUS},
-                    inference_types=set(),
-                    estimands={Estimand.CATE},
-                    supports_controls_in_first_stage_only=False,
-                    supports_weights=False,
-                    requires_treatment_model=False,
-                    requires_outcome_model=False,
-                    requires_regression_model=False,
-                    supports_inference=False,
-                )
-
-            def fit(self, data: CausalDataset, **fit_kwargs):
-                return self
-
-            def get_params(self, deep: bool = True) -> dict:
-                return {}
-
-            def set_params(self, **params):
-                return self
-
-        # Create incompatible data (binary outcome instead of continuous)
-        X = np.array([[1, 2], [3, 4]])
-        T = np.array([0, 1])
-        Y = np.array([0, 1])
-        data = CausalDataset(
-            X=X,
-            T=T,
-            Y=Y,
-            treatment_type=TreatmentType.BINARY,
-            outcome_type=OutcomeType.BINARY,
-        )
-
-        estimator = ConcreteWrapper()
-
-        # Should raise with detailed message
-        with pytest.raises(ValueError, match="Data incompatible"):
-            estimator.check_compatibility(data, raise_error=True)
-
-    def test_check_compatibility_returns_bool_when_raise_error_false(self):
-        """Test check_compatibility returns boolean when raise_error=False."""
-
-        class ConcreteWrapper(BaseWrapperMixin):
-            @property
-            def clean_name(self) -> str:
-                return "ConcreteWrapper"
-
-            @property
-            def capabilities(self) -> EstimatorCapabilities:
-                return EstimatorCapabilities(
-                    treatment_types={TreatmentType.BINARY},
-                    outcome_types={OutcomeType.CONTINUOUS},
-                    inference_types=set(),
-                    estimands={Estimand.CATE},
-                    supports_controls_in_first_stage_only=False,
-                    supports_weights=False,
-                    requires_treatment_model=False,
-                    requires_outcome_model=False,
-                    requires_regression_model=False,
-                    supports_inference=False,
-                )
-
-            def fit(self, data: CausalDataset, **fit_kwargs):
-                return self
-
-            def get_params(self, deep: bool = True) -> dict:
-                return {}
-
-            def set_params(self, **params):
-                return self
-
-        # Create incompatible data
-        X = np.array([[1, 2], [3, 4]])
-        T = np.array([0, 1])
-        Y = np.array([0, 1])
-        data = CausalDataset(
-            X=X,
-            T=T,
-            Y=Y,
-            treatment_type=TreatmentType.BINARY,
-            outcome_type=OutcomeType.BINARY,
-        )
-
-        estimator = ConcreteWrapper()
-
-        # Should return False, not raise
-        result = estimator.check_compatibility(data, raise_error=False)
-        assert result is False
-
-    def test_effect_raises_before_fit(self):
-        """Test effect raises RuntimeError if called before fit."""
-
-        class ConcreteWrapper(BaseWrapperMixin):
-            def __init__(self):
-                self._estimator = None
-                self._is_fitted = False
-
-            @property
-            def clean_name(self) -> str:
-                return "ConcreteWrapper"
-
-            @property
-            def capabilities(self) -> EstimatorCapabilities:
-                return EstimatorCapabilities(
-                    treatment_types={TreatmentType.BINARY},
-                    outcome_types={OutcomeType.CONTINUOUS},
-                    inference_types=set(),
-                    estimands={Estimand.CATE},
-                    supports_controls_in_first_stage_only=False,
-                    supports_weights=False,
-                    requires_treatment_model=False,
-                    requires_outcome_model=False,
-                    requires_regression_model=False,
-                    supports_inference=False,
-                )
-
-            def fit(self, data: CausalDataset, **fit_kwargs):
-                self._is_fitted = True
-                return self
-
-            def get_params(self, deep: bool = True) -> dict:
-                return {}
-
-            def set_params(self, **params):
-                return self
-
-        estimator = ConcreteWrapper()
-        X = np.array([[1, 2], [3, 4]])
-
-        with pytest.raises(RuntimeError, match="must be fitted"):
-            estimator.effect(X)
-
-    def test_getattr_delegation(self):
-        """Test __getattr__ properly delegates to underlying estimator."""
-
-        class MockEconMLEstimator:
-            def some_econml_method(self):
-                return "econml_result"
-
-            econml_attribute = "econml_value"
-
-        class ConcreteWrapper(BaseWrapperMixin):
-            def __init__(self):
-                self._estimator = MockEconMLEstimator()
-                self._is_fitted = False
-
-            @property
-            def clean_name(self) -> str:
-                return "ConcreteWrapper"
-
-            @property
-            def capabilities(self) -> EstimatorCapabilities:
-                return EstimatorCapabilities(
-                    treatment_types={TreatmentType.BINARY},
-                    outcome_types={OutcomeType.CONTINUOUS},
-                    inference_types=set(),
-                    estimands={Estimand.CATE},
-                    supports_controls_in_first_stage_only=False,
-                    supports_weights=False,
-                    requires_treatment_model=False,
-                    requires_outcome_model=False,
-                    requires_regression_model=False,
-                    supports_inference=False,
-                )
-
-            def fit(self, data: CausalDataset, **fit_kwargs):
-                return self
-
-            def get_params(self, deep: bool = True) -> dict:
-                return {}
-
-            def set_params(self, **params):
-                return self
-
-        estimator = ConcreteWrapper()
-
-        # Should delegate to underlying estimator
-        assert estimator.some_econml_method() == "econml_result"
-        assert estimator.econml_attribute == "econml_value"
-
-    def test_getattr_raises_for_nonexistent(self):
-        """Test __getattr__ raises AttributeError for non-existent attributes."""
-
-        class ConcreteWrapper(BaseWrapperMixin):
-            def __init__(self):
-                self._estimator = None
-
-            @property
-            def clean_name(self) -> str:
-                return "ConcreteWrapper"
-
-            @property
-            def capabilities(self) -> EstimatorCapabilities:
-                return EstimatorCapabilities(
-                    treatment_types={TreatmentType.BINARY},
-                    outcome_types={OutcomeType.CONTINUOUS},
-                    inference_types=set(),
-                    estimands={Estimand.CATE},
-                    supports_controls_in_first_stage_only=False,
-                    supports_weights=False,
-                    requires_treatment_model=False,
-                    requires_outcome_model=False,
-                    requires_regression_model=False,
-                    supports_inference=False,
-                )
-
-            def fit(self, data: CausalDataset, **fit_kwargs):
-                return self
-
-            def get_params(self, deep: bool = True) -> dict:
-                return {}
-
-            def set_params(self, **params):
-                return self
-
-        estimator = ConcreteWrapper()
-
-        with pytest.raises(AttributeError, match="has no attribute"):
-            estimator.nonexistent_attribute

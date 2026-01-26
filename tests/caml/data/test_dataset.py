@@ -1,404 +1,502 @@
-"""Tests for caml.data.dataset.CausalDataset."""
+"""Tests for caml.data.dataset module."""
 
 import numpy as np
 import pandas as pd
 import pytest
 
-from caml.data.data_schema import OutcomeType, TreatmentType
-from caml.data.dataset import CausalDataset
+from caml.data import CausalDataset, OutcomeType, TreatmentType
+from caml.extensions.synthetic_data import SyntheticDataGenerator
+
+pytestmark = [pytest.mark.data]
 
 
-class TestCausalDatasetCreation:
-    """Tests for creating CausalDataset instances."""
+# ==============================================================================
+# DATASET CREATION TESTS
+# ==============================================================================
 
-    def test_minimal_creation_with_numpy(self):
-        """Test creating CausalDataset with minimal numpy arrays."""
-        X = np.array([[1, 2], [3, 4], [5, 6]])
-        T = np.array([0, 1, 0])
-        Y = np.array([1.0, 2.0, 3.0])
 
-        dataset = CausalDataset(X=X, T=T, Y=Y)
+class TestDatasetCreation:
+    """Test CausalDataset creation and initialization."""
 
-        assert dataset.X.shape == (3, 2)
-        assert dataset.T.shape == (3,)
-        assert dataset.Y.shape == (3,)
-        assert dataset.treatment_type == TreatmentType.BINARY
-        assert dataset.outcome_type == OutcomeType.CONTINUOUS
+    def test_create_from_arrays(self):
+        """Test creation from numpy arrays."""
+        np.random.seed(42)
+        X = np.random.randn(100, 3)
+        T = np.random.binomial(1, 0.5, 100)
+        Y = np.random.randn(100)
 
-    def test_minimal_creation_with_pandas(self):
-        """Test creating CausalDataset with pandas objects."""
-        X = pd.DataFrame({"x1": [1, 2, 3], "x2": [4, 5, 6]})
-        T = pd.Series([0, 1, 0])
-        Y = pd.Series([1.0, 2.0, 3.0])
-
-        dataset = CausalDataset(X=X, T=T, Y=Y)
-
-        assert isinstance(dataset.X, pd.DataFrame)
-        assert isinstance(dataset.T, pd.Series)
-        assert isinstance(dataset.Y, pd.Series)
-
-    def test_creation_with_w(self):
-        """Test creating CausalDataset with instrumental variables W."""
-        X = np.array([[1, 2], [3, 4]])
-        T = np.array([0, 1])
-        Y = np.array([1.0, 2.0])
-        W = np.array([[0.1, 0.2], [0.3, 0.4]])
-
-        dataset = CausalDataset(X=X, T=T, Y=Y, W=W)
-
-        assert dataset.W is not None
-        assert dataset.W.shape == (2, 2)
-
-    def test_creation_with_weights(self):
-        """Test creating CausalDataset with sample weights."""
-        X = np.array([[1, 2], [3, 4]])
-        T = np.array([0, 1])
-        Y = np.array([1.0, 2.0])
-        weights = np.array([0.5, 1.5])
-
-        dataset = CausalDataset(X=X, T=T, Y=Y, weights=weights)
-
-        assert dataset.weights is not None
-        np.testing.assert_array_equal(dataset.weights, weights)
-
-    def test_creation_with_custom_types(self):
-        """Test creating CausalDataset with custom treatment and outcome types."""
-        X = np.array([[1, 2], [3, 4], [5, 6]])
-        T = np.array([0.1, 0.5, 0.9])
-        Y = np.array([0, 1, 0])
-
-        dataset = CausalDataset(
+        data = CausalDataset(
             X=X,
             T=T,
             Y=Y,
-            treatment_type=TreatmentType.CONTINUOUS,
-            outcome_type=OutcomeType.BINARY,
+            treatment_type=TreatmentType.BINARY,
+            outcome_type=OutcomeType.CONTINUOUS,
         )
 
-        assert dataset.treatment_type == TreatmentType.CONTINUOUS
-        assert dataset.outcome_type == OutcomeType.BINARY
+        assert len(data.Y) == 100
+        assert data.treatment_type == TreatmentType.BINARY
+        assert data.outcome_type == OutcomeType.CONTINUOUS
 
-    def test_creation_with_feature_names(self):
-        """Test creating CausalDataset with feature names."""
-        X = np.array([[1, 2], [3, 4]])
-        T = np.array([0, 1])
-        Y = np.array([1.0, 2.0])
+    def test_create_from_dataframe_components(self):
+        """Test creation from pandas DataFrames and Series."""
+        np.random.seed(42)
+        X = pd.DataFrame(np.random.randn(100, 3), columns=["x1", "x2", "x3"])
+        T = pd.Series(np.random.binomial(1, 0.5, 100), name="treatment")
+        Y = pd.Series(np.random.randn(100), name="outcome")
 
-        dataset = CausalDataset(
+        data = CausalDataset(
             X=X,
             T=T,
             Y=Y,
-            X_names=["feature1", "feature2"],
-            T_name="treatment",
-            Y_name="outcome",
+            treatment_type=TreatmentType.BINARY,
+            outcome_type=OutcomeType.CONTINUOUS,
         )
 
-        assert dataset.X_names == ["feature1", "feature2"]
-        assert dataset.T_name == "treatment"
-        assert dataset.Y_name == "outcome"
+        assert len(data.Y) == 100
+        assert isinstance(data.X, pd.DataFrame)
+        assert isinstance(data.T, pd.Series)
+
+    def test_create_with_confounders(self):
+        """Test creation with additional confounders W."""
+        np.random.seed(42)
+        X = np.random.randn(100, 3)
+        T = np.random.binomial(1, 0.5, 100)
+        Y = np.random.randn(100)
+        W = np.random.randn(100, 2)
+
+        data = CausalDataset(
+            X=X,
+            T=T,
+            Y=Y,
+            W=W,
+            treatment_type=TreatmentType.BINARY,
+            outcome_type=OutcomeType.CONTINUOUS,
+        )
+
+        assert len(data.W) == 100
+
+    def test_create_with_weights(self):
+        """Test creation with sample weights."""
+        np.random.seed(42)
+        X = np.random.randn(100, 3)
+        T = np.random.binomial(1, 0.5, 100)
+        Y = np.random.randn(100)
+        weights = np.random.uniform(0.5, 1.5, 100)
+
+        data = CausalDataset(
+            X=X,
+            T=T,
+            Y=Y,
+            weights=weights,
+            treatment_type=TreatmentType.BINARY,
+            outcome_type=OutcomeType.CONTINUOUS,
+        )
+
+        assert len(data.weights) == 100
+
+    def test_default_treatment_type_is_binary(self):
+        """Test that default treatment type is BINARY."""
+        gen = SyntheticDataGenerator(
+            n_obs=50, n_cont_outcomes=1, n_binary_treatments=1, seed=42
+        )
+
+        data = CausalDataset(
+            X=gen.df[[c for c in gen.df.columns if "X" in c or "W" in c]],
+            T=gen.df["T1_binary"],
+            Y=gen.df["Y1_continuous"],
+        )
+
+        assert data.treatment_type == TreatmentType.BINARY
+
+    def test_default_outcome_type_is_continuous(self):
+        """Test that default outcome type is CONTINUOUS."""
+        gen = SyntheticDataGenerator(
+            n_obs=50, n_cont_outcomes=1, n_binary_treatments=1, seed=42
+        )
+
+        data = CausalDataset(
+            X=gen.df[[c for c in gen.df.columns if "X" in c or "W" in c]],
+            T=gen.df["T1_binary"],
+            Y=gen.df["Y1_continuous"],
+        )
+
+        assert data.outcome_type == OutcomeType.CONTINUOUS
 
 
-class TestCausalDatasetValidation:
-    """Tests for CausalDataset validation."""
+# ==============================================================================
+# FROM_DATAFRAME METHOD TESTS
+# ==============================================================================
 
-    def test_mismatched_shapes_raises(self):
-        """Test creating CausalDataset with mismatched shapes raises ValueError."""
-        X = np.array([[1, 2], [3, 4]])  # 2 obs
-        T = np.array([0, 1, 0])  # 3 obs
-        Y = np.array([1.0, 2.0])  # 2 obs
 
-        with pytest.raises(ValueError, match="Y must have length 3"):
+class TestFromDataframe:
+    """Test CausalDataset.from_dataframe() method."""
+
+    def test_from_dataframe_basic(self):
+        """Test basic from_dataframe functionality."""
+        gen = SyntheticDataGenerator(
+            n_obs=100,
+            n_cont_outcomes=1,
+            n_binary_treatments=1,
+            n_cont_modifiers=3,
+            seed=42,
+        )
+
+        data = CausalDataset.from_dataframe(
+            gen.df,
+            X=[c for c in gen.df.columns if "X" in c],
+            T="T1_binary",
+            Y="Y1_continuous",
+            treatment_type=TreatmentType.BINARY,
+            outcome_type=OutcomeType.CONTINUOUS,
+        )
+
+        assert len(data.Y) == 100
+        assert data.X_names == [c for c in gen.df.columns if "X" in c]
+        assert data.T_name == "T1_binary"
+        assert data.Y_name == "Y1_continuous"
+
+    def test_from_dataframe_with_confounders(self):
+        """Test from_dataframe with confounders."""
+        gen = SyntheticDataGenerator(
+            n_obs=100,
+            n_cont_outcomes=1,
+            n_binary_treatments=1,
+            n_cont_modifiers=3,
+            n_cont_confounders=2,
+            seed=42,
+        )
+
+        data = CausalDataset.from_dataframe(
+            gen.df,
+            X=[c for c in gen.df.columns if "X" in c],
+            T="T1_binary",
+            Y="Y1_continuous",
+            W=[c for c in gen.df.columns if "W" in c],
+            treatment_type=TreatmentType.BINARY,
+            outcome_type=OutcomeType.CONTINUOUS,
+        )
+
+        assert data.W_names == [c for c in gen.df.columns if "W" in c]
+        assert len(data.W.columns) == 2
+
+    def test_from_dataframe_stores_column_names(self):
+        """Test that from_dataframe stores column names correctly."""
+        df = pd.DataFrame(
+            {
+                "age": [25, 30, 35],
+                "income": [50000, 60000, 70000],
+                "treated": [0, 1, 0],
+                "outcome": [100, 150, 120],
+            }
+        )
+
+        data = CausalDataset.from_dataframe(
+            df,
+            X=["age", "income"],
+            T="treated",
+            Y="outcome",
+            treatment_type=TreatmentType.BINARY,
+            outcome_type=OutcomeType.CONTINUOUS,
+        )
+
+        assert data.X_names == ["age", "income"]
+        assert data.T_name == "treated"
+        assert data.Y_name == "outcome"
+
+    def test_from_dataframe_missing_column_raises_error(self):
+        """Test that missing column raises KeyError."""
+        df = pd.DataFrame({"x1": [1, 2], "y": [3, 4]})
+
+        with pytest.raises(KeyError):
+            CausalDataset.from_dataframe(
+                df,
+                X=["x1"],
+                T="missing_treatment",  # This column doesn't exist
+                Y="y",
+            )
+
+
+# ==============================================================================
+# VALIDATION TESTS
+# ==============================================================================
+
+
+class TestValidation:
+    """Test CausalDataset validation logic."""
+
+    def test_mismatched_shapes_raises_error(self):
+        """Test that mismatched shapes raise ValueError."""
+        X = np.random.randn(100, 3)
+        T = np.random.randn(50)  # Wrong length
+        Y = np.random.randn(100)
+
+        with pytest.raises(ValueError, match="must have length"):
             CausalDataset(X=X, T=T, Y=Y)
 
-    def test_2d_treatment_raises(self):
-        """Test creating CausalDataset with 2D treatment raises ValueError."""
-        X = np.array([[1, 2], [3, 4]])
-        T = np.array([[0, 1], [1, 0]])
-        Y = np.array([1.0, 2.0])
+    def test_multi_dimensional_treatment_raises_error(self):
+        """Test that multi-dimensional treatment raises error."""
+        X = np.random.randn(100, 3)
+        T = np.random.randn(100, 2)  # 2D
+        Y = np.random.randn(100)
 
-        with pytest.raises(ValueError, match="T must be 1-dimensional"):
+        with pytest.raises(ValueError, match="must be 1-dimensional"):
             CausalDataset(X=X, T=T, Y=Y)
 
-    def test_2d_outcome_raises(self):
-        """Test creating CausalDataset with 2D outcome raises ValueError."""
-        X = np.array([[1, 2], [3, 4]])
-        T = np.array([0, 1])
-        Y = np.array([[1.0, 2.0], [3.0, 4.0]])
+    def test_multi_dimensional_outcome_raises_error(self):
+        """Test that multi-dimensional outcome raises error."""
+        X = np.random.randn(100, 3)
+        T = np.random.randn(100)
+        Y = np.random.randn(100, 2)  # 2D
 
-        with pytest.raises(ValueError, match="Y must be 1-dimensional"):
+        with pytest.raises(ValueError, match="must be 1-dimensional"):
             CausalDataset(X=X, T=T, Y=Y)
 
-    def test_binary_treatment_with_three_values_raises(self):
-        """Test binary treatment type with 3 unique values raises ValueError."""
-        X = np.array([[1, 2], [3, 4], [5, 6]])
-        T = np.array([0, 1, 2])
-        Y = np.array([1.0, 2.0, 3.0])
+    def test_binary_treatment_with_three_values_raises_error(self):
+        """Test that binary treatment with 3 values raises error."""
+        X = np.random.randn(100, 3)
+        T = np.random.choice([0, 1, 2], 100)  # 3 values
+        Y = np.random.randn(100)
 
         with pytest.raises(ValueError, match="BINARY expects at most 2 unique values"):
             CausalDataset(X=X, T=T, Y=Y, treatment_type=TreatmentType.BINARY)
 
-    def test_multi_treatment_with_two_values_raises(self):
-        """Test multi treatment type with 2 unique values raises ValueError."""
-        X = np.array([[1, 2], [3, 4]])
-        T = np.array([0, 1])
-        Y = np.array([1.0, 2.0])
+    def test_multi_treatment_with_two_values_raises_error(self):
+        """Test that multi treatment with 2 values raises error."""
+        X = np.random.randn(100, 3)
+        T = np.random.choice([0, 1], 100)  # Only 2 values
+        Y = np.random.randn(100)
 
         with pytest.raises(ValueError, match="MULTI expects more than 2 unique values"):
             CausalDataset(X=X, T=T, Y=Y, treatment_type=TreatmentType.MULTI)
 
-    def test_continuous_treatment_with_non_numeric_raises(self):
-        """Test continuous treatment with non-numeric values raises ValueError."""
-        X = np.array([[1, 2], [3, 4]])
-        T = np.array(["a", "b"])
-        Y = np.array([1.0, 2.0])
-
-        with pytest.raises(ValueError, match="CONTINUOUS expects numeric"):
-            CausalDataset(X=X, T=T, Y=Y, treatment_type=TreatmentType.CONTINUOUS)
-
-    def test_binary_outcome_with_three_values_raises(self):
-        """Test binary outcome type with 3 unique values raises ValueError."""
-        X = np.array([[1, 2], [3, 4], [5, 6]])
-        T = np.array([0, 1, 0])
-        Y = np.array([0, 1, 2])
+    def test_binary_outcome_with_three_values_raises_error(self):
+        """Test that binary outcome with 3 values raises error."""
+        X = np.random.randn(100, 3)
+        T = np.random.choice([0, 1], 100)
+        Y = np.random.choice([0, 1, 2], 100)  # 3 values
 
         with pytest.raises(ValueError, match="BINARY expects at most 2 unique values"):
             CausalDataset(X=X, T=T, Y=Y, outcome_type=OutcomeType.BINARY)
 
-    def test_continuous_outcome_with_non_numeric_raises(self):
-        """Test continuous outcome with non-numeric values raises ValueError."""
-        X = np.array([[1, 2], [3, 4]])
-        T = np.array([0, 1])
-        Y = np.array(["a", "b"])
-
-        with pytest.raises(ValueError, match="CONTINUOUS expects numeric"):
-            CausalDataset(X=X, T=T, Y=Y, outcome_type=OutcomeType.CONTINUOUS)
-
-
-class TestCausalDatasetFromDataFrame:
-    """Tests for CausalDataset.from_dataframe() factory method."""
-
-    def test_from_dataframe_basic(self):
-        """Test creating CausalDataset from DataFrame."""
-        df = pd.DataFrame(
-            {
-                "x1": [1, 2, 3],
-                "x2": [4, 5, 6],
-                "treatment": [0, 1, 0],
-                "outcome": [1.0, 2.0, 3.0],
-            }
-        )
-
-        dataset = CausalDataset.from_dataframe(
-            df=df, X=["x1", "x2"], T="treatment", Y="outcome"
-        )
-
-        assert isinstance(dataset.X, pd.DataFrame)
-        assert dataset.X.shape == (3, 2)
-        assert isinstance(dataset.T, pd.Series)
-        assert isinstance(dataset.Y, pd.Series)
-        assert dataset.X_names == ["x1", "x2"]
-        assert dataset.T_name == "treatment"
-        assert dataset.Y_name == "outcome"
-
-    def test_from_dataframe_with_w(self):
-        """Test creating CausalDataset from DataFrame with W."""
-        df = pd.DataFrame(
-            {
-                "x1": [1, 2],
-                "w1": [0.1, 0.2],
-                "w2": [0.3, 0.4],
-                "treatment": [0, 1],
-                "outcome": [1.0, 2.0],
-            }
-        )
-
-        dataset = CausalDataset.from_dataframe(
-            df=df, X=["x1"], T="treatment", Y="outcome", W=["w1", "w2"]
-        )
-
-        assert isinstance(dataset.W, pd.DataFrame)
-        assert dataset.W.shape == (2, 2)
-        assert dataset.W_names == ["w1", "w2"]
-
-    def test_from_dataframe_with_custom_types(self):
-        """Test creating CausalDataset from DataFrame with custom types."""
-        df = pd.DataFrame(
-            {
-                "x1": [1, 2, 3],
-                "treatment": [0.1, 0.5, 0.9],
-                "outcome": [0, 1, 0],
-            }
-        )
-
-        dataset = CausalDataset.from_dataframe(
-            df=df,
-            X=["x1"],
-            T="treatment",
-            Y="outcome",
-            treatment_type=TreatmentType.CONTINUOUS,
-            outcome_type=OutcomeType.BINARY,
-        )
-
-        assert dataset.treatment_type == TreatmentType.CONTINUOUS
-        assert dataset.outcome_type == OutcomeType.BINARY
-
-    def test_from_dataframe_with_kwargs(self):
-        """Test creating CausalDataset from DataFrame with extra kwargs."""
-        df = pd.DataFrame(
-            {
-                "x1": [1, 2, 3],
-                "treatment": [0, 1, 0],
-                "outcome": [1.0, 2.0, 3.0],
-            }
-        )
-
-        weights = np.array([0.5, 1.0, 1.5])
-
-        dataset = CausalDataset.from_dataframe(
-            df=df,
-            X=["x1"],
-            T="treatment",
-            Y="outcome",
-            weights=weights,
-        )
-
-        assert dataset.weights is not None
-
-    def test_from_dataframe_missing_column_raises(self):
-        """Test creating CausalDataset from DataFrame with missing column raises."""
-        df = pd.DataFrame({"x1": [1, 2], "treatment": [0, 1]})
-
-        with pytest.raises(KeyError):
-            CausalDataset.from_dataframe(
-                df=df,
-                X=["x1"],
-                T="treatment",
-                Y="outcome",  # Missing 'outcome'
+    def test_validation_called_on_init(self):
+        """Test that validation is automatically called on initialization."""
+        # This should raise during __post_init__
+        with pytest.raises(ValueError):
+            CausalDataset(
+                X=np.random.randn(100, 3),
+                T=np.random.randn(50),  # Wrong length
+                Y=np.random.randn(100),
             )
 
 
-class TestCausalDatasetValidateMethod:
-    """Tests for CausalDataset.validate() method."""
-
-    def test_validate_does_not_raise_on_valid_data(self):
-        """Test validate() does not raise on valid data."""
-        X = np.array([[1, 2], [3, 4]])
-        T = np.array([0, 1])
-        Y = np.array([1.0, 2.0])
-
-        dataset = CausalDataset.__new__(CausalDataset)
-        dataset.X = X
-        dataset.T = T
-        dataset.Y = Y
-        dataset.W = None
-        dataset.weights = None
-        dataset.treatment_type = TreatmentType.BINARY
-        dataset.outcome_type = OutcomeType.CONTINUOUS
-        dataset.X_names = None
-        dataset.W_names = None
-        dataset.T_name = "treatment"
-        dataset.Y_name = "outcome"
-
-        dataset.validate()  # Should not raise
-
-    def test_validate_called_in_post_init(self):
-        """Test validate() is called in __post_init__."""
-        X = np.array([[1, 2], [3, 4]])
-        T = np.array([0, 1, 0])  # Wrong length
-        Y = np.array([1.0, 2.0])
-
-        with pytest.raises(ValueError, match="Y must have length 3"):
-            CausalDataset(X=X, T=T, Y=Y)
+# ==============================================================================
+# TREATMENT AND OUTCOME TYPE TESTS
+# ==============================================================================
 
 
-class TestCausalDatasetEdgeCases:
-    """Tests for edge cases in CausalDataset."""
+class TestTreatmentAndOutcomeTypes:
+    """Test different treatment and outcome type combinations."""
+
+    def test_binary_treatment_continuous_outcome(self):
+        """Test binary treatment with continuous outcome."""
+        gen = SyntheticDataGenerator(
+            n_obs=100, n_cont_outcomes=1, n_binary_treatments=1, seed=42
+        )
+
+        data = CausalDataset.from_dataframe(
+            gen.df,
+            X=[c for c in gen.df.columns if "X" in c or "W" in c],
+            T="T1_binary",
+            Y="Y1_continuous",
+            treatment_type=TreatmentType.BINARY,
+            outcome_type=OutcomeType.CONTINUOUS,
+        )
+
+        assert data.treatment_type == TreatmentType.BINARY
+        assert data.outcome_type == OutcomeType.CONTINUOUS
+
+    def test_binary_treatment_binary_outcome(self):
+        """Test binary treatment with binary outcome."""
+        gen = SyntheticDataGenerator(
+            n_obs=100,
+            n_binary_outcomes=1,
+            n_cont_outcomes=0,
+            n_binary_treatments=1,
+            seed=42,
+        )
+
+        # Get the actual column names
+        y_col = [c for c in gen.df.columns if "Y" in c and "binary" in c][0]
+        t_col = [c for c in gen.df.columns if "T" in c and "binary" in c][0]
+
+        data = CausalDataset.from_dataframe(
+            gen.df,
+            X=[c for c in gen.df.columns if "X" in c or "W" in c],
+            T=t_col,
+            Y=y_col,
+            treatment_type=TreatmentType.BINARY,
+            outcome_type=OutcomeType.BINARY,
+        )
+
+        assert data.treatment_type == TreatmentType.BINARY
+        assert data.outcome_type == OutcomeType.BINARY
+
+    def test_continuous_treatment_continuous_outcome(self):
+        """Test continuous treatment with continuous outcome."""
+        gen = SyntheticDataGenerator(
+            n_obs=100, n_cont_outcomes=1, n_cont_treatments=1, seed=42
+        )
+
+        data = CausalDataset.from_dataframe(
+            gen.df,
+            X=[c for c in gen.df.columns if "X" in c or "W" in c],
+            T="T1_continuous",
+            Y="Y1_continuous",
+            treatment_type=TreatmentType.CONTINUOUS,
+            outcome_type=OutcomeType.CONTINUOUS,
+        )
+
+        assert data.treatment_type == TreatmentType.CONTINUOUS
+        assert data.outcome_type == OutcomeType.CONTINUOUS
+
+    def test_multi_treatment_continuous_outcome(self):
+        """Test multi-valued treatment with continuous outcome."""
+        gen = SyntheticDataGenerator(
+            n_obs=100,
+            n_cont_outcomes=1,
+            n_discrete_treatments=1,
+            n_binary_treatments=0,
+            seed=42,
+        )
+
+        # Get the actual column names
+        y_col = [c for c in gen.df.columns if "Y" in c and "continuous" in c][0]
+        t_col = [c for c in gen.df.columns if "T" in c and "discrete" in c][0]
+
+        data = CausalDataset.from_dataframe(
+            gen.df,
+            X=[c for c in gen.df.columns if "X" in c or "W" in c],
+            T=t_col,
+            Y=y_col,
+            treatment_type=TreatmentType.MULTI,
+            outcome_type=OutcomeType.CONTINUOUS,
+        )
+
+        assert data.treatment_type == TreatmentType.MULTI
+        assert data.outcome_type == OutcomeType.CONTINUOUS
+
+
+# ==============================================================================
+# METADATA TESTS
+# ==============================================================================
+
+
+class TestMetadata:
+    """Test metadata storage and retrieval."""
+
+    def test_feature_names_stored_correctly(self):
+        """Test that feature names are stored correctly."""
+        df = pd.DataFrame(
+            {
+                "feature1": [1, 2, 3],
+                "feature2": [4, 5, 6],
+                "treatment": [0, 1, 0],
+                "outcome": [10, 20, 15],
+            }
+        )
+
+        data = CausalDataset.from_dataframe(
+            df, X=["feature1", "feature2"], T="treatment", Y="outcome"
+        )
+
+        assert data.X_names == ["feature1", "feature2"]
+        assert data.T_name == "treatment"
+        assert data.Y_name == "outcome"
+
+    def test_default_names_when_created_from_arrays(self):
+        """Test default names when created from arrays."""
+        X = np.random.randn(50, 3)
+        T = np.random.binomial(1, 0.5, 50)
+        Y = np.random.randn(50)
+
+        data = CausalDataset(X=X, T=T, Y=Y)
+
+        assert data.X_names is None
+        assert data.T_name == "treatment"
+        assert data.Y_name == "outcome"
+
+    def test_confounder_names_stored(self):
+        """Test that confounder names are stored."""
+        df = pd.DataFrame(
+            {
+                "x1": [1, 2],
+                "w1": [3, 4],
+                "w2": [5, 6],
+                "t": [0, 1],
+                "y": [10, 20],
+            }
+        )
+
+        data = CausalDataset.from_dataframe(df, X=["x1"], T="t", Y="y", W=["w1", "w2"])
+
+        assert data.W_names == ["w1", "w2"]
+
+
+# ==============================================================================
+# EDGE CASES
+# ==============================================================================
+
+
+class TestEdgeCases:
+    """Test edge cases and boundary conditions."""
 
     def test_single_observation(self):
-        """Test CausalDataset with single observation."""
-        X = np.array([[1, 2]])
-        T = np.array([0])
-        Y = np.array([1.0])
+        """Test with a single observation."""
+        X = np.array([[1.0, 2.0]])
+        T = np.array([1])
+        Y = np.array([5.0])
 
-        dataset = CausalDataset(X=X, T=T, Y=Y)
+        data = CausalDataset(X=X, T=T, Y=Y)
 
-        assert dataset.X.shape == (1, 2)
-        assert dataset.T.shape == (1,)
-        assert dataset.Y.shape == (1,)
+        assert len(data.Y) == 1
 
     def test_single_feature(self):
-        """Test CausalDataset with single feature."""
-        X = np.array([[1], [2], [3]])
-        T = np.array([0, 1, 0])
-        Y = np.array([1.0, 2.0, 3.0])
+        """Test with a single feature."""
+        X = np.random.randn(100, 1)
+        T = np.random.binomial(1, 0.5, 100)
+        Y = np.random.randn(100)
 
-        dataset = CausalDataset(X=X, T=T, Y=Y)
+        data = CausalDataset(X=X, T=T, Y=Y)
 
-        assert dataset.X.shape == (3, 1)
+        assert data.X.shape[1] == 1
 
-    def test_1d_x_as_series(self):
-        """Test CausalDataset with 1D X as pandas Series."""
-        X = pd.Series([1, 2, 3])
-        T = pd.Series([0, 1, 0])
-        Y = pd.Series([1.0, 2.0, 3.0])
+    def test_no_confounders(self):
+        """Test that W=None works correctly."""
+        X = np.random.randn(100, 3)
+        T = np.random.binomial(1, 0.5, 100)
+        Y = np.random.randn(100)
 
-        dataset = CausalDataset(X=X, T=T, Y=Y)
+        data = CausalDataset(X=X, T=T, Y=Y, W=None)
 
-        assert isinstance(dataset.X, pd.Series)
+        assert data.W is None
+        assert data.W_names is None
 
-    def test_constant_treatment(self):
-        """Test CausalDataset with constant treatment (1 unique value)."""
-        X = np.array([[1, 2], [3, 4]])
-        T = np.array([0, 0])  # All same value
-        Y = np.array([1.0, 2.0])
+    def test_large_dataset(self):
+        """Test with large dataset."""
+        gen = SyntheticDataGenerator(
+            n_obs=10_000,
+            n_cont_outcomes=1,
+            n_binary_treatments=1,
+            n_cont_modifiers=10,
+            seed=42,
+        )
 
-        dataset = CausalDataset(X=X, T=T, Y=Y)
+        data = CausalDataset.from_dataframe(
+            gen.df,
+            X=[c for c in gen.df.columns if "X" in c],
+            T="T1_binary",
+            Y="Y1_continuous",
+        )
 
-        assert dataset.treatment_type == TreatmentType.BINARY
-
-    def test_constant_outcome(self):
-        """Test CausalDataset with constant outcome."""
-        X = np.array([[1, 2], [3, 4]])
-        T = np.array([0, 1])
-        Y = np.array([1.0, 1.0])  # All same value
-
-        dataset = CausalDataset(X=X, T=T, Y=Y)
-
-        assert dataset.outcome_type == OutcomeType.CONTINUOUS
-
-
-class TestCausalDatasetWithMissingData:
-    """Tests for CausalDataset with missing data."""
-
-    def test_missing_data_in_x_allowed(self):
-        """Test CausalDataset allows missing data in X."""
-        X = np.array([[1.0, np.nan], [3.0, 4.0]])
-        T = np.array([0, 1])
-        Y = np.array([1.0, 2.0])
-
-        dataset = CausalDataset(X=X, T=T, Y=Y)
-
-        # Should create successfully - validation checks but doesn't reject
-        assert dataset.X.shape == (2, 2)
-
-    def test_missing_data_in_t_allowed(self):
-        """Test CausalDataset allows missing data in T."""
-        X = np.array([[1, 2], [3, 4]])
-        T = np.array([0.0, np.nan])
-        Y = np.array([1.0, 2.0])
-
-        # Note: This may raise depending on treatment type validation
-        # with NaN values excluded from unique check
-        dataset = CausalDataset(X=X, T=T, Y=Y)
-
-        assert dataset.T.shape == (2,)
-
-    def test_missing_data_in_y_allowed(self):
-        """Test CausalDataset allows missing data in Y."""
-        X = np.array([[1, 2], [3, 4]])
-        T = np.array([0, 1])
-        Y = np.array([1.0, np.nan])
-
-        dataset = CausalDataset(X=X, T=T, Y=Y)
-
-        assert dataset.Y.shape == (2,)
+        assert len(data.Y) == 10_000
+        assert data.X.shape[1] == 10

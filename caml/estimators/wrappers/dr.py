@@ -91,40 +91,34 @@ class WrappedDRLearner(BaseWrapperMixin):
     ```
     """
 
+    # Class attributes
+    clean_name: str = "DRLearner"
+    capabilities: EstimatorCapabilities = EstimatorCapabilities(
+        treatment_types={
+            TreatmentType.BINARY,
+            TreatmentType.MULTI,
+        },
+        outcome_types={OutcomeType.CONTINUOUS, OutcomeType.BINARY},
+        inference_types={InferenceType.BOOTSTRAP},
+        estimands={
+            Estimand.ATE,
+            Estimand.ATT,
+            Estimand.ATC,
+            Estimand.CATE,
+            Estimand.GATE,
+        },
+        supports_controls_in_first_stage_only=True,
+        supports_weights=True,
+        requires_treatment_model=True,
+        requires_outcome_model=False,
+        requires_regression_model=True,
+        supports_inference=True,
+    )
+
     def __init__(self, **econml_kwargs):
         self._econml_kwargs = econml_kwargs
         self._estimator = DRLearner(**self._econml_kwargs)
         self._is_fitted = False
-
-    @property
-    def capabilities(self) -> EstimatorCapabilities:
-        """Metadata describing the estimator's supported treatment/outcome types, estimands, and inference methods."""
-        return EstimatorCapabilities(
-            treatment_types={
-                TreatmentType.BINARY,
-                TreatmentType.MULTI,
-            },
-            outcome_types={OutcomeType.CONTINUOUS, OutcomeType.BINARY},
-            inference_types={InferenceType.BOOTSTRAP},
-            estimands={
-                Estimand.ATE,
-                Estimand.ATT,
-                Estimand.ATC,
-                Estimand.CATE,
-                Estimand.GATE,
-            },
-            supports_controls_in_first_stage_only=True,
-            supports_weights=True,
-            requires_treatment_model=True,
-            requires_outcome_model=False,
-            requires_regression_model=True,
-            supports_inference=True,
-        )
-
-    @property
-    def clean_name(self) -> str:
-        """Human-readable name for the estimator."""
-        return "DRLearner"
 
     def fit(
         self,
@@ -255,40 +249,34 @@ class WrappedLinearDRLearner(BaseWrapperMixin):
     ```
     """
 
+    # Class attributes
+    clean_name: str = "LinearDRLearner"
+    capabilities: EstimatorCapabilities = EstimatorCapabilities(
+        treatment_types={
+            TreatmentType.BINARY,
+            TreatmentType.MULTI,
+        },
+        outcome_types={OutcomeType.CONTINUOUS, OutcomeType.BINARY},
+        inference_types={InferenceType.ANALYTIC, InferenceType.BOOTSTRAP},
+        estimands={
+            Estimand.ATE,
+            Estimand.ATT,
+            Estimand.ATC,
+            Estimand.CATE,
+            Estimand.GATE,
+        },
+        supports_controls_in_first_stage_only=True,
+        supports_weights=True,
+        requires_treatment_model=True,
+        requires_outcome_model=False,
+        requires_regression_model=True,
+        supports_inference=True,
+    )
+
     def __init__(self, **econml_kwargs):
         self._econml_kwargs = econml_kwargs
         self._estimator = LinearDRLearner(**self._econml_kwargs)
         self._is_fitted = False
-
-    @property
-    def capabilities(self) -> EstimatorCapabilities:
-        """Metadata describing the estimator's supported treatment/outcome types, estimands, and inference methods."""
-        return EstimatorCapabilities(
-            treatment_types={
-                TreatmentType.BINARY,
-                TreatmentType.MULTI,
-            },
-            outcome_types={OutcomeType.CONTINUOUS, OutcomeType.BINARY},
-            inference_types={InferenceType.ANALYTIC, InferenceType.BOOTSTRAP},
-            estimands={
-                Estimand.ATE,
-                Estimand.ATT,
-                Estimand.ATC,
-                Estimand.CATE,
-                Estimand.GATE,
-            },
-            supports_controls_in_first_stage_only=True,
-            supports_weights=True,
-            requires_treatment_model=True,
-            requires_outcome_model=False,
-            requires_regression_model=True,
-            supports_inference=True,
-        )
-
-    @property
-    def clean_name(self) -> str:
-        """Human-readable name for the estimator."""
-        return "LinearDRLearner"
 
     def fit(
         self,
@@ -420,40 +408,34 @@ class WrappedSparseLinearDRLearner(BaseWrapperMixin):
     ```
     """
 
+    # Class attributes
+    clean_name: str = "SparseLinearDRLearner"
+    capabilities: EstimatorCapabilities = EstimatorCapabilities(
+        treatment_types={
+            TreatmentType.BINARY,
+            TreatmentType.MULTI,
+        },
+        outcome_types={OutcomeType.CONTINUOUS, OutcomeType.BINARY},
+        inference_types={InferenceType.ANALYTIC, InferenceType.BOOTSTRAP},
+        estimands={
+            Estimand.ATE,
+            Estimand.ATT,
+            Estimand.ATC,
+            Estimand.CATE,
+            Estimand.GATE,
+        },
+        supports_controls_in_first_stage_only=True,
+        supports_weights=True,
+        requires_treatment_model=True,
+        requires_outcome_model=False,
+        requires_regression_model=True,
+        supports_inference=True,
+    )
+
     def __init__(self, **econml_kwargs):
         self._econml_kwargs = econml_kwargs
         self._estimator = SparseLinearDRLearner(**self._econml_kwargs)
         self._is_fitted = False
-
-    @property
-    def capabilities(self) -> EstimatorCapabilities:
-        """Metadata describing the estimator's supported treatment/outcome types, estimands, and inference methods."""
-        return EstimatorCapabilities(
-            treatment_types={
-                TreatmentType.BINARY,
-                TreatmentType.MULTI,
-            },
-            outcome_types={OutcomeType.CONTINUOUS, OutcomeType.BINARY},
-            inference_types={InferenceType.ANALYTIC, InferenceType.BOOTSTRAP},
-            estimands={
-                Estimand.ATE,
-                Estimand.ATT,
-                Estimand.ATC,
-                Estimand.CATE,
-                Estimand.GATE,
-            },
-            supports_controls_in_first_stage_only=True,
-            supports_weights=True,
-            requires_treatment_model=True,
-            requires_outcome_model=False,
-            requires_regression_model=True,
-            supports_inference=True,
-        )
-
-    @property
-    def clean_name(self) -> str:
-        """Human-readable name for the estimator."""
-        return "SparseLinearDRLearner"
 
     def fit(
         self,
@@ -584,40 +566,34 @@ class WrappedForestDRLearner(BaseWrapperMixin):
     ```
     """
 
+    # Class attributes
+    clean_name: str = "ForestDRLearner"
+    capabilities: EstimatorCapabilities = EstimatorCapabilities(
+        treatment_types={
+            TreatmentType.BINARY,
+            TreatmentType.MULTI,
+        },
+        outcome_types={OutcomeType.CONTINUOUS, OutcomeType.BINARY},
+        inference_types={InferenceType.BOOTSTRAP},
+        estimands={
+            Estimand.ATE,
+            Estimand.ATT,
+            Estimand.ATC,
+            Estimand.CATE,
+            Estimand.GATE,
+        },
+        supports_controls_in_first_stage_only=True,
+        supports_weights=True,
+        requires_treatment_model=True,
+        requires_outcome_model=False,
+        requires_regression_model=True,
+        supports_inference=True,
+    )
+
     def __init__(self, **econml_kwargs):
         self._econml_kwargs = econml_kwargs
         self._estimator = ForestDRLearner(**self._econml_kwargs)
         self._is_fitted = False
-
-    @property
-    def capabilities(self) -> EstimatorCapabilities:
-        """Metadata describing the estimator's supported treatment/outcome types, estimands, and inference methods."""
-        return EstimatorCapabilities(
-            treatment_types={
-                TreatmentType.BINARY,
-                TreatmentType.MULTI,
-            },
-            outcome_types={OutcomeType.CONTINUOUS, OutcomeType.BINARY},
-            inference_types={InferenceType.BOOTSTRAP},
-            estimands={
-                Estimand.ATE,
-                Estimand.ATT,
-                Estimand.ATC,
-                Estimand.CATE,
-                Estimand.GATE,
-            },
-            supports_controls_in_first_stage_only=True,
-            supports_weights=True,
-            requires_treatment_model=True,
-            requires_outcome_model=False,
-            requires_regression_model=True,
-            supports_inference=True,
-        )
-
-    @property
-    def clean_name(self) -> str:
-        """Human-readable name for the estimator."""
-        return "ForestDRLearner"
 
     def fit(
         self,

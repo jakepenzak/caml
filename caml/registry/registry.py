@@ -96,16 +96,9 @@ def register_estimator(
 
     class SimpleEstimator:
 
-        def __init__(self):
-            self.effect_value = None
+        clean_name = "SimpleEstimator"
 
-        @property
-        def clean_name(self) -> str:
-            return "SimpleEstimator"
-
-        @property
-        def capabilities(self) -> EstimatorCapabilities:
-            return EstimatorCapabilities(
+        capabilities = EstimatorCapabilities(
             treatment_types={TreatmentType.BINARY},
             outcome_types={OutcomeType.CONTINUOUS},
             inference_types=set(),
@@ -117,6 +110,9 @@ def register_estimator(
             requires_regression_model=False,
             supports_inference=False
             )
+
+        def __init__(self):
+            self.effect_value = None
 
         def is_compatible_with(cls, data: CausalDataset) -> bool:
             temp_instance = cls()

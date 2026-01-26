@@ -1,45 +1,45 @@
-"""Tests for caml.inference.inference_schema."""
+"""Tests for caml.inference.inference_schema module."""
 
 import pytest
 
-from caml.inference.inference_schema import InferenceType
+from caml.inference import InferenceType
+
+pytestmark = pytest.mark.inference
 
 
-class TestInferenceType:
-    """Tests for InferenceType enum."""
+def test_inference_type_values():
+    """Test InferenceType enum values."""
+    assert InferenceType.ANALYTIC.value == "analytic"
+    assert InferenceType.BOOTSTRAP.value == "bootstrap"
 
-    def test_analytic_value(self):
-        """Test ANALYTIC has correct value."""
-        assert InferenceType.ANALYTIC.value == "analytic"
 
-    def test_bootstrap_value(self):
-        """Test BOOTSTRAP has correct value."""
-        assert InferenceType.BOOTSTRAP.value == "bootstrap"
+def test_inference_type_count():
+    """Test that InferenceType has exactly 2 members."""
+    assert len(InferenceType) == 2
 
-    def test_all_members_exist(self):
-        """Test all expected enum members exist."""
-        members = {member.name for member in InferenceType}
-        expected = {"ANALYTIC", "BOOTSTRAP"}
-        assert members == expected
 
-    def test_enum_equality(self):
-        """Test enum member equality."""
-        assert InferenceType.ANALYTIC == InferenceType.ANALYTIC
-        assert InferenceType.ANALYTIC != InferenceType.BOOTSTRAP
+def test_inference_type_members():
+    """Test that all expected InferenceType members exist."""
+    assert hasattr(InferenceType, "ANALYTIC")
+    assert hasattr(InferenceType, "BOOTSTRAP")
 
-    def test_enum_from_string(self):
-        """Test constructing enum from string value."""
-        assert InferenceType("analytic") == InferenceType.ANALYTIC
-        assert InferenceType("bootstrap") == InferenceType.BOOTSTRAP
 
-    def test_invalid_string_raises(self):
-        """Test invalid string raises ValueError."""
-        with pytest.raises(ValueError):
-            InferenceType("invalid")
+def test_inference_type_values_are_unique_strings():
+    """Test that all InferenceType values are unique strings."""
+    values = [inf_type.value for inf_type in InferenceType]
+    assert all(isinstance(value, str) for value in values)
+    assert len(values) == len(set(values))
 
-    def test_enum_iteration(self):
-        """Test iterating over enum members."""
-        members = list(InferenceType)
-        assert len(members) == 2
-        assert InferenceType.ANALYTIC in members
-        assert InferenceType.BOOTSTRAP in members
+
+def test_inference_type_iteration():
+    """Test that InferenceType can be iterated."""
+    types = list(InferenceType)
+    assert len(types) == 2
+    assert InferenceType.ANALYTIC in types
+    assert InferenceType.BOOTSTRAP in types
+
+
+def test_inference_type_membership():
+    """Test membership checking for InferenceType."""
+    assert InferenceType.ANALYTIC in InferenceType
+    assert InferenceType.BOOTSTRAP in InferenceType

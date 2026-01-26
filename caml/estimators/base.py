@@ -155,14 +155,17 @@ class AutoCateEstimator(Protocol):
 
     Attributes
     ----------
+    clean_name : str
+        Human-readable name of the estimator (class attribute).
     capabilities : EstimatorCapabilities
-        Metadata describing what the estimator supports.
+        Metadata describing what the estimator supports (class attribute).
 
     Notes
     -----
     - This is a Protocol (structural subtyping), not a base class
     - Runtime-checkable via ``isinstance(obj, AutoCateEstimator)``
     - Method name is ``effect()`` not ``predict_cate()`` per CaML conventions
+    - ``clean_name`` and ``capabilities`` are class attributes, not properties
 
     See Also
     --------
@@ -180,17 +183,9 @@ class AutoCateEstimator(Protocol):
     from caml.estimators import AutoCateEstimator, EstimatorCapabilities
 
     class SimpleEstimator:
-
-        def __init__(self):
-            self.effect_value = None
-
-        @property
-        def clean_name(self) -> str:
-            return "SimpleEstimator"
-
-        @property
-        def capabilities(self) -> EstimatorCapabilities:
-            return EstimatorCapabilities(
+        # Class attributes
+        clean_name: str = "SimpleEstimator"
+        capabilities: EstimatorCapabilities = EstimatorCapabilities(
             treatment_types={TreatmentType.BINARY},
             outcome_types={OutcomeType.CONTINUOUS},
             inference_types=set(),
@@ -201,11 +196,14 @@ class AutoCateEstimator(Protocol):
             requires_outcome_model=False,
             requires_regression_model=False,
             supports_inference=False
-            )
+        )
 
+        def __init__(self):
+            self.effect_value = None
+
+        @classmethod
         def is_compatible_with(cls, data: CausalDataset) -> bool:
-            temp_instance = cls()
-            return temp_instance.capabilities.is_compatible(data)
+            return cls.capabilities.is_compatible(data)
 
         def check_compatibility(
             self, data: CausalDataset, raise_error: bool = True
@@ -233,15 +231,8 @@ class AutoCateEstimator(Protocol):
     ```
     """
 
-    @property
-    def clean_name(self) -> str:
-        """Human-readable name of the estimator."""
-        ...
-
-    @property
-    def capabilities(self) -> EstimatorCapabilities:
-        """Estimator capabilities metadata."""
-        ...
+    clean_name: str
+    capabilities: EstimatorCapabilities
 
     @classmethod
     def is_compatible_with(cls, data: CausalDataset) -> bool:
@@ -450,22 +441,22 @@ class InferenceProvider(Protocol):
 
 
 class BaseWrapperMixin(ABC):
-    """Mixin and ABC providing common functionality and strict inerface enforcement for EconML wrappers."""
+    """Mixin and ABC providing common functionality and strict inerface enforcement for EconML wrappers.
+
+    Attributes
+    ----------
+    clean_name : str
+        Human-readable name of the estimator (class attribute, must be set by subclass).
+    capabilities : EstimatorCapabilities
+        Metadata describing what the estimator supports (class attribute, must be set by subclass).
+    """
 
     _estimator: BaseCateEstimator
     _is_fitted: bool = False
 
-    @property
-    @abstractmethod
-    def clean_name(self) -> str:
-        """Human-readable name of the estimator."""
-        pass
-
-    @property
-    @abstractmethod
-    def capabilities(self) -> EstimatorCapabilities:
-        """Estimator capabilities metadata."""
-        pass
+    # Class attributes that must be overridden by subclasses
+    clean_name: str
+    capabilities: EstimatorCapabilities
 
     @abstractmethod
     def fit(self, data: CausalDataset, **fit_kwargs) -> BaseWrapperMixin:
@@ -539,8 +530,7 @@ class BaseWrapperMixin(ABC):
         print(f"Compatible estimators: {[c.__name__ for c in compatible]}")
         ```
         """
-        temp_instance = cls()
-        return temp_instance.capabilities.is_compatible(data)
+        return cls.capabilities.is_compatible(data)
 
     def check_compatibility(
         self, data: CausalDataset, raise_error: bool = True

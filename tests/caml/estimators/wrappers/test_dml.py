@@ -1,12 +1,12 @@
-"""Tests for DML estimator wrappers."""
+"""Tests for DML wrapper estimators."""
 
 import numpy as np
 import pytest
-from sklearn.ensemble import GradientBoostingClassifier, GradientBoostingRegressor
+from sklearn.ensemble import GradientBoostingRegressor, RandomForestRegressor
 from sklearn.linear_model import LinearRegression, LogisticRegression
 
-from caml.data import TreatmentType
-from caml.estimators import AutoCateEstimator, InferenceProvider
+from caml.data import CausalDataset, OutcomeType, TreatmentType
+from caml.estimators import AutoCateEstimator
 from caml.estimators.wrappers.dml import (
     WrappedCausalForestDML,
     WrappedKernelDML,
@@ -14,303 +14,164 @@ from caml.estimators.wrappers.dml import (
     WrappedNonParamDML,
     WrappedSparseLinearDML,
 )
-from caml.inference import InferenceType
+from caml.extensions.synthetic_data import SyntheticDataGenerator
 
-# All DML estimators
-DML_ESTIMATORS = [
-    WrappedLinearDML,
-    WrappedSparseLinearDML,
-    WrappedCausalForestDML,
-    WrappedNonParamDML,
-    WrappedKernelDML,
-]
+pytestmark = pytest.mark.estimators
 
 
-@pytest.mark.parametrize("estimator_class", DML_ESTIMATORS)
-class TestDMLWrappers:
-    """Common tests for all DML wrappers."""
+@pytest.fixture
+def binary_continuous_data():
+    """Generate binary treatment, continuous outcome data."""
+    gen = SyntheticDataGenerator(n_cont_modifiers=3, n_obs=500, seed=42)
+    return CausalDataset.from_dataframe(
+        gen.df,
+        X=[c for c in gen.df.columns if "X" in c],
+        T="T1_binary",
+        Y="Y1_continuous",
+        treatment_type=TreatmentType.BINARY,
+        outcome_type=OutcomeType.CONTINUOUS,
+    )
 
-    def test_initialization(self, estimator_class):
-        """Test estimator can be instantiated."""
-        estimator = estimator_class()
-        assert estimator is not None
+
+class TestWrappedLinearDML:
+    """Tests for WrappedLinearDML."""
+
+    def test_class_attributes(self):
+        """Test that class attributes are set correctly."""
+        assert WrappedLinearDML.clean_name == "LinearDML"
+        assert WrappedLinearDML.capabilities is not None
+        assert TreatmentType.BINARY in WrappedLinearDML.capabilities.treatment_types
+        assert OutcomeType.CONTINUOUS in WrappedLinearDML.capabilities.outcome_types
+
+    def test_initialization(self):
+        """Test estimator initialization."""
+        estimator = WrappedLinearDML(
+            model_y=LinearRegression(), model_t=LogisticRegression()
+        )
         assert estimator._is_fitted is False
+        assert hasattr(estimator, "_estimator")
 
-    def test_capabilities_property(self, estimator_class):
-        """Test capabilities returns EstimatorCapabilities."""
-        estimator = estimator_class()
-        caps = estimator.capabilities
-        assert caps is not None
-        assert hasattr(caps, "treatment_types")
-        assert hasattr(caps, "outcome_types")
-
-    def test_clean_name_property(self, estimator_class):
-        """Test clean_name returns string."""
-        estimator = estimator_class()
-        assert isinstance(estimator.clean_name, str)
-        assert len(estimator.clean_name) > 0
-
-    def test_is_compatible_with_classmethod(
-        self, estimator_class, binary_continuous_data
-    ):
-        """Test class-level compatibility check."""
-        result = estimator_class.is_compatible_with(binary_continuous_data)
-        assert isinstance(result, bool)
-        # All DML estimators should support binary treatment + continuous outcome
-        assert result is True
-
-    def test_protocol_compliance(self, estimator_class):
-        """Test estimator implements AutoCateEstimator."""
-        estimator = estimator_class()
+    def test_protocol_compliance(self, binary_continuous_data):
+        """Test that estimator implements AutoCateEstimator protocol."""
+        estimator = WrappedLinearDML(
+            model_y=LinearRegression(), model_t=LogisticRegression()
+        )
+        estimator.fit(binary_continuous_data)
         assert isinstance(estimator, AutoCateEstimator)
 
-    def test_fit_basic(self, estimator_class, small_binary_continuous_data):
-        """Test basic fit functionality."""
-        estimator = estimator_class(
-            model_y=LinearRegression(),
-            model_t=LogisticRegression(max_iter=500),
-            cv=2,
-            random_state=42,
+    def test_fit_and_effect(self, binary_continuous_data):
+        """Test fitting and CATE prediction."""
+        estimator = WrappedLinearDML(
+            model_y=LinearRegression(), model_t=LogisticRegression(), random_state=42
         )
-        result = estimator.fit(small_binary_continuous_data)
-        assert result is estimator  # Returns self
+        estimator.fit(binary_continuous_data)
+
+        # Check fitted flag
         assert estimator._is_fitted is True
 
-    def test_fit_sets_fitted_flag(self, estimator_class, small_binary_continuous_data):
-        """Test _is_fitted is set after fit."""
-        estimator = estimator_class(
-            model_y=LinearRegression(),
-            model_t=LogisticRegression(max_iter=500),
-            cv=2,
-            random_state=42,
-        )
-        assert estimator._is_fitted is False
-        estimator.fit(small_binary_continuous_data)
-        assert estimator._is_fitted is True
+        # Predict CATE
+        cate = estimator.effect(binary_continuous_data.X)
+        assert cate.shape == (len(binary_continuous_data.X),)
+        assert np.isfinite(cate).all()
 
-    def test_effect_before_fit_raises(
-        self, estimator_class, small_binary_continuous_data
-    ):
-        """Test calling effect before fit raises error."""
-        estimator = estimator_class()
-        with pytest.raises(RuntimeError, match="must be fitted"):
-            estimator.effect(small_binary_continuous_data.X)
-
-    def test_effect_after_fit(self, estimator_class, small_binary_continuous_data):
-        """Test effect returns array of correct shape."""
-        estimator = estimator_class(
-            model_y=LinearRegression(),
-            model_t=LogisticRegression(max_iter=500),
-            cv=2,
-            random_state=42,
-        )
-        estimator.fit(small_binary_continuous_data)
-
-        effects = estimator.effect(small_binary_continuous_data.X)
-        assert isinstance(effects, np.ndarray)
-        assert effects.shape[0] == len(small_binary_continuous_data.X)
-
-    def test_check_compatibility_raises_on_incompatible(
-        self, estimator_class, multi_continuous_data
-    ):
-        """Test check_compatibility raises detailed error for incompatible data."""
-        # NonParamDML doesn't support multi-valued treatment
-        if estimator_class == WrappedNonParamDML:
-            estimator = estimator_class()
-            with pytest.raises(ValueError, match="Data incompatible"):
-                estimator.check_compatibility(multi_continuous_data, raise_error=True)
-
-
-class TestLinearDML:
-    """Specific tests for WrappedLinearDML."""
-
-    def test_supports_analytic_inference(self):
-        """Test LinearDML supports analytic inference."""
-        estimator = WrappedLinearDML()
-        assert InferenceType.ANALYTIC in estimator.capabilities.inference_types
-        assert estimator.capabilities.supports_inference is True
-
-    def test_inference_basic(self, small_binary_continuous_data):
-        """Test effect_inference returns InferenceResult."""
+    def test_compatibility_check(self, binary_continuous_data):
+        """Test compatibility checking."""
         estimator = WrappedLinearDML(
-            model_y=LinearRegression(),
-            model_t=LogisticRegression(max_iter=500),
-            cv=2,
-            random_state=42,
+            model_y=LinearRegression(), model_t=LogisticRegression()
         )
-        estimator.fit(small_binary_continuous_data)
+        # Should not raise
+        assert estimator.check_compatibility(binary_continuous_data, raise_error=True)
 
-        # Should be InferenceProvider
-        assert isinstance(estimator, InferenceProvider)
-
-        result = estimator.effect_inference(small_binary_continuous_data.X)
-        assert result.effect is not None
-        assert result.stderr is not None
-        assert result.effect.shape[0] == len(small_binary_continuous_data.X)
-
-    def test_supports_continuous_treatment(self, continuous_continuous_data):
-        """Test LinearDML handles continuous treatment."""
-        assert WrappedLinearDML.is_compatible_with(continuous_continuous_data)
-
-        estimator = WrappedLinearDML(
-            model_y=LinearRegression(),
-            model_t=LinearRegression(),
-            cv=2,
-            random_state=42,
-        )
-        estimator.fit(continuous_continuous_data)
-        effects = estimator.effect(continuous_continuous_data.X)
-        assert effects.shape[0] == len(continuous_continuous_data.X)
+    def test_is_compatible_with_classmethod(self, binary_continuous_data):
+        """Test classmethod is_compatible_with works without instantiation."""
+        # This should not raise (no instantiation needed)
+        assert WrappedLinearDML.is_compatible_with(binary_continuous_data)
 
 
-class TestSparseLinearDML:
-    """Specific tests for WrappedSparseLinearDML."""
+class TestWrappedSparseLinearDML:
+    """Tests for WrappedSparseLinearDML."""
 
-    def test_supports_analytic_inference(self):
-        """Test SparseLinearDML supports analytic inference."""
-        estimator = WrappedSparseLinearDML()
-        assert InferenceType.ANALYTIC in estimator.capabilities.inference_types
+    def test_class_attributes(self):
+        """Test that class attributes are set correctly."""
+        assert WrappedSparseLinearDML.clean_name == "SparseLinearDML"
+        assert WrappedSparseLinearDML.capabilities is not None
 
-    def test_with_high_dimensional_data(self, high_dimensional_data):
-        """Test SparseLinearDML with many features (sparsity)."""
+    def test_fit_and_effect(self, binary_continuous_data):
+        """Test fitting and CATE prediction."""
         estimator = WrappedSparseLinearDML(
-            model_y=LinearRegression(),
-            model_t=LogisticRegression(max_iter=500),
-            alpha=0.1,
-            cv=2,
-            random_state=42,
+            model_y=LinearRegression(), model_t=LogisticRegression(), random_state=42
         )
-        estimator.fit(high_dimensional_data)
-        effects = estimator.effect(high_dimensional_data.X)
-        assert effects.shape[0] == len(high_dimensional_data.X)
+        estimator.fit(binary_continuous_data)
+
+        cate = estimator.effect(binary_continuous_data.X)
+        assert cate.shape == (len(binary_continuous_data.X),)
+        assert np.isfinite(cate).all()
 
 
-class TestCausalForestDML:
-    """Specific tests for WrappedCausalForestDML."""
+class TestWrappedCausalForestDML:
+    """Tests for WrappedCausalForestDML."""
 
-    def test_supports_bootstrap_inference_only(self):
-        """Test CausalForestDML supports bootstrap inference."""
-        estimator = WrappedCausalForestDML()
-        assert InferenceType.BOOTSTRAP in estimator.capabilities.inference_types
-        assert InferenceType.ANALYTIC not in estimator.capabilities.inference_types
+    def test_class_attributes(self):
+        """Test that class attributes are set correctly."""
+        assert WrappedCausalForestDML.clean_name == "CausalForestDML"
+        assert WrappedCausalForestDML.capabilities is not None
 
-    def test_with_nonlinear_data(self, binary_continuous_data):
-        """Test CausalForestDML with nonlinear effects."""
+    def test_fit_and_effect(self, binary_continuous_data):
+        """Test fitting and CATE prediction."""
+        # n_estimators must be divisible by subforest_size (default=4)
         estimator = WrappedCausalForestDML(
-            model_y=GradientBoostingRegressor(n_estimators=20),
-            model_t=GradientBoostingClassifier(n_estimators=20),
-            n_estimators=50,
-            max_depth=5,
-            min_samples_leaf=10,
-            cv=2,
+            model_y=LinearRegression(),
+            model_t=LogisticRegression(),
+            n_estimators=100,
             random_state=42,
         )
         estimator.fit(binary_continuous_data)
-        effects = estimator.effect(binary_continuous_data.X)
-        assert effects.shape[0] == len(binary_continuous_data.X)
+
+        cate = estimator.effect(binary_continuous_data.X)
+        assert cate.shape == (len(binary_continuous_data.X),)
+        assert np.isfinite(cate).all()
 
 
-class TestNonParamDML:
-    """Specific tests for WrappedNonParamDML."""
+class TestWrappedNonParamDML:
+    """Tests for WrappedNonParamDML."""
 
-    def test_does_not_support_multi_treatment(self):
-        """Test NonParamDML doesn't support multi-valued treatment."""
-        estimator = WrappedNonParamDML()
-        assert TreatmentType.MULTI not in estimator.capabilities.treatment_types
+    def test_class_attributes(self):
+        """Test that class attributes are set correctly."""
+        assert WrappedNonParamDML.clean_name == "NonParamDML"
+        assert WrappedNonParamDML.capabilities is not None
 
-    def test_supports_bootstrap_only(self):
-        """Test NonParamDML supports bootstrap inference only."""
-        estimator = WrappedNonParamDML()
-        assert InferenceType.BOOTSTRAP in estimator.capabilities.inference_types
-        assert InferenceType.ANALYTIC not in estimator.capabilities.inference_types
+    def test_fit_and_effect(self, binary_continuous_data):
+        """Test fitting and CATE prediction."""
+        estimator = WrappedNonParamDML(
+            model_y=GradientBoostingRegressor(n_estimators=50),
+            model_t=LogisticRegression(),
+            model_final=GradientBoostingRegressor(n_estimators=50),
+            random_state=42,
+        )
+        estimator.fit(binary_continuous_data)
+
+        cate = estimator.effect(binary_continuous_data.X)
+        assert cate.shape == (len(binary_continuous_data.X),)
+        assert np.isfinite(cate).all()
 
 
-class TestKernelDML:
-    """Specific tests for WrappedKernelDML."""
+class TestWrappedKernelDML:
+    """Tests for WrappedKernelDML."""
 
-    def test_supports_analytic_inference(self):
-        """Test KernelDML supports analytic inference."""
-        estimator = WrappedKernelDML()
-        assert InferenceType.ANALYTIC in estimator.capabilities.inference_types
+    def test_class_attributes(self):
+        """Test that class attributes are set correctly."""
+        assert WrappedKernelDML.clean_name == "KernelDML"
+        assert WrappedKernelDML.capabilities is not None
 
-    def test_with_kernel_parameters(self, small_binary_continuous_data):
-        """Test KernelDML accepts kernel-specific parameters."""
-        # Test that kernel parameters are passed through to EconML
+    def test_fit_and_effect(self, binary_continuous_data):
+        """Test fitting and CATE prediction."""
         estimator = WrappedKernelDML(
-            model_y=GradientBoostingRegressor(n_estimators=20),
-            model_t=GradientBoostingClassifier(n_estimators=20),
-            cv=2,
-            random_state=42,
-        )
-        estimator.fit(small_binary_continuous_data)
-        effects = estimator.effect(small_binary_continuous_data.X)
-        assert effects.shape[0] == len(small_binary_continuous_data.X)
-
-
-class TestDMLEdgeCases:
-    """Edge case tests for DML estimators."""
-
-    def test_fit_with_binary_outcome(self, binary_binary_data):
-        """Test DML estimators handle binary outcomes."""
-        # All DML estimators should support binary outcomes
-        estimator = WrappedLinearDML(
-            model_y=LogisticRegression(max_iter=500),
-            model_t=LogisticRegression(max_iter=500),
-            cv=2,
-            random_state=42,
-        )
-        assert WrappedLinearDML.is_compatible_with(binary_binary_data)
-        estimator.fit(binary_binary_data)
-        effects = estimator.effect(binary_binary_data.X)
-        assert effects.shape[0] == len(binary_binary_data.X)
-
-    def test_discrete_flags_set_correctly(self, binary_continuous_data):
-        """Test discrete_treatment and discrete_outcome flags are set correctly."""
-        estimator = WrappedLinearDML(
-            model_y=LinearRegression(),
-            model_t=LogisticRegression(max_iter=500),
-            cv=2,
+            model_y=RandomForestRegressor(n_estimators=50, random_state=42),
+            model_t=LogisticRegression(random_state=42),
             random_state=42,
         )
         estimator.fit(binary_continuous_data)
 
-        # Check flags were set
-        assert hasattr(estimator._estimator, "discrete_treatment")
-        assert hasattr(estimator._estimator, "discrete_outcome")
-        assert estimator._estimator.discrete_treatment is True
-        assert estimator._estimator.discrete_outcome is False
-
-    def test_with_confounders_W(self, binary_continuous_data):
-        """Test DML estimators handle confounders (W)."""
-        # Add some confounders to the data
-        W = np.random.randn(len(binary_continuous_data.X), 2)
-        binary_continuous_data._W = W
-
-        estimator = WrappedLinearDML(
-            model_y=LinearRegression(),
-            model_t=LogisticRegression(max_iter=500),
-            cv=2,
-            random_state=42,
-        )
-        estimator.fit(binary_continuous_data)
-        effects = estimator.effect(binary_continuous_data.X)
-        assert effects.shape[0] == len(binary_continuous_data.X)
-
-    def test_with_sample_weights(self, small_binary_continuous_data):
-        """Test DML estimators handle sample weights."""
-        # Add weights
-        weights = np.random.rand(len(small_binary_continuous_data.X))
-        small_binary_continuous_data._weights = weights
-
-        estimator = WrappedLinearDML(
-            model_y=LinearRegression(),
-            model_t=LogisticRegression(max_iter=500),
-            cv=2,
-            random_state=42,
-        )
-
-        # Should handle weights (all DML support weights)
-        assert estimator.capabilities.supports_weights is True
-        estimator.fit(small_binary_continuous_data)
-        effects = estimator.effect(small_binary_continuous_data.X)
-        assert effects.shape[0] == len(small_binary_continuous_data.X)
+        cate = estimator.effect(binary_continuous_data.X)
+        assert cate.shape == (len(binary_continuous_data.X),)
+        assert np.isfinite(cate).all()

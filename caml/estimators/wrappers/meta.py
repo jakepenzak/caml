@@ -88,40 +88,34 @@ class WrappedSLearner(BaseWrapperMixin):
     ```
     """
 
+    # Class attributes
+    clean_name: str = "SLearner"
+    capabilities: EstimatorCapabilities = EstimatorCapabilities(
+        treatment_types={
+            TreatmentType.BINARY,
+            TreatmentType.MULTI,
+        },
+        outcome_types={OutcomeType.CONTINUOUS, OutcomeType.BINARY},
+        inference_types={InferenceType.BOOTSTRAP},
+        estimands={
+            Estimand.ATE,
+            Estimand.CATE,
+            Estimand.ATT,
+            Estimand.ATC,
+            Estimand.GATE,
+        },
+        supports_controls_in_first_stage_only=False,
+        supports_weights=False,
+        requires_treatment_model=False,
+        requires_outcome_model=False,
+        requires_regression_model=True,
+        supports_inference=True,
+    )
+
     def __init__(self, **econml_kwargs):
         self._econml_kwargs = econml_kwargs
         self._estimator = SLearner(**self._econml_kwargs)
         self._is_fitted = False
-
-    @property
-    def capabilities(self) -> EstimatorCapabilities:
-        """Metadata describing the estimator's supported treatment/outcome types, estimands, and inference methods."""
-        return EstimatorCapabilities(
-            treatment_types={
-                TreatmentType.BINARY,
-                TreatmentType.MULTI,
-            },
-            outcome_types={OutcomeType.CONTINUOUS, OutcomeType.BINARY},
-            inference_types={InferenceType.BOOTSTRAP},
-            estimands={
-                Estimand.ATE,
-                Estimand.CATE,
-                Estimand.ATT,
-                Estimand.ATC,
-                Estimand.GATE,
-            },
-            supports_controls_in_first_stage_only=False,
-            supports_weights=False,
-            requires_treatment_model=False,
-            requires_outcome_model=False,
-            requires_regression_model=True,
-            supports_inference=True,
-        )
-
-    @property
-    def clean_name(self) -> str:
-        """Human-readable name for the estimator."""
-        return "SLearner"
 
     def fit(
         self,
@@ -240,40 +234,34 @@ class WrappedTLearner(BaseWrapperMixin):
     ```
     """
 
+    # Class attributes
+    clean_name: str = "TLearner"
+    capabilities: EstimatorCapabilities = EstimatorCapabilities(
+        treatment_types={
+            TreatmentType.BINARY,
+            TreatmentType.MULTI,
+        },
+        outcome_types={OutcomeType.CONTINUOUS, OutcomeType.BINARY},
+        inference_types={InferenceType.BOOTSTRAP},
+        estimands={
+            Estimand.ATE,
+            Estimand.CATE,
+            Estimand.ATT,
+            Estimand.ATC,
+            Estimand.GATE,
+        },
+        supports_controls_in_first_stage_only=False,
+        supports_weights=False,
+        requires_treatment_model=False,
+        requires_outcome_model=False,
+        requires_regression_model=True,
+        supports_inference=True,
+    )
+
     def __init__(self, **econml_kwargs):
         self._econml_kwargs = econml_kwargs
         self._estimator = TLearner(**self._econml_kwargs)
         self._is_fitted = False
-
-    @property
-    def capabilities(self) -> EstimatorCapabilities:
-        """Metadata describing the estimator's supported treatment/outcome types, estimands, and inference methods."""
-        return EstimatorCapabilities(
-            treatment_types={
-                TreatmentType.BINARY,
-                TreatmentType.MULTI,
-            },
-            outcome_types={OutcomeType.CONTINUOUS, OutcomeType.BINARY},
-            inference_types={InferenceType.BOOTSTRAP},
-            estimands={
-                Estimand.ATE,
-                Estimand.CATE,
-                Estimand.ATT,
-                Estimand.ATC,
-                Estimand.GATE,
-            },
-            supports_controls_in_first_stage_only=False,
-            supports_weights=False,
-            requires_treatment_model=False,
-            requires_outcome_model=False,
-            requires_regression_model=True,
-            supports_inference=True,
-        )
-
-    @property
-    def clean_name(self) -> str:
-        """Human-readable name for the estimator."""
-        return "TLearner"
 
     def fit(
         self,
@@ -395,40 +383,34 @@ class WrappedXLearner(BaseWrapperMixin):
     ```
     """
 
+    # Class attributes
+    clean_name: str = "XLearner"
+    capabilities: EstimatorCapabilities = EstimatorCapabilities(
+        treatment_types={
+            TreatmentType.BINARY,
+            TreatmentType.MULTI,
+        },
+        outcome_types={OutcomeType.CONTINUOUS, OutcomeType.BINARY},
+        inference_types={InferenceType.BOOTSTRAP},
+        estimands={
+            Estimand.ATE,
+            Estimand.CATE,
+            Estimand.ATT,
+            Estimand.ATC,
+            Estimand.GATE,
+        },
+        supports_controls_in_first_stage_only=False,
+        supports_weights=False,
+        requires_treatment_model=True,
+        requires_outcome_model=False,
+        requires_regression_model=True,
+        supports_inference=True,
+    )
+
     def __init__(self, **econml_kwargs):
         self._econml_kwargs = econml_kwargs
         self._estimator = XLearner(**self._econml_kwargs)
         self._is_fitted = False
-
-    @property
-    def capabilities(self) -> EstimatorCapabilities:
-        """Metadata describing the estimator's supported treatment/outcome types, estimands, and inference methods."""
-        return EstimatorCapabilities(
-            treatment_types={
-                TreatmentType.BINARY,
-                TreatmentType.MULTI,
-            },
-            outcome_types={OutcomeType.CONTINUOUS, OutcomeType.BINARY},
-            inference_types={InferenceType.BOOTSTRAP},
-            estimands={
-                Estimand.ATE,
-                Estimand.CATE,
-                Estimand.ATT,
-                Estimand.ATC,
-                Estimand.GATE,
-            },
-            supports_controls_in_first_stage_only=False,
-            supports_weights=False,
-            requires_treatment_model=True,
-            requires_outcome_model=False,
-            requires_regression_model=True,
-            supports_inference=True,
-        )
-
-    @property
-    def clean_name(self) -> str:
-        """Human-readable name for the estimator."""
-        return "XLearner"
 
     def fit(
         self,

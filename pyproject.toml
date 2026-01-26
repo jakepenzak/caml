@@ -111,10 +111,11 @@ convention = "numpy"
 filterwarnings = "ignore::DeprecationWarning"
 addopts = "--cov=caml/ --cov-branch --cov-report=term-missing --cov-report=html:tests/reports/htmlcov --cov-report=xml:tests/reports/coverage.xml"
 markers = [
-    "ols: mark tests for the InteractiveLinearRegression/ols module",
-    "core: mark tests for the core module",
+    "data: mark tests for the data module",
     "extensions: mark tests for the extensions module",
-    "synthetic_data: mark tests for the synthetic data module`",
+    "inference: mark tests for the inference module",
+    "estimators: mark tests for the estimators module",
+    "registry: mark tests for the registry module",
 ]
 typeguard-packages = "caml"
 typeguard-collection-check-strategy = "ALL_ITEMS"

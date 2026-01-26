@@ -4,20 +4,20 @@
 
 **CaML** is being refactored into a production-ready package for automated CATE estimation wrapping 14 EconML estimators with custom scoring, dual AutoML (FLAML + Optuna), and protocol-based architecture.
 
-**Status**: Phases 1-2/7 complete (~40%), Phase 3 (Nuisance Models) starting now.
+**Status**: Phase 1/7 complete (~30%), Phase 2 (Estimator Wrappers) starting now.
 
-**Immediate Priority**: Implement `caml/nuisance/tuner.py` (Phase 3, HIGH priority).
+**Immediate Priority**: Implement `caml/estimators/wrappers/dml.py` (Phase 2, HIGH priority).
 
 ## Current Status
 
 | Phase | Status | Priority |
 |-------|--------|----------|
 | Phase 1: Data Structures & Protocols | ✅ Complete (100%) | - |
-| Phase 2: Estimator Wrappers | ✅ Complete (100%) | - |
+| Phase 2: Estimator Wrappers | ⚠️ Partial (~7%) | **HIGH** |
 | Phase 3: Nuisance Models | 🔶 Not Started (0%) | **HIGH** |
 | Phase 4: Cross-Fitting & Scoring | 🔶 Not Started (0%) | MEDIUM |
 | Phase 5: AutoML Integration | 🔶 Not Started (0%) | MEDIUM |
-| Phase 6-7: Native Estimators & Polish | 🔶 Not Started (0%) | LOW |
+| Phase 6-7: Registry & Polish | 🔶 Not Started (0%) | LOW |
 
 ## Core Principles
 
@@ -33,11 +33,9 @@
 
 | Type | ✅ USE | ❌ NOT |
 |------|-------|--------|
-| Directories | `samplers/`, `scorers/`, `registry/` | `sampling/`, `validation/`, `scoring/`, `modeling/` |
-| Directory (native) | `estimators/native/` | `estimators/benchmark/` |
+| Directories | `sampling/`, `registry/` | `validation/`, `modeling/` |
 | Files | `uplift_.py`, `_validation.py` | `uplift.py`, `validation.py` |
 | Methods | `effect()`, `from_dataframe()` | `predict_cate()` |
-| Protocols Location | `estimators/base.py` | `protocols/estimator.py` (deprecated) |
 | Classes | `EstimatorCapabilities` (typo!) | `EstimatorCapabilities` |
 
 ## Documentation Standards
@@ -104,34 +102,29 @@ When starting work:
 5. **Validate thoroughly** using `caml/data/_validation.py` utilities
 6. **Follow naming** from table above (e.g., `effect()` not `predict_cate()`)
 
-## Phase 3 Implementation Plan (IMMEDIATE)
+## Phase 2 Implementation Plan (IMMEDIATE)
 
 **Next files to implement in order:**
 
-1. `caml/nuisance/tuner.py` (300 lines) — FLAML-based nuisance model tuning with Ray/Spark support
-2. `caml/nuisance/models.py` (80 lines) — Helper functions for propensity trimming and feature preparation
-3. `caml/scorers/r_loss.py` (150 lines) — R-loss scorer for CATE model selection
-4. `caml/scorers/dr_loss.py` (180 lines) — Doubly-robust loss scorer
-5. `caml/samplers/cross_fit.py` (200 lines) — Cross-fitting utilities for nuisance models
+1. `caml/estimators/wrappers/dml.py` (200 lines) — Wrap 4 DML variants from EconML
+2. `caml/estimators/wrappers/dr.py` (160 lines) — Wrap 2 DR learners from EconML
+3. `caml/estimators/wrappers/meta.py` (180 lines) — Wrap S/T/X-Learners from EconML
+4. `caml/estimators/wrappers/orf.py` (120 lines) — Wrap Orthogonal Random Forest from EconML
+5. `caml/registry/registry.py` (100 lines) — Estimator auto-discovery and compatibility filtering
 
-**Dependencies**: Phase 2 complete (all wrappers implemented). Can start immediately.
+**Dependencies**: Phase 1 complete (protocols defined). Can start immediately.
 
 **Completion Criteria**: All public classes/methods must have complete NumPy-style docstrings with runnable examples.
 
 ## Key Files Reference
 
-**Long-form documentation (only reference if prompt necesitates needed):**
+**Must-read documentation:**
 - `.context/REFACTORING_PLAN.md` — Master plan with metrics and phase details
 - `.context/CODE_EXAMPLES.md` — Code patterns for all 7 phases
 
-**Testing Docs:**
-- `.context/TESTING_GUIDELINES.md` — Testing standards and examples. Always refer before writing tests.
-
 **Reference implementations:**
 - `caml/data/dataset.py` — Complete NumPy docstrings, validation patterns
-- `caml/estimators/base.py` — Protocols (CATEEstimator, InferenceProvider, AutoCateEstimator), BaseWrapperMixin
-- `caml/estimators/wrappers/dml.py` — Complete DML wrapper implementation (779 lines)
-- `caml/registry/registry.py` — Estimator auto-discovery and compatibility filtering (162 lines)
+- `caml/protocols/estimator.py` — `CATEEstimator` interface
 - `caml/data/_validation.py` — Reusable validation utilities
 - `caml/extensions/synthetic_data.py` — Test data generator
 
@@ -143,17 +136,15 @@ When starting work:
 ## Common Pitfalls
 
 1. **Wrong method names**: Use `effect()` not `predict_cate()`
-2. **Wrong directories**: Use `samplers/` not `sampling/` or `validation/`, `scorers/` not `scoring/`, `registry/` not `modeling/`
-3. **Wrong protocols location**: Protocols are in `estimators/base.py` NOT `protocols/estimator.py` (deprecated)
-4. **Missing BaseWrapperMixin**: All wrappers inherit from `BaseWrapperMixin` ABC - provides `__getattr__` delegation
-5. **Old type hints**: Use `int | float` not `Union[int, float]`
-6. **Plain code blocks**: Use ` ```{python} ` not ` ```python `
-7. **Manual test data**: Use `SyntheticDataGenerator` not `np.random`
-8. **Missing validation**: Always use `caml/data/_validation.py` utilities
-9. **Known typo**: Keep `EstimatorCapabilities` (missing 'i') for consistency
+2. **Wrong directories**: Use `sampling/` not `validation/`, `registry/` not `modeling/`
+3. **Old type hints**: Use `int | float` not `Union[int, float]`
+4. **Plain code blocks**: Use ` ```{python} ` not ` ```python `
+5. **Manual test data**: Use `SyntheticDataGenerator` not `np.random`
+6. **Missing validation**: Always use `caml/data/_validation.py` utilities
+7. **Known typo**: Keep `EstimatorCapabilities` (missing 'i') for consistency
 
 ---
 
-**Last updated**: 2026-01-25
-**Next task**: `caml/nuisance/tuner.py`
+**Last updated**: 2026-01-24
+**Next task**: `caml/estimators/wrappers/dml.py`
 **Detailed docs**: See `.context/REFACTORING_PLAN.md` and `.context/CODE_EXAMPLES.md`

@@ -8,22 +8,21 @@
 
 ## Executive Summary
 
-**UPDATE (Jan 25, 2026)**: Phases 1 AND 2 are complete! Core data structures, protocols, and all EconML wrapper implementations are done with comprehensive docstrings and tests.
+**UPDATE (Jan 24, 2026)**: Phase 1 is complete! Core data structures and protocols are implemented and tested.
 
 This plan refactors CaML into a focused **AutoCATE modeling package** with:
 
-- **EconML-first approach**: Wrap 14 proven CATE estimators from EconML ✅ COMPLETE
+- **EconML-first approach**: Wrap 15-18 proven CATE estimators from EconML
 - **Custom scoring infrastructure**: Build R-loss, DR-loss, Qini, and policy value evaluation from scratch
 - **Dual AutoML backends**: FLAML for nuisance function tuning, Optuna for CATE model selection
 - **Extracted nuisance tuner**: Reusable component for first-stage model optimization
 - **Minimal custom estimators**: Only `InteractiveLinearRegression` (benchmark) for v1
-- **All treatment types supported**: Binary, multi-valued, continuous from day one ✅ COMPLETE
-- **First-class inference**: Confidence intervals and standard errors as core functionality ✅ COMPLETE
-- **Protocol-based architecture**: `BaseWrapperMixin` ABC for consistent wrapper patterns ✅ COMPLETE
+- **All treatment types supported**: Binary, multi-valued, continuous from day one
+- **First-class inference**: Confidence intervals and standard errors as core functionality
 
-**Progress**: ~40% complete (Phases 1-2 of 7)
-**Timeline**: 4-5 weeks remaining (originally 7 weeks total)
-**Lines of Code**: ~1,200 implemented, ~2,300 remaining
+**Progress**: ~30% complete (Phase 1 of 7)
+**Timeline**: 5-6 weeks remaining (originally 7 weeks total)
+**Lines of Code**: ~500 implemented, ~3,000 remaining
 
 ---
 
@@ -102,21 +101,23 @@ caml/
 │   ├── data_schema.py            # ✅ TreatmentType, OutcomeType, Estimand enums
 │   └── _validation.py            # ✅ Overlap, positivity, missing data checks
 │
-├── protocols/                    # ⚠️ DEPRECATED - Consolidated into estimators/base.py
-│   └── (legacy - use estimators/base.py instead)
+├── protocols/                    # ✅ IMPLEMENTED - Core interfaces
+│   ├── __init__.py
+│   ├── estimator.py              # ✅ CATEEstimator Protocol + EstimatorCapabilities
+│   └── inference.py              # ✅ InferenceProvider Protocol
 │
-├── estimators/                   # ✅ IMPLEMENTED - CATE estimators
-│   ├── __init__.py               # ✅ Exports protocols and wrappers
-│   ├── base.py                   # ✅ NEW - AutoCateEstimator, InferenceProvider, BaseWrapperMixin (697 lines)
-│   ├── native/                   # ⚠️ PARTIAL (renamed from benchmark/)
+├── estimators/                   # ⚠️ PARTIAL - CATE estimators
+│   ├── __init__.py
+│   ├── base.py                   # 🔶 Empty (optional mixin, low priority)
+│   ├── benchmark/                # ⚠️ Needs refactoring
 │   │   ├── __init__.py
-│   │   └── interactive_ols.py    # ⚠️ EXISTS (24,781 bytes) - Needs protocol adaptation
-│   └── wrappers/                 # ✅ IMPLEMENTED - EconML wrappers (Phase 2 complete!)
-│       ├── __init__.py           # ✅ Exports all wrappers
-│       ├── dml.py                # ✅ IMPLEMENTED (779 lines) - 5 DML wrappers with full docstrings
-│       ├── dr.py                 # ✅ IMPLEMENTED (652 lines) - 4 DR wrappers with full docstrings
-│       ├── meta.py               # ✅ IMPLEMENTED (439 lines) - 3 meta-learner wrappers with full docstrings
-│       └── orf.py                # ✅ IMPLEMENTED (288 lines) - 2 ORF wrappers with full docstrings
+│   │   └── interactive_ols.py    # ⚠️ EXISTS - Needs protocol adaptation
+│   └── wrappers/                 # 🔶 TODO - EconML wrappers
+│       ├── __init__.py           # 🔶 Empty
+│       ├── dml.py                # 🔶 Empty - Wrap LinearDML, CausalForestDML, etc.
+│       ├── dr.py                 # 🔶 Empty - Wrap DRLearner, ForestDRLearner, etc.
+│       ├── meta.py               # 🔶 Empty - Wrap SLearner, TLearner, XLearner
+│       └── orf.py                # 🔶 Empty - Wrap DMLOrthoForest, DROrthoForest
 │
 ├── nuisance/                     # 🔶 TODO - First-stage nuisance estimation
 │   ├── __init__.py               # 🔶 Empty
@@ -124,7 +125,7 @@ caml/
 │   ├── spec.py                   # 🔶 Empty - NuisanceSpec dataclass
 │   └── models.py                 # 🔶 Empty - Helper functions
 │
-├── scorers/                      # 🔶 TODO - Scoring & evaluation (ALL CUSTOM) (renamed from scoring/)
+├── scoring/                      # 🔶 TODO - Scoring & evaluation (ALL CUSTOM)
 │   ├── __init__.py               # 🔶 Empty
 │   ├── base.py                   # 🔶 Empty - BaseScorer abstract class
 │   ├── r_loss.py                 # 🔶 Empty - R-learner loss (orthogonal score)
@@ -134,7 +135,7 @@ caml/
 │   ├── calibration.py            # 🔶 Empty - CATE calibration diagnostics
 │   └── diagnostics.py            # 🔶 Empty - Stability, sensitivity, overlap checks
 │
-├── samplers/                     # 🔶 TODO - Cross-fitting & resampling (renamed from sampling/)
+├── sampling/                     # 🔶 TODO - Cross-fitting & resampling (renamed from validation/)
 │   ├── __init__.py               # 🔶 Empty
 │   ├── cross_fit.py              # 🔶 Empty - CrossFitter class (core engine)
 │   ├── splitters.py              # 🔶 Empty - KFold, GroupKFold, TimeSeriesSplit wrappers
@@ -150,25 +151,24 @@ caml/
 │   │   └── optuna_backend.py     # 🔶 Empty - Optuna implementation for CATE selection
 │   └── objectives.py             # 🔶 Empty - Optuna objectives (R-loss, DR-loss, multi-metric)
 │
-├── inference/                    # ✅ IMPLEMENTED - Inference utilities
-│   ├── __init__.py               # ✅ Implemented
+├── inference/                    # ⚠️ PARTIAL - Inference utilities
+│   ├── __init__.py               # 🔶 Empty
 │   ├── results.py                # ✅ InferenceResult dataclass
-│   └── inference_schema.py       # ✅ InferenceType enum
+│   └── inference_schema.py                 # ✅ InferenceType enum
 │
-├── registry/                     # ✅ IMPLEMENTED - Model registry (renamed from modeling/)
-│   ├── __init__.py               # ✅ IMPLEMENTED (11 lines)
-│   ├── model_bank.py             # ✅ IMPLEMENTED (72 lines) - Default estimator bank
-│   └── registry.py               # ✅ IMPLEMENTED (163 lines) - Auto-discovery & filtering
+├── registry/                     # 🔶 TODO - Model registry (renamed from modeling/)
+│   ├── __init__.py               # 🔶 Empty
+│   ├── model_bank.py             # 🔶 Empty - AutoCateEstimator definitions
+│   └── registry.py               # 🔶 Empty - Auto-discovery of wrapped estimators
 │
 ├── extensions/                   # ✅ IMPLEMENTED - New utilities (not in original plan)
 │   ├── __init__.py               # ✅ Implemented
-│   ├── synthetic_data.py         # ✅ SyntheticDataGenerator (~48KB)
+│   ├── synthetic_data.py         # ✅ SyntheticDataGenerator
 │   └── plots.py                  # ✅ Plotting utilities
 │
 ├── _generics/                    # ✅ EXISTING - Utilities (keep)
 │   ├── logging.py
 │   ├── decorators.py
-│   ├── monkey_patch.py
 │   └── utils.py
 │
 └── (other existing modules preserved for compatibility)
@@ -258,67 +258,39 @@ class CausalDataset:
         )
 ```
 
-### 3.2 Estimator Protocols (estimators/base.py)
+### 3.2 Estimator Protocol (protocols/estimator.py)
 
-**Purpose**: Define interfaces all estimators must satisfy
-
-**Note**: Protocols consolidated into `estimators/base.py` instead of separate `protocols/` module for better cohesion.
+**Purpose**: Define interface all estimators must satisfy
 
 ```python
 from typing import Protocol, runtime_checkable
-from abc import ABC, abstractmethod
 from dataclasses import dataclass
 import numpy as np
 from caml.data.dataset import CausalDataset
-from caml.data.data_schema import TreatmentType, OutcomeType, Estimand
-from caml.inference import InferenceType, InferenceResult
+from caml.data.data_schema import TreatmentType, OutcomeType
 
 @dataclass(frozen=True)
 class EstimatorCapabilities:
     """Describes what an estimator supports."""
     treatment_types: set[TreatmentType]
     outcome_types: set[OutcomeType]
-    inference_types: set[InferenceType]
-    estimands: set[Estimand]
-    supports_controls_in_first_stage_only: bool
-    supports_weights: bool
-    requires_treatment_model: bool
-    requires_outcome_model: bool
-    requires_regression_model: bool
-    supports_inference: bool
-
-    def is_compatible(self, data: CausalDataset) -> bool:
-        """Check if estimator can handle the given dataset."""
-        return (
-            data.treatment_type in self.treatment_types
-            and data.outcome_type in self.outcome_types
-        )
+    requires_propensity: bool = False
+    accepts_given_propensity: bool = False
+    supports_inference: bool = False
+    inference_method: str | None = None  # "analytic", "bootstrap", "both"
+    requires_W: bool = False  # Needs separate confounders
 
 @runtime_checkable
-class AutoCateEstimator(Protocol):
+class CATEEstimator(Protocol):
     """Core protocol for CATE estimators."""
 
     capabilities: EstimatorCapabilities
 
-    @property
-    def clean_name(self) -> str:
-        """Human-readable name of the estimator."""
-        ...
-
-    @classmethod
-    def is_compatible_with(cls, data: CausalDataset) -> bool:
-        """Check compatibility without instantiation (for filtering)."""
-        ...
-
-    def check_compatibility(self, data: CausalDataset, raise_error: bool = True) -> bool:
-        """Check compatibility with detailed error messages."""
-        ...
-
-    def fit(self, data: CausalDataset, **kwargs) -> "AutoCateEstimator":
+    def fit(self, data: CausalDataset, **kwargs) -> "CATEEstimator":
         """Fit the estimator."""
         ...
 
-    def effect(self, X: np.ndarray | pd.DataFrame, **kwargs) -> np.ndarray:
+    def predict_cate(self, X: np.ndarray | pd.DataFrame, **kwargs) -> np.ndarray:
         """Predict CATE for given features."""
         ...
 
@@ -326,255 +298,62 @@ class AutoCateEstimator(Protocol):
         """Get parameters (sklearn compatibility)."""
         ...
 
-    def set_params(self, **params) -> "AutoCateEstimator":
+    def set_params(self, **params) -> "CATEEstimator":
         """Set parameters (sklearn compatibility)."""
         ...
-
-@runtime_checkable
-class InferenceProvider(Protocol):
-    """Protocol for estimators providing statistical inference."""
-
-    def effect_inference(
-        self,
-        X: np.ndarray | pd.DataFrame,
-        inference_type: InferenceType | None = None,
-        bootstrapper: bool | None = None,
-        **effect_inference_kwargs,
-    ) -> InferenceResult:
-        """Get complete inference results for CATE estimates."""
-        ...
 ```
-
-### 3.2.1 BaseWrapperMixin (estimators/base.py)
-
-**Purpose**: Abstract base class providing common wrapper functionality for all EconML wrappers
-
-**Key Innovation**: This mixin wasn't in the original plan but emerged as a critical pattern for consistent wrapper implementation.
-
-```python
-from abc import ABC, abstractmethod
-from econml._cate_estimator import BaseCateEstimator
-
-class BaseWrapperMixin(ABC):
-    """Mixin and ABC providing common functionality for EconML wrappers."""
-
-    _estimator: BaseCateEstimator
-    _is_fitted: bool = False
-
-    # Abstract methods (must implement in each wrapper)
-    @property
-    @abstractmethod
-    def clean_name(self) -> str:
-        """Human-readable name of the estimator."""
-        pass
-
-    @property
-    @abstractmethod
-    def capabilities(self) -> EstimatorCapabilities:
-        """Estimator capabilities metadata."""
-        pass
-
-    @abstractmethod
-    def fit(self, data: CausalDataset, **fit_kwargs) -> "BaseWrapperMixin":
-        """Fit the estimator on causal data."""
-        pass
-
-    @abstractmethod
-    def get_params(self, deep: bool = True) -> dict:
-        """Get estimator parameters."""
-        pass
-
-    @abstractmethod
-    def set_params(self, **params) -> dict:
-        """Set estimator parameters."""
-        pass
-
-    # Concrete methods (inherited by all wrappers)
-    @classmethod
-    def is_compatible_with(cls, data: CausalDataset) -> bool:
-        """Check compatibility without instantiation (for filtering)."""
-        temp_instance = cls()
-        return temp_instance.capabilities.is_compatible(data)
-
-    def check_compatibility(self, data: CausalDataset, raise_error: bool = True) -> bool:
-        """Check compatibility with detailed error messages."""
-        is_compatible = self.capabilities.is_compatible(data)
-
-        if not is_compatible and raise_error:
-            raise ValueError(
-                f"Data incompatible with {self.__class__.__name__}.\n"
-                f"  Required treatment types: {self.capabilities.treatment_types}\n"
-                f"  Required outcome types: {self.capabilities.outcome_types}\n"
-                f"  Got treatment type: {data.treatment_type}\n"
-                f"  Got outcome type: {data.outcome_type}"
-            )
-
-        return is_compatible
-
-    def effect(self, X: np.ndarray | pd.DataFrame, **effect_kwargs) -> np.ndarray:
-        """Predict CATE by delegating to underlying estimator."""
-        self._check_fitted()
-        return self._estimator.effect(X, **effect_kwargs)
-
-    def effect_inference(
-        self,
-        X: np.ndarray | pd.DataFrame,
-        inference_type: InferenceType | None = None,
-        bootstrapper: bool | None = None,
-        **effect_inference_kwargs,
-    ) -> InferenceResult:
-        """Get complete inference results."""
-        if inference_type == InferenceType.BOOTSTRAP:
-            raise NotImplementedError("Bootstrap inference not yet implemented.")
-
-        effect_inference = self._estimator.effect_inference(X, **effect_inference_kwargs)
-
-        return InferenceResult(
-            effect=effect_inference.point_estimate,
-            stderr=effect_inference.stderr,
-            method=inference_type,
-        )
-
-    def __getattr__(self, name: str):
-        """Forward attribute access to underlying estimator if not found on wrapper.
-
-        This enables seamless access to EconML-specific methods and attributes.
-        For example: wrapper.model_y → wrapper._estimator.model_y
-        """
-        if self._estimator is not None and hasattr(self._estimator, name):
-            return getattr(self._estimator, name)
-        raise AttributeError(
-            f"'{self.__class__.__name__}' object has no attribute '{name}'"
-        )
-
-    def _check_fitted(self):
-        """Verify estimator has been fitted before prediction."""
-        if self._estimator is None:
-            raise RuntimeError(
-                f"{self.__class__.__name__} has no underlying estimator set."
-            )
-        if not hasattr(self, "_is_fitted") or not self._is_fitted:
-            raise RuntimeError(
-                f"{self.__class__.__name__} must be fitted before prediction. "
-                "Call .fit() first."
-            )
-```
-
-**Benefits of BaseWrapperMixin**:
-1. **DRY principle**: Common logic written once, inherited by 14 wrappers
-2. **Attribute delegation**: Seamless access to EconML-specific methods via `__getattr__`
-3. **Consistent error handling**: Uniform compatibility checks and fit verification
-4. **Dual compatibility checking**: Both class-level (for filtering) and instance-level (for detailed errors)
-5. **Type safety**: Abstract methods enforce complete implementation
 
 ### 3.3 Estimator Wrapper Pattern (estimators/wrappers/dml.py)
 
-**Purpose**: Wrap EconML estimators to satisfy AutoCateEstimator protocol
-
-**Status**: ✅ IMPLEMENTED - All 14 wrappers follow this pattern
+**Purpose**: Wrap EconML estimators to satisfy our protocol
 
 ```python
 from econml.dml import LinearDML
-from caml.estimators.base import BaseWrapperMixin, EstimatorCapabilities
-from caml.data.data_schema import TreatmentType, OutcomeType, Estimand
+from caml.protocols.estimator import CATEEstimator, EstimatorCapabilities
+from caml.data.data_schema import TreatmentType, OutcomeType
 from caml.data.dataset import CausalDataset
-from caml.inference import InferenceType
 import numpy as np
 
-class WrappedLinearDML(BaseWrapperMixin):
-    """Wrapper for EconML's LinearDML estimator.
-
-    Inherits all common functionality from BaseWrapperMixin including:
-    - effect() method (delegates to _estimator.effect())
-    - effect_inference() method (wraps to InferenceResult)
-    - __getattr__() for attribute delegation
-    - is_compatible_with() class method
-    - check_compatibility() instance method
-    - _check_fitted() validation
-    """
+class WrappedLinearDML:
+    """Wrapper for EconML's LinearDML."""
 
     def __init__(self, **econml_kwargs):
-        """Initialize with EconML parameters."""
-        self._econml_kwargs = econml_kwargs
-        self._estimator = LinearDML(**self._econml_kwargs)
-        self._is_fitted = False
+        self.estimator = LinearDML(**econml_kwargs)
+        self._capabilities = EstimatorCapabilities(
+            treatment_types={TreatmentType.BINARY, TreatmentType.MULTI, TreatmentType.CONTINUOUS},
+            outcome_types={OutcomeType.CONTINUOUS},
+            requires_propensity=False,
+            supports_inference=True,
+            inference_method="analytic",
+            requires_W=True
+        )
 
     @property
     def capabilities(self) -> EstimatorCapabilities:
-        """Define what this estimator supports."""
-        return EstimatorCapabilities(
-            treatment_types={
-                TreatmentType.BINARY,
-                TreatmentType.CONTINUOUS,
-                TreatmentType.MULTI,
-            },
-            outcome_types={OutcomeType.CONTINUOUS, OutcomeType.BINARY},
-            inference_types={InferenceType.ANALYTIC, InferenceType.BOOTSTRAP},
-            estimands={
-                Estimand.ATE,
-                Estimand.ATT,
-                Estimand.ATC,
-                Estimand.CATE,
-                Estimand.GATE,
-            },
-            supports_controls_in_first_stage_only=True,
-            supports_weights=True,
-            requires_treatment_model=True,
-            requires_outcome_model=True,
-            requires_regression_model=False,
-            supports_inference=True,
-        )
+        return self._capabilities
 
-    @property
-    def clean_name(self) -> str:
-        """Human-readable name for display."""
-        return "LinearDML"
-
-    def fit(self, data: CausalDataset, **fit_kwargs) -> "WrappedLinearDML":
-        """Fit using CausalDataset.
-
-        Automatically sets discrete flags based on data metadata.
-        """
-        # Check compatibility first
-        self.check_compatibility(data, raise_error=True)
-
-        # Set discrete flags based on data metadata (auto-configuration)
-        self._estimator.discrete_outcome = (
-            True if data.outcome_type.is_discrete() else False
-        )
-        self._estimator.discrete_treatment = (
-            True if data.treatment_type.is_discrete() else False
-        )
-
-        # Fit underlying EconML estimator
-        self._estimator.fit(
+    def fit(self, data: CausalDataset, **kwargs) -> "WrappedLinearDML":
+        """Fit using EconML's API."""
+        self.estimator.fit(
             Y=data.Y,
             T=data.T,
-            X=data.X if data.X.size > 0 else None,
-            W=data.W if data.W is not None and data.W.size > 0 else None,
-            sample_weight=data.weights if data.weights is not None else None,
-            **fit_kwargs,
+            X=data.X if data.X is not None else None,
+            W=data.W if data.W is not None else None,
+            **kwargs
         )
-
-        self._is_fitted = True
         return self
 
+    def predict_cate(self, X, **kwargs) -> np.ndarray:
+        """Map to EconML's effect()."""
+        return self.estimator.effect(X, **kwargs)
+
     def get_params(self, deep=True) -> dict:
-        """Get estimator parameters (sklearn-compatible)."""
-        return {}  # Simple version - may enhance later
+        return self.estimator.get_params(deep=deep)
 
     def set_params(self, **params) -> "WrappedLinearDML":
-        """Set estimator parameters (sklearn-compatible)."""
-        return self  # Simple version - may enhance later
+        self.estimator.set_params(**params)
+        return self
 ```
-
-**Key Features**:
-1. **Inherits from BaseWrapperMixin**: Gets effect(), effect_inference(), __getattr__(), etc. for free
-2. **Auto-configuration**: Sets discrete_treatment/discrete_outcome flags from CausalDataset metadata
-3. **Comprehensive capabilities**: Explicitly declares all supported types via EstimatorCapabilities
-4. **Clean error messages**: check_compatibility() provides detailed mismatch information
-5. **Attribute delegation**: Can access wrapper.model_y, wrapper.const_marginal_effect(), etc. via __getattr__
-6. **NumPy docstrings**: All public methods documented with runnable examples
 
 ### 3.4 Nuisance Tuner (nuisance/tuner.py)
 
@@ -1209,60 +988,31 @@ class CrossFitter:
 
 ---
 
-### Phase 2: Estimator Wrappers (Week 2) ✅ **COMPLETE**
-**Goal**: Wrap EconML estimators ✅ ACHIEVED
+### Phase 2: Estimator Wrappers (Week 2) 🔶 **IN PROGRESS**
+**Goal**: Wrap EconML estimators
 
-**Implemented**:
-1. ✅ `estimators/base.py` - AutoCateEstimator, InferenceProvider, EstimatorCapabilities, BaseWrapperMixin (697 lines)
-2. ✅ `estimators/wrappers/dml.py` - 5 DML wrappers (LinearDML, SparseLinearDML, CausalForestDML, NonParamDML, KernelDML) (779 lines)
-3. ✅ `estimators/wrappers/dr.py` - 4 DR wrappers (DRLearner, LinearDRLearner, SparseLinearDRLearner, ForestDRLearner) (652 lines)
-4. ✅ `estimators/wrappers/meta.py` - 3 meta-learners (SLearner, TLearner, XLearner) (439 lines)
-5. ✅ `estimators/wrappers/orf.py` - 2 ORF estimators (DMLOrthoForest, DROrthoForest) (288 lines)
-6. ✅ `registry/registry.py` - Estimator discovery & filtering (163 lines)
-7. ✅ `registry/model_bank.py` - Default estimator bank (72 lines)
-8. ✅ **NumPy docstrings**: All wrappers have complete docstrings with runnable examples using SyntheticDataGenerator
-9. ✅ **Tests**: Comprehensive test coverage for all wrappers (tests/caml/estimators/wrappers/)
+7. 🔶 Create `estimators/wrappers/dml.py` - Wrap 4 DML estimators
+8. 🔶 Create `estimators/wrappers/dr.py` - Wrap 2 DR estimators
+9. 🔶 Create `estimators/wrappers/meta.py` - Wrap S/T/X learners
+10. 🔶 Create `estimators/wrappers/orf.py` - Wrap ORF estimators
+11. 🔶 Create `registry/registry.py` - Estimator auto-discovery (note: directory renamed from `modeling/`)
+12. 🔶 **Docstrings**: Complete NumPy-style docstrings for all public classes/methods with runnable examples
+13. 🔶 **Tests**: Validate wrapper outputs match EconML directly
 
-**Key Implementation Details**:
+**Deliverable**: 14 wrapped estimators with complete docstrings and tests
 
-1. **BaseWrapperMixin Pattern**:
-   - All 14 wrappers inherit from `BaseWrapperMixin` ABC
-   - Provides automatic `__getattr__` delegation to underlying EconML estimator
-   - Dual compatibility checking (class method + instance method)
-   - Unified `effect()` and `effect_inference()` interfaces
-   - Consistent error handling and fit verification
-
-2. **Registry Pattern**:
-   - `get_compatible_estimators(data, families=None)` returns dict of compatible estimator classes
-   - `register_estimator(name, estimator, family)` adds custom estimators to global registry
-   - Automatic filtering by treatment/outcome type compatibility
-   - Structure: `{"name": {"estimator": Class, "family": "dml"}}`
-
-3. **Auto-Configuration**:
-   - Wrappers automatically set `discrete_treatment`/`discrete_outcome` flags from CausalDataset metadata
-   - No manual configuration needed for treatment/outcome types
-
-4. **Clean Names**:
-   - All estimators have `clean_name` property for display
-   - Example: `WrappedLinearDML.clean_name == "LinearDML"`
-
-5. **Attribute Delegation**:
-   - All EconML-specific attributes/methods accessible via wrapper
-   - Example: `wrapper.model_y` → `wrapper._estimator.model_y`
-   - Example: `wrapper.const_marginal_effect()` → `wrapper._estimator.const_marginal_effect()`
-
-**Deliverable**: ✅ 14 wrapped estimators + registry system (100% complete)
-
-**Notes**:
-- Originally planned `protocols/` module consolidated into `estimators/base.py` for better cohesion
-- `BaseWrapperMixin` emerged as critical architectural pattern (not in original plan)
-- All wrappers follow identical structure for maintainability
-- Protocols moved from separate module to `estimators/base.py`
+**Implementation Notes**:
+- Directory is `registry/` not `modeling/`
+- Each wrapper must implement `CATEEstimator` protocol
+- Use `effect()` method name (not `predict_cate()`)
+- Set `capabilities` property correctly
+- Follow wrapper pattern from REFACTORING_PLAN.md Section 3.3
+- **CRITICAL**: Docstrings are mandatory before marking phase complete
 
 ---
 
-### Phase 3: Nuisance Models (Week 3) 🔶 **TODO** - NEXT PRIORITY
-**Goal**: Extract nuisance model tuning from AutoCATE
+### Phase 3: Nuisance Models (Week 3) 🔶 **TODO**
+**Goal**: Extract from AutoCATE
 
 14. 🔶 Create `nuisance/spec.py` - `NuisanceSpec` dataclass
 15. 🔶 Create `nuisance/tuner.py` - Extract `NuisanceTuner` from old `AutoCATE._find_nuisance_functions()`
@@ -1283,22 +1033,21 @@ class CrossFitter:
 ### Phase 4: Cross-Fitting & Scoring (Week 4) 🔶 **TODO**
 **Goal**: Custom scoring infrastructure
 
-20. 🔶 Create `samplers/splitters.py` - Splitting strategies (note: directory is `samplers/` not `sampling/`)
-21. 🔶 Create `samplers/cross_fit.py` - `CrossFitter` class
-22. 🔶 Create `scorers/r_loss.py` - `RLoss` scorer (note: directory is `scorers/` not `scoring/`)
-23. 🔶 Create `scorers/dr_loss.py` - `DRLoss` scorer
-24. 🔶 Create `scorers/uplift_.py` - `QiniScorer` (note: underscore suffix in filename)
-25. 🔶 Create `scorers/policy.py` - `PolicyValueScorer`
-26. 🔶 Create `scorers/calibration.py` - Calibration metrics
-27. 🔶 Create `scorers/diagnostics.py` - CATE diagnostics
+20. 🔶 Create `sampling/splitters.py` - Splitting strategies
+21. 🔶 Create `sampling/cross_fit.py` - `CrossFitter` class (note: directory renamed from `validation/`)
+22. 🔶 Create `scoring/r_loss.py` - `RLoss` scorer
+23. 🔶 Create `scoring/dr_loss.py` - `DRLoss` scorer
+24. 🔶 Create `scoring/uplift_.py` - `QiniScorer` (note: underscore suffix in filename)
+25. 🔶 Create `scoring/policy.py` - `PolicyValueScorer`
+26. 🔶 Create `scoring/calibration.py` - Calibration metrics
+27. 🔶 Create `scoring/diagnostics.py` - CATE diagnostics
 28. 🔶 **Docstrings**: Complete NumPy-style docstrings for all public classes/methods with runnable examples
 29. 🔶 **Tests**: Validate scoring on synthetic data with known ground truth (use `SyntheticDataGenerator`)
 
 **Deliverable**: Working scoring module with complete docstrings and tests
 
 **Implementation Notes**:
-- Directory is `samplers/` not `sampling/` or `validation/`
-- Directory is `scorers/` not `scoring/`
+- Directory is `sampling/` not `validation/`
 - File is `uplift_.py` (with underscore) not `uplift.py`
 - Use `SyntheticDataGenerator` from `extensions/` for test data
 - Follow examples in REFACTORING_PLAN.md Sections 4.2-4.5
@@ -1343,7 +1092,7 @@ class CrossFitter:
 **Deliverable**: Protocol-compliant `InteractiveLinearRegression` with complete docstrings
 
 **Implementation Notes**:
-- Existing file at `/home/jadmin/projects/caml/caml/estimators/native/interactive_ols.py` (note: `native/` not `benchmark/`)
+- Existing file at `/home/jadmin/projects/caml/caml/estimators/benchmark/interactive_ols.py`
 - Already has formula-based design matrix creation with Patsy
 - Already has `_estimate_ate()`, `_estimate_gate()`, `_estimate_cate()` methods
 - Already inherits from `BaseCamlEstimator` and `OLSMixin`
@@ -1371,14 +1120,14 @@ class CrossFitter:
 
 | Phase | Status | Completion | Key Deliverables |
 |-------|--------|------------|------------------|
-| 1. Foundation | ✅ Complete | 100% | CausalDataset, Protocols, Schema, Validation |
-| 2. Estimator Wrappers | ✅ Complete | 100% | 14 EconML wrappers + BaseWrapperMixin + registry |
+| 1. Foundation | ✅ Complete | 100% | CausalDataset, Protocols, Schema |
+| 2. Estimator Wrappers | 🔶 TODO | ~7% | 14 EconML wrappers + registry |
 | 3. Nuisance Models | 🔶 TODO | 0% | NuisanceTuner, NuisanceSpec |
 | 4. Cross-Fitting & Scoring | 🔶 TODO | 0% | CrossFitter, RLoss, DRLoss, Qini |
 | 5. AutoCATE | 🔶 TODO | 0% | New AutoCATE with Optuna |
 | 6. InteractiveOLS | ⚠️ Partial | 70% | Protocol adaptation needed |
 | 7. Documentation | 🔶 TODO | 0% | Tests, docs, examples |
-| **TOTAL** | **~40%** | **~40%** | **4-5 weeks remaining** |
+| **TOTAL** | **~30%** | **~30%** | **5-6 weeks remaining** |
 
 ---
 
@@ -1512,13 +1261,10 @@ cate = estimator.predict_cate(data.X)
 ## 8. Success Metrics
 
 ### 8.1 Correctness
-- [x] All Phase 1-2 modules have 80%+ test coverage
-- [x] Wrapped estimators produce identical outputs to EconML (within numerical precision)
-- [x] BaseWrapperMixin delegation tested across all wrapper types
-- [x] Dual compatibility checking (class + instance methods) validated
 - [ ] All scoring functions validated against synthetic data with known ground truth
 - [ ] R-loss, DR-loss produce expected rankings on benchmark datasets
 - [ ] Cross-fitting produces unbiased estimates (verified via simulation)
+- [ ] Wrapped estimators produce identical outputs to EconML (within numerical precision)
 
 ### 8.2 Performance
 - [ ] New AutoCATE completes in ≤ 120% time of old AutoCATE
@@ -1545,192 +1291,32 @@ cate = estimator.predict_cate(data.X)
 
 ### Key Differences from Original Plan
 
-Based on actual implementation inspection (Jan 25, 2026):
+Based on actual implementation inspection (Jan 24, 2026):
 
 1. **Directory Naming**:
-   - `samplers/` used instead of `sampling/` or `validation/`
-   - `scorers/` used instead of `scoring/`
+   - `sampling/` used instead of `validation/`
    - `registry/` used instead of `modeling/`
-   - `estimators/native/` used instead of `estimators/benchmark/`
 
 2. **File Naming**:
    - `uplift_.py` (with underscore) instead of `uplift.py`
    - `_validation.py` (private module) instead of `validation.py`
 
-3. **Protocol Consolidation**:
-   - Protocols consolidated into `estimators/base.py` instead of separate `protocols/` module
-   - Better cohesion and discoverability
-   - Single source of truth for estimator interfaces
-
-4. **Method Names**:
-   - Use `effect()` instead of `predict_cate()` as per `AutoCateEstimator` protocol
+3. **Protocol Method Names**:
+   - Use `effect()` instead of `predict_cate()` as per `CATEEstimator` protocol
    - This matches EconML's naming convention
 
-5. **New Architectural Patterns**:
-   - `BaseWrapperMixin` ABC (not in original plan) - critical innovation for DRY principle
-   - Attribute delegation via `__getattr__` for seamless EconML access
-   - Dual compatibility checking (class + instance methods)
-   - Auto-configuration of discrete flags from CausalDataset metadata
+4. **Typo in Implementation**:
+   - `EstimatorCapabilities` (missing 'i') instead of `EstimatorCapabilities`
+   - Consider fixing in future iteration
 
-6. **Bonus Module**:
+5. **Bonus Module**:
    - `extensions/` module added (not in original plan)
    - Contains `SyntheticDataGenerator` - very useful for testing!
    - Contains `plots.py` for visualization
 
-7. **Schema Enhancements**:
+6. **Schema Enhancements**:
    - `Estimand` enum added to `data/data_schema.py`
    - `InferenceType` enum in separate `inference/inference_schema.py`
-   - More comprehensive `EstimatorCapabilities` with 10 attributes
-
-### Phase 2 Implementation Patterns Observed
-
-All 14 wrappers follow this identical structure:
-
-```python
-class WrappedEstimator(BaseWrapperMixin):
-    """Wrapper for EconML's Estimator.
-
-    Complete NumPy docstrings with runnable examples.
-    """
-
-    def __init__(self, **econml_kwargs):
-        """Store kwargs and instantiate EconML estimator."""
-        self._econml_kwargs = econml_kwargs
-        self._estimator = EconMLEstimator(**econml_kwargs)
-        self._is_fitted = False
-
-    @property
-    def capabilities(self) -> EstimatorCapabilities:
-        """Define comprehensive capabilities."""
-        return EstimatorCapabilities(
-            treatment_types={...},
-            outcome_types={...},
-            inference_types={...},
-            estimands={...},
-            supports_controls_in_first_stage_only=...,
-            supports_weights=...,
-            requires_treatment_model=...,
-            requires_outcome_model=...,
-            requires_regression_model=...,
-            supports_inference=...,
-        )
-
-    @property
-    def clean_name(self) -> str:
-        """Human-readable name for display."""
-        return "EstimatorName"
-
-    def fit(self, data: CausalDataset, **fit_kwargs):
-        """Fit with auto-configuration.
-
-        Automatically sets discrete flags based on data metadata.
-        """
-        # 1. Check compatibility
-        self.check_compatibility(data, raise_error=True)
-
-        # 2. Auto-configure discrete flags (if applicable)
-        if hasattr(self._estimator, 'discrete_outcome'):
-            self._estimator.discrete_outcome = data.outcome_type.is_discrete()
-        if hasattr(self._estimator, 'discrete_treatment'):
-            self._estimator.discrete_treatment = data.treatment_type.is_discrete()
-
-        # 3. Fit underlying estimator
-        self._estimator.fit(
-            Y=data.Y,
-            T=data.T,
-            X=data.X if data.X.size > 0 else None,
-            W=data.W if data.W is not None and data.W.size > 0 else None,
-            sample_weight=data.weights if data.weights is not None else None,
-            **fit_kwargs,
-        )
-
-        # 4. Mark as fitted
-        self._is_fitted = True
-        return self
-
-    def get_params(self, deep=True) -> dict:
-        """Get parameters (simple version for now)."""
-        return {}
-
-    def set_params(self, **params):
-        """Set parameters (simple version for now)."""
-        return self
-```
-
-**Key Pattern Benefits**:
-1. **Consistency**: All 14 wrappers follow identical structure
-2. **Maintainability**: Changes to BaseWrapperMixin propagate to all wrappers
-3. **Auto-configuration**: No manual setting of discrete flags
-4. **Clean separation**: Wrapper logic vs. EconML delegation clearly separated
-5. **Type safety**: Protocol enforcement via ABC abstract methods
-
-### Attribute Delegation Pattern
-
-All wrappers inherit `__getattr__` from BaseWrapperMixin:
-
-```python
-# These all work seamlessly via delegation:
-wrapper.model_y                    # → wrapper._estimator.model_y
-wrapper.model_t                    # → wrapper._estimator.model_t
-wrapper.const_marginal_effect()    # → wrapper._estimator.const_marginal_effect()
-wrapper.effect_interval()          # → wrapper._estimator.effect_interval()
-wrapper.shap_values()              # → wrapper._estimator.shap_values()
-# etc. - ANY EconML attribute/method is accessible
-```
-
-This enables seamless access to EconML-specific functionality while maintaining clean wrapper interface.
-
-### Dual Compatibility Checking Pattern
-
-**Class Method** (for filtering without instantiation):
-```python
-# Check compatibility WITHOUT creating instance
-if WrappedLinearDML.is_compatible_with(data):
-    estimator = WrappedLinearDML()
-    estimator.fit(data)
-```
-
-**Instance Method** (for detailed error messages):
-```python
-# Check compatibility WITH detailed errors
-estimator = WrappedLinearDML()
-try:
-    estimator.check_compatibility(data, raise_error=True)
-except ValueError as e:
-    print(f"Incompatibility: {e}")
-    # Prints:
-    # Data incompatible with WrappedLinearDML.
-    #   Required treatment types: {TreatmentType.BINARY, TreatmentType.CONTINUOUS, TreatmentType.MULTI}
-    #   Required outcome types: {OutcomeType.CONTINUOUS, OutcomeType.BINARY}
-    #   Got treatment type: TreatmentType.BINARY
-    #   Got outcome type: OutcomeType.BINARY
-```
-
-### Registry Structure Pattern
-
-```python
-# Registry returns dict with metadata
-available_estimators = {
-    "LinearDML": {
-        "estimator": WrappedLinearDML,  # Class, not instance!
-        "family": "dml"
-    },
-    "DRLearner": {
-        "estimator": WrappedDRLearner,
-        "family": "dr"
-    },
-    # ... 12 more
-}
-
-# Get compatible estimators
-compatible = get_compatible_estimators(data, families=["dml", "dr"])
-# Returns: {"LinearDML": {"estimator": WrappedLinearDML, "family": "dml"}, ...}
-
-# Can instantiate later
-for name, info in compatible.items():
-    est = info["estimator"]()  # Instantiate
-    est.fit(data)
-```
 
 ### Testing Strategy
 
@@ -1820,47 +1406,43 @@ From implemented files:
 
 ---
 
-## Next Steps (Updated Jan 25, 2026)
+## Next Steps (Updated Jan 24, 2026)
 
-### Immediate Priorities (Phase 3)
+### Immediate Priorities (Phase 2)
 
-**Status Change**: Phases 1-2 are COMPLETE. Phase 3 is now the immediate priority.
+1. **Implement DML Wrappers** (`estimators/wrappers/dml.py`)
+   - Wrap LinearDML, SparseLinearDML, CausalForestDML, KernelDML
+   - Each must implement `CATEEstimator` protocol
+   - See REFACTORING_PLAN.md Section 3.3 for wrapper pattern
 
-1. **Implement NuisanceSpec** (`nuisance/spec.py`)
-   - Simple dataclass for nuisance model specifications
-   - ~40 lines of code
-   - See REFACTORING_PLAN.md Section 3.4 for design
+2. **Implement DR Wrappers** (`estimators/wrappers/dr.py`)
+   - Wrap DRLearner, ForestDRLearner
+   - Follow same pattern as DML wrappers
+   - Test with SyntheticDataGenerator
 
-2. **Implement NuisanceTuner** (`nuisance/tuner.py`)
-   - Extract from existing AutoCATE codebase if available
-   - FLAML-based tuning for propensity and outcome models
-   - ~250 lines of code
-   - See REFACTORING_PLAN.md Section 3.4 for detailed implementation
-   - Use `CausalDataset` for data input
+3. **Implement Meta-Learner Wrappers** (`estimators/wrappers/meta.py`)
+   - Wrap SLearner, TLearner, XLearner
+   - Simpler than DML/DR (no nuisance models)
+   - Test with binary treatment data
 
-3. **Implement Helper Functions** (`nuisance/models.py`)
-   - Utility functions for nuisance model preparation
-   - ~80 lines of code
-   - Includes: `trim_propensity()`, `prepare_features_for_propensity()`, etc.
+4. **Implement ORF Wrappers** (`estimators/wrappers/orf.py`)
+   - Wrap DMLOrthoForest, DROrthoForest
+   - Test with various treatment types
 
-4. **Complete NumPy Docstrings**
-   - All public classes and methods need comprehensive docstrings
-   - Include runnable examples using `SyntheticDataGenerator`
-   - Follow patterns from Phase 2 wrappers
+5. **Implement Estimator Registry** (`registry/registry.py`)
+   - Auto-discovery of wrapped estimators
+   - Compatibility filtering based on data
+   - See CODE_EXAMPLES.md Section 9 for implementation
 
-5. **Write Tests**
-   - Validate `NuisanceTuner` produces same results as old AutoCATE
-   - Test with various data types (binary, continuous treatments/outcomes)
-   - Test FLAML integration (Ray, Spark optional backends)
+### Medium-Term (Phases 3-4)
 
-### Medium-Term (Phases 4-5)
-
-- Implement samplers (`samplers/cross_fit.py`, `samplers/splitters.py`, `samplers/bootstrap.py`)
-- Implement scorers (`scorers/r_loss.py`, `scorers/dr_loss.py`, `scorers/uplift_.py`, etc.)
+- Extract NuisanceTuner from existing AutoCATE codebase
+- Implement cross-fitting and scoring infrastructure
 - Build AutoCATE with Optuna backend
 
-### Long-Term (Phases 6-7)
+### Long-Term (Phases 5-7)
 
+- Refactor AutoCATE with Optuna backend
 - Adapt InteractiveLinearRegression to protocols
 - Comprehensive testing and documentation
 
@@ -1870,5 +1452,5 @@ From implemented files:
 
 **Document Control**
 - **Author**: OpenCode + User
-- **Last Updated**: January 25, 2026
-- **Version**: 1.2 (Phase 2 COMPLETE - Updated with actual implementation status)
+- **Last Updated**: January 24, 2026
+- **Version**: 1.1 (Updated with implementation status)

@@ -49,6 +49,8 @@ class WrappedDMLOrthoForest(BaseWrapperMixin):
     Examples
     --------
     ```{python}
+    #| echo: false
+
     from sklearn.linear_model import LassoCV, LogisticRegressionCV
 
     from caml.estimators.orf import WrappedDMLOrthoForest
@@ -86,49 +88,38 @@ class WrappedDMLOrthoForest(BaseWrapperMixin):
 
     # Ensure it satisfies protocol
     assert isinstance(estimator, AutoCateEstimator)
-
-    # Predict CATE
-    cate = estimator.effect(data.X)
-    print(f"Mean CATE: {cate.mean():.3f}")
-    print(f"CATE Range: [{cate.min():.3f}, {cate.max():.3f}]")
     ```
     """
+
+    # Class attributes
+    clean_name: str = "DMLOrthoForest"
+    capabilities: EstimatorCapabilities = EstimatorCapabilities(
+        treatment_types={
+            TreatmentType.BINARY,
+            TreatmentType.CONTINUOUS,
+            TreatmentType.MULTI,
+        },
+        outcome_types={OutcomeType.CONTINUOUS, OutcomeType.BINARY},
+        inference_types={InferenceType.BOOTSTRAP},
+        estimands={
+            Estimand.ATE,
+            Estimand.CATE,
+            Estimand.ATT,
+            Estimand.ATC,
+            Estimand.GATE,
+        },
+        supports_controls_in_first_stage_only=True,
+        supports_weights=False,
+        requires_treatment_model=True,
+        requires_outcome_model=True,
+        requires_regression_model=False,
+        supports_inference=True,
+    )
 
     def __init__(self, **econml_kwargs):
         self._econml_kwargs = econml_kwargs
         self._estimator = DMLOrthoForest(**self._econml_kwargs)
         self._is_fitted = False
-
-    @property
-    def capabilities(self) -> EstimatorCapabilities:
-        """Metadata describing the estimator's supported treatment/outcome types, estimands, and inference methods."""
-        return EstimatorCapabilities(
-            treatment_types={
-                TreatmentType.BINARY,
-                TreatmentType.CONTINUOUS,
-                TreatmentType.MULTI,
-            },
-            outcome_types={OutcomeType.CONTINUOUS, OutcomeType.BINARY},
-            inference_types={InferenceType.BOOTSTRAP},
-            estimands={
-                Estimand.ATE,
-                Estimand.CATE,
-                Estimand.ATT,
-                Estimand.ATC,
-                Estimand.GATE,
-            },
-            supports_controls_in_first_stage_only=True,
-            supports_weights=False,
-            requires_treatment_model=True,
-            requires_outcome_model=True,
-            requires_regression_model=False,
-            supports_inference=True,
-        )
-
-    @property
-    def clean_name(self) -> str:
-        """Human-readable name for the estimator."""
-        return "DMLOrthoForest"
 
     def fit(
         self,
@@ -214,6 +205,7 @@ class WrappedDROrthoForest(BaseWrapperMixin):
     Examples
     --------
     ```{python}
+    #| echo: false
     from sklearn.linear_model import LassoCV, LogisticRegressionCV
 
     from caml.estimators.orf import WrappedDROrthoForest
@@ -251,45 +243,34 @@ class WrappedDROrthoForest(BaseWrapperMixin):
 
     # Ensure it satisfies protocol
     assert isinstance(estimator, AutoCateEstimator)
-
-    # Predict CATE
-    cate = estimator.effect(data.X)
-    print(f"Mean CATE: {cate.mean():.3f}")
-    print(f"CATE Range: [{cate.min():.3f}, {cate.max():.3f}]")
     ```
     """
+
+    # Class attributes
+    clean_name: str = "DROrthoForest"
+    capabilities: EstimatorCapabilities = EstimatorCapabilities(
+        treatment_types={TreatmentType.BINARY, TreatmentType.MULTI},
+        outcome_types={OutcomeType.CONTINUOUS, OutcomeType.BINARY},
+        inference_types={InferenceType.BOOTSTRAP},
+        estimands={
+            Estimand.ATE,
+            Estimand.CATE,
+            Estimand.ATT,
+            Estimand.ATC,
+            Estimand.GATE,
+        },
+        supports_controls_in_first_stage_only=True,
+        supports_weights=False,
+        requires_treatment_model=True,
+        requires_outcome_model=False,
+        requires_regression_model=True,
+        supports_inference=True,
+    )
 
     def __init__(self, **econml_kwargs):
         self._econml_kwargs = econml_kwargs
         self._estimator = DROrthoForest(**self._econml_kwargs)
         self._is_fitted = False
-
-    @property
-    def capabilities(self) -> EstimatorCapabilities:
-        """Metadata describing the estimator's supported treatment/outcome types, estimands, and inference methods."""
-        return EstimatorCapabilities(
-            treatment_types={TreatmentType.BINARY, TreatmentType.MULTI},
-            outcome_types={OutcomeType.CONTINUOUS, OutcomeType.BINARY},
-            inference_types={InferenceType.BOOTSTRAP},
-            estimands={
-                Estimand.ATE,
-                Estimand.CATE,
-                Estimand.ATT,
-                Estimand.ATC,
-                Estimand.GATE,
-            },
-            supports_controls_in_first_stage_only=True,
-            supports_weights=False,
-            requires_treatment_model=True,
-            requires_outcome_model=False,
-            requires_regression_model=True,
-            supports_inference=True,
-        )
-
-    @property
-    def clean_name(self) -> str:
-        """Human-readable name for the estimator."""
-        return "DROrthoForest"
 
     def fit(
         self,

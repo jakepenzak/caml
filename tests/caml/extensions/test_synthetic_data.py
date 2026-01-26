@@ -13,7 +13,7 @@ from caml.extensions.synthetic_data import (
     make_partially_linear_dataset_simple,
 )
 
-pytestmark = [pytest.mark.extensions, pytest.mark.synthetic_data]
+pytestmark = [pytest.mark.extensions]
 
 
 # ==============================================================================

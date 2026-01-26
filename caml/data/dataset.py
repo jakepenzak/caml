@@ -5,6 +5,8 @@ Encapsulates treatment variables, outcomes, effect modifiers, and confounders wi
 validation and metadata tracking.
 """
 
+from __future__ import annotations
+
 from dataclasses import dataclass, field
 
 import numpy as np
@@ -183,7 +185,7 @@ class CausalDataset:
         treatment_type: TreatmentType = TreatmentType.BINARY,
         outcome_type: OutcomeType = OutcomeType.CONTINUOUS,
         **kwargs,
-    ) -> "CausalDataset":
+    ) -> CausalDataset:
         """Construct ``CausalDataset`` from a pandas DataFrame.
 
         Recommended way to create a ``CausalDataset``. Automatically extracts and tracks

@@ -8,7 +8,7 @@ from typing_extensions import Callable
 
 from caml.extensions.synthetic_data import SyntheticDataGenerator
 
-pytestmark = [pytest.mark.extensions, pytest.mark.synthetic_data]
+pytestmark = [pytest.mark.extensions]
 
 
 class TestSyntheticDataGeneratorIntegration:
