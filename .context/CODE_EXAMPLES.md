@@ -561,136 +561,92 @@ Both follow the same BaseWrapperMixin pattern.
 
 ## 4. nuisance/
 
-**Status**: 🔶 **NOT YET IMPLEMENTED** (directory structure exists, all files empty)
+**Status**: ✅ **FULLY IMPLEMENTED** (Phase 3 complete)
 
 ### nuisance/__init__.py
 
+**Status**: ✅ **IMPLEMENTED** (5 lines)
+
 ```python
 """Nuisance models and tuning."""
-# TODO: Import once implemented
-# from caml.nuisance.spec import NuisanceSpec
-# from caml.nuisance.tuner import NuisanceTuner
+from .spec import NuisanceTunerSpec
+from .tuner import NuisanceTuner
 
-# __all__ = ["NuisanceSpec", "NuisanceTuner"]
+__all__ = ["NuisanceTunerSpec", "NuisanceTuner"]
 ```
 
 ### nuisance/spec.py
 
-**Status**: 🔶 **NOT YET IMPLEMENTED** (empty file exists)
-
-Planned implementation from REFACTORING_PLAN.md:
+**Status**: ✅ **IMPLEMENTED** (54 lines)
 
 ```python
-"""Nuisance model specification."""
+"""Nuisance Tuner Specification."""
+
 from dataclasses import dataclass
 
 
 @dataclass
-class NuisanceSpec:
-    """Specify which nuisance models to fit."""
+class NuisanceTunerSpec:
+    r"""Specification for nuisance, or first-stage model, tuning.
 
-    fit_propensity: bool = True
-    fit_outcome: bool = True
-    fit_regression: bool = False  # For meta-learners
+    Note, sensible defaults will be chosen in `AutoCATE` class and many will be
+    inferred directly based on `CausalDataset` specs (e.g., target variable type
+    and objective).
+
+    Parameters
+    ----------
+    fit_treatment_model
+        Whether to fit the treatment model - $\mathbb{E}[T|X,W]$. If None, the
+        decision will be made based off the available estimators capabilities.
+    fit_outcome_model
+        Whether to fit the outcome model - $\mathbb{E}[Y|X,W]$. If None, the
+        decision will be made based off the available estimators capabilities.
+    fit_regression_model
+        Whether to fit the regression model - $\mathbb{E}[Y|T,X,W]$. If None,
+        the decision will be made based off the available estimators capabilities.
+    treatment_model_config
+        Configuration dictionary of FLAML kwarg overrides for the treatment model.
+    outcome_model_config
+        Configuration dictionary of FLAML kwarg overrides for the outcome model.
+    regression_model_config
+        Configuration dictionary of FLAML kwarg overrides for the regression model.
+    """
+
+    fit_treatment_model: bool | None = None
+    fit_outcome_model: bool | None = None
+    fit_regression_model: bool | None = None
+
+    treatment_model_config: dict | None = None
+    outcome_model_config: dict | None = None
+    regression_model_config: dict | None = None
 ```
 
 ### nuisance/tuner.py
 
-**Status**: 🔶 **NOT YET IMPLEMENTED** (empty file exists)
+**Status**: ✅ **IMPLEMENTED** (224 lines)
 
-See REFACTORING_PLAN.md for complete NuisanceTuner implementation with FLAML.
+Complete implementation with:
+- FLAML-based AutoML for first-stage models
+- Ray/Spark distributed tuning support
+- Automatic task type detection from `CausalDataset`
+- Integrated feature preparation (no separate `models.py` needed)
 
-### nuisance/models.py
+**Key Features**:
+1. **Attribute naming**: `treatment_model_`, `outcome_model_`, `regression_model_`
+2. **Automatic configuration**: Detects classification vs regression from metadata
+3. **Feature preparation**: Concatenates X and W internally for nuisance models
+4. **FLAML integration**: Uses AutoML for hyperparameter tuning
+5. **Distributed support**: Optional Ray/Spark backends
 
-**Status**: 🔶 **NOT YET IMPLEMENTED** (empty file exists)
+**Complete docstrings with runnable examples using `SyntheticDataGenerator`.**
 
-Planned helper functions:
-
-```python
-"""Helper functions for nuisance models."""
-
-import pandas as pd
-import numpy as np
-
-
-def trim_propensity(propensity: np.ndarray, bounds: tuple[float, float] = (0.01, 0.99)) -> np.ndarray:
-    """Trim propensity scores to avoid extreme weights."""
-    return np.clip(propensity, bounds[0], bounds[1])
-
-
-def prepare_features_for_propensity(data):
-    """Prepare features for propensity model (X + W)."""
-    if data.W is not None:
-        return pd.concat([data.X, data.W], axis=1)
-    return data.X
-
-
-def prepare_features_for_regression(data):
-    """Prepare features for regression model (X + W + T)."""
-    features = [data.X]
-    if data.W is not None:
-        features.append(data.W)
-    features.append(data.T.to_frame() if hasattr(data.T, 'to_frame') else pd.DataFrame(data.T))
-    return pd.concat(features, axis=1)
-```
-
-### nuisance/spec.py
-
-**Status**: 🔶 **NOT YET IMPLEMENTED**
-
-Planned implementation from REFACTORING_PLAN.md:
-
-```python
-"""Nuisance specification."""
-from dataclasses import dataclass
-
-
-@dataclass
-class NuisanceSpec:
-    """Specification for nuisance models to fit."""
-
-    fit_propensity: bool = True
-    fit_outcome: bool = True
-    fit_regression: bool = False
-
-    propensity_config: dict | None = None
-    outcome_config: dict | None = None
-    regression_config: dict | None = None
-```
-
-### nuisance/tuner.py
-
-See REFACTORING_PLAN.md for complete implementation - already documented in detail.
+See actual file at `caml/nuisance/tuner.py` for complete 224-line implementation.
 
 ### nuisance/models.py
 
-```python
-"""Helper functions for nuisance models."""
+**Status**: ❌ **REMOVED FROM PLAN**
 
-import pandas as pd
-import numpy as np
-
-
-def trim_propensity(propensity: np.ndarray, bounds: tuple[float, float] = (0.01, 0.99)) -> np.ndarray:
-    """Trim propensity scores to avoid extreme weights."""
-    return np.clip(propensity, bounds[0], bounds[1])
-
-
-def prepare_features_for_propensity(data):
-    """Prepare features for propensity model (X + W)."""
-    if data.W is not None:
-        return pd.concat([data.X, data.W], axis=1)
-    return data.X
-
-
-def prepare_features_for_regression(data):
-    """Prepare features for regression model (X + W + T)."""
-    features = [data.X]
-    if data.W is not None:
-        features.append(data.W)
-    features.append(data.T.to_frame() if hasattr(data.T, 'to_frame') else pd.DataFrame(data.T))
-    return pd.concat(features, axis=1)
-```
+Originally planned for helper functions (propensity trimming, feature preparation), but these were integrated directly into the `NuisanceTuner` class methods instead. No separate file needed.
 
 ---
 
@@ -1707,26 +1663,26 @@ Plotting utilities for causal inference (file exists, details not inspected).
 
 ### ✅ **FULLY IMPLEMENTED**
 1. **data/** - Complete with CausalDataset, schema, validation (Phase 1 ✅)
-2. **estimators/base.py** - Protocols (CATEEstimator, InferenceProvider, AutoCateEstimator), BaseWrapperMixin, EstimatorCapabilities (Phase 1 ✅)
+2. **estimators/base.py** - Protocols (AutoCateEstimator, InferenceProvider), BaseWrapperMixin, EstimatorCapabilities (Phase 1 ✅)
 3. **estimators/wrappers/** - All 14 EconML wrappers complete: 5 DML, 4 DR, 3 meta-learners, 2 ORF (Phase 2 ✅)
-4. **registry/** - Complete with model_bank.py (67 lines) and registry.py (162 lines) (Phase 2 ✅)
+4. **registry/** - Complete with model_bank.py (72 lines) and registry.py (163 lines) (Phase 2 ✅)
 5. **inference/** - results.py and inference_schema.py implemented (Phase 1 ✅)
 6. **extensions/** - Complete with SyntheticDataGenerator and plots.py
+7. **nuisance/** - Complete with NuisanceTuner (224 lines) and NuisanceTunerSpec (54 lines) (Phase 3 ✅)
 
 ### ⚠️ **PARTIALLY IMPLEMENTED**
-7. **estimators/native/** - InteractiveLinearRegression exists but needs protocol adaptation
+8. **estimators/native/** - InteractiveLinearRegression exists but needs protocol adaptation
 
 ### 🔶 **NOT YET IMPLEMENTED** (Structure exists, files empty)
-8. **nuisance/** - All empty (spec.py, tuner.py, models.py) - **PHASE 3 PRIORITY**
 9. **scorers/** - All empty (r_loss.py, dr_loss.py, uplift_.py, policy.py, calibration.py, diagnostics.py) - **PHASE 4 PRIORITY**
 10. **samplers/** - All empty (cross_fit.py, splitters.py, bootstrap.py) - **PHASE 4 PRIORITY**
 11. **automl/** - All empty (auto_cate.py, search_space.py, objectives.py, backends/) - **PHASE 5 PRIORITY**
 
-**Overall Progress**: ~40% complete (~1,200 LOC implemented out of ~3,000 LOC planned)
+**Overall Progress**: ~55% complete (~1,500 LOC implemented out of ~2,700 LOC planned)
 - Phase 1 (Data & Protocols): ✅ 100% complete
 - Phase 2 (Estimator Wrappers): ✅ 100% complete
-- Phase 3 (Nuisance Models): 🔶 0% complete - **NEXT PRIORITY**
-- Phase 4 (Scoring & Validation): 🔶 0% complete
+- Phase 3 (Nuisance Models): ✅ 100% complete
+- Phase 4 (Scoring & Validation): 🔶 0% complete - **NEXT PRIORITY**
 - Phase 5 (AutoML): 🔶 0% complete
 - Phase 6-7 (Native & Polish): 🔶 0% complete
 

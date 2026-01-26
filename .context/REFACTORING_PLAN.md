@@ -8,22 +8,22 @@
 
 ## Executive Summary
 
-**UPDATE (Jan 25, 2026)**: Phases 1 AND 2 are complete! Core data structures, protocols, and all EconML wrapper implementations are done with comprehensive docstrings and tests.
+**UPDATE (Jan 26, 2026)**: Phases 1, 2, AND 3 are complete! Core data structures, protocols, all EconML wrapper implementations, and nuisance model tuning infrastructure are done with comprehensive docstrings and tests.
 
 This plan refactors CaML into a focused **AutoCATE modeling package** with:
 
 - **EconML-first approach**: Wrap 14 proven CATE estimators from EconML ✅ COMPLETE
 - **Custom scoring infrastructure**: Build R-loss, DR-loss, Qini, and policy value evaluation from scratch
-- **Dual AutoML backends**: FLAML for nuisance function tuning, Optuna for CATE model selection
-- **Extracted nuisance tuner**: Reusable component for first-stage model optimization
+- **Dual AutoML backends**: FLAML for nuisance function tuning ✅ COMPLETE, Optuna for CATE model selection
+- **Extracted nuisance tuner**: Reusable component for first-stage model optimization ✅ COMPLETE
 - **Minimal custom estimators**: Only `InteractiveLinearRegression` (benchmark) for v1
 - **All treatment types supported**: Binary, multi-valued, continuous from day one ✅ COMPLETE
 - **First-class inference**: Confidence intervals and standard errors as core functionality ✅ COMPLETE
 - **Protocol-based architecture**: `BaseWrapperMixin` ABC for consistent wrapper patterns ✅ COMPLETE
 
-**Progress**: ~40% complete (Phases 1-2 of 7)
-**Timeline**: 4-5 weeks remaining (originally 7 weeks total)
-**Lines of Code**: ~1,200 implemented, ~2,300 remaining
+**Progress**: ~55% complete (Phases 1-3 of 7)
+**Timeline**: 3-4 weeks remaining (originally 7 weeks total)
+**Lines of Code**: ~1,500 implemented, ~2,000 remaining
 
 ---
 
@@ -118,11 +118,10 @@ caml/
 │       ├── meta.py               # ✅ IMPLEMENTED (439 lines) - 3 meta-learner wrappers with full docstrings
 │       └── orf.py                # ✅ IMPLEMENTED (288 lines) - 2 ORF wrappers with full docstrings
 │
-├── nuisance/                     # 🔶 TODO - First-stage nuisance estimation
-│   ├── __init__.py               # 🔶 Empty
-│   ├── tuner.py                  # 🔶 Empty - NuisanceTuner (FLAML-based)
-│   ├── spec.py                   # 🔶 Empty - NuisanceSpec dataclass
-│   └── models.py                 # 🔶 Empty - Helper functions
+├── nuisance/                     # ✅ IMPLEMENTED - First-stage nuisance estimation
+│   ├── __init__.py               # ✅ IMPLEMENTED (5 lines)
+│   ├── tuner.py                  # ✅ IMPLEMENTED (224 lines) - NuisanceTuner (FLAML-based)
+│   └── spec.py                   # ✅ IMPLEMENTED (54 lines) - NuisanceTunerSpec dataclass
 │
 ├── scorers/                      # 🔶 TODO - Scoring & evaluation (ALL CUSTOM) (renamed from scoring/)
 │   ├── __init__.py               # 🔶 Empty
@@ -578,6 +577,8 @@ class WrappedLinearDML(BaseWrapperMixin):
 
 ### 3.4 Nuisance Tuner (nuisance/tuner.py)
 
+**Status**: ✅ **IMPLEMENTED** (224 lines)
+
 **Purpose**: Extract nuisance model tuning from AutoCATE
 
 ```python
@@ -587,16 +588,16 @@ from caml.data.dataset import CausalDataset
 import pandas as pd
 
 @dataclass
-class NuisanceSpec:
+class NuisanceTunerSpec:
     """Specification for which nuisance models to fit."""
-    fit_propensity: bool = True       # E[T|X,W]
-    fit_outcome: bool = True           # E[Y|X,W]
-    fit_regression: bool = False       # E[Y|X,W,T] for DR methods
+    fit_treatment_model: bool | None = None  # E[T|X,W] - propensity score
+    fit_outcome_model: bool | None = None     # E[Y|X,W]
+    fit_regression_model: bool | None = None  # E[Y|X,W,T] for DR methods
 
     # FLAML config overrides
-    propensity_config: dict | None = None
-    outcome_config: dict | None = None
-    regression_config: dict | None = None
+    treatment_model_config: dict | None = None
+    outcome_model_config: dict | None = None
+    regression_model_config: dict | None = None
 
 class NuisanceTuner:
     """FLAML-based nuisance model tuner (extracted from AutoCATE)."""
@@ -616,25 +617,25 @@ class NuisanceTuner:
         self.verbose = verbose
 
         # Fitted models (stored after fit())
-        self.propensity_model_ = None
+        self.treatment_model_ = None
         self.outcome_model_ = None
         self.regression_model_ = None
 
-    def fit(self, data: CausalDataset, spec: NuisanceSpec) -> "NuisanceTuner":
+    def fit(self, data: CausalDataset, spec: NuisanceTunerSpec) -> "NuisanceTuner":
         """Fit nuisance models based on spec."""
 
         base_config = self._build_base_config()
 
-        if spec.fit_propensity:
-            config = self._build_propensity_config(data, base_config, spec)
-            self.propensity_model_ = self._run_flaml(config)
+        if spec.fit_treatment_model:
+            config = self._build_treatment_model_config(data, base_config, spec)
+            self.treatment_model_ = self._run_flaml(config)
 
-        if spec.fit_outcome:
-            config = self._build_outcome_config(data, base_config, spec)
+        if spec.fit_outcome_model:
+            config = self._build_outcome_model_config(data, base_config, spec)
             self.outcome_model_ = self._run_flaml(config)
 
-        if spec.fit_regression:
-            config = self._build_regression_config(data, base_config, spec)
+        if spec.fit_regression_model:
+            config = self._build_regression_model_config(data, base_config, spec)
             self.regression_model_ = self._run_flaml(config)
 
         return self
@@ -661,8 +662,8 @@ class NuisanceTuner:
 
         return config
 
-    def _build_propensity_config(self, data: CausalDataset, base: dict, spec: NuisanceSpec) -> dict:
-        """Build config for propensity model E[T|X,W]."""
+    def _build_treatment_model_config(self, data: CausalDataset, base: dict, spec: NuisanceTunerSpec) -> dict:
+        """Build config for treatment model E[T|X,W] (propensity score model)."""
         config = base.copy()
 
         # Determine task type
@@ -673,18 +674,18 @@ class NuisanceTuner:
             config["task"] = "regression"
             config["metric"] = "mse"
 
-        # Prepare data
+        # Prepare data (concatenate X and W)
         XW = pd.concat([data.X, data.W], axis=1) if data.W is not None else data.X
         config["X_train"] = XW
         config["y_train"] = data.T
 
         # Apply user overrides
-        if spec.propensity_config:
-            config.update(spec.propensity_config)
+        if spec.treatment_model_config:
+            config.update(spec.treatment_model_config)
 
         return config
 
-    def _build_outcome_config(self, data: CausalDataset, base: dict, spec: NuisanceSpec) -> dict:
+    def _build_outcome_model_config(self, data: CausalDataset, base: dict, spec: NuisanceTunerSpec) -> dict:
         """Build config for outcome model E[Y|X,W]."""
         config = base.copy()
 
@@ -702,12 +703,12 @@ class NuisanceTuner:
         config["y_train"] = data.Y
 
         # Apply user overrides
-        if spec.outcome_config:
-            config.update(spec.outcome_config)
+        if spec.outcome_model_config:
+            config.update(spec.outcome_model_config)
 
         return config
 
-    def _build_regression_config(self, data: CausalDataset, base: dict, spec: NuisanceSpec) -> dict:
+    def _build_regression_model_config(self, data: CausalDataset, base: dict, spec: NuisanceTunerSpec) -> dict:
         """Build config for regression model E[Y|X,W,T]."""
         config = base.copy()
 
@@ -725,8 +726,8 @@ class NuisanceTuner:
         config["y_train"] = data.Y
 
         # Apply user overrides
-        if spec.regression_config:
-            config.update(spec.regression_config)
+        if spec.regression_model_config:
+            config.update(spec.regression_model_config)
 
         return config
 
@@ -736,6 +737,13 @@ class NuisanceTuner:
         automl.fit(**config)
         return automl.model.estimator
 ```
+
+**Implementation Notes**:
+- Uses `treatment_model_`, `outcome_model_`, `regression_model_` (not `propensity_model_`)
+- Automatically detects task type (classification vs regression) from `CausalDataset` metadata
+- Supports Ray/Spark distributed tuning via FLAML
+- Config overrides allow per-model FLAML customization
+- Feature preparation (concatenating X and W) integrated directly into config builder methods
 
 ---
 
@@ -1261,26 +1269,30 @@ class CrossFitter:
 
 ---
 
-### Phase 3: Nuisance Models (Week 3) 🔶 **TODO** - NEXT PRIORITY
-**Goal**: Extract nuisance model tuning from AutoCATE
+### Phase 3: Nuisance Models (Week 3) ✅ **COMPLETE**
+**Goal**: Extract nuisance model tuning from AutoCATE ✅ ACHIEVED
 
-14. 🔶 Create `nuisance/spec.py` - `NuisanceSpec` dataclass
-15. 🔶 Create `nuisance/tuner.py` - Extract `NuisanceTuner` from old `AutoCATE._find_nuisance_functions()`
-16. 🔶 Create `nuisance/models.py` - Helper functions for nuisance models
-17. 🔶 Refactor to use `CausalDataset`
-18. 🔶 **Docstrings**: Complete NumPy-style docstrings for all public classes/methods with runnable examples
-19. 🔶 **Tests**: Validate `NuisanceTuner` produces same models as old AutoCATE
+**Implemented**:
+1. ✅ `nuisance/spec.py` - `NuisanceTunerSpec` dataclass (54 lines)
+2. ✅ `nuisance/tuner.py` - Extract `NuisanceTuner` from old AutoCATE (224 lines)
+3. ✅ Refactor to use `CausalDataset` with automatic task detection
+4. ✅ **Docstrings**: Complete NumPy-style docstrings with runnable examples using `SyntheticDataGenerator`
+5. ✅ **Tests**: Comprehensive tests (302 lines for tuner.py, 156 lines for spec.py)
 
-**Deliverable**: Standalone `NuisanceTuner` with complete docstrings and tests
+**Deliverable**: ✅ Standalone `NuisanceTuner` with complete docstrings and tests
 
 **Implementation Notes**:
-- Look for existing AutoCATE implementation to extract logic
-- Follow REFACTORING_PLAN.md Section 3.4 for detailed implementation
-- **CRITICAL**: Docstrings are mandatory before marking phase complete
+- Uses `treatment_model_`, `outcome_model_`, `regression_model_` (not `propensity_model_`)
+- Spec uses `fit_treatment_model`, `fit_outcome_model`, `fit_regression_model` (not `fit_propensity`)
+- Automatically detects task type (classification vs regression) from `CausalDataset` metadata
+- Supports Ray/Spark distributed tuning via FLAML
+- Config overrides allow per-model FLAML customization via `treatment_model_config`, etc.
+- Feature preparation (concatenating X and W) integrated directly into tuner methods
+- Originally planned `models.py` helper file was not needed - functionality integrated into tuner
 
 ---
 
-### Phase 4: Cross-Fitting & Scoring (Week 4) 🔶 **TODO**
+### Phase 4: Cross-Fitting & Scoring (Week 4) 🔶 **TODO** - **NEXT PRIORITY**
 **Goal**: Custom scoring infrastructure
 
 20. 🔶 Create `samplers/splitters.py` - Splitting strategies (note: directory is `samplers/` not `sampling/`)
