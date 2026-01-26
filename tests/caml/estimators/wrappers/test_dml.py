@@ -71,7 +71,7 @@ class TestWrappedLinearDML:
 
         # Predict CATE
         cate = estimator.effect(binary_continuous_data.X)
-        assert cate.shape == (len(binary_continuous_data.X),)
+        assert cate.shape == (len(binary_continuous_data.X), 1)
         assert np.isfinite(cate).all()
 
     def test_compatibility_check(self, binary_continuous_data):
@@ -104,7 +104,7 @@ class TestWrappedSparseLinearDML:
         estimator.fit(binary_continuous_data)
 
         cate = estimator.effect(binary_continuous_data.X)
-        assert cate.shape == (len(binary_continuous_data.X),)
+        assert cate.shape == (len(binary_continuous_data.X), 1)
         assert np.isfinite(cate).all()
 
 
@@ -128,7 +128,7 @@ class TestWrappedCausalForestDML:
         estimator.fit(binary_continuous_data)
 
         cate = estimator.effect(binary_continuous_data.X)
-        assert cate.shape == (len(binary_continuous_data.X),)
+        assert cate.shape == (len(binary_continuous_data.X), 1)
         assert np.isfinite(cate).all()
 
 
@@ -151,7 +151,7 @@ class TestWrappedNonParamDML:
         estimator.fit(binary_continuous_data)
 
         cate = estimator.effect(binary_continuous_data.X)
-        assert cate.shape == (len(binary_continuous_data.X),)
+        assert cate.shape == (len(binary_continuous_data.X), 1)
         assert np.isfinite(cate).all()
 
 
@@ -173,5 +173,5 @@ class TestWrappedKernelDML:
         estimator.fit(binary_continuous_data)
 
         cate = estimator.effect(binary_continuous_data.X)
-        assert cate.shape == (len(binary_continuous_data.X),)
+        assert cate.shape == (len(binary_continuous_data.X), 1)
         assert np.isfinite(cate).all()

@@ -2,7 +2,7 @@
 
 import numpy as np
 import pytest
-from sklearn.linear_model import LassoCV, LogisticRegressionCV
+from sklearn.linear_model import LinearRegression, LogisticRegression
 
 from caml.data import CausalDataset, OutcomeType, TreatmentType
 from caml.estimators import AutoCateEstimator
@@ -43,7 +43,7 @@ class TestWrappedDMLOrthoForest:
     def test_initialization(self):
         """Test estimator initialization."""
         estimator = WrappedDMLOrthoForest(
-            n_trees=50, model_T=LogisticRegressionCV(), model_Y=LassoCV()
+            n_trees=50, model_T=LogisticRegression(), model_Y=LinearRegression()
         )
         assert estimator._is_fitted is False
         assert hasattr(estimator, "_estimator")
@@ -51,9 +51,11 @@ class TestWrappedDMLOrthoForest:
     def test_protocol_compliance(self, binary_continuous_data):
         """Test that estimator implements AutoCateEstimator protocol."""
         estimator = WrappedDMLOrthoForest(
-            n_trees=50,
-            model_T=LogisticRegressionCV(),
-            model_Y=LassoCV(),
+            n_trees=1,
+            max_depth=1,
+            model_T=LogisticRegression(),
+            model_Y=LinearRegression(),
+            global_residualization=True,  # Improve runtime for testing
             random_state=42,
         )
         estimator.fit(binary_continuous_data)
@@ -62,10 +64,11 @@ class TestWrappedDMLOrthoForest:
     def test_fit_and_effect(self, binary_continuous_data):
         """Test fitting and CATE prediction."""
         estimator = WrappedDMLOrthoForest(
-            n_trees=50,
-            max_depth=30,
-            model_T=LogisticRegressionCV(),
-            model_Y=LassoCV(),
+            n_trees=1,
+            max_depth=1,
+            model_T=LogisticRegression(),
+            model_Y=LinearRegression(),
+            global_residualization=True,  # Improve runtime for testing
             random_state=42,
         )
         estimator.fit(binary_continuous_data)
@@ -75,7 +78,7 @@ class TestWrappedDMLOrthoForest:
 
         # Predict CATE
         cate = estimator.effect(binary_continuous_data.X)
-        assert cate.shape == (len(binary_continuous_data.X),)
+        assert cate.shape == (len(binary_continuous_data.X), 1)
         assert np.isfinite(cate).all()
 
     def test_is_compatible_with_classmethod(self, binary_continuous_data):
@@ -94,14 +97,14 @@ class TestWrappedDROrthoForest:
     def test_fit_and_effect(self, binary_continuous_data):
         """Test fitting and CATE prediction."""
         estimator = WrappedDROrthoForest(
-            n_trees=50,
-            max_depth=30,
-            propensity_model=LogisticRegressionCV(),
-            model_Y=LassoCV(),
+            n_trees=1,
+            max_depth=1,
+            propensity_model=LogisticRegression(),
+            model_Y=LinearRegression(),
             random_state=42,
         )
         estimator.fit(binary_continuous_data)
 
         cate = estimator.effect(binary_continuous_data.X)
-        assert cate.shape == (len(binary_continuous_data.X),)
+        assert cate.shape == (len(binary_continuous_data.X), 1)
         assert np.isfinite(cate).all()

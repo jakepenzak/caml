@@ -118,12 +118,12 @@ class CausalDataset:
     """
 
     # Core data (always required)
-    X: pd.Series | pd.DataFrame | np.ndarray  # Effect Modifiers and/or confounders
-    T: pd.Series | pd.DataFrame | np.ndarray  # Treatment
-    Y: pd.Series | pd.DataFrame | np.ndarray  # Outcome
+    X: np.ndarray  # Effect Modifiers and/or confounders
+    T: np.ndarray  # Treatment
+    Y: np.ndarray  # Outcome
 
     # Optional Data
-    W: pd.Series | pd.DataFrame | np.ndarray | None = None
+    W: np.ndarray | None = None
     weights: np.ndarray | None = None
 
     # Metadata
@@ -251,10 +251,10 @@ class CausalDataset:
         ```
         """
         return cls(
-            X=df[X],
-            T=df[T],
-            Y=df[Y],
-            W=df[W] if W else None,
+            X=np.array(df[X]),
+            T=np.array(df[T]),
+            Y=np.array(df[Y]),
+            W=np.array(df[W]) if W else None,
             treatment_type=treatment_type,
             outcome_type=outcome_type,
             X_names=X,
@@ -275,3 +275,15 @@ class CausalDataset:
             If any validation check fails.
         """
         self.validate()
+
+        def as_column(x):
+            x2 = np.atleast_2d(x)
+            if x2.shape[0] == 1:
+                x2 = x2.T
+            return x2
+
+        self.X = as_column(self.X)
+        self.T = as_column(self.T)
+        self.Y = as_column(self.Y)
+        if self.W is not None:
+            self.W = as_column(self.W)

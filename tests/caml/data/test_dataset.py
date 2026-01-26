@@ -53,8 +53,8 @@ class TestDatasetCreation:
         )
 
         assert len(data.Y) == 100
-        assert isinstance(data.X, pd.DataFrame)
-        assert isinstance(data.T, pd.Series)
+        assert isinstance(data.X, np.ndarray)
+        assert isinstance(data.T, np.ndarray)
 
     def test_create_with_confounders(self):
         """Test creation with additional confounders W."""
@@ -177,7 +177,7 @@ class TestFromDataframe:
         )
 
         assert data.W_names == [c for c in gen.df.columns if "W" in c]
-        assert len(data.W.columns) == 2
+        assert data.W.shape[1] == 2
 
     def test_from_dataframe_stores_column_names(self):
         """Test that from_dataframe stores column names correctly."""

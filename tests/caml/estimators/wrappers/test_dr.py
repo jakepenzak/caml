@@ -78,7 +78,7 @@ class TestWrappedDRLearner:
 
         # Predict CATE
         cate = estimator.effect(binary_continuous_data.X)
-        assert cate.shape == (len(binary_continuous_data.X),)
+        assert cate.shape == (len(binary_continuous_data.X), 1)
         assert np.isfinite(cate).all()
 
     def test_is_compatible_with_classmethod(self, binary_continuous_data):
@@ -104,7 +104,7 @@ class TestWrappedLinearDRLearner:
         estimator.fit(binary_continuous_data)
 
         cate = estimator.effect(binary_continuous_data.X)
-        assert cate.shape == (len(binary_continuous_data.X),)
+        assert cate.shape == (len(binary_continuous_data.X), 1)
         assert np.isfinite(cate).all()
 
 
@@ -126,7 +126,7 @@ class TestWrappedSparseLinearDRLearner:
         estimator.fit(binary_continuous_data)
 
         cate = estimator.effect(binary_continuous_data.X)
-        assert cate.shape == (len(binary_continuous_data.X),)
+        assert cate.shape == (len(binary_continuous_data.X), 1)
         assert np.isfinite(cate).all()
 
 
@@ -150,5 +150,5 @@ class TestWrappedForestDRLearner:
         estimator.fit(binary_continuous_data)
 
         cate = estimator.effect(binary_continuous_data.X)
-        assert cate.shape == (len(binary_continuous_data.X),)
+        assert cate.shape == (len(binary_continuous_data.X), 1)
         assert np.isfinite(cate).all()

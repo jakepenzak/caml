@@ -8,7 +8,9 @@ dependencies = [
     "matplotlib>=3.9.2",
     "rich>=13.9.4",
     "patsy>=1.0.1",
-    "llvmlite>0.40",
+    "numba>=0.59,<0.62; python_version < '3.12'",
+    "numba>=0.60,<0.63; python_version == '3.12'",
+    "numba>=0.62; python_version >= '3.13'",
 ]
 description = "Extensions & abstractions of advanced econometric techniques leveraging machine learning."
 name = "caml"
@@ -29,6 +31,7 @@ classifiers = [
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
     "Operating System :: MacOS",
     "Operating System :: Microsoft :: Windows",
     "Operating System :: POSIX :: Linux",
@@ -43,9 +46,6 @@ Documentation = "https://caml-docs.com/"
 
 [dependency-groups]
 test = [
-    "polars>=1.31.0",
-    "pyarrow>=20.0.0",
-    "pyspark>=3.5.2",
     "pytest>=8.3.2",
     "pytest-cov>=5.0.0",
     "pytest-html>=4.1.1",
@@ -61,9 +61,6 @@ dev = [
 ]
 docs = ["quarto-cli<1.7.32", "quartodoc>=0.9.1"]
 
-[project.optional-dependencies]
-spark = ["flaml[spark]>=2.0.0", "optuna>=3.6.1", "pyspark>=3.5.2"]
-ray = ["ray[tune]>=2.51.1"]
 
 [build-system]
 requires = ["hatchling"]
@@ -108,7 +105,15 @@ docstring-quotes = "double"
 convention = "numpy"
 
 [tool.pytest.ini_options]
-filterwarnings = "ignore::DeprecationWarning"
+filterwarnings = [
+    "ignore:.*__sklearn_tags__.*:DeprecationWarning:sklearn.utils._tags",
+    "ignore:.*force_all_finite.*:FutureWarning:sklearn.",
+    "ignore:.*too small for a sparse model.*:UserWarning:econml.utilities",
+    "ignore:.*options of the L-BFGS-B solver are deprecated*:DeprecationWarning:sklearn.linear_model._logistic",
+    "ignore:.*A column-vector y was passed*:sklearn.utils.validation.DataConversionWarning",
+    "ignore:.*X does not have valid feature names, but LGBM*:UserWarning:sklearn.utils.validation",
+    "ignore:.*Maximum number of iteration reached before convergence*:sklearn.linear_model._stochastic_gradient.ConvergenceWarning"
+]
 addopts = "--cov=caml/ --cov-branch --cov-report=term-missing --cov-report=html:tests/reports/htmlcov --cov-report=xml:tests/reports/coverage.xml"
 markers = [
     "data: mark tests for the data module",
@@ -116,6 +121,8 @@ markers = [
     "inference: mark tests for the inference module",
     "estimators: mark tests for the estimators module",
     "registry: mark tests for the registry module",
+    "nuisance: mark tests for the nuisance module",
+    "generics: mark tests for the generics module",
 ]
 typeguard-packages = "caml"
 typeguard-collection-check-strategy = "ALL_ITEMS"

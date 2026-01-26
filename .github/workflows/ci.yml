@@ -11,11 +11,13 @@ jobs:
   run_tests:
     if: github.event.pull_request.draft == false
     runs-on: ${{ matrix.os }}
+
+    continue-on-error: ${{ matrix.python-version == "3.14" }}
     strategy:
-      fail-fast: false
+      fail-fast: ${{ github.ref != 'refs/heads/main' }}
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
-        python-version: ["3.10", "3.11", "3.12"]
+        python-version: ["3.10", "3.11", "3.12", "3.13", "3.14"]
 
     steps:
       - name: Checkout 🛎️
