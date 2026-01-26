@@ -1,217 +1,213 @@
 project:
-  type: website
-  output-dir: _site
-  preview:
-    port: 4848
+    type: website
+    output-dir: _site
+    preview:
+        port: 4848
 
 bibliography: references.bib
 
 format:
-  html:
-    theme: cosmo
-    css: styles/styles.css
-    toc: true
-    toc-depth: 5
-    toc-expand: 2
-    table-scroll: true
-    include-in-header: version-switcher.html
-    highlight-style: github
+    html:
+        theme: cosmo
+        css: styles/styles.css
+        toc: true
+        toc-depth: 5
+        toc-expand: 2
+        table-scroll: true
+        include-in-header: version-switcher.html
+        highlight-style: github
 
 website:
-  title: CaML - Causal ML
-  favicon: assets/logo_no_text.svg
-  page-navigation: true
-  open-graph: true
-  back-to-top-navigation: true
-  repo-url: https://github.com/jakepenzak/caml
-  repo-actions: [edit, issue]
-  repo-branch: main
-  repo-subdir: docs
-  issue-url: https://github.com/jakepenzak/caml/issues/new
+    title: CaML - Causal ML
+    favicon: assets/logo_no_text.svg
+    page-navigation: true
+    open-graph: true
+    back-to-top-navigation: true
+    repo-url: https://github.com/jakepenzak/caml
+    repo-actions: [edit, issue]
+    repo-branch: main
+    repo-subdir: docs
+    issue-url: https://github.com/jakepenzak/caml/issues/new
 
-  navbar:
-    logo: "assets/logo_no_text.svg"
-    title: false
-    background: "white"
-    search: true
-    border: true
-    tools:
-      - icon: github
-        menu:
-          - text: Source code
-            url: https://github.com/jakepenzak/caml
-          - text: Report Issue
-            url: https://github.com/jakepenzak/caml/issues/new
+    navbar:
+        logo: "assets/logo_no_text.svg"
+        title: false
+        background: "white"
+        search: true
+        border: true
+        tools:
+            - icon: github
+              menu:
+                  - text: Source code
+                    url: https://github.com/jakepenzak/caml
+                  - text: Report Issue
+                    url: https://github.com/jakepenzak/caml/issues/new
 
-    left:
-      - sidebar:Home
-      - sidebar:Concepts
-      - sidebar:Examples
-      - sidebar:API_Reference
+        left:
+            - sidebar:Home
+            - sidebar:Concepts
+            - sidebar:Examples
+            - sidebar:API_Reference
 
-    right:
-      - sidebar:Contributors
+        right:
+            - sidebar:Contributors
 
-  sidebar:
-    - id: ""
-    - id: Home
-      title: "Home"
-      style: floating
-      contents:
-        - text: Welcome!
-          href: index.qmd
-        - 01_Home/installation.qmd
-        - 01_Home/quickstart.qmd
-    - id: Concepts
-      title: "Concepts"
-      style: floating
-      contents:
-        - 02_Concepts/motivation.qmd
-        - 02_Concepts/theory.qmd
-        - 02_Concepts/models.qmd
-        - 02_Concepts/references.qmd
-    # - id: Examples
-    #   title: "Examples"
-    #   style: floating
-    # contents: 03_Examples/*
-    - id: API_Reference
-      title: "Reference"
-      style: floating
-      contents:
-        - 04_Reference/index.qmd
-        - 04_Reference/support_matrix.qmd
-    - id: Contributors
-      title: "Contributors"
-      style: floating
-      contents:
-        - 05_Contributors/getting_started.qmd
-        - 05_Contributors/environment.qmd
-        - 05_Contributors/documentation.qmd
-        - 05_Contributors/testing.qmd
-        - 05_Contributors/conventional_commits.qmd
+    sidebar:
+        - id: ""
+        - id: Home
+          title: "Home"
+          style: floating
+          contents:
+              - text: Welcome!
+                href: index.qmd
+              - 01_Home/installation.qmd
+              - 01_Home/quickstart.qmd
+        - id: Concepts
+          title: "Concepts"
+          style: floating
+          contents:
+              - 02_Concepts/motivation.qmd
+              - 02_Concepts/theory.qmd
+              - 02_Concepts/models.qmd
+              - 02_Concepts/references.qmd
+        # - id: Examples
+        #   title: "Examples"
+        #   style: floating
+        # contents: 03_Examples/*
+        - id: API_Reference
+          title: "Reference"
+          style: floating
+          contents:
+              - 04_Reference/index.qmd
+              - 04_Reference/support_matrix.qmd
+        - id: Contributors
+          title: "Contributors"
+          style: floating
+          contents:
+              - 05_Contributors/getting_started.qmd
+              - 05_Contributors/environment.qmd
+              - 05_Contributors/documentation.qmd
+              - 05_Contributors/testing.qmd
+              - 05_Contributors/conventional_commits.qmd
 
-  page-footer:
-    border: false
-    left: "© Copyright 2024, Jacob Pieniazek"
-    right: |
-      Powered by: [![](/assets/external_logos/quarto.png){width=85px}](https://quarto.org/)
+    page-footer:
+        border: false
+        left: "© Copyright 2024, Jacob Pieniazek"
+        right: |
+            Powered by: [![](/assets/external_logos/quarto.png){width=85px}](https://quarto.org/)
 
 quartodoc:
-  package: caml
-  dir: 04_Reference
-  title: API Reference
-  sidebar: 04_Reference/_sidebar.yml
-  source_dir: ../caml
-  renderer:
-    style: _extensions.renderer_with_source.py
-  sections:
-    - title: CaML Core
-      desc: "`caml` \n\n Core CaML modules."
+    package: caml
+    dir: 04_Reference
+    title: API Reference
+    sidebar: 04_Reference/_sidebar.yml
+    source_dir: ../caml
+    renderer:
+        style: _extensions.renderer_with_source.py
+    sections:
+        - title: CaML Core
+          desc: "`caml` \n\n Core CaML modules."
 
-    - subtitle: AutoML
-      desc: "`caml.automl` \n\n Primary AutoML Estimator."
-      package: caml.automl
+        - subtitle: AutoML
+          desc: "`caml.automl` \n\n Primary AutoML Estimator."
+          package: caml.automl
 
-    - subtitle: Data
-      desc: "`caml.data` \n\n CaML Data Containers and schemas."
-      package: caml.data
-      contents:
-        - name: dataset
-          member_order: source
-        - name: data_schema
-          member_order: source
+        - subtitle: Data
+          desc: "`caml.data` \n\n CaML Data Containers and schemas."
+          package: caml.data
+          contents:
+              - name: dataset
+                member_order: source
+              - name: data_schema
+                member_order: source
 
-    - subtitle: Estimators
-      desc: "`caml.estimators` \n\n Native and wrapped CATE estimators."
-      package: caml.estimators
-      contents:
-        - name: base
-          member_order: source
-        - name: dml
-          member_order: source
-          member_options:
-            include_inherited: true
-          members:
-            - WrappedLinearDML
-            - WrappedSparseLinearDML
-            - WrappedCausalForestDML
-            - WrappedNonParamDML
-            - WrappedKernelDML
-        - name: dr
-          member_order: source
-          member_options:
-            include_inherited: true
-          members:
-            - WrappedDRLearner
-            - WrappedLinearDRLearner
-            - WrappedSparseLinearDRLearner
-            - WrappedForestDRLearner
-        - name: meta
-          member_order: source
-          member_options:
-            include_inherited: true
-          members:
-            - WrappedSLearner
-            - WrappedTLearner
-            - WrappedXLearner
-        - name: orf
-          member_order: source
-          member_options:
-            include_inherited: true
-          members:
-            - WrappedDMLOrthoForest
-            - WrappedDROrthoForest
+        - subtitle: Estimators
+          desc: "`caml.estimators` \n\n Native and wrapped CATE estimators."
+          package: caml.estimators
+          contents:
+              - name: dml
+                member_order: source
+                member_options:
+                    include_inherited: true
+                members:
+                    - WrappedLinearDML
+                    - WrappedSparseLinearDML
+                    - WrappedCausalForestDML
+                    - WrappedNonParamDML
+                    - WrappedKernelDML
+              - name: dr
+                member_order: source
+                member_options:
+                    include_inherited: true
+                members:
+                    - WrappedDRLearner
+                    - WrappedLinearDRLearner
+                    - WrappedSparseLinearDRLearner
+                    - WrappedForestDRLearner
+              - name: meta
+                member_order: source
+                member_options:
+                    include_inherited: true
+                members:
+                    - WrappedSLearner
+                    - WrappedTLearner
+                    - WrappedXLearner
+              - name: orf
+                member_order: source
+                member_options:
+                    include_inherited: true
+                members:
+                    - WrappedDMLOrthoForest
+                    - WrappedDROrthoForest
+              - name: base
+                member_order: source
 
-    - subtitle: Inference
-      desc: "`caml.inference` \n\n Inference objects and schemas."
-      package: caml.inference
-      contents:
-        - name: results
-          member_order: source
-        - name: inference_schema
-          member_order: source
+        - subtitle: Registry
+          desc: "`caml.registry` \n\n AutoCATE estimator registry."
+          package: caml.registry
+          contents:
+              - name: registry
+                member_order: source
+              - name: model_bank
+                member_order: source
 
-    - subtitle: Nuisance
-      desc: "`caml.nuisance` \n\n First-stage nuisance estimation objects."
-      package: caml.nuisance
+        - subtitle: Nuisance
+          desc: "`caml.nuisance` \n\n First-stage nuisance estimation objects."
+          package: caml.nuisance
 
-    - subtitle: Protocols
-      desc: "`caml.protocols` \n\n Primary CaML interfaces."
-      package: caml.protocols
-      contents:
-        - name: estimator
-          member_order: source
-        - name: inference
-          member_order: source
+        - subtitle: Samplers
+          desc: "`caml.samplers` \n\n Primary CATE sampling utilities and objects."
+          package: caml.samplers
 
-    - subtitle: Registry
-      desc: "`caml.registry` \n\n AutoCATE estimator registry."
-      package: caml.registry
+        - subtitle: Scorers
+          desc: "`caml.scorers` \n\n Primary CATE scoring & validation metrics."
+          package: caml.scorers
 
-    - subtitle: Sampling
-      desc: "`caml.sampling` \n\n Primary CATE sampling utilities and objects."
-      package: caml.sampling
+        - subtitle: Inference
+          desc: "`caml.inference` \n\n Inference objects and schemas."
+          package: caml.inference
+          contents:
+              - name: results
+                member_order: source
+              - name: inference_schema
+                member_order: source
 
-    - subtitle: Scoring
-      desc: "`caml.scoring` \n\n Primary CATE scoring metrics."
-      package: caml.scoring
+        - title: CaML Extensions
+          desc: "`caml.extensions` \n\n Additional utilities and tools for working in CaML."
 
-    - title: CaML Extensions
-      desc: "`caml.extensions` \n\n Additional utilities and tools for working in CaML."
+        - subtitle: Synthetic Data Generation
+          desc: "`caml.extensions.synthetic_data` <br> <br> Synthetic data generation utilities for CaML."
+          package: caml.extensions
+          contents:
+              - name: synthetic_data
+                member_order: source
 
-    - subtitle: Synthetic Data Generation
-      desc: "`caml.extensions.synthetic_data` <br> <br> Synthetic data generation utilities for CaML."
-      package: caml.extensions
-      contents:
-        - name: synthetic_data
-          member_order: source
-
-    - subtitle: Plots
-      desc: "`caml.extensions.plots` <br> <br> Plotting utilities for CaML."
-      package: caml.extensions
-      contents:
-        - name: plots
-          member_order: source
+        - subtitle: Plots
+          desc: "`caml.extensions.plots` <br> <br> Plotting utilities for CaML."
+          package: caml.extensions
+          contents:
+              - name: plots
+                member_order: source
 
 metadata-files:
-  - _sidebar.yml
+    - _sidebar.yml

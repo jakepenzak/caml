@@ -103,7 +103,7 @@ caml/
 │
 ├── protocols/                    # ✅ IMPLEMENTED - Core interfaces
 │   ├── __init__.py
-│   ├── estimator.py              # ✅ CATEEstimator Protocol + EstimatorCapabilites
+│   ├── estimator.py              # ✅ CATEEstimator Protocol + EstimatorCapabilities
 │   └── inference.py              # ✅ InferenceProvider Protocol
 │
 ├── estimators/                   # ⚠️ PARTIAL - CATE estimators
@@ -973,7 +973,7 @@ class CrossFitter:
 1. ✅ Create `data/dataset.py` - `CausalDataset` class
 2. ✅ Create `data/data_schema.py` - `TreatmentType`, `OutcomeType`, `Estimand` enums
 3. ✅ Create `data/_validation.py` - validation functions
-4. ✅ Create `protocols/estimator.py` - `CATEEstimator` protocol, `EstimatorCapabilites`
+4. ✅ Create `protocols/estimator.py` - `CATEEstimator` protocol, `EstimatorCapabilities`
 5. ✅ Create `inference/results.py` - `InferenceResult` dataclass
 6. ✅ Create `inference/inference_schema.py` - `InferenceType` enum
 7. ✅ Create `protocols/inference.py` - `InferenceProvider` protocol
@@ -982,7 +982,7 @@ class CrossFitter:
 **Deliverable**: ✅ Working `CausalDataset` with comprehensive tests
 
 **Notes**:
-- Implementation uses `EstimatorCapabilites` (typo - missing 'i')
+- Implementation uses `EstimatorCapabilities` (typo - missing 'i')
 - Protocol uses `effect()` method name instead of `predict_cate()`
 - Bonus: `extensions/` module added with `SyntheticDataGenerator` for testing
 
@@ -1306,7 +1306,7 @@ Based on actual implementation inspection (Jan 24, 2026):
    - This matches EconML's naming convention
 
 4. **Typo in Implementation**:
-   - `EstimatorCapabilites` (missing 'i') instead of `EstimatorCapabilities`
+   - `EstimatorCapabilities` (missing 'i') instead of `EstimatorCapabilities`
    - Consider fixing in future iteration
 
 5. **Bonus Module**:

@@ -25,7 +25,7 @@ class TreatmentType(Enum):
 
     [`CausalDataset`](dataset.qmd#caml.data.dataset.CausalDataset) : Data container using treatment types.
 
-    [`EstimatorCapabilities`](estimator.qmd#caml.protocols.estimator.EstimatorCapabilities) : Estimator capability metadata.
+    [`EstimatorCapabilities`](base.qmd#caml.estimators.base.EstimatorCapabilities) : Estimator capability metadata.
 
     Examples
     --------
@@ -120,9 +120,9 @@ class Estimand(Enum):
 
     See Also
     --------
-    [`EstimatorCapabilities`](estimator.qmd#caml.protocols.estimator.EstimatorCapabilities) : Metadata including supported estimands.
+    [`EstimatorCapabilities`](base.qmd#caml.estimators.base.EstimatorCapabilities) : Metadata including supported estimands.
 
-    [`AutoCateEstimator`](estimator.qmd#caml.protocols.estimator.AutoCateEstimator) : Protocol for CATE estimators.
+    [`AutoCateEstimator`](base.qmd#caml.estimators.base.AutoCateEstimator) : Protocol for CATE estimators.
 
     Examples
     --------

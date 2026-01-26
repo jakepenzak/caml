@@ -9,9 +9,9 @@ from __future__ import annotations
 from econml.orf import DMLOrthoForest, DROrthoForest
 
 from caml.data import CausalDataset, Estimand, OutcomeType, TreatmentType
+from caml.estimators import EstimatorCapabilities
 from caml.estimators.base import BaseWrapperMixin
 from caml.inference import InferenceType
-from caml.protocols import EstimatorCapabilities
 
 
 class WrappedDMLOrthoForest(BaseWrapperMixin):
@@ -22,38 +22,17 @@ class WrappedDMLOrthoForest(BaseWrapperMixin):
     maintaining honesty (separate samples for tree structure and leaf estimation).
     Supports binary and continuous treatments with continuous outcomes.
 
+    *Note: All attributes and methods on the underlying EconML estimator are accessible
+    via this wrapper through delegation, if not explicitly overridden.*
+
     Parameters
     ----------
     **econml_kwargs
         Keyword arguments passed directly to ``econml.orf.DMLOrthoForest``.
-        Common parameters include:
-
-        - n_trees : int, optional
-            Number of trees in the forest (default: 500).
-        - max_depth : int, optional
-            Maximum depth of trees (default: None, unlimited).
-        - min_leaf_size : int, optional
-            Minimum number of samples in a leaf (default: 10).
-        - max_splits : int, optional
-            Maximum number of splits to consider for each feature (default: 10).
-        - subsample_ratio : float, optional
-            Ratio of samples to use for each tree (default: 0.7).
-        - bootstrap : bool, optional
-            Whether to use bootstrap sampling (default: False).
-        - lambda_reg : float, optional
-            Regularization parameter for ridge regression in leaves (default: 0.01).
-        - model_T : estimator, optional
-            Model for treatment nuisance E[T|X,W] (default: auto-selected).
-        - model_Y : estimator, optional
-            Model for outcome nuisance E[Y|X,W] (default: auto-selected).
-        - n_jobs : int, optional
-            Number of parallel jobs (default: -1).
-        - random_state : int, optional
-            Random seed for reproducibility.
 
     Attributes
     ----------
-    capabilities : EstimatorCapabilites
+    capabilities : EstimatorCapabilities
         Metadata describing the estimator's supported treatment/outcome types,
         estimands, and inference methods.
     clean_name : str
@@ -65,17 +44,17 @@ class WrappedDMLOrthoForest(BaseWrapperMixin):
 
     [`BaseWrapperMixin`](base.qmd#caml.estimators.base.BaseWrapperMixin) : Mixin providing common wrapper functionality.
 
-    [`AutoCateEstimator`](estimator.qmd#caml.protocols.estimator.AutoCateEstimator) : Protocol this wrapper implements.
+    [`AutoCateEstimator`](base.qmd#caml.estimators.base.AutoCateEstimator) : Protocol this wrapper implements.
 
     Examples
     --------
     ```{python}
     from sklearn.linear_model import LassoCV, LogisticRegressionCV
 
-    from caml.estimators.wrappers.orf import WrappedDMLOrthoForest
+    from caml.estimators.orf import WrappedDMLOrthoForest
     from caml.data import CausalDataset, TreatmentType, OutcomeType
     from caml.extensions.synthetic_data import SyntheticDataGenerator
-    from caml.protocols import AutoCateEstimator
+    from caml.estimators import AutoCateEstimator
 
     # Generate synthetic data
     gen = SyntheticDataGenerator(
@@ -115,28 +94,41 @@ class WrappedDMLOrthoForest(BaseWrapperMixin):
     ```
     """
 
-    capabilities = EstimatorCapabilities(
-        treatment_types={
-            TreatmentType.BINARY,
-            TreatmentType.CONTINUOUS,
-        },
-        outcome_types={OutcomeType.CONTINUOUS},
-        inference_types={InferenceType.BOOTSTRAP},
-        estimands={
-            Estimand.ATE,
-            Estimand.CATE,
-        },
-        supports_confounders_in_first_stage_only=True,
-        supports_weights=False,
-        requires_propensity=True,
-        supports_inference=True,
-    )
-    clean_name = "DMLOrthoForest"
-
     def __init__(self, **econml_kwargs):
         self._econml_kwargs = econml_kwargs
         self._estimator = DMLOrthoForest(**self._econml_kwargs)
         self._is_fitted = False
+
+    @property
+    def capabilities(self) -> EstimatorCapabilities:
+        """Metadata describing the estimator's supported treatment/outcome types, estimands, and inference methods."""
+        return EstimatorCapabilities(
+            treatment_types={
+                TreatmentType.BINARY,
+                TreatmentType.CONTINUOUS,
+                TreatmentType.MULTI,
+            },
+            outcome_types={OutcomeType.CONTINUOUS, OutcomeType.BINARY},
+            inference_types={InferenceType.BOOTSTRAP},
+            estimands={
+                Estimand.ATE,
+                Estimand.CATE,
+                Estimand.ATT,
+                Estimand.ATC,
+                Estimand.GATE,
+            },
+            supports_controls_in_first_stage_only=True,
+            supports_weights=False,
+            requires_treatment_model=True,
+            requires_outcome_model=True,
+            requires_regression_model=False,
+            supports_inference=True,
+        )
+
+    @property
+    def clean_name(self) -> str:
+        """Human-readable name for the estimator."""
+        return "DMLOrthoForest"
 
     def fit(
         self,
@@ -165,13 +157,9 @@ class WrappedDMLOrthoForest(BaseWrapperMixin):
         """
         self.check_compatibility(data, raise_error=True)
 
-        init_kwargs = self._econml_kwargs.copy()
-
-        init_kwargs["discrete_treatment"] = (
+        self._estimator.discrete_treatment = (
             True if data.treatment_type.is_discrete() else False
         )
-
-        self._estimator = DMLOrthoForest(**init_kwargs)
 
         self._estimator.fit(
             Y=data.Y,
@@ -199,38 +187,17 @@ class WrappedDROrthoForest(BaseWrapperMixin):
     Provides robustness to misspecification of either propensity or outcome model.
     Supports binary and continuous treatments with continuous outcomes.
 
+    *Note: All attributes and methods on the underlying EconML estimator are accessible
+    via this wrapper through delegation, if not explicitly overridden.*
+
     Parameters
     ----------
     **econml_kwargs
         Keyword arguments passed directly to ``econml.orf.DROrthoForest``.
-        Common parameters include:
-
-        - n_trees : int, optional
-            Number of trees in the forest (default: 500).
-        - max_depth : int, optional
-            Maximum depth of trees (default: None, unlimited).
-        - min_leaf_size : int, optional
-            Minimum number of samples in a leaf (default: 10).
-        - max_splits : int, optional
-            Maximum number of splits to consider for each feature (default: 10).
-        - subsample_ratio : float, optional
-            Ratio of samples to use for each tree (default: 0.7).
-        - bootstrap : bool, optional
-            Whether to use bootstrap sampling (default: False).
-        - lambda_reg : float, optional
-            Regularization parameter for ridge regression in leaves (default: 0.01).
-        - propensity_model : estimator, optional
-            Model for propensity score E[T|X,W] (default: auto-selected).
-        - model_Y : estimator, optional
-            Model for outcome E[Y|X,W,T] (default: auto-selected).
-        - n_jobs : int, optional
-            Number of parallel jobs (default: -1).
-        - random_state : int, optional
-            Random seed for reproducibility.
 
     Attributes
     ----------
-    capabilities : EstimatorCapabilites
+    capabilities : EstimatorCapabilities
         Metadata describing the estimator's supported treatment/outcome types,
         estimands, and inference methods.
     clean_name : str
@@ -242,17 +209,17 @@ class WrappedDROrthoForest(BaseWrapperMixin):
 
     [`BaseWrapperMixin`](base.qmd#caml.estimators.base.BaseWrapperMixin) : Mixin providing common wrapper functionality.
 
-    [`AutoCateEstimator`](estimator.qmd#caml.protocols.estimator.AutoCateEstimator) : Protocol this wrapper implements.
+    [`AutoCateEstimator`](base.qmd#caml.estimators.base.AutoCateEstimator) : Protocol this wrapper implements.
 
     Examples
     --------
     ```{python}
     from sklearn.linear_model import LassoCV, LogisticRegressionCV
 
-    from caml.estimators.wrappers.orf import WrappedDROrthoForest
+    from caml.estimators.orf import WrappedDROrthoForest
     from caml.data import CausalDataset, TreatmentType, OutcomeType
     from caml.extensions.synthetic_data import SyntheticDataGenerator
-    from caml.protocols import AutoCateEstimator
+    from caml.estimators import AutoCateEstimator
 
     # Generate synthetic data
     gen = SyntheticDataGenerator(
@@ -292,27 +259,37 @@ class WrappedDROrthoForest(BaseWrapperMixin):
     ```
     """
 
-    capabilities = EstimatorCapabilities(
-        treatment_types={
-            TreatmentType.BINARY,
-        },
-        outcome_types={OutcomeType.CONTINUOUS},
-        inference_types={InferenceType.BOOTSTRAP},
-        estimands={
-            Estimand.ATE,
-            Estimand.CATE,
-        },
-        supports_confounders_in_first_stage_only=True,
-        supports_weights=False,
-        requires_propensity=True,
-        supports_inference=True,
-    )
-    clean_name = "DROrthoForest"
-
     def __init__(self, **econml_kwargs):
         self._econml_kwargs = econml_kwargs
         self._estimator = DROrthoForest(**self._econml_kwargs)
         self._is_fitted = False
+
+    @property
+    def capabilities(self) -> EstimatorCapabilities:
+        """Metadata describing the estimator's supported treatment/outcome types, estimands, and inference methods."""
+        return EstimatorCapabilities(
+            treatment_types={TreatmentType.BINARY, TreatmentType.MULTI},
+            outcome_types={OutcomeType.CONTINUOUS, OutcomeType.BINARY},
+            inference_types={InferenceType.BOOTSTRAP},
+            estimands={
+                Estimand.ATE,
+                Estimand.CATE,
+                Estimand.ATT,
+                Estimand.ATC,
+                Estimand.GATE,
+            },
+            supports_controls_in_first_stage_only=True,
+            supports_weights=False,
+            requires_treatment_model=True,
+            requires_outcome_model=False,
+            requires_regression_model=True,
+            supports_inference=True,
+        )
+
+    @property
+    def clean_name(self) -> str:
+        """Human-readable name for the estimator."""
+        return "DROrthoForest"
 
     def fit(
         self,
@@ -340,10 +317,6 @@ class WrappedDROrthoForest(BaseWrapperMixin):
         to model misspecification.
         """
         self.check_compatibility(data, raise_error=True)
-
-        init_kwargs = self._econml_kwargs.copy()
-
-        self._estimator = DROrthoForest(**init_kwargs)
 
         self._estimator.fit(
             Y=data.Y,

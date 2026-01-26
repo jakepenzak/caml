@@ -104,10 +104,10 @@ Complete validation utilities including:
 
 ```python
 """Protocol definitions for estimators and inference providers."""
-from caml.protocols.estimator import CATEEstimator, EstimatorCapabilites
+from caml.protocols.estimator import CATEEstimator, EstimatorCapabilities
 from caml.protocols.inference import InferenceProvider
 
-__all__ = ["CATEEstimator", "EstimatorCapabilites", "InferenceProvider"]
+__all__ = ["CATEEstimator", "EstimatorCapabilities", "InferenceProvider"]
 ```
 
 ### protocols/estimator.py
@@ -115,7 +115,7 @@ __all__ = ["CATEEstimator", "EstimatorCapabilites", "InferenceProvider"]
 **Status**: ✅ **IMPLEMENTED**
 
 Key implementation details:
-- `EstimatorCapabilites` dataclass (frozen) with:
+- `EstimatorCapabilities` dataclass (frozen) with:
   - `treatment_types`: set of supported TreatmentType
   - `outcome_types`: set of supported OutcomeType
   - `inference_types`: set of supported InferenceType
@@ -125,7 +125,7 @@ Key implementation details:
   - `is_compatible(data)`: method to check dataset compatibility
 
 - `CATEEstimator` Protocol with:
-  - `capabilities`: EstimatorCapabilites property
+  - `capabilities`: EstimatorCapabilities property
   - `fit(data: CausalDataset, **kwargs)`: fit method
   - `effect(X, **kwargs)`: predict CATE method (note: uses "effect" not "predict_cate")
   - `get_params(deep=True)`: sklearn-compatible param getter
@@ -198,7 +198,7 @@ Current status:
 - Methods include: `fit()`, `predict()`, `_estimate_ate()`, `_estimate_gate()`, `_estimate_cate()`
 
 **Refactoring needed**:
-1. Add `capabilities` property returning `EstimatorCapabilites`
+1. Add `capabilities` property returning `EstimatorCapabilities`
 2. Adapt `fit()` to accept `CausalDataset` (currently expects DataFrame)
 3. Add/adapt `effect()` method to match `CATEEstimator` protocol
 4. Ensure `get_params()`/`set_params()` are compatible with sklearn interface
@@ -221,8 +221,8 @@ class InteractiveLinearRegression(BaseCamlEstimator, OLSMixin):
 ```python
 class InteractiveLinearRegression(BaseCamlEstimator, OLSMixin):
     @property
-    def capabilities(self) -> EstimatorCapabilites:
-        return EstimatorCapabilites(
+    def capabilities(self) -> EstimatorCapabilities:
+        return EstimatorCapabilities(
             treatment_types={TreatmentType.BINARY, TreatmentType.CONTINUOUS},
             outcome_types={OutcomeType.CONTINUOUS, OutcomeType.BINARY},
             inference_types={InferenceType.ANALYTIC},
@@ -1672,7 +1672,7 @@ caml/
 2. **`registry/` vs `modeling/`**: Directory renamed to `registry/`
 3. **`extensions/`**: New module added with SyntheticDataGenerator and plots
 4. **`effect()` vs `predict_cate()`**: Protocol uses `effect()` as method name
-5. **`EstimatorCapabilites` vs `EstimatorCapabilities`**: Typo in implementation (missing 'i')
+5. **`EstimatorCapabilities` vs `EstimatorCapabilities`**: Typo in implementation (missing 'i')
 6. **`uplift_.py` vs `uplift.py`**: File has underscore suffix
 
 ---
@@ -1744,7 +1744,7 @@ Based on REFACTORING_PLAN.md Phase breakdown (UPDATED PRIORITY):
 ## Critical Notes for Implementation
 
 1. **Method naming**: Use `effect()` not `predict_cate()` per protocol
-2. **Typo fix**: `EstimatorCapabilites` should be `EstimatorCapabilities`
+2. **Typo fix**: `EstimatorCapabilities` should be `EstimatorCapabilities`
 3. **Directory names**: Use actual names (`sampling/`, `registry/`) not planned names
 4. **SyntheticDataGenerator**: Already available for testing implementations
 5. **InteractiveLinearRegression**: Preserve existing functionality while adding protocol compliance

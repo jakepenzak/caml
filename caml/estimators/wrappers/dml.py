@@ -15,9 +15,8 @@ from econml.dml import (
 )
 
 from caml.data import CausalDataset, Estimand, OutcomeType, TreatmentType
-from caml.estimators.base import BaseWrapperMixin
+from caml.estimators.base import BaseWrapperMixin, EstimatorCapabilities
 from caml.inference import InferenceType
-from caml.protocols import EstimatorCapabilities
 
 
 class WrappedLinearDML(BaseWrapperMixin):
@@ -26,6 +25,9 @@ class WrappedLinearDML(BaseWrapperMixin):
     LinearDML estimates CATE using Double Machine Learning with a linear final model.
     Supports binary, multi-valued, and continuous treatments with continuous outcomes.
     Provides analytic confidence intervals via debiased moment conditions.
+
+    *Note: All attributes and methods on the underlying EconML estimator are accessible
+    via this wrapper through delegation, if not explicitly overridden.*
 
     Parameters
     ----------
@@ -46,7 +48,7 @@ class WrappedLinearDML(BaseWrapperMixin):
 
     [`BaseWrapperMixin`](base.qmd#caml.estimators.base.BaseWrapperMixin) : Mixin providing common wrapper functionality.
 
-    [`AutoCateEstimator`](estimator.qmd#caml.protocols.estimator.AutoCateEstimator) : Protocol this wrapper implements.
+    [`AutoCateEstimator`](base.qmd#caml.estimators.base.AutoCateEstimator) : Protocol this wrapper implements.
 
     Examples
     --------
@@ -56,7 +58,7 @@ class WrappedLinearDML(BaseWrapperMixin):
     from caml.estimators.dml import WrappedLinearDML
     from caml.data import CausalDataset, TreatmentType, OutcomeType
     from caml.extensions.synthetic_data import SyntheticDataGenerator
-    from caml.protocols import AutoCateEstimator
+    from caml.estimators import AutoCateEstimator
 
     # Generate synthetic data
     gen = SyntheticDataGenerator(
@@ -93,32 +95,41 @@ class WrappedLinearDML(BaseWrapperMixin):
     ```
     """
 
-    capabilities = EstimatorCapabilities(
-        treatment_types={
-            TreatmentType.BINARY,
-            TreatmentType.CONTINUOUS,
-            TreatmentType.MULTI,
-        },
-        outcome_types={OutcomeType.CONTINUOUS, OutcomeType.BINARY},
-        inference_types={InferenceType.ANALYTIC, InferenceType.BOOTSTRAP},
-        estimands={
-            Estimand.ATE,
-            Estimand.ATT,
-            Estimand.ATC,
-            Estimand.CATE,
-            Estimand.GATE,
-        },
-        supports_confounders_in_first_stage_only=True,
-        supports_weights=True,
-        requires_propensity=True,
-        supports_inference=True,
-    )
-    clean_name = "LinearDML"
-
     def __init__(self, **econml_kwargs):
         self._econml_kwargs = econml_kwargs
         self._estimator = LinearDML(**self._econml_kwargs)
         self._is_fitted = False
+
+    @property
+    def capabilities(self) -> EstimatorCapabilities:
+        """Metadata describing the estimator's supported treatment/outcome types, estimands, and inference methods."""
+        return EstimatorCapabilities(
+            treatment_types={
+                TreatmentType.BINARY,
+                TreatmentType.CONTINUOUS,
+                TreatmentType.MULTI,
+            },
+            outcome_types={OutcomeType.CONTINUOUS, OutcomeType.BINARY},
+            inference_types={InferenceType.ANALYTIC, InferenceType.BOOTSTRAP},
+            estimands={
+                Estimand.ATE,
+                Estimand.ATT,
+                Estimand.ATC,
+                Estimand.CATE,
+                Estimand.GATE,
+            },
+            supports_controls_in_first_stage_only=True,
+            supports_weights=True,
+            requires_treatment_model=True,
+            requires_outcome_model=True,
+            requires_regression_model=False,
+            supports_inference=True,
+        )
+
+    @property
+    def clean_name(self) -> str:
+        """Human-readable name for the estimator."""
+        return "LinearDML"
 
     def fit(
         self,
@@ -127,16 +138,12 @@ class WrappedLinearDML(BaseWrapperMixin):
     ) -> WrappedLinearDML:
         self.check_compatibility(data, raise_error=True)
 
-        init_kwargs = self._econml_kwargs.copy()
-
-        init_kwargs["discrete_treatment"] = (
-            True if data.treatment_type.is_discrete() else False
-        )
-        init_kwargs["discrete_outcome"] = (
+        self._estimator.discrete_outcome = (
             True if data.outcome_type.is_discrete() else False
         )
-
-        self._estimator = LinearDML(**init_kwargs)
+        self._estimator.discrete_treatment = (
+            True if data.treatment_type.is_discrete() else False
+        )
 
         self._estimator.fit(
             Y=data.Y,
@@ -144,6 +151,7 @@ class WrappedLinearDML(BaseWrapperMixin):
             X=data.X if data.X.size > 0 else None,
             W=data.W if data.W is not None and data.W.size > 0 else None,
             sample_weight=data.weights if data.weights is not None else None,
+            **fit_kwargs,
         )
 
         self._is_fitted = True
@@ -164,52 +172,39 @@ class WrappedSparseLinearDML(BaseWrapperMixin):
     final model for feature selection. Supports binary, multi-valued, and continuous treatments
     with continuous outcomes. Provides analytic confidence intervals via debiased Lasso.
 
+    *Note: All attributes and methods on the underlying EconML estimator are accessible
+    via this wrapper through delegation, if not explicitly overridden.*
+
     Parameters
     ----------
     **econml_kwargs
         Keyword arguments passed directly to ``econml.dml.SparseLinearDML``.
-        Common parameters include:
-
-        - model_y : estimator, optional
-            Model for outcome nuisance function E[Y|X,W] (default: auto-selected).
-        - model_t : estimator, optional
-            Model for treatment nuisance function E[T|X,W] (default: auto-selected).
-        - alpha : float or array-like, optional
-            Regularization strength for Lasso (default: 'auto').
-        - cv : int, optional
-            Number of cross-validation folds (default: 3).
-        - max_iter : int, optional
-            Maximum number of iterations for Lasso (default: 10000).
-        - tol : float, optional
-            Tolerance for Lasso convergence (default: 1e-4).
-        - random_state : int, optional
-            Random seed for reproducibility.
 
     Attributes
     ----------
-    capabilities : EstimatorCapabilites
+    capabilities : EstimatorCapabilities
         Metadata describing the estimator's supported treatment/outcome types,
         estimands, and inference methods.
     clean_name : str
-        Human-readable name for the estimator ("SparseLinearDML").
+        Human-readable tests/caml/estimators/wrappers/test_orf.pyname for the estimator ("SparseLinearDML").
 
     See Also
     --------
-    [EconML SparseLinearDML](https://www.pywhy.org/econml/_autosummary/econml.dml.SparseLinearDML.html) : Official documentation for EconML's SparseLinearDML.
+    [EconML SparseLinearDML](https://www.pywhy.org/EconML/_autosummary/econml.dml.SparseLinearDML.html) : Official documentation for EconML's SparseLinearDML.
 
     [`BaseWrapperMixin`](base.qmd#caml.estimators.base.BaseWrapperMixin) : Mixin providing common wrapper functionality.
 
-    [`AutoCateEstimator`](estimator.qmd#caml.protocols.estimator.AutoCateEstimator) : Protocol this wrapper implements.
+    [`AutoCateEstimator`](base.qmd#caml.estimators.base.AutoCateEstimator) : Protocol this wrapper implements.
 
     Examples
     --------
     ```{python}
     from sklearn.linear_model import LinearRegression, LogisticRegression
 
-    from caml.estimators.wrappers.dml import WrappedSparseLinearDML
+    from caml.estimators.dml import WrappedSparseLinearDML
     from caml.data import CausalDataset, TreatmentType, OutcomeType
     from caml.extensions.synthetic_data import SyntheticDataGenerator
-    from caml.protocols import AutoCateEstimator
+    from caml.estimators import AutoCateEstimator
 
     # Generate synthetic data with many features
     gen = SyntheticDataGenerator(
@@ -250,32 +245,41 @@ class WrappedSparseLinearDML(BaseWrapperMixin):
     ```
     """
 
-    capabilities = EstimatorCapabilities(
-        treatment_types={
-            TreatmentType.BINARY,
-            TreatmentType.CONTINUOUS,
-            TreatmentType.MULTI,
-        },
-        outcome_types={OutcomeType.CONTINUOUS, OutcomeType.BINARY},
-        inference_types={InferenceType.ANALYTIC, InferenceType.BOOTSTRAP},
-        estimands={
-            Estimand.ATE,
-            Estimand.ATT,
-            Estimand.ATC,
-            Estimand.CATE,
-            Estimand.GATE,
-        },
-        supports_confounders_in_first_stage_only=True,
-        supports_weights=True,
-        requires_propensity=True,
-        supports_inference=True,
-    )
-    clean_name = "SparseLinearDML"
-
     def __init__(self, **econml_kwargs):
         self._econml_kwargs = econml_kwargs
         self._estimator = SparseLinearDML(**self._econml_kwargs)
         self._is_fitted = False
+
+    @property
+    def capabilities(self) -> EstimatorCapabilities:
+        """Metadata describing the estimator's supported treatment/outcome types, estimands, and inference methods."""
+        return EstimatorCapabilities(
+            treatment_types={
+                TreatmentType.BINARY,
+                TreatmentType.CONTINUOUS,
+                TreatmentType.MULTI,
+            },
+            outcome_types={OutcomeType.CONTINUOUS, OutcomeType.BINARY},
+            inference_types={InferenceType.ANALYTIC, InferenceType.BOOTSTRAP},
+            estimands={
+                Estimand.ATE,
+                Estimand.ATT,
+                Estimand.ATC,
+                Estimand.CATE,
+                Estimand.GATE,
+            },
+            supports_controls_in_first_stage_only=True,
+            supports_weights=True,
+            requires_treatment_model=True,
+            requires_outcome_model=True,
+            requires_regression_model=False,
+            supports_inference=True,
+        )
+
+    @property
+    def clean_name(self) -> str:
+        """Human-readable name for the estimator."""
+        return "SparseLinearDML"
 
     def fit(
         self,
@@ -303,16 +307,12 @@ class WrappedSparseLinearDML(BaseWrapperMixin):
         """
         self.check_compatibility(data, raise_error=True)
 
-        init_kwargs = self._econml_kwargs.copy()
-
-        init_kwargs["discrete_treatment"] = (
-            True if data.treatment_type.is_discrete() else False
-        )
-        init_kwargs["discrete_outcome"] = (
+        self._estimator.discrete_outcome = (
             True if data.outcome_type.is_discrete() else False
         )
-
-        self._estimator = SparseLinearDML(**init_kwargs)
+        self._estimator.discrete_treatment = (
+            True if data.treatment_type.is_discrete() else False
+        )
 
         self._estimator.fit(
             Y=data.Y,
@@ -320,6 +320,7 @@ class WrappedSparseLinearDML(BaseWrapperMixin):
             X=data.X if data.X.size > 0 else None,
             W=data.W if data.W is not None and data.W.size > 0 else None,
             sample_weight=data.weights if data.weights is not None else None,
+            **fit_kwargs,
         )
 
         self._is_fitted = True
@@ -341,36 +342,17 @@ class WrappedCausalForestDML(BaseWrapperMixin):
     estimation. Supports binary, multi-valued, and continuous treatments with continuous
     outcomes. Provides bootstrap confidence intervals.
 
+    *Note: All attributes and methods on the underlying EconML estimator are accessible
+    via this wrapper through delegation, if not explicitly overridden.*
+
     Parameters
     ----------
     **econml_kwargs
         Keyword arguments passed directly to ``econml.dml.CausalForestDML``.
-        Common parameters include:
-
-        - model_y : estimator, optional
-            Model for outcome nuisance function E[Y|X,W] (default: auto-selected).
-        - model_t : estimator, optional
-            Model for treatment nuisance function E[T|X,W] (default: auto-selected).
-        - n_estimators : int, optional
-            Number of trees in the forest (default: 100).
-        - max_depth : int, optional
-            Maximum depth of trees (default: None).
-        - min_samples_split : int, optional
-            Minimum samples required to split an internal node (default: 10).
-        - min_samples_leaf : int, optional
-            Minimum samples required in a leaf node (default: 5).
-        - min_var_fraction_leaf : float, optional
-            Minimum fraction of variance required in leaf (default: None).
-        - min_var_leaf_on_val : bool, optional
-            Whether to use validation data for leaf variance (default: False).
-        - cv : int, optional
-            Number of cross-validation folds (default: 3).
-        - random_state : int, optional
-            Random seed for reproducibility.
 
     Attributes
     ----------
-    capabilities : EstimatorCapabilites
+    capabilities : EstimatorCapabilities
         Metadata describing the estimator's supported treatment/outcome types,
         estimands, and inference methods.
     clean_name : str
@@ -378,21 +360,21 @@ class WrappedCausalForestDML(BaseWrapperMixin):
 
     See Also
     --------
-    [EconML CausalForestDML](https://www.pywhy.org/econml/_autosummary/econml.dml.CausalForestDML.html) : Official documentation for EconML's CausalForestDML.
+    [EconML CausalForestDML](https://www.pywhy.org/EconML/_autosummary/econml.dml.CausalForestDML.html) : Official documentation for EconML's CausalForestDML.
 
     [`BaseWrapperMixin`](base.qmd#caml.estimators.base.BaseWrapperMixin) : Mixin providing common wrapper functionality.
 
-    [`AutoCateEstimator`](estimator.qmd#caml.protocols.estimator.AutoCateEstimator) : Protocol this wrapper implements.
+    [`AutoCateEstimator`](base.qmd#caml.estimators.base.AutoCateEstimator) : Protocol this wrapper implements.
 
     Examples
     --------
     ```{python}
     from sklearn.ensemble import RandomForestRegressor, RandomForestClassifier
 
-    from caml.estimators.wrappers.dml import WrappedCausalForestDML
+    from caml.estimators.dml import WrappedCausalForestDML
     from caml.data import CausalDataset, TreatmentType, OutcomeType
     from caml.extensions.synthetic_data import SyntheticDataGenerator
-    from caml.protocols import AutoCateEstimator
+    from caml.estimators import AutoCateEstimator
 
     # Generate synthetic data with nonlinear effects
     gen = SyntheticDataGenerator(
@@ -432,32 +414,41 @@ class WrappedCausalForestDML(BaseWrapperMixin):
     ```
     """
 
-    capabilities = EstimatorCapabilities(
-        treatment_types={
-            TreatmentType.BINARY,
-            TreatmentType.CONTINUOUS,
-            TreatmentType.MULTI,
-        },
-        outcome_types={OutcomeType.CONTINUOUS},
-        inference_types={InferenceType.BOOTSTRAP},
-        estimands={
-            Estimand.ATE,
-            Estimand.ATT,
-            Estimand.ATC,
-            Estimand.CATE,
-            Estimand.GATE,
-        },
-        supports_confounders_in_first_stage_only=True,
-        supports_weights=True,
-        requires_propensity=True,
-        supports_inference=True,
-    )
-    clean_name = "CausalForestDML"
-
     def __init__(self, **econml_kwargs):
         self._econml_kwargs = econml_kwargs
         self._estimator = CausalForestDML(**self._econml_kwargs)
         self._is_fitted = False
+
+    @property
+    def capabilities(self) -> EstimatorCapabilities:
+        """Metadata describing the estimator's supported treatment/outcome types, estimands, and inference methods."""
+        return EstimatorCapabilities(
+            treatment_types={
+                TreatmentType.BINARY,
+                TreatmentType.CONTINUOUS,
+                TreatmentType.MULTI,
+            },
+            outcome_types={OutcomeType.CONTINUOUS, OutcomeType.BINARY},
+            inference_types={InferenceType.BOOTSTRAP},
+            estimands={
+                Estimand.ATE,
+                Estimand.ATT,
+                Estimand.ATC,
+                Estimand.CATE,
+                Estimand.GATE,
+            },
+            supports_controls_in_first_stage_only=True,
+            supports_weights=True,
+            requires_treatment_model=True,
+            requires_outcome_model=True,
+            requires_regression_model=False,
+            supports_inference=True,
+        )
+
+    @property
+    def clean_name(self) -> str:
+        """Human-readable name for the estimator."""
+        return "CausalForestDML"
 
     def fit(
         self,
@@ -485,13 +476,12 @@ class WrappedCausalForestDML(BaseWrapperMixin):
         """
         self.check_compatibility(data, raise_error=True)
 
-        init_kwargs = self._econml_kwargs.copy()
-
-        init_kwargs["discrete_treatment"] = (
+        self._estimator.discrete_outcome = (
+            True if data.outcome_type.is_discrete() else False
+        )
+        self._estimator.discrete_treatment = (
             True if data.treatment_type.is_discrete() else False
         )
-
-        self._estimator = CausalForestDML(**init_kwargs)
 
         self._estimator.fit(
             Y=data.Y,
@@ -499,6 +489,7 @@ class WrappedCausalForestDML(BaseWrapperMixin):
             X=data.X if data.X.size > 0 else None,
             W=data.W if data.W is not None and data.W.size > 0 else None,
             sample_weight=data.weights if data.weights is not None else None,
+            **fit_kwargs,
         )
 
         self._is_fitted = True
@@ -519,27 +510,17 @@ class WrappedNonParamDML(BaseWrapperMixin):
     final model. Supports binary and continuous treatments with continuous outcomes.
     Provides bootstrap confidence intervals only (no analytic inference).
 
+    *Note: All attributes and methods on the underlying EconML estimator are accessible
+    via this wrapper through delegation, if not explicitly overridden.*
+
     Parameters
     ----------
     **econml_kwargs
         Keyword arguments passed directly to ``econml.dml.NonParamDML``.
-        Common parameters include:
-
-        - model_y : estimator, optional
-            Model for outcome nuisance function E[Y|X,W] (default: auto-selected).
-        - model_t : estimator, optional
-            Model for treatment nuisance function E[T|X,W] (default: auto-selected).
-        - model_final : estimator, optional
-            Final model for CATE estimation (default: auto-selected).
-            Common choices: KernelRidge, RandomForestRegressor, GradientBoostingRegressor.
-        - cv : int, optional
-            Number of cross-validation folds (default: 3).
-        - random_state : int, optional
-            Random seed for reproducibility.
 
     Attributes
     ----------
-    capabilities : EstimatorCapabilites
+    capabilities : EstimatorCapabilities
         Metadata describing the estimator's supported treatment/outcome types,
         estimands, and inference methods.
     clean_name : str
@@ -547,21 +528,21 @@ class WrappedNonParamDML(BaseWrapperMixin):
 
     See Also
     --------
-    [EconML NonParamDML](https://www.pywhy.org/econml/_autosummary/econml.dml.NonParamDML.html) : Official documentation for EconML's NonParamDML.
+    [EconML NonParamDML](https://www.pywhy.org/EconML/_autosummary/econml.dml.NonParamDML.html) : Official documentation for EconML's NonParamDML.
 
     [`BaseWrapperMixin`](base.qmd#caml.estimators.base.BaseWrapperMixin) : Mixin providing common wrapper functionality.
 
-    [`AutoCateEstimator`](estimator.qmd#caml.protocols.estimator.AutoCateEstimator) : Protocol this wrapper implements.
+    [`AutoCateEstimator`](base.qmd#caml.estimators.base.AutoCateEstimator) : Protocol this wrapper implements.
 
     Examples
     --------
     ```{python}
     from sklearn.ensemble import RandomForestRegressor, GradientBoostingRegressor
 
-    from caml.estimators.wrappers.dml import WrappedNonParamDML
+    from caml.estimators.dml import WrappedNonParamDML
     from caml.data import CausalDataset, TreatmentType, OutcomeType
     from caml.extensions.synthetic_data import SyntheticDataGenerator
-    from caml.protocols import AutoCateEstimator
+    from caml.estimators import AutoCateEstimator
 
     # Generate synthetic data
     gen = SyntheticDataGenerator(
@@ -598,31 +579,40 @@ class WrappedNonParamDML(BaseWrapperMixin):
     ```
     """
 
-    capabilities = EstimatorCapabilities(
-        treatment_types={
-            TreatmentType.BINARY,
-            TreatmentType.CONTINUOUS,
-        },
-        outcome_types={OutcomeType.CONTINUOUS},
-        inference_types={InferenceType.BOOTSTRAP},
-        estimands={
-            Estimand.ATE,
-            Estimand.ATT,
-            Estimand.ATC,
-            Estimand.CATE,
-            Estimand.GATE,
-        },
-        supports_confounders_in_first_stage_only=True,
-        supports_weights=True,
-        requires_propensity=True,
-        supports_inference=True,
-    )
-    clean_name = "NonParamDML"
-
     def __init__(self, **econml_kwargs):
         self._econml_kwargs = econml_kwargs
         self._estimator = NonParamDML(**self._econml_kwargs)
         self._is_fitted = False
+
+    @property
+    def capabilities(self) -> EstimatorCapabilities:
+        """Metadata describing the estimator's supported treatment/outcome types, estimands, and inference methods."""
+        return EstimatorCapabilities(
+            treatment_types={
+                TreatmentType.BINARY,
+                TreatmentType.CONTINUOUS,
+            },
+            outcome_types={OutcomeType.CONTINUOUS, OutcomeType.BINARY},
+            inference_types={InferenceType.BOOTSTRAP},
+            estimands={
+                Estimand.ATE,
+                Estimand.ATT,
+                Estimand.ATC,
+                Estimand.CATE,
+                Estimand.GATE,
+            },
+            supports_controls_in_first_stage_only=True,
+            supports_weights=True,
+            requires_treatment_model=True,
+            requires_outcome_model=True,
+            requires_regression_model=False,
+            supports_inference=True,
+        )
+
+    @property
+    def clean_name(self) -> str:
+        """Human-readable name for the estimator."""
+        return "NonParamDML"
 
     def fit(
         self,
@@ -650,13 +640,12 @@ class WrappedNonParamDML(BaseWrapperMixin):
         """
         self.check_compatibility(data, raise_error=True)
 
-        init_kwargs = self._econml_kwargs.copy()
-
-        init_kwargs["discrete_treatment"] = (
+        self._estimator.discrete_outcome = (
+            True if data.outcome_type.is_discrete() else False
+        )
+        self._estimator.discrete_treatment = (
             True if data.treatment_type.is_discrete() else False
         )
-
-        self._estimator = NonParamDML(**init_kwargs)
 
         self._estimator.fit(
             Y=data.Y,
@@ -664,6 +653,7 @@ class WrappedNonParamDML(BaseWrapperMixin):
             X=data.X if data.X.size > 0 else None,
             W=data.W if data.W is not None and data.W.size > 0 else None,
             sample_weight=data.weights if data.weights is not None else None,
+            **fit_kwargs,
         )
 
         self._is_fitted = True
@@ -685,34 +675,17 @@ class WrappedKernelDML(BaseWrapperMixin):
     binary and continuous treatments with continuous outcomes. Provides bootstrap confidence
     intervals only.
 
+    *Note: All attributes and methods on the underlying EconML estimator are accessible
+    via this wrapper through delegation, if not explicitly overridden.*
+
     Parameters
     ----------
     **econml_kwargs
         Keyword arguments passed directly to ``econml.dml.KernelDML``.
-        Common parameters include:
-
-        - model_y : estimator, optional
-            Model for outcome nuisance function E[Y|X,W] (default: auto-selected).
-        - model_t : estimator, optional
-            Model for treatment nuisance function E[T|X,W] (default: auto-selected).
-        - kernel : str, optional
-            Kernel type ('rbf', 'poly', 'sigmoid', 'linear') (default: 'rbf').
-        - gamma : float, optional
-            Kernel coefficient for 'rbf', 'poly', 'sigmoid' (default: None).
-        - degree : int, optional
-            Degree of polynomial kernel (default: 3).
-        - coef0 : float, optional
-            Independent term in kernel function (default: 1.0).
-        - alpha : float, optional
-            Regularization strength (default: 1.0).
-        - cv : int, optional
-            Number of cross-validation folds (default: 3).
-        - random_state : int, optional
-            Random seed for reproducibility.
 
     Attributes
     ----------
-    capabilities : EstimatorCapabilites
+    capabilities : EstimatorCapabilities
         Metadata describing the estimator's supported treatment/outcome types,
         estimands, and inference methods.
     clean_name : str
@@ -720,21 +693,21 @@ class WrappedKernelDML(BaseWrapperMixin):
 
     See Also
     --------
-    [EconML KernelDML](https://www.pywhy.org/econml/_autosummary/econml.dml.KernelDML.html) : Official documentation for EconML's KernelDML.
+    [EconML KernelDML](https://www.pywhy.org/EconML/_autosummary/econml.dml.KernelDML.html) : Official documentation for EconML's KernelDML.
 
     [`BaseWrapperMixin`](base.qmd#caml.estimators.base.BaseWrapperMixin) : Mixin providing common wrapper functionality.
 
-    [`AutoCateEstimator`](estimator.qmd#caml.protocols.estimator.AutoCateEstimator) : Protocol this wrapper implements.
+    [`AutoCateEstimator`](base.qmd#caml.estimators.base.AutoCateEstimator) : Protocol this wrapper implements.
 
     Examples
     --------
     ```{python}
     from sklearn.ensemble import GradientBoostingRegressor, GradientBoostingClassifier
 
-    from caml.estimators.wrappers.dml import WrappedKernelDML
+    from caml.estimators.dml import WrappedKernelDML
     from caml.data import CausalDataset, TreatmentType, OutcomeType
     from caml.extensions.synthetic_data import SyntheticDataGenerator
-    from caml.protocols import AutoCateEstimator
+    from caml.estimators import AutoCateEstimator
 
     # Generate synthetic data
     gen = SyntheticDataGenerator(
@@ -769,31 +742,41 @@ class WrappedKernelDML(BaseWrapperMixin):
     ```
     """
 
-    capabilities = EstimatorCapabilities(
-        treatment_types={
-            TreatmentType.BINARY,
-            TreatmentType.CONTINUOUS,
-        },
-        outcome_types={OutcomeType.CONTINUOUS},
-        inference_types={InferenceType.BOOTSTRAP},
-        estimands={
-            Estimand.ATE,
-            Estimand.ATT,
-            Estimand.ATC,
-            Estimand.CATE,
-            Estimand.GATE,
-        },
-        supports_confounders_in_first_stage_only=True,
-        supports_weights=True,
-        requires_propensity=True,
-        supports_inference=True,
-    )
-    clean_name = "KernelDML"
-
     def __init__(self, **econml_kwargs):
         self._econml_kwargs = econml_kwargs
         self._estimator = KernelDML(**self._econml_kwargs)
         self._is_fitted = False
+
+    @property
+    def capabilities(self) -> EstimatorCapabilities:
+        """Metadata describing the estimator's supported treatment/outcome types, estimands, and inference methods."""
+        return EstimatorCapabilities(
+            treatment_types={
+                TreatmentType.BINARY,
+                TreatmentType.CONTINUOUS,
+                TreatmentType.MULTI,
+            },
+            outcome_types={OutcomeType.CONTINUOUS, OutcomeType.BINARY},
+            inference_types={InferenceType.BOOTSTRAP, InferenceType.ANALYTIC},
+            estimands={
+                Estimand.ATE,
+                Estimand.ATT,
+                Estimand.ATC,
+                Estimand.CATE,
+                Estimand.GATE,
+            },
+            supports_controls_in_first_stage_only=True,
+            supports_weights=True,
+            requires_treatment_model=True,
+            requires_outcome_model=True,
+            requires_regression_model=False,
+            supports_inference=True,
+        )
+
+    @property
+    def clean_name(self) -> str:
+        """Human-readable name for the estimator."""
+        return "KernelDML"
 
     def fit(
         self,
@@ -821,13 +804,12 @@ class WrappedKernelDML(BaseWrapperMixin):
         """
         self.check_compatibility(data, raise_error=True)
 
-        init_kwargs = self._econml_kwargs.copy()
-
-        init_kwargs["discrete_treatment"] = (
+        self._estimator.discrete_outcome = (
+            True if data.outcome_type.is_discrete() else False
+        )
+        self._estimator.discrete_treatment = (
             True if data.treatment_type.is_discrete() else False
         )
-
-        self._estimator = KernelDML(**init_kwargs)
 
         self._estimator.fit(
             Y=data.Y,
@@ -835,6 +817,7 @@ class WrappedKernelDML(BaseWrapperMixin):
             X=data.X if data.X.size > 0 else None,
             W=data.W if data.W is not None and data.W.size > 0 else None,
             sample_weight=data.weights if data.weights is not None else None,
+            **fit_kwargs,
         )
 
         self._is_fitted = True

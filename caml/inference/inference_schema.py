@@ -29,22 +29,28 @@ class InferenceType(Enum):
     --------
     [`InferenceResult`](results.qmd#caml.inference.results.InferenceResult) : Container for inference outputs.
 
-    [`InferenceProvider`](inference.qmd#caml.protocols.inference.InferenceProvider) : Protocol for inference-capable estimators.
+    [`InferenceProvider`](base.qmd#caml.estimators.base.InferenceProvider) : Protocol for inference-capable estimators.
 
-    [`EstimatorCapabilities`](estimator.qmd#caml.protocols.estimator.EstimatorCapabilities) : Metadata including inference types.
+    [`EstimatorCapabilities`](base.qmd#caml.estimators.base.EstimatorCapabilities) : Metadata including inference types.
 
     Examples
     --------
     ```{python}
     from caml.data import TreatmentType, OutcomeType, Estimand
     from caml.inference import InferenceType
-    from caml.protocols import EstimatorCapabilities
+    from caml.estimators import EstimatorCapabilities
 
     capabilities = EstimatorCapabilities(
         treatment_types={TreatmentType.BINARY},
         outcome_types={OutcomeType.CONTINUOUS},
         inference_types={InferenceType.ANALYTIC, InferenceType.BOOTSTRAP},
-        estimands={Estimand.CATE}
+        estimands={Estimand.CATE},
+        supports_controls_in_first_stage_only=True,
+        supports_weights=True,
+        requires_treatment_model=True,
+        requires_outcome_model=True,
+        requires_regression_model=False,
+        supports_inference=True,
     )
 
     print(InferenceType.ANALYTIC in capabilities.inference_types)  # True

@@ -1,6 +1,11 @@
 import sys
 
-from .base import BaseWrapperMixin
+from .base import (
+    AutoCateEstimator,
+    BaseWrapperMixin,
+    EstimatorCapabilities,
+    InferenceProvider,
+)
 from .wrappers import dml, dr, meta, orf
 
 # Create aliases so `from caml.estimators.dml import X` works
@@ -9,4 +14,13 @@ sys.modules["caml.estimators.dr"] = dr
 sys.modules["caml.estimators.meta"] = meta
 sys.modules["caml.estimators.orf"] = orf
 
-__all__ = ["BaseWrapperMixin", "dml", "dr", "meta", "orf"]
+__all__ = [
+    "BaseWrapperMixin",
+    "AutoCateEstimator",
+    "EstimatorCapabilities",
+    "InferenceProvider",
+    "dml",
+    "dr",
+    "meta",
+    "orf",
+]

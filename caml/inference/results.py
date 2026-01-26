@@ -34,7 +34,7 @@ class InferenceResult:
     --------
     [`InferenceType`](inference_schema.qmd#caml.inference.inference_schema.InferenceType) : Inference method categories.
 
-    [`InferenceProvider`](inference.qmd#caml.protocols.inference.InferenceProvider) : Protocol for inference-capable estimators.
+    [`InferenceProvider`](base.qmd#caml.estimators.base.InferenceProvider) : Protocol for inference-capable estimators.
 
     Examples
     --------

@@ -9,9 +9,9 @@ from __future__ import annotations
 from econml.dr import DRLearner, ForestDRLearner, LinearDRLearner, SparseLinearDRLearner
 
 from caml.data import CausalDataset, Estimand, OutcomeType, TreatmentType
+from caml.estimators import EstimatorCapabilities
 from caml.estimators.base import BaseWrapperMixin
 from caml.inference import InferenceType
-from caml.protocols import EstimatorCapabilities
 
 
 class WrappedDRLearner(BaseWrapperMixin):
@@ -22,28 +22,17 @@ class WrappedDRLearner(BaseWrapperMixin):
     misspecification of either the propensity or outcome model. Supports binary and
     multi-valued treatments with continuous outcomes.
 
+    *Note: All attributes and methods on the underlying EconML estimator are accessible
+    via this wrapper through delegation, if not explicitly overridden.*
+
     Parameters
     ----------
     **econml_kwargs
         Keyword arguments passed directly to ``econml.dr.DRLearner``.
-        Common parameters include:
-
-        - model_propensity : estimator, optional
-            Model for propensity score E[T|X,W] (default: LogisticRegression).
-        - model_regression : estimator, optional
-            Model for outcome regression E[Y|X,W,T] (default: WeightedLasso).
-        - model_final : estimator, optional
-            Final model for CATE (default: StatsModelsLinearRegression).
-        - cv : int, optional
-            Number of cross-validation folds (default: 2).
-        - mc_iters : int, optional
-            Number of Monte Carlo iterations for nuisance models (default: None).
-        - random_state : int, optional
-            Random seed for reproducibility.
 
     Attributes
     ----------
-    capabilities : EstimatorCapabilites
+    capabilities : EstimatorCapabilities
         Metadata describing the estimator's supported treatment/outcome types,
         estimands, and inference methods.
     clean_name : str
@@ -51,21 +40,21 @@ class WrappedDRLearner(BaseWrapperMixin):
 
     See Also
     --------
-    [EconML DRLearner](https://www.pywhy.org/econml/_autosummary/econml.dr.DRLearner.html) : Official documentation for EconML's DRLearner.
+    [EconML DRLearner](https://www.pywhy.org/EconML/_autosummary/econml.dr.DRLearner.html) : Official documentation for EconML's DRLearner.
 
     [`BaseWrapperMixin`](base.qmd#caml.estimators.base.BaseWrapperMixin) : Mixin providing common wrapper functionality.
 
-    [`AutoCateEstimator`](estimator.qmd#caml.protocols.estimator.AutoCateEstimator) : Protocol this wrapper implements.
+    [`AutoCateEstimator`](base.qmd#caml.estimators.base.AutoCateEstimator) : Protocol this wrapper implements.
 
     Examples
     --------
     ```{python}
     from sklearn.ensemble import RandomForestRegressor, RandomForestClassifier
 
-    from caml.estimators.wrappers.dr import WrappedDRLearner
+    from caml.estimators.dr import WrappedDRLearner
     from caml.data import CausalDataset, TreatmentType, OutcomeType
     from caml.extensions.synthetic_data import SyntheticDataGenerator
-    from caml.protocols import AutoCateEstimator
+    from caml.estimators import AutoCateEstimator
 
     # Generate synthetic data
     gen = SyntheticDataGenerator(
@@ -102,31 +91,40 @@ class WrappedDRLearner(BaseWrapperMixin):
     ```
     """
 
-    capabilities = EstimatorCapabilities(
-        treatment_types={
-            TreatmentType.BINARY,
-            TreatmentType.MULTI,
-        },
-        outcome_types={OutcomeType.CONTINUOUS},
-        inference_types={InferenceType.BOOTSTRAP},
-        estimands={
-            Estimand.ATE,
-            Estimand.ATT,
-            Estimand.ATC,
-            Estimand.CATE,
-            Estimand.GATE,
-        },
-        supports_confounders_in_first_stage_only=False,
-        supports_weights=True,
-        requires_propensity=True,
-        supports_inference=True,
-    )
-    clean_name = "DRLearner"
-
     def __init__(self, **econml_kwargs):
         self._econml_kwargs = econml_kwargs
         self._estimator = DRLearner(**self._econml_kwargs)
         self._is_fitted = False
+
+    @property
+    def capabilities(self) -> EstimatorCapabilities:
+        """Metadata describing the estimator's supported treatment/outcome types, estimands, and inference methods."""
+        return EstimatorCapabilities(
+            treatment_types={
+                TreatmentType.BINARY,
+                TreatmentType.MULTI,
+            },
+            outcome_types={OutcomeType.CONTINUOUS, OutcomeType.BINARY},
+            inference_types={InferenceType.BOOTSTRAP},
+            estimands={
+                Estimand.ATE,
+                Estimand.ATT,
+                Estimand.ATC,
+                Estimand.CATE,
+                Estimand.GATE,
+            },
+            supports_controls_in_first_stage_only=True,
+            supports_weights=True,
+            requires_treatment_model=True,
+            requires_outcome_model=False,
+            requires_regression_model=True,
+            supports_inference=True,
+        )
+
+    @property
+    def clean_name(self) -> str:
+        """Human-readable name for the estimator."""
+        return "DRLearner"
 
     def fit(
         self,
@@ -154,8 +152,9 @@ class WrappedDRLearner(BaseWrapperMixin):
         """
         self.check_compatibility(data, raise_error=True)
 
-        init_kwargs = self._econml_kwargs.copy()
-        self._estimator = DRLearner(**init_kwargs)
+        self._estimator.discrete_outcome = (
+            True if data.outcome_type.is_discrete() else False
+        )
 
         self._estimator.fit(
             Y=data.Y,
@@ -163,6 +162,7 @@ class WrappedDRLearner(BaseWrapperMixin):
             X=data.X if data.X.size > 0 else None,
             W=data.W if data.W is not None and data.W.size > 0 else None,
             sample_weight=data.weights if data.weights is not None else None,
+            **fit_kwargs,
         )
 
         self._is_fitted = True
@@ -184,28 +184,17 @@ class WrappedLinearDRLearner(BaseWrapperMixin):
     than DRLearner when linear CATE assumption is reasonable. Supports binary and multi-valued
     treatments with continuous outcomes.
 
+    *Note: All attributes and methods on the underlying EconML estimator are accessible
+    via this wrapper through delegation, if not explicitly overridden.*
+
     Parameters
     ----------
     **econml_kwargs
         Keyword arguments passed directly to ``econml.dr.LinearDRLearner``.
-        Common parameters include:
-
-        - model_propensity : estimator, optional
-            Model for propensity score E[T|X,W] (default: LogisticRegression).
-        - model_regression : estimator, optional
-            Model for outcome regression E[Y|X,W,T] (default: WeightedLasso).
-        - fit_cate_intercept : bool, optional
-            Whether to fit an intercept in the CATE model (default: True).
-        - cv : int, optional
-            Number of cross-validation folds (default: 2).
-        - mc_iters : int, optional
-            Number of Monte Carlo iterations for nuisance models (default: None).
-        - random_state : int, optional
-            Random seed for reproducibility.
 
     Attributes
     ----------
-    capabilities : EstimatorCapabilites
+    capabilities : EstimatorCapabilities
         Metadata describing the estimator's supported treatment/outcome types,
         estimands, and inference methods.
     clean_name : str
@@ -217,17 +206,17 @@ class WrappedLinearDRLearner(BaseWrapperMixin):
 
     [`BaseWrapperMixin`](base.qmd#caml.estimators.base.BaseWrapperMixin) : Mixin providing common wrapper functionality.
 
-    [`AutoCateEstimator`](estimator.qmd#caml.protocols.estimator.AutoCateEstimator) : Protocol this wrapper implements.
+    [`AutoCateEstimator`](base.qmd#caml.estimators.base.AutoCateEstimator) : Protocol this wrapper implements.
 
     Examples
     --------
     ```{python}
     from sklearn.linear_model import LogisticRegression, LassoCV
 
-    from caml.estimators.wrappers.dr import WrappedLinearDRLearner
+    from caml.estimators.dr import WrappedLinearDRLearner
     from caml.data import CausalDataset, TreatmentType, OutcomeType
     from caml.extensions.synthetic_data import SyntheticDataGenerator
-    from caml.protocols import AutoCateEstimator
+    from caml.estimators import AutoCateEstimator
 
     # Generate synthetic data
     gen = SyntheticDataGenerator(
@@ -266,31 +255,40 @@ class WrappedLinearDRLearner(BaseWrapperMixin):
     ```
     """
 
-    capabilities = EstimatorCapabilities(
-        treatment_types={
-            TreatmentType.BINARY,
-            TreatmentType.MULTI,
-        },
-        outcome_types={OutcomeType.CONTINUOUS},
-        inference_types={InferenceType.ANALYTIC, InferenceType.BOOTSTRAP},
-        estimands={
-            Estimand.ATE,
-            Estimand.ATT,
-            Estimand.ATC,
-            Estimand.CATE,
-            Estimand.GATE,
-        },
-        supports_confounders_in_first_stage_only=False,
-        supports_weights=True,
-        requires_propensity=True,
-        supports_inference=True,
-    )
-    clean_name = "LinearDRLearner"
-
     def __init__(self, **econml_kwargs):
         self._econml_kwargs = econml_kwargs
         self._estimator = LinearDRLearner(**self._econml_kwargs)
         self._is_fitted = False
+
+    @property
+    def capabilities(self) -> EstimatorCapabilities:
+        """Metadata describing the estimator's supported treatment/outcome types, estimands, and inference methods."""
+        return EstimatorCapabilities(
+            treatment_types={
+                TreatmentType.BINARY,
+                TreatmentType.MULTI,
+            },
+            outcome_types={OutcomeType.CONTINUOUS, OutcomeType.BINARY},
+            inference_types={InferenceType.ANALYTIC, InferenceType.BOOTSTRAP},
+            estimands={
+                Estimand.ATE,
+                Estimand.ATT,
+                Estimand.ATC,
+                Estimand.CATE,
+                Estimand.GATE,
+            },
+            supports_controls_in_first_stage_only=True,
+            supports_weights=True,
+            requires_treatment_model=True,
+            requires_outcome_model=False,
+            requires_regression_model=True,
+            supports_inference=True,
+        )
+
+    @property
+    def clean_name(self) -> str:
+        """Human-readable name for the estimator."""
+        return "LinearDRLearner"
 
     def fit(
         self,
@@ -318,8 +316,9 @@ class WrappedLinearDRLearner(BaseWrapperMixin):
         """
         self.check_compatibility(data, raise_error=True)
 
-        init_kwargs = self._econml_kwargs.copy()
-        self._estimator = LinearDRLearner(**init_kwargs)
+        self._estimator.discrete_outcome = (
+            True if data.outcome_type.is_discrete() else False
+        )
 
         self._estimator.fit(
             Y=data.Y,
@@ -327,6 +326,7 @@ class WrappedLinearDRLearner(BaseWrapperMixin):
             X=data.X if data.X.size > 0 else None,
             W=data.W if data.W is not None and data.W.size > 0 else None,
             sample_weight=data.weights if data.weights is not None else None,
+            **fit_kwargs,
         )
 
         self._is_fitted = True
@@ -348,34 +348,17 @@ class WrappedSparseLinearDRLearner(BaseWrapperMixin):
     intervals via debiased Lasso. Supports binary and multi-valued treatments with
     continuous outcomes.
 
+    *Note: All attributes and methods on the underlying EconML estimator are accessible
+    via this wrapper through delegation, if not explicitly overridden.*
+
     Parameters
     ----------
     **econml_kwargs
         Keyword arguments passed directly to ``econml.dr.SparseLinearDRLearner``.
-        Common parameters include:
-
-        - model_propensity : estimator, optional
-            Model for propensity score E[T|X,W] (default: LogisticRegression).
-        - model_regression : estimator, optional
-            Model for outcome regression E[Y|X,W,T] (default: WeightedLasso).
-        - alpha : float or array-like, optional
-            Regularization strength for Lasso (default: 'auto').
-        - fit_cate_intercept : bool, optional
-            Whether to fit an intercept in the CATE model (default: True).
-        - max_iter : int, optional
-            Maximum number of iterations for Lasso (default: 10000).
-        - tol : float, optional
-            Tolerance for Lasso convergence (default: 1e-4).
-        - cv : int, optional
-            Number of cross-validation folds (default: 2).
-        - mc_iters : int, optional
-            Number of Monte Carlo iterations for nuisance models (default: None).
-        - random_state : int, optional
-            Random seed for reproducibility.
 
     Attributes
     ----------
-    capabilities : EstimatorCapabilites
+    capabilities : EstimatorCapabilities
         Metadata describing the estimator's supported treatment/outcome types,
         estimands, and inference methods.
     clean_name : str
@@ -387,17 +370,17 @@ class WrappedSparseLinearDRLearner(BaseWrapperMixin):
 
     [`BaseWrapperMixin`](base.qmd#caml.estimators.base.BaseWrapperMixin) : Mixin providing common wrapper functionality.
 
-    [`AutoCateEstimator`](estimator.qmd#caml.protocols.estimator.AutoCateEstimator) : Protocol this wrapper implements.
+    [`AutoCateEstimator`](base.qmd#caml.estimators.base.AutoCateEstimator) : Protocol this wrapper implements.
 
     Examples
     --------
     ```{python}
     from sklearn.linear_model import LogisticRegression, LassoCV
 
-    from caml.estimators.wrappers.dr import WrappedSparseLinearDRLearner
+    from caml.estimators.dr import WrappedSparseLinearDRLearner
     from caml.data import CausalDataset, TreatmentType, OutcomeType
     from caml.extensions.synthetic_data import SyntheticDataGenerator
-    from caml.protocols import AutoCateEstimator
+    from caml.estimators import AutoCateEstimator
 
     # Generate synthetic data with many features
     gen = SyntheticDataGenerator(
@@ -437,31 +420,40 @@ class WrappedSparseLinearDRLearner(BaseWrapperMixin):
     ```
     """
 
-    capabilities = EstimatorCapabilities(
-        treatment_types={
-            TreatmentType.BINARY,
-            TreatmentType.MULTI,
-        },
-        outcome_types={OutcomeType.CONTINUOUS},
-        inference_types={InferenceType.ANALYTIC, InferenceType.BOOTSTRAP},
-        estimands={
-            Estimand.ATE,
-            Estimand.ATT,
-            Estimand.ATC,
-            Estimand.CATE,
-            Estimand.GATE,
-        },
-        supports_confounders_in_first_stage_only=False,
-        supports_weights=True,
-        requires_propensity=True,
-        supports_inference=True,
-    )
-    clean_name = "SparseLinearDRLearner"
-
     def __init__(self, **econml_kwargs):
         self._econml_kwargs = econml_kwargs
         self._estimator = SparseLinearDRLearner(**self._econml_kwargs)
         self._is_fitted = False
+
+    @property
+    def capabilities(self) -> EstimatorCapabilities:
+        """Metadata describing the estimator's supported treatment/outcome types, estimands, and inference methods."""
+        return EstimatorCapabilities(
+            treatment_types={
+                TreatmentType.BINARY,
+                TreatmentType.MULTI,
+            },
+            outcome_types={OutcomeType.CONTINUOUS, OutcomeType.BINARY},
+            inference_types={InferenceType.ANALYTIC, InferenceType.BOOTSTRAP},
+            estimands={
+                Estimand.ATE,
+                Estimand.ATT,
+                Estimand.ATC,
+                Estimand.CATE,
+                Estimand.GATE,
+            },
+            supports_controls_in_first_stage_only=True,
+            supports_weights=True,
+            requires_treatment_model=True,
+            requires_outcome_model=False,
+            requires_regression_model=True,
+            supports_inference=True,
+        )
+
+    @property
+    def clean_name(self) -> str:
+        """Human-readable name for the estimator."""
+        return "SparseLinearDRLearner"
 
     def fit(
         self,
@@ -489,8 +481,9 @@ class WrappedSparseLinearDRLearner(BaseWrapperMixin):
         """
         self.check_compatibility(data, raise_error=True)
 
-        init_kwargs = self._econml_kwargs.copy()
-        self._estimator = SparseLinearDRLearner(**init_kwargs)
+        self._estimator.discrete_outcome = (
+            True if data.outcome_type.is_discrete() else False
+        )
 
         self._estimator.fit(
             Y=data.Y,
@@ -498,6 +491,7 @@ class WrappedSparseLinearDRLearner(BaseWrapperMixin):
             X=data.X if data.X.size > 0 else None,
             W=data.W if data.W is not None and data.W.size > 0 else None,
             sample_weight=data.weights if data.weights is not None else None,
+            **fit_kwargs,
         )
 
         self._is_fitted = True
@@ -518,34 +512,17 @@ class WrappedForestDRLearner(BaseWrapperMixin):
     final model for nonparametric heterogeneity estimation. Provides bootstrap confidence
     intervals. Supports binary and multi-valued treatments with continuous outcomes.
 
+    *Note: All attributes and methods on the underlying EconML estimator are accessible
+    via this wrapper through delegation, if not explicitly overridden.*
+
     Parameters
     ----------
     **econml_kwargs
         Keyword arguments passed directly to ``econml.dr.ForestDRLearner``.
-        Common parameters include:
-
-        - model_propensity : estimator, optional
-            Model for propensity score E[T|X,W] (default: LogisticRegression).
-        - model_regression : estimator, optional
-            Model for outcome regression E[Y|X,W,T] (default: WeightedLasso).
-        - n_estimators : int, optional
-            Number of trees in the forest (default: 100).
-        - max_depth : int, optional
-            Maximum depth of trees (default: None).
-        - min_samples_split : int, optional
-            Minimum samples required to split an internal node (default: 10).
-        - min_samples_leaf : int, optional
-            Minimum samples required in a leaf node (default: 5).
-        - cv : int, optional
-            Number of cross-validation folds (default: 2).
-        - mc_iters : int, optional
-            Number of Monte Carlo iterations for nuisance models (default: None).
-        - random_state : int, optional
-            Random seed for reproducibility.
 
     Attributes
     ----------
-    capabilities : EstimatorCapabilites
+    capabilities : EstimatorCapabilities
         Metadata describing the estimator's supported treatment/outcome types,
         estimands, and inference methods.
     clean_name : str
@@ -557,7 +534,7 @@ class WrappedForestDRLearner(BaseWrapperMixin):
 
     [`BaseWrapperMixin`](base.qmd#caml.estimators.base.BaseWrapperMixin) : Mixin providing common wrapper functionality.
 
-    [`AutoCateEstimator`](estimator.qmd#caml.protocols.estimator.AutoCateEstimator) : Protocol this wrapper implements.
+    [`AutoCateEstimator`](base.qmd#caml.estimators.base.AutoCateEstimator) : Protocol this wrapper implements.
 
     Examples
     --------
@@ -567,7 +544,7 @@ class WrappedForestDRLearner(BaseWrapperMixin):
     from caml.estimators.wrappers.dr import WrappedForestDRLearner
     from caml.data import CausalDataset, TreatmentType, OutcomeType
     from caml.extensions.synthetic_data import SyntheticDataGenerator
-    from caml.protocols import AutoCateEstimator
+    from caml.estimators import AutoCateEstimator
 
     # Generate synthetic data
     gen = SyntheticDataGenerator(
@@ -607,31 +584,40 @@ class WrappedForestDRLearner(BaseWrapperMixin):
     ```
     """
 
-    capabilities = EstimatorCapabilities(
-        treatment_types={
-            TreatmentType.BINARY,
-            TreatmentType.MULTI,
-        },
-        outcome_types={OutcomeType.CONTINUOUS},
-        inference_types={InferenceType.BOOTSTRAP},
-        estimands={
-            Estimand.ATE,
-            Estimand.ATT,
-            Estimand.ATC,
-            Estimand.CATE,
-            Estimand.GATE,
-        },
-        supports_confounders_in_first_stage_only=False,
-        supports_weights=True,
-        requires_propensity=True,
-        supports_inference=True,
-    )
-    clean_name = "ForestDRLearner"
-
     def __init__(self, **econml_kwargs):
         self._econml_kwargs = econml_kwargs
         self._estimator = ForestDRLearner(**self._econml_kwargs)
         self._is_fitted = False
+
+    @property
+    def capabilities(self) -> EstimatorCapabilities:
+        """Metadata describing the estimator's supported treatment/outcome types, estimands, and inference methods."""
+        return EstimatorCapabilities(
+            treatment_types={
+                TreatmentType.BINARY,
+                TreatmentType.MULTI,
+            },
+            outcome_types={OutcomeType.CONTINUOUS, OutcomeType.BINARY},
+            inference_types={InferenceType.BOOTSTRAP},
+            estimands={
+                Estimand.ATE,
+                Estimand.ATT,
+                Estimand.ATC,
+                Estimand.CATE,
+                Estimand.GATE,
+            },
+            supports_controls_in_first_stage_only=True,
+            supports_weights=True,
+            requires_treatment_model=True,
+            requires_outcome_model=False,
+            requires_regression_model=True,
+            supports_inference=True,
+        )
+
+    @property
+    def clean_name(self) -> str:
+        """Human-readable name for the estimator."""
+        return "ForestDRLearner"
 
     def fit(
         self,
@@ -659,8 +645,9 @@ class WrappedForestDRLearner(BaseWrapperMixin):
         """
         self.check_compatibility(data, raise_error=True)
 
-        init_kwargs = self._econml_kwargs.copy()
-        self._estimator = ForestDRLearner(**init_kwargs)
+        self._estimator.discrete_outcome = (
+            True if data.outcome_type.is_discrete() else False
+        )
 
         self._estimator.fit(
             Y=data.Y,
@@ -668,6 +655,7 @@ class WrappedForestDRLearner(BaseWrapperMixin):
             X=data.X if data.X.size > 0 else None,
             W=data.W if data.W is not None and data.W.size > 0 else None,
             sample_weight=data.weights if data.weights is not None else None,
+            **fit_kwargs,
         )
 
         self._is_fitted = True

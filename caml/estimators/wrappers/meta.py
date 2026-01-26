@@ -9,9 +9,9 @@ from __future__ import annotations
 from econml.metalearners import SLearner, TLearner, XLearner
 
 from caml.data import CausalDataset, Estimand, OutcomeType, TreatmentType
+from caml.estimators import EstimatorCapabilities
 from caml.estimators.base import BaseWrapperMixin
 from caml.inference import InferenceType
-from caml.protocols import EstimatorCapabilities
 
 
 class WrappedSLearner(BaseWrapperMixin):
@@ -23,21 +23,17 @@ class WrappedSLearner(BaseWrapperMixin):
     heterogeneity can be captured by feature-treatment interactions. Supports binary
     and multi-valued treatments with continuous or binary outcomes.
 
+    *Note: All attributes and methods on the underlying EconML estimator are accessible
+    via this wrapper through delegation, if not explicitly overridden.*
+
     Parameters
     ----------
     **econml_kwargs
         Keyword arguments passed directly to ``econml.metalearners.SLearner``.
-        Common parameters include:
-
-        - overall_model : estimator, optional
-            Model for E[Y|X,T] (default: auto-selected).
-            The model should support fit(X, y) and predict(X) interface.
-        - random_state : int, optional
-            Random seed for reproducibility.
 
     Attributes
     ----------
-    capabilities : EstimatorCapabilites
+    capabilities : EstimatorCapabilities
         Metadata describing the estimator's supported treatment/outcome types,
         estimands, and inference methods.
     clean_name : str
@@ -49,17 +45,17 @@ class WrappedSLearner(BaseWrapperMixin):
 
     [`BaseWrapperMixin`](base.qmd#caml.estimators.base.BaseWrapperMixin) : Mixin providing common wrapper functionality.
 
-    [`AutoCateEstimator`](estimator.qmd#caml.protocols.estimator.AutoCateEstimator) : Protocol this wrapper implements.
+    [`AutoCateEstimator`](base.qmd#caml.estimators.base.AutoCateEstimator) : Protocol this wrapper implements.
 
     Examples
     --------
     ```{python}
     from sklearn.ensemble import GradientBoostingRegressor
 
-    from caml.estimators.wrappers.meta import WrappedSLearner
+    from caml.estimators.meta import WrappedSLearner
     from caml.data import CausalDataset, TreatmentType, OutcomeType
     from caml.extensions.synthetic_data import SyntheticDataGenerator
-    from caml.protocols import AutoCateEstimator
+    from caml.estimators import AutoCateEstimator
 
     # Generate synthetic data
     gen = SyntheticDataGenerator(
@@ -92,28 +88,40 @@ class WrappedSLearner(BaseWrapperMixin):
     ```
     """
 
-    capabilities = EstimatorCapabilities(
-        treatment_types={
-            TreatmentType.BINARY,
-            TreatmentType.MULTI,
-        },
-        outcome_types={OutcomeType.CONTINUOUS, OutcomeType.BINARY},
-        inference_types={InferenceType.BOOTSTRAP},
-        estimands={
-            Estimand.ATE,
-            Estimand.CATE,
-        },
-        supports_confounders_in_first_stage_only=False,
-        supports_weights=False,
-        requires_propensity=False,
-        supports_inference=True,
-    )
-    clean_name = "SLearner"
-
     def __init__(self, **econml_kwargs):
         self._econml_kwargs = econml_kwargs
         self._estimator = SLearner(**self._econml_kwargs)
         self._is_fitted = False
+
+    @property
+    def capabilities(self) -> EstimatorCapabilities:
+        """Metadata describing the estimator's supported treatment/outcome types, estimands, and inference methods."""
+        return EstimatorCapabilities(
+            treatment_types={
+                TreatmentType.BINARY,
+                TreatmentType.MULTI,
+            },
+            outcome_types={OutcomeType.CONTINUOUS, OutcomeType.BINARY},
+            inference_types={InferenceType.BOOTSTRAP},
+            estimands={
+                Estimand.ATE,
+                Estimand.CATE,
+                Estimand.ATT,
+                Estimand.ATC,
+                Estimand.GATE,
+            },
+            supports_controls_in_first_stage_only=False,
+            supports_weights=False,
+            requires_treatment_model=False,
+            requires_outcome_model=False,
+            requires_regression_model=True,
+            supports_inference=True,
+        )
+
+    @property
+    def clean_name(self) -> str:
+        """Human-readable name for the estimator."""
+        return "SLearner"
 
     def fit(
         self,
@@ -141,13 +149,11 @@ class WrappedSLearner(BaseWrapperMixin):
         """
         self.check_compatibility(data, raise_error=True)
 
-        init_kwargs = self._econml_kwargs.copy()
-        self._estimator = SLearner(**init_kwargs)
-
         self._estimator.fit(
             Y=data.Y,
             T=data.T,
             X=data.X if data.X.size > 0 else None,
+            **fit_kwargs,
         )
 
         self._is_fitted = True
@@ -169,22 +175,17 @@ class WrappedTLearner(BaseWrapperMixin):
     S-Learner as it allows different outcome models per treatment. Supports binary
     and multi-valued treatments with continuous or binary outcomes.
 
+    *Note: All attributes and methods on the underlying EconML estimator are accessible
+    via this wrapper through delegation, if not explicitly overridden.*
+
     Parameters
     ----------
     **econml_kwargs
         Keyword arguments passed directly to ``econml.metalearners.TLearner``.
-        Common parameters include:
-
-        - models : estimator or list of estimators, optional
-            Model(s) for E[Y|X,T=t] for each treatment value.
-            If a single estimator is provided, it's cloned for each treatment.
-            If a list, should have one estimator per treatment value.
-        - random_state : int, optional
-            Random seed for reproducibility.
 
     Attributes
     ----------
-    capabilities : EstimatorCapabilites
+    capabilities : EstimatorCapabilities
         Metadata describing the estimator's supported treatment/outcome types,
         estimands, and inference methods.
     clean_name : str
@@ -196,17 +197,17 @@ class WrappedTLearner(BaseWrapperMixin):
 
     [`BaseWrapperMixin`](base.qmd#caml.estimators.base.BaseWrapperMixin) : Mixin providing common wrapper functionality.
 
-    [`AutoCateEstimator`](estimator.qmd#caml.protocols.estimator.AutoCateEstimator) : Protocol this wrapper implements.
+    [`AutoCateEstimator`](base.qmd#caml.estimators.base.AutoCateEstimator) : Protocol this wrapper implements.
 
     Examples
     --------
     ```{python}
     from sklearn.ensemble import RandomForestRegressor
 
-    from caml.estimators.wrappers.meta import WrappedTLearner
+    from caml.estimators.meta import WrappedTLearner
     from caml.data import CausalDataset, TreatmentType, OutcomeType
     from caml.extensions.synthetic_data import SyntheticDataGenerator
-    from caml.protocols import AutoCateEstimator
+    from caml.estimators import AutoCateEstimator
 
     # Generate synthetic data
     gen = SyntheticDataGenerator(
@@ -239,28 +240,40 @@ class WrappedTLearner(BaseWrapperMixin):
     ```
     """
 
-    capabilities = EstimatorCapabilities(
-        treatment_types={
-            TreatmentType.BINARY,
-            TreatmentType.MULTI,
-        },
-        outcome_types={OutcomeType.CONTINUOUS, OutcomeType.BINARY},
-        inference_types={InferenceType.BOOTSTRAP},
-        estimands={
-            Estimand.ATE,
-            Estimand.CATE,
-        },
-        supports_confounders_in_first_stage_only=False,
-        supports_weights=False,
-        requires_propensity=False,
-        supports_inference=True,
-    )
-    clean_name = "TLearner"
-
     def __init__(self, **econml_kwargs):
         self._econml_kwargs = econml_kwargs
         self._estimator = TLearner(**self._econml_kwargs)
         self._is_fitted = False
+
+    @property
+    def capabilities(self) -> EstimatorCapabilities:
+        """Metadata describing the estimator's supported treatment/outcome types, estimands, and inference methods."""
+        return EstimatorCapabilities(
+            treatment_types={
+                TreatmentType.BINARY,
+                TreatmentType.MULTI,
+            },
+            outcome_types={OutcomeType.CONTINUOUS, OutcomeType.BINARY},
+            inference_types={InferenceType.BOOTSTRAP},
+            estimands={
+                Estimand.ATE,
+                Estimand.CATE,
+                Estimand.ATT,
+                Estimand.ATC,
+                Estimand.GATE,
+            },
+            supports_controls_in_first_stage_only=False,
+            supports_weights=False,
+            requires_treatment_model=False,
+            requires_outcome_model=False,
+            requires_regression_model=True,
+            supports_inference=True,
+        )
+
+    @property
+    def clean_name(self) -> str:
+        """Human-readable name for the estimator."""
+        return "TLearner"
 
     def fit(
         self,
@@ -288,9 +301,6 @@ class WrappedTLearner(BaseWrapperMixin):
         """
         self.check_compatibility(data, raise_error=True)
 
-        init_kwargs = self._econml_kwargs.copy()
-        self._estimator = TLearner(**init_kwargs)
-
         self._estimator.fit(
             Y=data.Y,
             T=data.T,
@@ -317,24 +327,17 @@ class WrappedXLearner(BaseWrapperMixin):
     more efficient than T-Learner, especially with imbalanced treatment groups. Supports
     binary treatment only with continuous outcomes.
 
+    *Note: All attributes and methods on the underlying EconML estimator are accessible
+    via this wrapper through delegation, if not explicitly overridden.*
+
     Parameters
     ----------
     **econml_kwargs
         Keyword arguments passed directly to ``econml.metalearners.XLearner``.
-        Common parameters include:
-
-        - models : estimator or list of 2 estimators, optional
-            Models for E[Y|X,T=t]. If single estimator, cloned for both groups.
-        - cate_models : estimator or list of 2 estimators, optional
-            Models for imputed treatment effects in second stage.
-        - propensity_model : estimator, optional
-            Model for propensity score E[T|X] (default: LogisticRegressionCV).
-        - random_state : int, optional
-            Random seed for reproducibility.
 
     Attributes
     ----------
-    capabilities : EstimatorCapabilites
+    capabilities : EstimatorCapabilities
         Metadata describing the estimator's supported treatment/outcome types,
         estimands, and inference methods.
     clean_name : str
@@ -346,7 +349,7 @@ class WrappedXLearner(BaseWrapperMixin):
 
     [`BaseWrapperMixin`](base.qmd#caml.estimators.base.BaseWrapperMixin) : Mixin providing common wrapper functionality.
 
-    [`AutoCateEstimator`](estimator.qmd#caml.protocols.estimator.AutoCateEstimator) : Protocol this wrapper implements.
+    [`AutoCateEstimator`](base.qmd#caml.estimators.base.AutoCateEstimator) : Protocol this wrapper implements.
 
     Examples
     --------
@@ -354,10 +357,10 @@ class WrappedXLearner(BaseWrapperMixin):
     from sklearn.ensemble import GradientBoostingRegressor
     from sklearn.linear_model import LogisticRegressionCV
 
-    from caml.estimators.wrappers.meta import WrappedXLearner
+    from caml.estimators.meta import WrappedXLearner
     from caml.data import CausalDataset, TreatmentType, OutcomeType
     from caml.extensions.synthetic_data import SyntheticDataGenerator
-    from caml.protocols import AutoCateEstimator
+    from caml.estimators import AutoCateEstimator
 
     # Generate synthetic data
     gen = SyntheticDataGenerator(
@@ -392,27 +395,40 @@ class WrappedXLearner(BaseWrapperMixin):
     ```
     """
 
-    capabilities = EstimatorCapabilities(
-        treatment_types={
-            TreatmentType.BINARY,
-        },
-        outcome_types={OutcomeType.CONTINUOUS},
-        inference_types={InferenceType.BOOTSTRAP},
-        estimands={
-            Estimand.ATE,
-            Estimand.CATE,
-        },
-        supports_confounders_in_first_stage_only=False,
-        supports_weights=False,
-        requires_propensity=True,
-        supports_inference=True,
-    )
-    clean_name = "XLearner"
-
     def __init__(self, **econml_kwargs):
         self._econml_kwargs = econml_kwargs
         self._estimator = XLearner(**self._econml_kwargs)
         self._is_fitted = False
+
+    @property
+    def capabilities(self) -> EstimatorCapabilities:
+        """Metadata describing the estimator's supported treatment/outcome types, estimands, and inference methods."""
+        return EstimatorCapabilities(
+            treatment_types={
+                TreatmentType.BINARY,
+                TreatmentType.MULTI,
+            },
+            outcome_types={OutcomeType.CONTINUOUS, OutcomeType.BINARY},
+            inference_types={InferenceType.BOOTSTRAP},
+            estimands={
+                Estimand.ATE,
+                Estimand.CATE,
+                Estimand.ATT,
+                Estimand.ATC,
+                Estimand.GATE,
+            },
+            supports_controls_in_first_stage_only=False,
+            supports_weights=False,
+            requires_treatment_model=True,
+            requires_outcome_model=False,
+            requires_regression_model=True,
+            supports_inference=True,
+        )
+
+    @property
+    def clean_name(self) -> str:
+        """Human-readable name for the estimator."""
+        return "XLearner"
 
     def fit(
         self,
@@ -436,13 +452,9 @@ class WrappedXLearner(BaseWrapperMixin):
         Notes
         -----
         X-Learner uses propensity score weighting to combine first and second stage
-        models. Only supports binary treatment. W (confounders) are not supported
-        separately - include them in X if needed.
+        models. W (confounders) are not supported separately - include them in X if needed.
         """
         self.check_compatibility(data, raise_error=True)
-
-        init_kwargs = self._econml_kwargs.copy()
-        self._estimator = XLearner(**init_kwargs)
 
         self._estimator.fit(
             Y=data.Y,

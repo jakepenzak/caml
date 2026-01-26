@@ -36,7 +36,7 @@
 | Directories | `sampling/`, `registry/` | `validation/`, `modeling/` |
 | Files | `uplift_.py`, `_validation.py` | `uplift.py`, `validation.py` |
 | Methods | `effect()`, `from_dataframe()` | `predict_cate()` |
-| Classes | `EstimatorCapabilites` (typo!) | `EstimatorCapabilities` |
+| Classes | `EstimatorCapabilities` (typo!) | `EstimatorCapabilities` |
 
 ## Documentation Standards
 
@@ -141,7 +141,7 @@ When starting work:
 4. **Plain code blocks**: Use ` ```{python} ` not ` ```python `
 5. **Manual test data**: Use `SyntheticDataGenerator` not `np.random`
 6. **Missing validation**: Always use `caml/data/_validation.py` utilities
-7. **Known typo**: Keep `EstimatorCapabilites` (missing 'i') for consistency
+7. **Known typo**: Keep `EstimatorCapabilities` (missing 'i') for consistency
 
 ---
 
