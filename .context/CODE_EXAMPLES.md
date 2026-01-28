@@ -11,7 +11,7 @@ This document provides detailed code examples for every file in the proposed dir
 1. [data/](#1-data) - ✅ Complete
 2. [estimators/base.py (Protocols + BaseWrapperMixin)](#2-estimatorsbasepy-protocols--basewrappermixin) - ✅ Complete
 3. [estimators/](#3-estimators) - ✅ Complete (all wrappers)
-4. [nuisance/](#4-nuisance) - 🔶 Not implemented
+4. [nuisance/](#4-nuisance) - ✅ Complete
 5. [scorers/](#5-scorers) - 🔶 Not implemented
 6. [samplers/](#6-samplers-formerly-validation-or-sampling) - 🔶 Not implemented
 7. [automl/](#7-automl) - 🔶 Not implemented

@@ -1,0 +1,39 @@
+"""Splitter utilities."""
+
+from sklearn.model_selection import (
+    GroupKFold,
+    KFold,
+    StratifiedGroupKFold,
+    StratifiedKFold,
+)
+
+
+def create_splitter(cv=3, groups=None, stratified=False, random_state=None):
+    """Create appropriate cross-validation splitter.
+
+    Parameters
+    ----------
+    cv : int
+        Number of folds
+    groups : array-like | None
+        Group labels (for StratifiedGroupKFold)
+    stratified : bool
+        Whether to use stratified splitting
+    random_state : int | None
+        Random seed
+
+    Returns
+    -------
+    splitter
+        sklearn splitter object
+    """
+    if groups is not None:
+        if stratified:
+            return StratifiedGroupKFold(n_splits=cv)
+        else:
+            return GroupKFold(n_splits=cv)
+    else:
+        if stratified:
+            return StratifiedKFold(n_splits=cv, shuffle=True, random_state=random_state)
+        else:
+            return KFold(n_splits=cv, shuffle=True, random_state=random_state)
