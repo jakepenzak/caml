@@ -20,7 +20,7 @@
 <a href="https://app.codacy.com/gh/jakepenzak/caml/dashboard?utm_source=gh&utm_medium=referral&utm_content=&utm_campaign=Badge_grade"><img src="https://app.codacy.com/project/badge/Grade/cd6cc54c704e4a7aafe20f851bc39236"/></a>
 [![codecov](https://codecov.io/gh/jakepenzak/caml/graph/badge.svg?token=UBABBZXO85)](https://codecov.io/gh/jakepenzak/caml)
 
-**Ca**usal **M**achine **L**earning
+**C**ausal **a**uto**ML**
 
 </center>
 </div>
