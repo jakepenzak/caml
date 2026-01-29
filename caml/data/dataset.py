@@ -12,6 +12,7 @@ from dataclasses import dataclass, field
 import numpy as np
 import pandas as pd
 
+from caml._generics.utils import arr_at_least_2d
 from caml.data._validation import (
     check_1d_targets,
     check_missing_data,
@@ -54,6 +55,8 @@ class CausalDataset:
         Treatment name.
     Y_name
         Outcome name.
+    true_cates
+        True CATEs (for synthetic data and simulations; can be used in PEHE score, not used in estimation).
 
     Raises
     ------
@@ -135,6 +138,9 @@ class CausalDataset:
     W_names: list[str] | None = None
     T_name: str = "treatment"
     Y_name: str = "outcome"
+
+    # True CATEs (for simulations)
+    true_cates: np.ndarray | None = None
 
     def validate(self) -> None:
         """Perform validation checks on the dataset.
@@ -276,14 +282,8 @@ class CausalDataset:
         """
         self.validate()
 
-        def as_column(x):
-            x2 = np.atleast_2d(x)
-            if x2.shape[0] == 1:
-                x2 = x2.T
-            return x2
-
-        self.X = as_column(self.X)
-        self.T = as_column(self.T)
-        self.Y = as_column(self.Y)
+        self.X = arr_at_least_2d(self.X)
+        self.T = arr_at_least_2d(self.T)
+        self.Y = arr_at_least_2d(self.Y)
         if self.W is not None:
-            self.W = as_column(self.W)
+            self.W = arr_at_least_2d(self.W)

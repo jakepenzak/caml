@@ -5,6 +5,8 @@ This module provides various utilities for CaML.
 
 from importlib.util import find_spec
 
+import numpy as np
+
 
 def is_module_available(module_name: str) -> bool:
     """Check if a module is available.
@@ -35,3 +37,12 @@ class FittedAttr:
         if not getattr(instance, "_fitted", False):
             raise RuntimeError("Model has not been fitted yet. Please run fit() first.")
         return getattr(instance, self.name)
+
+
+def arr_at_least_2d(x):
+    x2 = np.atleast_2d(x)
+    if (
+        x2.shape[0] == 1
+    ):  # Assuming 1D row vector (will need to update if support more treatments or outcomes)
+        x2 = x2.T
+    return x2
