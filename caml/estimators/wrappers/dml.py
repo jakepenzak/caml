@@ -17,8 +17,10 @@ from econml.dml import (
 from caml.data import CausalDataset, Estimand, OutcomeType, TreatmentType
 from caml.estimators.base import BaseWrapperMixin, EstimatorCapabilities
 from caml.inference import InferenceType
+from caml.registry import auto_register
 
 
+@auto_register(family="dml")
 class WrappedLinearDML(BaseWrapperMixin):
     """Wrapper for EconML's LinearDML estimator.
 
@@ -159,6 +161,7 @@ class WrappedLinearDML(BaseWrapperMixin):
         return self
 
 
+@auto_register(family="dml")
 class WrappedSparseLinearDML(BaseWrapperMixin):
     """Wrapper for EconML's SparseLinearDML estimator.
 
@@ -322,6 +325,7 @@ class WrappedSparseLinearDML(BaseWrapperMixin):
         return self
 
 
+@auto_register(family="dml")
 class WrappedCausalForestDML(BaseWrapperMixin):
     """Wrapper for EconML's CausalForestDML estimator.
 
@@ -485,6 +489,7 @@ class WrappedCausalForestDML(BaseWrapperMixin):
         return self
 
 
+@auto_register(family="dml")
 class WrappedNonParamDML(BaseWrapperMixin):
     """Wrapper for EconML's NonParamDML estimator.
 
@@ -643,6 +648,7 @@ class WrappedNonParamDML(BaseWrapperMixin):
         return self
 
 
+@auto_register(family="dml")
 class WrappedKernelDML(BaseWrapperMixin):
     """Wrapper for EconML's KernelDML estimator.
 

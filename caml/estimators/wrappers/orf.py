@@ -9,11 +9,12 @@ from __future__ import annotations
 from econml.orf import DMLOrthoForest, DROrthoForest
 
 from caml.data import CausalDataset, Estimand, OutcomeType, TreatmentType
-from caml.estimators import EstimatorCapabilities
-from caml.estimators.base import BaseWrapperMixin
+from caml.estimators.base import BaseWrapperMixin, EstimatorCapabilities
 from caml.inference import InferenceType
+from caml.registry import auto_register
 
 
+@auto_register(family="orf")
 class WrappedDMLOrthoForest(BaseWrapperMixin):
     """Wrapper for EconML's DMLOrthoForest estimator.
 
@@ -170,6 +171,7 @@ class WrappedDMLOrthoForest(BaseWrapperMixin):
         return self
 
 
+@auto_register(family="orf")
 class WrappedDROrthoForest(BaseWrapperMixin):
     """Wrapper for EconML's DROrthoForest estimator.
 

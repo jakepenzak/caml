@@ -3,12 +3,16 @@
 import numpy as np
 import pytest
 
-from caml.data import CausalDataset, OutcomeType, TreatmentType
-from caml.data.data_schema import Estimand
+from caml.data import CausalDataset, Estimand, OutcomeType, TreatmentType
 from caml.estimators import EstimatorCapabilities
 from caml.extensions.synthetic_data import SyntheticDataGenerator
-from caml.registry.model_bank import available_estimators
-from caml.registry.registry import get_compatible_estimators, register_estimator
+from caml.registry import (
+    EstimatorFamily,
+    auto_register,
+    available_estimators,
+    get_compatible_estimators,
+    register_estimator,
+)
 
 pytestmark = pytest.mark.registry
 
@@ -27,139 +31,230 @@ def binary_continuous_dataset():
     )
 
 
+@pytest.fixture
+def simple_estimator_class():
+    """Fixture that creates a simple test estimator class."""
+
+    class SimpleEstimator:
+        clean_name = "SimpleEstimator"
+        capabilities = EstimatorCapabilities(
+            treatment_types={TreatmentType.BINARY},
+            outcome_types={OutcomeType.CONTINUOUS},
+            inference_types=set(),
+            estimands={Estimand.CATE},
+            supports_controls_in_first_stage_only=False,
+            supports_weights=False,
+            requires_treatment_model=False,
+            requires_outcome_model=False,
+            requires_regression_model=False,
+            supports_inference=False,
+        )
+
+        def __init__(self):
+            self.effect_value = None
+
+        @classmethod
+        def is_compatible_with(cls, data: CausalDataset) -> bool:
+            return cls.capabilities.is_compatible(data)
+
+        def check_compatibility(
+            self, data: CausalDataset, raise_error: bool = True
+        ) -> bool:
+            return self.capabilities.is_compatible(data)
+
+        def fit(self, data, **kwargs):
+            T = np.asarray(data.T)
+            Y = np.asarray(data.Y)
+            self.effect_value = Y[T == 1].mean() - Y[T == 0].mean()
+            return self
+
+        def effect(self, X, **kwargs):
+            n = len(X) if hasattr(X, "__len__") else 1
+            return np.full(n, self.effect_value)
+
+        def get_params(self, deep=True):
+            return {}
+
+        def set_params(self, **params):
+            return self
+
+    return SimpleEstimator
+
+
+class TestAvailableEstimators:
+    """Tests for available_estimators dict."""
+
+    def test_available_estimators_populated(self):
+        """Test that available_estimators is populated on import."""
+        # Should have DML estimators from auto-registration
+        assert len(available_estimators) > 0
+        assert "LinearDML" in available_estimators
+
+    def test_estimator_structure(self):
+        """Test that estimators have correct structure."""
+        for name, entry in available_estimators.items():
+            assert "estimator" in entry
+            assert "family" in entry
+            assert isinstance(entry["family"], EstimatorFamily)
+
+
 class TestGetCompatibleEstimators:
     """Tests for get_compatible_estimators function."""
 
     def test_returns_dict(self, binary_continuous_dataset):
         """Test that get_compatible_estimators returns a dict."""
-        # Only test with families that work reliably (DR and ORF)
-        result = get_compatible_estimators(binary_continuous_dataset, families=["dr"])
+        result = get_compatible_estimators(binary_continuous_dataset, families=["dml"])
         assert isinstance(result, dict)
 
     def test_all_estimators_have_required_keys(self, binary_continuous_dataset):
         """Test that returned estimators have required keys."""
-        result = get_compatible_estimators(binary_continuous_dataset, families=["dr"])
+        result = get_compatible_estimators(
+            binary_continuous_dataset, families=[EstimatorFamily.DML]
+        )
         assert len(result) > 0
-        assert all("estimator" in entry for entry in result.values())
-        assert all("family" in entry for entry in result.values())
+        for entry in result.values():
+            assert "estimator" in entry
+            assert "family" in entry
 
-    def test_filter_by_dr_family(self, binary_continuous_dataset):
-        """Test filtering by DR family."""
-        result = get_compatible_estimators(binary_continuous_dataset, families=["dr"])
-        # Should only return DR estimators
-        for name, entry in result.items():
-            assert entry["family"] == "dr"
-        # DR estimators should work without issues
+    def test_filter_by_dml_family(self, binary_continuous_dataset):
+        """Test filtering by DML family."""
+        result = get_compatible_estimators(
+            binary_continuous_dataset, families=[EstimatorFamily.DML]
+        )
         assert len(result) > 0
-
-    def test_filter_by_orf_family(self, binary_continuous_dataset):
-        """Test filtering by ORF family."""
-        result = get_compatible_estimators(binary_continuous_dataset, families=["orf"])
-        # Should only return ORF estimators
         for name, entry in result.items():
-            assert entry["family"] == "orf"
-        # ORF estimators should work without issues
-        assert len(result) > 0
+            assert entry["family"] == EstimatorFamily.DML
 
     def test_filter_by_multiple_families(self, binary_continuous_dataset):
         """Test filtering by multiple families."""
         result = get_compatible_estimators(
-            binary_continuous_dataset, families=["dr", "orf"]
+            binary_continuous_dataset,
+            families=[EstimatorFamily.DML, EstimatorFamily.DR],
         )
-        # Should return estimators from requested families
         families = {entry["family"] for entry in result.values()}
-        assert len(families) > 0
+        assert len(families) >= 1  # At least DML should be present
         assert len(result) > 0
 
-    def test_families_parameter_none_includes_all(self):
-        """Test that families=None attempts to include all families."""
-        gen = SyntheticDataGenerator(n_obs=100, n_cont_confounders=3, seed=42)
-        dataset = CausalDataset.from_dataframe(
-            gen.df,
-            X=[c for c in gen.df.columns if "X" in c],
-            T="T1_binary",
-            Y="Y1_continuous",
-            treatment_type=TreatmentType.BINARY,
-            outcome_type=OutcomeType.CONTINUOUS,
+    def test_families_none_includes_all(self, binary_continuous_dataset):
+        """Test that families=None includes all families."""
+        result_all = get_compatible_estimators(binary_continuous_dataset, families=None)
+        result_dml = get_compatible_estimators(
+            binary_continuous_dataset, families=[EstimatorFamily.DML]
         )
-        # Test with families that work reliably
-        result_dr = get_compatible_estimators(dataset, families=["dr"])
-        # Should get DR estimators
-        assert isinstance(result_dr, dict)
-        assert len(result_dr) > 0
+        # All should include at least the DML estimators
+        assert len(result_all) >= len(result_dml)
+
+    def test_families_accepts_strings(self, binary_continuous_dataset):
+        """Test that families parameter accepts string values."""
+        result = get_compatible_estimators(binary_continuous_dataset, families=["dml"])
+        assert len(result) > 0
+        for entry in result.values():
+            assert entry["family"] == EstimatorFamily.DML
+
+    def test_families_accepts_mixed_enum_and_strings(self, binary_continuous_dataset):
+        """Test that families parameter accepts mixed enum and string values."""
+        result = get_compatible_estimators(
+            binary_continuous_dataset, families=[EstimatorFamily.DML, "dr"]
+        )
+        assert len(result) > 0
 
 
 class TestRegisterEstimator:
     """Tests for register_estimator function."""
 
-    def test_register_new_estimator(self):
+    def test_register_new_estimator(self, simple_estimator_class):
         """Test registering a new estimator."""
-
-        class SimpleEstimator:
-            # Class attributes
-            clean_name: str = "SimpleEstimator"
-            capabilities: EstimatorCapabilities = EstimatorCapabilities(
-                treatment_types={TreatmentType.BINARY},
-                outcome_types={OutcomeType.CONTINUOUS},
-                inference_types=set(),
-                estimands={Estimand.CATE},
-                supports_controls_in_first_stage_only=False,
-                supports_weights=False,
-                requires_treatment_model=False,
-                requires_outcome_model=False,
-                requires_regression_model=False,
-                supports_inference=False,
-            )
-
-            def __init__(self):
-                self.effect_value = None
-
-            @classmethod
-            def is_compatible_with(cls, data: CausalDataset) -> bool:
-                return cls.capabilities.is_compatible(data)
-
-            def check_compatibility(
-                self, data: CausalDataset, raise_error: bool = True
-            ) -> bool:
-                return self.capabilities.is_compatible(data)
-
-            def fit(self, data, **kwargs):
-                T = np.asarray(data.T)
-                Y = np.asarray(data.Y)
-                self.effect_value = Y[T == 1].mean() - Y[T == 0].mean()
-                return self
-
-            def effect(self, X, **kwargs):
-                n = len(X) if hasattr(X, "__len__") else 1
-                return np.full(n, self.effect_value)
-
-            def get_params(self, deep=True):
-                return {}
-
-            def set_params(self, **params):
-                return self
-
         initial_count = len(available_estimators)
         register_estimator(
-            name="TestSimpleEstimator", estimator=SimpleEstimator, family="custom"
+            name="TestSimpleEstimator",
+            estimator=simple_estimator_class,
+            family=EstimatorFamily.CUSTOM,
         )
+
         assert len(available_estimators) == initial_count + 1
         assert "TestSimpleEstimator" in available_estimators
-        assert available_estimators["TestSimpleEstimator"]["family"] == "custom"
         assert (
-            available_estimators["TestSimpleEstimator"]["estimator"] == SimpleEstimator
+            available_estimators["TestSimpleEstimator"]["family"]
+            == EstimatorFamily.CUSTOM
+        )
+        assert (
+            available_estimators["TestSimpleEstimator"]["estimator"]
+            == simple_estimator_class
         )
 
         # Cleanup
         del available_estimators["TestSimpleEstimator"]
 
-    def test_register_estimator_with_default_family(self):
+    def test_register_with_default_family(self, simple_estimator_class):
         """Test registering estimator with default 'custom' family."""
+        register_estimator(name="TestDefaultFamily", estimator=simple_estimator_class)
+        assert (
+            available_estimators["TestDefaultFamily"]["family"]
+            == EstimatorFamily.CUSTOM
+        )
 
-        class AnotherEstimator:
-            # Class attributes
-            clean_name: str = "AnotherEstimator"
-            capabilities: EstimatorCapabilities = EstimatorCapabilities(
+        # Cleanup
+        del available_estimators["TestDefaultFamily"]
+
+    def test_register_with_string_family(self, simple_estimator_class):
+        """Test registering estimator with string family value."""
+        register_estimator(
+            name="TestStringFamily", estimator=simple_estimator_class, family="custom"
+        )
+        assert (
+            available_estimators["TestStringFamily"]["family"] == EstimatorFamily.CUSTOM
+        )
+
+        # Cleanup
+        del available_estimators["TestStringFamily"]
+
+    def test_registered_estimator_appears_in_get_compatible(
+        self, binary_continuous_dataset, simple_estimator_class
+    ):
+        """Test that registered estimator appears in get_compatible_estimators."""
+        register_estimator(
+            name="TestCompatible",
+            estimator=simple_estimator_class,
+            family=EstimatorFamily.CUSTOM,
+        )
+
+        result = get_compatible_estimators(
+            binary_continuous_dataset, families=[EstimatorFamily.CUSTOM]
+        )
+        assert "TestCompatible" in result
+        assert result["TestCompatible"]["family"] == EstimatorFamily.CUSTOM
+
+        # Cleanup
+        del available_estimators["TestCompatible"]
+
+    def test_overwrite_existing_estimator(self, simple_estimator_class):
+        """Test that registering with existing name overwrites."""
+        # Store original
+        original_entry = available_estimators["LinearDML"].copy()
+
+        # Overwrite
+        register_estimator(
+            name="LinearDML",
+            estimator=simple_estimator_class,
+            family=EstimatorFamily.CUSTOM,
+        )
+        assert available_estimators["LinearDML"]["estimator"] == simple_estimator_class
+        assert available_estimators["LinearDML"]["family"] == EstimatorFamily.CUSTOM
+
+        # Restore original
+        available_estimators["LinearDML"] = original_entry
+
+
+class TestAutoRegister:
+    """Tests for auto_register decorator."""
+
+    def test_auto_register_with_explicit_name(self):
+        """Test auto_register with explicit name."""
+
+        @auto_register(name="ExplicitName", family=EstimatorFamily.CUSTOM)
+        class TestEstimator:
+            clean_name = "TestEstimator"
+            capabilities = EstimatorCapabilities(
                 treatment_types={TreatmentType.BINARY},
                 outcome_types={OutcomeType.CONTINUOUS},
                 inference_types=set(),
@@ -173,12 +268,10 @@ class TestRegisterEstimator:
             )
 
             @classmethod
-            def is_compatible_with(cls, data: CausalDataset) -> bool:
+            def is_compatible_with(cls, data):
                 return True
 
-            def check_compatibility(
-                self, data: CausalDataset, raise_error: bool = True
-            ) -> bool:
+            def check_compatibility(self, data, raise_error=True):
                 return True
 
             def fit(self, data, **kwargs):
@@ -193,20 +286,20 @@ class TestRegisterEstimator:
             def set_params(self, **params):
                 return self
 
-        initial_count = len(available_estimators)
-        register_estimator(name="TestAnotherEstimator", estimator=AnotherEstimator)
-        assert available_estimators["TestAnotherEstimator"]["family"] == "custom"
+        assert "ExplicitName" in available_estimators
+        assert available_estimators["ExplicitName"]["estimator"] == TestEstimator
+        assert available_estimators["ExplicitName"]["family"] == EstimatorFamily.CUSTOM
 
         # Cleanup
-        del available_estimators["TestAnotherEstimator"]
+        del available_estimators["ExplicitName"]
 
-    def test_registered_estimator_appears_in_registry(self):
-        """Test that registered estimator appears in available_estimators."""
+    def test_auto_register_uses_clean_name(self):
+        """Test that auto_register uses clean_name when name not provided."""
 
-        class CompatibleEstimator:
-            # Class attributes
-            clean_name: str = "CompatibleEstimator"
-            capabilities: EstimatorCapabilities = EstimatorCapabilities(
+        @auto_register(family=EstimatorFamily.CUSTOM)
+        class AnotherEstimator:
+            clean_name = "MyCleanName"
+            capabilities = EstimatorCapabilities(
                 treatment_types={TreatmentType.BINARY},
                 outcome_types={OutcomeType.CONTINUOUS},
                 inference_types=set(),
@@ -220,19 +313,17 @@ class TestRegisterEstimator:
             )
 
             @classmethod
-            def is_compatible_with(cls, data: CausalDataset) -> bool:
-                return cls.capabilities.is_compatible(data)
+            def is_compatible_with(cls, data):
+                return True
 
-            def check_compatibility(
-                self, data: CausalDataset, raise_error: bool = True
-            ) -> bool:
-                return self.capabilities.is_compatible(data)
+            def check_compatibility(self, data, raise_error=True):
+                return True
 
             def fit(self, data, **kwargs):
                 return self
 
             def effect(self, X, **kwargs):
-                return np.zeros(1)
+                return np.zeros(len(X))
 
             def get_params(self, deep=True):
                 return {}
@@ -240,25 +331,154 @@ class TestRegisterEstimator:
             def set_params(self, **params):
                 return self
 
-        register_estimator(
-            name="TestCompatibleEstimator",
-            estimator=CompatibleEstimator,
-            family="test",
+        assert "MyCleanName" in available_estimators
+        assert available_estimators["MyCleanName"]["family"] == EstimatorFamily.CUSTOM
+
+        # Cleanup
+        del available_estimators["MyCleanName"]
+
+    def test_auto_register_uses_class_name_fallback(self):
+        """Test that auto_register uses __name__ when clean_name not present."""
+
+        @auto_register(family=EstimatorFamily.CUSTOM)
+        class FallbackEstimator:
+            # No clean_name attribute
+            capabilities = EstimatorCapabilities(
+                treatment_types={TreatmentType.BINARY},
+                outcome_types={OutcomeType.CONTINUOUS},
+                inference_types=set(),
+                estimands={Estimand.CATE},
+                supports_controls_in_first_stage_only=False,
+                supports_weights=False,
+                requires_treatment_model=False,
+                requires_outcome_model=False,
+                requires_regression_model=False,
+                supports_inference=False,
+            )
+
+            @classmethod
+            def is_compatible_with(cls, data):
+                return True
+
+            def check_compatibility(self, data, raise_error=True):
+                return True
+
+            def fit(self, data, **kwargs):
+                return self
+
+            def effect(self, X, **kwargs):
+                return np.zeros(len(X))
+
+            def get_params(self, deep=True):
+                return {}
+
+            def set_params(self, **params):
+                return self
+
+        assert "FallbackEstimator" in available_estimators
+
+        # Cleanup
+        del available_estimators["FallbackEstimator"]
+
+    def test_auto_register_returns_unmodified_class(self):
+        """Test that decorator returns the class unmodified."""
+
+        @auto_register(name="UnmodifiedTest", family=EstimatorFamily.CUSTOM)
+        class OriginalEstimator:
+            clean_name = "OriginalEstimator"
+            capabilities = EstimatorCapabilities(
+                treatment_types={TreatmentType.BINARY},
+                outcome_types={OutcomeType.CONTINUOUS},
+                inference_types=set(),
+                estimands={Estimand.CATE},
+                supports_controls_in_first_stage_only=False,
+                supports_weights=False,
+                requires_treatment_model=False,
+                requires_outcome_model=False,
+                requires_regression_model=False,
+                supports_inference=False,
+            )
+
+            @classmethod
+            def is_compatible_with(cls, data):
+                return True
+
+            def check_compatibility(self, data, raise_error=True):
+                return True
+
+            def fit(self, data, **kwargs):
+                return self
+
+            def effect(self, X, **kwargs):
+                return np.zeros(len(X))
+
+            def get_params(self, deep=True):
+                return {}
+
+            def set_params(self, **params):
+                return self
+
+        # Class should be instantiable normally
+        instance = OriginalEstimator()
+        assert hasattr(instance, "clean_name")
+        assert instance.clean_name == "OriginalEstimator"
+
+        # Cleanup
+        del available_estimators["UnmodifiedTest"]
+
+    def test_auto_register_default_family(self):
+        """Test that default family is EstimatorFamily.CUSTOM."""
+
+        @auto_register(name="DefaultFamilyTest")
+        class DefaultFamilyEstimator:
+            clean_name = "DefaultFamilyEstimator"
+            capabilities = EstimatorCapabilities(
+                treatment_types={TreatmentType.BINARY},
+                outcome_types={OutcomeType.CONTINUOUS},
+                inference_types=set(),
+                estimands={Estimand.CATE},
+                supports_controls_in_first_stage_only=False,
+                supports_weights=False,
+                requires_treatment_model=False,
+                requires_outcome_model=False,
+                requires_regression_model=False,
+                supports_inference=False,
+            )
+
+            @classmethod
+            def is_compatible_with(cls, data):
+                return True
+
+            def check_compatibility(self, data, raise_error=True):
+                return True
+
+            def fit(self, data, **kwargs):
+                return self
+
+            def effect(self, X, **kwargs):
+                return np.zeros(len(X))
+
+            def get_params(self, deep=True):
+                return {}
+
+            def set_params(self, **params):
+                return self
+
+        assert (
+            available_estimators["DefaultFamilyTest"]["family"]
+            == EstimatorFamily.CUSTOM
         )
-        # Check it appears in available_estimators
-        assert "TestCompatibleEstimator" in available_estimators
-        assert available_estimators["TestCompatibleEstimator"]["family"] == "test"
 
         # Cleanup
-        del available_estimators["TestCompatibleEstimator"]
+        del available_estimators["DefaultFamilyTest"]
 
-    def test_overwrite_existing_estimator(self):
-        """Test that registering with existing name overwrites."""
+    def test_auto_register_with_string_family(self):
+        """Test that auto_register accepts string family values."""
 
-        class NewDMLEstimator:
-            # Class attributes
-            clean_name: str = "NewDMLEstimator"
-            capabilities: EstimatorCapabilities = EstimatorCapabilities(
+        @auto_register(name="StringFamilyTest", family="custom")
+        class StringFamilyEstimator:
+            clean_name = "StringFamilyEstimator"
+            capabilities = EstimatorCapabilities(
                 treatment_types={TreatmentType.BINARY},
                 outcome_types={OutcomeType.CONTINUOUS},
                 inference_types=set(),
@@ -272,19 +492,17 @@ class TestRegisterEstimator:
             )
 
             @classmethod
-            def is_compatible_with(cls, data: CausalDataset) -> bool:
+            def is_compatible_with(cls, data):
                 return True
 
-            def check_compatibility(
-                self, data: CausalDataset, raise_error: bool = True
-            ) -> bool:
+            def check_compatibility(self, data, raise_error=True):
                 return True
 
             def fit(self, data, **kwargs):
                 return self
 
             def effect(self, X, **kwargs):
-                return np.zeros(1)
+                return np.zeros(len(X))
 
             def get_params(self, deep=True):
                 return {}
@@ -292,14 +510,9 @@ class TestRegisterEstimator:
             def set_params(self, **params):
                 return self
 
-        # Store original
-        original_estimator = available_estimators["LinearDML"]["estimator"]
+        assert (
+            available_estimators["StringFamilyTest"]["family"] == EstimatorFamily.CUSTOM
+        )
 
-        # Overwrite
-        register_estimator(name="LinearDML", estimator=NewDMLEstimator, family="custom")
-        assert available_estimators["LinearDML"]["estimator"] == NewDMLEstimator
-        assert available_estimators["LinearDML"]["family"] == "custom"
-
-        # Restore original
-        available_estimators["LinearDML"]["estimator"] = original_estimator
-        available_estimators["LinearDML"]["family"] = "dml"
+        # Cleanup
+        del available_estimators["StringFamilyTest"]

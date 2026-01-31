@@ -162,33 +162,6 @@ quartodoc:
         - name: base
           member_order: source
 
-    - subtitle: Registry
-      desc: "`caml.registry` \n\n AutoCATE estimator registry."
-      package: caml.registry
-      contents:
-        - name: registry
-          member_order: source
-        - name: model_bank
-          member_order: source
-
-    - subtitle: Nuisance
-      desc: "`caml.nuisance` \n\n First-stage nuisance estimation objects."
-      package: caml.nuisance
-      contents:
-        - name: spec
-          member_order: source
-        - name: tuner
-          member_order: source
-
-    - subtitle: Samplers
-      desc: "`caml.samplers` \n\n Primary CATE sampling utilities and objects."
-      package: caml.samplers
-      contents:
-        - name: cross_fit
-          member_order: source
-        - name: splitters
-          member_order: source
-
     - subtitle: Scorers
       desc: "`caml.scorers` \n\n Primary CATE scoring & validation metrics."
       package: caml.scorers
@@ -215,6 +188,33 @@ quartodoc:
           include_private: true
           member_options:
             include_private: true
+
+    - subtitle: Registry
+      desc: "`caml.registry` \n\n AutoCATE estimator registry."
+      package: caml.registry
+      contents:
+        - name: registry
+          member_order: source
+        - name: registry_schema
+          member_order: source
+
+    - subtitle: Nuisance
+      desc: "`caml.nuisance` \n\n First-stage nuisance estimation objects."
+      package: caml.nuisance
+      contents:
+        - name: spec
+          member_order: source
+        - name: tuner
+          member_order: source
+
+    - subtitle: Samplers
+      desc: "`caml.samplers` \n\n Primary CATE sampling utilities and objects."
+      package: caml.samplers
+      contents:
+        - name: cross_fit
+          member_order: source
+        - name: splitters
+          member_order: source
 
     - subtitle: Inference
       desc: "`caml.inference` \n\n Inference objects and schemas."

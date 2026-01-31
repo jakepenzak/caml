@@ -130,8 +130,8 @@ class CausalDataset:
     weights: np.ndarray | None = None
 
     # Metadata
-    treatment_type: TreatmentType = field(default=TreatmentType.BINARY)
-    outcome_type: OutcomeType = field(default=OutcomeType.CONTINUOUS)
+    treatment_type: TreatmentType | str = field(default=TreatmentType.BINARY)
+    outcome_type: OutcomeType | str = field(default=OutcomeType.CONTINUOUS)
 
     # Feature Names
     X_names: list[str] | None = None
@@ -177,8 +177,8 @@ class CausalDataset:
         check_shapes_match(self.X, self.T, self.Y, self.W)
         check_1d_targets(self.T, self.Y)
         check_missing_data(self.X, self.T, self.Y, self.W)
-        check_treatment_type_matches_data(self.T, self.treatment_type)
-        check_outcome_type_matches_data(self.Y, self.outcome_type)
+        check_treatment_type_matches_data(self.T, self.treatment_type)  # pyright: ignore[reportArgumentType]
+        check_outcome_type_matches_data(self.Y, self.outcome_type)  # pyright: ignore[reportArgumentType]
 
     @classmethod
     def from_dataframe(
@@ -280,6 +280,11 @@ class CausalDataset:
         ValueError
             If any validation check fails.
         """
+        if isinstance(self.treatment_type, str):
+            self.treatment_type = TreatmentType(self.treatment_type)
+        if isinstance(self.outcome_type, str):
+            self.outcome_type = OutcomeType(self.outcome_type)
+
         self.validate()
 
         self.X = arr_at_least_2d(self.X)

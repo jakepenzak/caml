@@ -4,7 +4,6 @@ maintainers = [{ name = "Jacob Pieniazek", email = "jacob@pieniazek.me" }]
 dependencies = [
     "econml>=0.16",
     "flaml[automl]>=2.0.0",
-    "doubleml>=0.8.0",
     "matplotlib>=3.9.2",
     "rich>=13.9.4",
     "patsy>=1.0.1",
@@ -48,6 +47,11 @@ Homepage = "https://caml-docs.com"
 Documentation = "https://caml-docs.com/"
 "Source Code" = "https://github.com/jakepenzak/caml"
 "Bug Tracker" = "https://github.com/jakepenzak/caml/issues"
+
+[project.optional-dependencies]
+doubleml = [
+    "doubleml>=0.11.2",
+]
 
 [dependency-groups]
 test = [

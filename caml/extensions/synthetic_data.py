@@ -5,17 +5,13 @@ from typing import Callable, Sequence
 import numpy as np
 import pandas as pd
 import patsy
-from doubleml.irm.datasets import make_heterogeneous_data
-from doubleml.plm.datasets import (
-    make_plr_CCDDHNR2018,
-    make_plr_turrell2018,
-)
 from numpy.typing import ArrayLike
 from scipy.linalg import toeplitz
 from scipy.special import expit as sigmoid
 from scipy.special import softmax
 
 from caml._generics.decorators import experimental
+from caml._generics.utils import is_module_available
 
 
 def _truncate_and_renormalize_probabilities(
@@ -991,6 +987,8 @@ def make_partially_linear_dataset_simple(
     ```
     </div>
 
+    This function requires the `doubleml` package to be installed. You can install it via the doubleml extra: `pip install caml[doubleml]`
+
     Parameters
     ----------
     n_obs : int
@@ -1013,6 +1011,13 @@ def make_partially_linear_dataset_simple(
     true_ate : float
         The true average treatment effect.
 
+    Raises
+    ------
+    ModuleNotFoundError
+        If the `doubleml` package is not installed.
+    ValueError
+        If `dim_heterogeneity` is not 1 or 2.
+
     Examples
     --------
     ```{python}
@@ -1028,6 +1033,14 @@ def make_partially_linear_dataset_simple(
     print(df.head())
     ```
     """
+    if is_module_available("doubleml") is False:
+        raise ModuleNotFoundError(
+            "doubleml is not installed. Please install it to use this function. "
+            "You can install it via doubleml extra: pip install caml[doubleml]"
+        )
+
+    from doubleml.irm.datasets import make_heterogeneous_data
+
     if dim_heterogeneity not in [1, 2]:
         raise ValueError("dim_heterogeneity must be 1 or 2.")
 
@@ -1086,6 +1099,8 @@ def make_partially_linear_dataset_constant(
     ```
     </div>
 
+    This function requires the `doubleml` package to be installed. You can install it via the doubleml extra: `pip install caml[doubleml]`.
+
     Parameters
     ----------
     n_obs : int
@@ -1110,6 +1125,13 @@ def make_partially_linear_dataset_constant(
     true_ate : float
         The true average treatment effect.
 
+    Raises
+    ------
+    ModuleNotFoundError
+        If the `doubleml` package is not installed.
+    ValueError
+        If `dgp` is not "make_plr_CCDDHNR2018" or "make_plr_turrell2018".
+
     Examples
     --------
     ```{python}
@@ -1125,6 +1147,14 @@ def make_partially_linear_dataset_constant(
     print(df.head())
     ```
     """
+    if is_module_available("doubleml") is False:
+        raise ModuleNotFoundError(
+            "doubleml is not installed. Please install it to use this function. "
+            "You can install it via doubleml extra: pip install caml[doubleml]"
+        )
+
+    from doubleml.plm.datasets import make_plr_CCDDHNR2018, make_plr_turrell2018
+
     np.random.seed(seed)
 
     if dgp == "make_plr_CCDDHNR2018":

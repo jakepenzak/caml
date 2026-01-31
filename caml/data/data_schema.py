@@ -1,4 +1,4 @@
-"""Core data type definitions for causal inference.
+"""Core data type definitions for Causal datasets in CaML.
 
 Defines enumerations for treatment variables, outcome variables, and target estimands
 used throughout CaML. These enable automatic estimator compatibility checking and validation.

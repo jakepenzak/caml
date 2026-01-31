@@ -9,11 +9,12 @@ from __future__ import annotations
 from econml.metalearners import SLearner, TLearner, XLearner
 
 from caml.data import CausalDataset, Estimand, OutcomeType, TreatmentType
-from caml.estimators import EstimatorCapabilities
-from caml.estimators.base import BaseWrapperMixin
+from caml.estimators.base import BaseWrapperMixin, EstimatorCapabilities
 from caml.inference import InferenceType
+from caml.registry import auto_register
 
 
+@auto_register(family="meta")
 class WrappedSLearner(BaseWrapperMixin):
     """Wrapper for EconML's S-Learner estimator.
 
@@ -161,6 +162,7 @@ class WrappedSLearner(BaseWrapperMixin):
         return self
 
 
+@auto_register(family="meta")
 class WrappedTLearner(BaseWrapperMixin):
     """Wrapper for EconML's T-Learner estimator.
 
@@ -306,6 +308,7 @@ class WrappedTLearner(BaseWrapperMixin):
         return self
 
 
+@auto_register(family="meta")
 class WrappedXLearner(BaseWrapperMixin):
     """Wrapper for EconML's X-Learner estimator.
 

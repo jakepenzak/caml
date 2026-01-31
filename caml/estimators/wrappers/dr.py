@@ -9,11 +9,12 @@ from __future__ import annotations
 from econml.dr import DRLearner, ForestDRLearner, LinearDRLearner, SparseLinearDRLearner
 
 from caml.data import CausalDataset, Estimand, OutcomeType, TreatmentType
-from caml.estimators import EstimatorCapabilities
-from caml.estimators.base import BaseWrapperMixin
+from caml.estimators.base import BaseWrapperMixin, EstimatorCapabilities
 from caml.inference import InferenceType
+from caml.registry import auto_register
 
 
+@auto_register(family="dr")
 class WrappedDRLearner(BaseWrapperMixin):
     """Wrapper for EconML's DRLearner estimator.
 
@@ -170,6 +171,7 @@ class WrappedDRLearner(BaseWrapperMixin):
         return self
 
 
+@auto_register(family="dr")
 class WrappedLinearDRLearner(BaseWrapperMixin):
     """Wrapper for EconML's LinearDRLearner estimator.
 
@@ -328,6 +330,7 @@ class WrappedLinearDRLearner(BaseWrapperMixin):
         return self
 
 
+@auto_register(family="dr")
 class WrappedSparseLinearDRLearner(BaseWrapperMixin):
     """Wrapper for EconML's SparseLinearDRLearner estimator.
 
@@ -487,6 +490,7 @@ class WrappedSparseLinearDRLearner(BaseWrapperMixin):
         return self
 
 
+@auto_register(family="dr")
 class WrappedForestDRLearner(BaseWrapperMixin):
     """Wrapper for EconML's ForestDRLearner estimator.
 

@@ -6,6 +6,14 @@ app = marimo.App(width="medium")
 
 @app.cell
 def _():
+    from caml.registry import available_estimators
+
+    available_estimators
+    return
+
+
+@app.cell
+def _():
     import numpy as np
 
     from caml.data import CausalDataset, OutcomeType, TreatmentType
