@@ -52,9 +52,9 @@ class CausalDataset:
     W_names
         Confounder names (auto-set by ``from_dataframe()``).
     T_name
-        Treatment name.
+        Treatment name (auto-set by ``from_dataframe()``).
     Y_name
-        Outcome name.
+        Outcome name (auto-set by ``from_dataframe()``).
     true_cates
         True CATEs (for synthetic data and simulations; can be used in PEHE score, not used in estimation).
 

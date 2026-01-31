@@ -6,7 +6,7 @@ from caml.samplers import CrossFitter
 from caml.scorers.base_scorer import BaseScorer
 
 
-## Add supported outcome and treatment types if needed
+## Add supported outcome and treatment types!
 class RLoss(BaseScorer):
     """R-learner loss for CATE model selection."""
 
@@ -28,7 +28,7 @@ class RLoss(BaseScorer):
     def __call__(self, estimator, data: CausalDataset) -> float:
         """Compute out-of-fold R-loss."""
         # Step 1: Get out-of-fold nuisance predictions
-        m_hat, e_hat = self._cross_fitter.fit_predict_nuisances(
+        m_hat, e_hat = self._cross_fitter.fit_predict_nuisances_dml(
             data=data,
             outcome_model=self.outcome_model,
             treatment_model=self.treatment_model,
@@ -45,6 +45,7 @@ class RLoss(BaseScorer):
         squared_error = (Y_res - tau_hat * T_res) ** 2
         r_loss = np.mean(squared_error)
 
+        # Optionally, normalize for interpretability; [-inf, 0] = bad, [0, 1] = good
         if self.normalized:
             baseline_loss = sm.OLS(Y_res, T_res).fit().mse_resid
             r_loss = 1 - r_loss / baseline_loss

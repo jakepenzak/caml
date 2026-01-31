@@ -11,8 +11,9 @@ class PEHE(BaseScorer):
     Requires true CATEs for computation. Useful for simulation and benchmarking.
     """
 
-    def __init__(self, true_cates: np.ndarray | None = None):
+    def __init__(self, true_cates: np.ndarray | None = None, normalized: bool = False):
         self.true_cates = true_cates
+        self.normalized = normalized
 
     def __call__(self, estimator, data: CausalDataset) -> float:
         """Compute PEHE metric."""
@@ -23,7 +24,12 @@ class PEHE(BaseScorer):
         else:
             true_cates = data.true_cates
 
-        squared_error = (tau_hat - true_cates) ** 2
+        squared_error = (true_cates - tau_hat) ** 2
         pehe = np.mean(squared_error)
+
+        # Optionally, normalize for interpretability; [-inf, 0] = bad, [0, 1] = good
+        if self.normalized:
+            baseline_loss = np.mean((true_cates - np.mean(tau_hat)) ** 2)
+            pehe = 1 - pehe / baseline_loss
 
         return pehe

@@ -800,7 +800,7 @@ class RLoss:
         """Compute out-of-fold R-loss."""
 
         # Step 1: Get out-of-fold nuisance predictions
-        m_hat, e_hat = self._cross_fitter.fit_predict_nuisances(
+        m_hat, e_hat = self._cross_fitter.fit_predict_nuisances_dml(
             data=data,
             outcome_model=self.outcome_model,
             propensity_model=self.propensity_model
@@ -1075,7 +1075,7 @@ class CrossFitter:
         self.random_state = random_state
         self.group_col = group_col
 
-    def fit_predict_nuisances(
+    def fit_predict_nuisances_dml(
         self,
         data: CausalDataset,
         outcome_model,
