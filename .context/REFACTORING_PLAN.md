@@ -1,29 +1,30 @@
 # CaML AutoCATE Refactoring Plan
 
-**Version:** 1.1
-**Date:** January 24, 2026
-**Status:** In Progress - Phase 1 Complete, Phase 2 Starting
+**Version:** 1.3
+**Date:** January 31, 2026
+**Status:** In Progress - Phases 1-4 Complete, Phase 5 Next
 
 ---
 
 ## Executive Summary
 
-**UPDATE (Jan 26, 2026)**: Phases 1, 2, AND 3 are complete! Core data structures, protocols, all EconML wrapper implementations, and nuisance model tuning infrastructure are done with comprehensive docstrings and tests.
+**UPDATE (Jan 31, 2026)**: Phases 1-4 are complete! Core v0 functionality is ready. Some Phase 4 components (bootstrap inference, uplift/policy/calibration scorers) have been deferred to post-v0 as they are not critical for the initial release.
 
 This plan refactors CaML into a focused **AutoCATE modeling package** with:
 
 - **EconML-first approach**: Wrap 14 proven CATE estimators from EconML ✅ COMPLETE
-- **Custom scoring infrastructure**: Build R-loss, DR-loss, Qini, and policy value evaluation from scratch
+- **Custom scoring infrastructure**: R-loss, DR-loss, Q-statistic, PEHE ✅ COMPLETE (uplift/policy/calibration deferred)
 - **Dual AutoML backends**: FLAML for nuisance function tuning ✅ COMPLETE, Optuna for CATE model selection
 - **Extracted nuisance tuner**: Reusable component for first-stage model optimization ✅ COMPLETE
+- **Cross-fitting engine**: Out-of-fold nuisance predictions for unbiased scoring ✅ COMPLETE
 - **Minimal custom estimators**: Only `InteractiveLinearRegression` (benchmark) for v1
 - **All treatment types supported**: Binary, multi-valued, continuous from day one ✅ COMPLETE
 - **First-class inference**: Confidence intervals and standard errors as core functionality ✅ COMPLETE
 - **Protocol-based architecture**: `BaseWrapperMixin` ABC for consistent wrapper patterns ✅ COMPLETE
 
-**Progress**: ~55% complete (Phases 1-3 of 7)
-**Timeline**: 3-4 weeks remaining (originally 7 weeks total)
-**Lines of Code**: ~1,500 implemented, ~2,000 remaining
+**Progress**: ~70% complete (Phases 1-4 of 7)
+**Timeline**: 2-3 weeks remaining for v0 release
+**Lines of Code**: ~2,200 implemented, ~1,000 remaining
 
 ---
 
@@ -68,15 +69,30 @@ This plan refactors CaML into a focused **AutoCATE modeling package** with:
 
 ### 1.3 Scoring Components (All Custom)
 
-| **Metric** | **Implementation** | **Priority** |
-|-----------|-------------------|--------------|
-| **R-loss** | Custom orthogonal score with cross-fitted nuisances | ✅ **v1** |
-| **DR-loss** | Custom doubly-robust pseudo-outcome loss | ✅ **v1** |
-| **Qini coefficient / curve** | Custom uplift metric for binary treatment | ✅ **v1** |
-| **AUUC** | Area under uplift curve | ✅ **v1** |
-| **Policy value (DR)** | Doubly-robust policy evaluation | ✅ **v1** |
-| **Calibration** | CATE calibration by deciles | ✅ **v1** |
-| **Stability diagnostics** | Cross-fold variance, rank stability | ✅ **v1** |
+| **Metric** | **Implementation** | **Status** |
+|-----------|-------------------|------------|
+| **R-loss** | Custom orthogonal score with cross-fitted nuisances | ✅ **COMPLETE** |
+| **DR-loss** | Custom doubly-robust pseudo-outcome loss | ✅ **COMPLETE** |
+| **Q-statistic** | IPW pseudo-outcome for model ranking | ✅ **COMPLETE** |
+| **PEHE** | Oracle metric with true CATEs | ✅ **COMPLETE** |
+| **Qini / AUUC** | Uplift metrics for binary treatment | 🔶 **Deferred to post-v0** |
+| **Policy value (DR)** | Doubly-robust policy evaluation | 🔶 **Deferred to post-v0** |
+| **Calibration** | CATE calibration by deciles | 🔶 **Deferred to post-v0** |
+| **Diagnostics** | Stability, sensitivity, overlap checks | 🔶 **Deferred to post-v0** |
+
+**Implemented Scorers** (in `scorers/`):
+- `BaseScorer` - Abstract base with validation utilities
+- `RLoss` - R-learner loss for model selection
+- `DRLoss` - Doubly-robust loss for model selection
+- `QStat` - Q-statistic for model ranking
+- `PEHE` - Oracle metric (requires true CATEs)
+
+**Deferred Scorers** (prefixed with `_`, empty TODO files):
+- `_uplift.py` - Qini, AUUC
+- `_policy.py` - Policy value scoring
+- `_calibration.py` - CATE calibration
+- `_diagnostics.py` - Stability metrics
+- `_plug_in.py` - Plug-in estimator
 
 **Rationale**: Building scoring ourselves provides:
 - Full control over implementation details
@@ -123,21 +139,24 @@ caml/
 │   ├── tuner.py                  # ✅ IMPLEMENTED (224 lines) - NuisanceTuner (FLAML-based)
 │   └── spec.py                   # ✅ IMPLEMENTED (54 lines) - NuisanceTunerSpec dataclass
 │
-├── scorers/                      # 🔶 TODO - Scoring & evaluation (ALL CUSTOM) (renamed from scoring/)
-│   ├── __init__.py               # 🔶 Empty
-│   ├── base.py                   # 🔶 Empty - BaseScorer abstract class
-│   ├── r_loss.py                 # 🔶 Empty - R-learner loss (orthogonal score)
-│   ├── dr_loss.py                # 🔶 Empty - Doubly-robust loss
-│   ├── uplift_.py                # 🔶 Empty - Qini, AUUC, uplift curves (note underscore)
-│   ├── policy.py                 # 🔶 Empty - Policy value (IPS, DR policy evaluation)
-│   ├── calibration.py            # 🔶 Empty - CATE calibration diagnostics
-│   └── diagnostics.py            # 🔶 Empty - Stability, sensitivity, overlap checks
+├── scorers/                      # ✅ IMPLEMENTED - Scoring & evaluation (core scorers complete)
+│   ├── __init__.py               # ✅ Exports BaseScorer, RLoss, DRLoss, QStat, PEHE
+│   ├── base_scorer.py            # ✅ BaseScorer ABC, clip(), validation utilities (220 lines)
+│   ├── r_loss.py                 # ✅ RLoss scorer (144 lines)
+│   ├── dr_loss.py                # ✅ DRLoss scorer (143 lines)
+│   ├── q_stat.py                 # ✅ QStat scorer (128 lines)
+│   ├── pehe.py                   # ✅ PEHE oracle metric (127 lines)
+│   ├── _uplift.py                # 🔶 Deferred - Qini, AUUC (TODO placeholder)
+│   ├── _policy.py                # 🔶 Deferred - Policy value (TODO placeholder)
+│   ├── _calibration.py           # 🔶 Deferred - CATE calibration (TODO placeholder)
+│   ├── _diagnostics.py           # 🔶 Deferred - Stability metrics (TODO placeholder)
+│   └── _plug_in.py               # 🔶 Deferred - Plug-in estimator (TODO placeholder)
 │
-├── samplers/                     # 🔶 TODO - Cross-fitting & resampling (renamed from sampling/)
-│   ├── __init__.py               # 🔶 Empty
-│   ├── cross_fit.py              # 🔶 Empty - CrossFitter class (core engine)
-│   ├── splitters.py              # 🔶 Empty - KFold, GroupKFold, TimeSeriesSplit wrappers
-│   └── bootstrap.py              # 🔶 Empty - Bootstrap inference wrapper
+├── samplers/                     # ✅ IMPLEMENTED - Cross-fitting & resampling (core complete)
+│   ├── __init__.py               # ✅ Exports CrossFitter, create_splitter
+│   ├── cross_fit.py              # ✅ CrossFitter class (297 lines)
+│   ├── splitters.py              # ✅ create_splitter utility (40 lines)
+│   └── bootstrap.py              # 🔶 Deferred - Bootstrap inference (TODO placeholder)
 │
 ├── automl/                       # 🔶 TODO - AutoCATE orchestration
 │   ├── __init__.py               # 🔶 Empty
@@ -1274,8 +1293,8 @@ class CrossFitter:
 
 **Implemented**:
 1. ✅ `nuisance/spec.py` - `NuisanceTunerSpec` dataclass (54 lines)
-2. ✅ `nuisance/tuner.py` - Extract `NuisanceTuner` from old AutoCATE (224 lines)
-3. ✅ Refactor to use `CausalDataset` with automatic task detection
+2. ✅ `nuisance/tuner.py` - `NuisanceTuner` with FLAML (224 lines)
+3. ✅ Refactored to use `CausalDataset` with automatic task detection
 4. ✅ **Docstrings**: Complete NumPy-style docstrings with runnable examples using `SyntheticDataGenerator`
 5. ✅ **Tests**: Comprehensive tests (302 lines for tuner.py, 156 lines for spec.py)
 
@@ -1292,41 +1311,59 @@ class CrossFitter:
 
 ---
 
-### Phase 4: Cross-Fitting & Scoring (Week 4) 🔶 **TODO** - **NEXT PRIORITY**
-**Goal**: Custom scoring infrastructure
+### Phase 4: Cross-Fitting & Scoring (Week 4) ✅ **COMPLETE** (core scorers)
+**Goal**: Custom scoring infrastructure ✅ ACHIEVED
 
-20. 🔶 Create `samplers/splitters.py` - Splitting strategies (note: directory is `samplers/` not `sampling/`)
-21. 🔶 Create `samplers/cross_fit.py` - `CrossFitter` class
-22. 🔶 Create `scorers/r_loss.py` - `RLoss` scorer (note: directory is `scorers/` not `scoring/`)
-23. 🔶 Create `scorers/dr_loss.py` - `DRLoss` scorer
-24. 🔶 Create `scorers/uplift_.py` - `QiniScorer` (note: underscore suffix in filename)
-25. 🔶 Create `scorers/policy.py` - `PolicyValueScorer`
-26. 🔶 Create `scorers/calibration.py` - Calibration metrics
-27. 🔶 Create `scorers/diagnostics.py` - CATE diagnostics
-28. 🔶 **Docstrings**: Complete NumPy-style docstrings for all public classes/methods with runnable examples
-29. 🔶 **Tests**: Validate scoring on synthetic data with known ground truth (use `SyntheticDataGenerator`)
+**Implemented**:
+1. ✅ `samplers/splitters.py` - Splitting strategies (40 lines)
+2. ✅ `samplers/cross_fit.py` - `CrossFitter` class with DML and DR nuisance methods (297 lines)
+3. ✅ `scorers/base_scorer.py` - `BaseScorer` ABC with validation utilities (220 lines)
+4. ✅ `scorers/r_loss.py` - `RLoss` scorer with normalization option (144 lines)
+5. ✅ `scorers/dr_loss.py` - `DRLoss` scorer with normalization option (143 lines)
+6. ✅ `scorers/q_stat.py` - `QStat` scorer for IPW-based ranking (128 lines)
+7. ✅ `scorers/pehe.py` - `PEHE` oracle metric requiring true CATEs (127 lines)
+8. ✅ **Docstrings**: Complete NumPy-style docstrings with runnable examples
+9. ✅ **Tests**: Validation on synthetic data with `SyntheticDataGenerator`
 
-**Deliverable**: Working scoring module with complete docstrings and tests
+**Deferred to post-v0**:
+- 🔶 `scorers/_uplift.py` - Qini, AUUC metrics
+- 🔶 `scorers/_policy.py` - Policy value scoring
+- 🔶 `scorers/_calibration.py` - Calibration diagnostics
+- 🔶 `scorers/_diagnostics.py` - Stability metrics
+- 🔶 `scorers/_plug_in.py` - Plug-in estimator
+- 🔶 `samplers/bootstrap.py` - Bootstrap inference
 
-**Implementation Notes**:
-- Directory is `samplers/` not `sampling/` or `validation/`
-- Directory is `scorers/` not `scoring/`
-- File is `uplift_.py` (with underscore) not `uplift.py`
-- Use `SyntheticDataGenerator` from `extensions/` for test data
-- Follow examples in REFACTORING_PLAN.md Sections 4.2-4.5
-- **CRITICAL**: Docstrings are mandatory before marking phase complete
-- **Dependencies**: Phase 3 complete (nuisance models needed for DR-loss)
+**Deliverable**: ✅ Working scoring module with core metrics (R-loss, DR-loss, Q-stat, PEHE)
+
+**Key Implementation Details**:
+
+1. **CrossFitter Pattern**:
+   - Uses `sklearn.model_selection.cross_val_predict` for efficient cross-fitting
+   - Supports stratified splitting for discrete outcomes/treatments
+   - Methods: `fit_predict_nuisances_dml()`, `fit_predict_nuisances_dr()`, `fit_predict_outcome_model()`, `fit_predict_treatment_model()`, `fit_predict_regression_model()`
+
+2. **Scorer Base Class**:
+   - `BaseScorer` ABC with `__call__(estimator, data) -> float`
+   - Utility functions: `clip()`, `validate_cate_array()`, `validate_scorer_inputs()`
+   - All scorers support `normalized` parameter for R²-like interpretation
+
+3. **Scorer API Consistency**:
+   - All scorers take `estimator` (fitted) and `data` (CausalDataset)
+   - Use `estimator.effect(data.X)` to get CATE predictions
+   - Return float scores (losses, not negated)
 
 ---
 
-### Phase 5: Refactor AutoCATE (Week 5) 🔶 **TODO**
+### Phase 5: Refactor AutoCATE (Week 5) 🔶 **TODO** - **NEXT PRIORITY**
 **Goal**: New AutoCATE with Optuna
+
+**Dependencies**: Phases 3-4 complete (nuisance tuner and scorers available)
 
 30. 🔶 Create `automl/backends/base.py` - `TunerBackend` protocol
 31. 🔶 Create `automl/backends/optuna_backend.py` - Optuna implementation
-32. 🔶 Create `automl/objectives.py` - Optuna objective functions
+32. 🔶 Create `automl/objectives.py` - Optuna objective functions using RLoss/DRLoss
 33. 🔶 Create `automl/search_space.py` - Search space definitions
-34. 🔶 Refactor `automl/auto_cate.py` - Use `NuisanceTuner` + Optuna + registry
+34. 🔶 Refactor `automl/auto_cate.py` - Use `NuisanceTuner` + Optuna + registry + scorers
 35. 🔶 **Docstrings**: Complete NumPy-style docstrings for all public classes/methods with runnable examples
 36. 🔶 **Tests**: End-to-end AutoCATE on synthetic data
 
@@ -1334,8 +1371,9 @@ class CrossFitter:
 
 **Implementation Notes**:
 - Leverage `registry.get_compatible_estimators()` for candidate selection
-- Use scoring functions from Phase 4
-- Use `NuisanceTuner` from Phase 3
+- Use `NuisanceTuner` from Phase 3 for first-stage models
+- Use `RLoss`, `DRLoss`, `QStat` from Phase 4 for scoring
+- Use `CrossFitter` for out-of-fold nuisance predictions
 - Follow REFACTORING_PLAN.md Section 7 for API examples
 - **CRITICAL**: Docstrings are mandatory before marking phase complete
 
@@ -1385,12 +1423,27 @@ class CrossFitter:
 |-------|--------|------------|------------------|
 | 1. Foundation | ✅ Complete | 100% | CausalDataset, Protocols, Schema, Validation |
 | 2. Estimator Wrappers | ✅ Complete | 100% | 14 EconML wrappers + BaseWrapperMixin + registry |
-| 3. Nuisance Models | 🔶 TODO | 0% | NuisanceTuner, NuisanceSpec |
-| 4. Cross-Fitting & Scoring | 🔶 TODO | 0% | CrossFitter, RLoss, DRLoss, Qini |
-| 5. AutoCATE | 🔶 TODO | 0% | New AutoCATE with Optuna |
+| 3. Nuisance Models | ✅ Complete | 100% | NuisanceTuner, NuisanceTunerSpec |
+| 4. Cross-Fitting & Scoring | ✅ Complete | 85% | CrossFitter, RLoss, DRLoss, QStat, PEHE (uplift/policy/calibration deferred) |
+| 5. AutoCATE | 🔶 TODO | 0% | New AutoCATE with Optuna - **NEXT PRIORITY** |
 | 6. InteractiveOLS | ⚠️ Partial | 70% | Protocol adaptation needed |
 | 7. Documentation | 🔶 TODO | 0% | Tests, docs, examples |
-| **TOTAL** | **~40%** | **~40%** | **4-5 weeks remaining** |
+| **TOTAL** | **~70%** | **~70%** | **2-3 weeks remaining for v0** |
+
+### Deferred to Post-v0 Release
+
+The following components are not critical for v0 and have been deferred:
+
+| Component | File | Reason |
+|-----------|------|--------|
+| Bootstrap Inference | `samplers/bootstrap.py` | Analytic inference sufficient for v0 |
+| Qini/AUUC Metrics | `scorers/_uplift.py` | R-loss/DR-loss sufficient for model selection |
+| Policy Value Scorer | `scorers/_policy.py` | Advanced use case |
+| Calibration Metrics | `scorers/_calibration.py` | Advanced diagnostics |
+| Stability Diagnostics | `scorers/_diagnostics.py` | Advanced diagnostics |
+| Plug-in Estimator | `scorers/_plug_in.py` | Alternative scoring approach |
+
+These files exist as `# TODO` placeholders with underscore prefix to indicate deferred status.
 
 ---
 
@@ -1528,28 +1581,29 @@ cate = estimator.predict_cate(data.X)
 - [x] Wrapped estimators produce identical outputs to EconML (within numerical precision)
 - [x] BaseWrapperMixin delegation tested across all wrapper types
 - [x] Dual compatibility checking (class + instance methods) validated
-- [ ] All scoring functions validated against synthetic data with known ground truth
-- [ ] R-loss, DR-loss produce expected rankings on benchmark datasets
-- [ ] Cross-fitting produces unbiased estimates (verified via simulation)
+- [x] All scoring functions validated against synthetic data with known ground truth
+- [x] R-loss, DR-loss, Q-stat produce expected rankings on benchmark datasets
+- [x] Cross-fitting produces unbiased estimates (verified via simulation)
+- [ ] AutoCATE end-to-end tests pass
 
 ### 8.2 Performance
 - [ ] New AutoCATE completes in ≤ 120% time of old AutoCATE
-- [ ] Scoring functions are vectorized (no Python loops over observations)
-- [ ] Cross-fitting is parallelized where possible
+- [x] Scoring functions are vectorized (no Python loops over observations)
+- [x] Cross-fitting uses sklearn cross_val_predict (parallelized)
 - [ ] Memory usage ≤ old AutoCATE
 
 ### 8.3 Code Quality
-- [ ] 80%+ test coverage on all new modules
-- [ ] Type hints on all public APIs
-- [ ] **Docstrings (numpy style) on all public functions - MANDATORY for phase completion**
-- [ ] All docstrings include runnable examples using `SyntheticDataGenerator`
+- [x] 80%+ test coverage on Phases 1-4 modules
+- [x] Type hints on all public APIs
+- [x] **Docstrings (numpy style) on all Phase 1-4 public functions**
+- [x] All docstrings include runnable examples using `SyntheticDataGenerator`
 - [ ] Pre-commit hooks pass (ruff, mypy)
 
 ### 8.4 Usability
 - [ ] Migration guide with side-by-side comparisons
 - [ ] Example notebooks for common workflows
-- [ ] Clear error messages for invalid data
-- [ ] Automatic capability filtering (users never see incompatible estimators)
+- [x] Clear error messages for invalid data
+- [x] Automatic capability filtering (users never see incompatible estimators)
 
 ---
 
@@ -1832,55 +1886,62 @@ From implemented files:
 
 ---
 
-## Next Steps (Updated Jan 25, 2026)
+## Next Steps (Updated Jan 31, 2026)
 
-### Immediate Priorities (Phase 3)
+### Immediate Priorities (Phase 5 - AutoML)
 
-**Status Change**: Phases 1-2 are COMPLETE. Phase 3 is now the immediate priority.
+**Status Change**: Phases 1-4 are COMPLETE. Phase 5 (AutoCATE with Optuna) is now the immediate priority.
 
-1. **Implement NuisanceSpec** (`nuisance/spec.py`)
-   - Simple dataclass for nuisance model specifications
-   - ~40 lines of code
-   - See REFACTORING_PLAN.md Section 3.4 for design
+1. **Implement TunerBackend Protocol** (`automl/backends/base.py`)
+   - Protocol defining `optimize(objective, n_trials, **kwargs)` interface
+   - ~30 lines of code
 
-2. **Implement NuisanceTuner** (`nuisance/tuner.py`)
-   - Extract from existing AutoCATE codebase if available
-   - FLAML-based tuning for propensity and outcome models
-   - ~250 lines of code
-   - See REFACTORING_PLAN.md Section 3.4 for detailed implementation
-   - Use `CausalDataset` for data input
-
-3. **Implement Helper Functions** (`nuisance/models.py`)
-   - Utility functions for nuisance model preparation
+2. **Implement OptunaBackend** (`automl/backends/optuna_backend.py`)
+   - Optuna-based implementation of TunerBackend
+   - TPE sampler with pruning
    - ~80 lines of code
-   - Includes: `trim_propensity()`, `prepare_features_for_propensity()`, etc.
 
-4. **Complete NumPy Docstrings**
+3. **Implement Optuna Objectives** (`automl/objectives.py`)
+   - Create objectives using RLoss, DRLoss, QStat scorers
+   - ~100 lines of code
+
+4. **Implement AutoCATE** (`automl/auto_cate.py`)
+   - Main orchestration class
+   - Uses NuisanceTuner for first-stage models
+   - Uses registry for estimator discovery
+   - Uses Optuna for CATE model selection
+   - ~300 lines of code
+
+5. **Complete NumPy Docstrings**
    - All public classes and methods need comprehensive docstrings
    - Include runnable examples using `SyntheticDataGenerator`
-   - Follow patterns from Phase 2 wrappers
+   - Follow patterns from Phase 4 scorers
 
-5. **Write Tests**
-   - Validate `NuisanceTuner` produces same results as old AutoCATE
-   - Test with various data types (binary, continuous treatments/outcomes)
-   - Test FLAML integration (Ray, Spark optional backends)
+6. **Write Tests**
+   - End-to-end AutoCATE workflow tests
+   - Validate best estimator selection on synthetic data
+   - Test multi-metric optimization
 
-### Medium-Term (Phases 4-5)
-
-- Implement samplers (`samplers/cross_fit.py`, `samplers/splitters.py`, `samplers/bootstrap.py`)
-- Implement scorers (`scorers/r_loss.py`, `scorers/dr_loss.py`, `scorers/uplift_.py`, etc.)
-- Build AutoCATE with Optuna backend
-
-### Long-Term (Phases 6-7)
+### Medium-Term (Phases 6-7)
 
 - Adapt InteractiveLinearRegression to protocols
 - Comprehensive testing and documentation
+- Example notebooks
 
-**Estimated completion**: Early March 2026 (5-6 weeks from Jan 24)
+### Post-v0 Enhancements
+
+After v0 release, implement deferred components:
+- `samplers/bootstrap.py` - Bootstrap inference
+- `scorers/_uplift.py` - Qini, AUUC metrics
+- `scorers/_policy.py` - Policy value scoring
+- `scorers/_calibration.py` - Calibration diagnostics
+- `scorers/_diagnostics.py` - Stability metrics
+
+**Estimated v0 completion**: Mid-February 2026 (2-3 weeks from Jan 31)
 
 ---
 
 **Document Control**
 - **Author**: OpenCode + User
-- **Last Updated**: January 25, 2026
-- **Version**: 1.2 (Phase 2 COMPLETE - Updated with actual implementation status)
+- **Last Updated**: January 31, 2026
+- **Version**: 1.3 (Phases 1-4 COMPLETE - Updated with Phase 4 completion and deferred items)

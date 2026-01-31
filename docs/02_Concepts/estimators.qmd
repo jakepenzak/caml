@@ -1,5 +1,5 @@
 ---
-title: "Model Specifications"
+title: "Estimator Details"
 ---
 
 ## [InteractiveLinearRegression](../04_Reference/InteractiveLinearRegression.qmd)
@@ -66,3 +66,9 @@ where $\text{VCV}(\mathbf{\Theta}_k)$ is the variance-covariance matrix of the e
 This logic extends naturally to the estimation of GATEs and CATEs (e.g., $\bar{d} = \mathbb{E}_n\left[D_{T=1} - D_{T=0} | \mathbf{G}=g\right]$,
 $\bar{d} = \mathbb{E}_n\left[D_{T=1} - D_{T=0} | \mathbf{G}=g, \mathbf{X}=x\right]$, $\dots$, etc.) and to continuous treatments
 (e.g., $\bar{d} = \mathbb{E}_n\left[D_{T=t+1} - D_{T=t}\right]$, $\dots$, etc.).
+
+
+## References
+
+::: {#refs}
+:::

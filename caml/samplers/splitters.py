@@ -1,4 +1,4 @@
-"""Splitter utilities."""
+"""Cross-validation splitter utilities."""
 
 from sklearn.model_selection import (
     GroupKFold,

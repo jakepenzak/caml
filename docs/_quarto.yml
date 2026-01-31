@@ -67,8 +67,8 @@ website:
       style: floating
       contents:
         - 02_Concepts/motivation.qmd
-        - 02_Concepts/theory.qmd
-        - 02_Concepts/models.qmd
+        - 02_Concepts/estimators.qmd
+        - 02_Concepts/scorers.qmd
         - 02_Concepts/references.qmd
     # - id: Examples
     #   title: "Examples"
@@ -183,10 +183,38 @@ quartodoc:
     - subtitle: Samplers
       desc: "`caml.samplers` \n\n Primary CATE sampling utilities and objects."
       package: caml.samplers
+      contents:
+        - name: cross_fit
+          member_order: source
+        - name: splitters
+          member_order: source
 
     - subtitle: Scorers
       desc: "`caml.scorers` \n\n Primary CATE scoring & validation metrics."
       package: caml.scorers
+      contents:
+        - name: base_scorer
+          member_order: source
+          member_options:
+            include_private: true
+        - name: pehe
+          member_order: source
+          member_options:
+            include_private: true
+        - name: r_loss
+          member_order: source
+          member_options:
+            include_private: true
+        - name: dr_loss
+          member_order: source
+          include_private: true
+          member_options:
+            include_private: true
+        - name: q_stat
+          member_order: source
+          include_private: true
+          member_options:
+            include_private: true
 
     - subtitle: Inference
       desc: "`caml.inference` \n\n Inference objects and schemas."

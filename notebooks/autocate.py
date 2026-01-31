@@ -23,7 +23,14 @@ def _():
         outcome_type=OutcomeType.CONTINUOUS,
         true_cates=np.array(gen.cates),
     )
-    return data, np
+    return (
+        CausalDataset,
+        OutcomeType,
+        SyntheticDataGenerator,
+        TreatmentType,
+        data,
+        np,
+    )
 
 
 @app.cell
@@ -34,7 +41,7 @@ def _(data):
         fit_treatment_model=True, fit_outcome_model=True, fit_regression_model=True
     )
 
-    tuner = NuisanceTuner(time_budget=10, verbose=0)
+    tuner = NuisanceTuner(time_budget=5, verbose=0)
 
     tuner.fit(data, spec)
 
@@ -53,7 +60,84 @@ def _(data, tuner):
     mhat, ehat = cross_fitter.fit_predict_nuisances_dml(
         data, outcome_model=tuner.outcome_model_, treatment_model=tuner.treatment_model_
     )
-    return (cross_fitter,)
+    return
+
+
+@app.cell
+def _(
+    CausalDataset,
+    OutcomeType,
+    PEHE,
+    SyntheticDataGenerator,
+    TreatmentType,
+    np,
+):
+    from caml.estimators.dml import WrappedLinearDML
+    from sklearn.linear_model import LinearRegression, LogisticRegression
+
+    gener = SyntheticDataGenerator(n_cont_modifiers=3, n_cont_confounders=3, seed=10)
+    df = gener.df
+    true_cates = np.array(gener.cates)
+
+    dataa = CausalDataset.from_dataframe(
+        df=df,
+        X=["X1_continuous", "X2_continuous", "X3_continuous"],
+        W=["W1_continuous", "W2_continuous", "W3_continuous"],
+        T="T1_binary",
+        Y="Y1_continuous",
+        treatment_type=TreatmentType.BINARY,
+        outcome_type=OutcomeType.CONTINUOUS,
+        true_cates=true_cates,
+    )
+
+    estimator = WrappedLinearDML(
+        model_y=LinearRegression(), model_t=LogisticRegression(), cv=3
+    )
+    estimator.fit(dataa)
+
+    scorer = PEHE()
+    print(f"PEHE: {scorer(estimator, dataa)}")
+
+    nrm_scorer = PEHE(normalized=True)
+    print(f"Normalized PEHE: {nrm_scorer(estimator, dataa):.2f}")
+    return dataa, estimator, true_cates
+
+
+@app.cell
+def _(true_cates):
+    true_cates.shape
+    return
+
+
+@app.cell
+def _(dataa, estimator):
+    x = estimator.effect(dataa.X)
+    y = dataa.true_cates
+    return x, y
+
+
+@app.cell
+def _(np, x, y):
+    np.mean((y - x) ** 2)
+    return
+
+
+@app.cell
+def _(np, x):
+    np.mean(x)
+    return
+
+
+@app.cell
+def _(y):
+    y
+    return
+
+
+@app.cell
+def _(cate_histogram_plot, dataa, estimator):
+    cate_histogram_plot(estimator.effect(dataa.X).ravel(), true_cates=dataa.true_cates)
+    return
 
 
 @app.cell
@@ -77,7 +161,7 @@ def _(data, mod):
     pehe = PEHE(normalized=True)
 
     pehe(estimator=mod, data=data)
-    return
+    return (PEHE,)
 
 
 @app.cell
@@ -96,29 +180,11 @@ def _(data, mod, tuner):
 
 @app.cell
 def _(data, mod, tuner):
-    from caml.scorers.q_loss import QLoss
+    from caml.scorers.q_stat import QStat
 
-    q_loss = QLoss(treatment_model=tuner.treatment_model_)
+    q_stat = QStat(treatment_model=tuner.treatment_model_)
 
-    q_loss(estimator=mod, data=data)
-    return
-
-
-@app.cell
-def _(data, np):
-    XW = np.hstack([data.X, data.W]) if data.W is not None else data.X
-    return (XW,)
-
-
-@app.cell
-def _(XW):
-    XW.shape
-    return
-
-
-@app.cell
-def _(XW, data):
-    XW[data.T == 1]
+    q_stat(estimator=mod, data=data)
     return
 
 
@@ -147,7 +213,12 @@ def _(data, mod):
     estimated = mod.effect(data.X)
 
     cate_histogram_plot(estimated, true_cates=data.true_cates)
-    return cate_line_plot, cate_true_vs_estimated_plot, estimated
+    return (
+        cate_histogram_plot,
+        cate_line_plot,
+        cate_true_vs_estimated_plot,
+        estimated,
+    )
 
 
 @app.cell
@@ -159,18 +230,6 @@ def _(cate_line_plot, data, estimated):
 @app.cell
 def _(cate_true_vs_estimated_plot, data, estimated):
     cate_true_vs_estimated_plot(estimated.ravel(), data.true_cates.ravel())
-    return
-
-
-@app.cell
-def _(cross_fitter, data, mod, tuner):
-    e_hat = cross_fitter.fit_predict_treatment_model(
-        data=data,
-        treatment_model=tuner.treatment_model_,
-    )
-
-    ipw = (data.T * data.Y) / e_hat - ((1 - data.T) * data.Y) / (1 - e_hat)
-    tau_hat = mod.effect(data.X)
     return
 
 

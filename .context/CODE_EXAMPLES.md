@@ -12,8 +12,8 @@ This document provides detailed code examples for every file in the proposed dir
 2. [estimators/base.py (Protocols + BaseWrapperMixin)](#2-estimatorsbasepy-protocols--basewrappermixin) - ✅ Complete
 3. [estimators/](#3-estimators) - ✅ Complete (all wrappers)
 4. [nuisance/](#4-nuisance) - ✅ Complete
-5. [scorers/](#5-scorers) - 🔶 Not implemented
-6. [samplers/](#6-samplers-formerly-validation-or-sampling) - 🔶 Not implemented
+5. [scorers/](#5-scorers) - ✅ Complete (core scorers: RLoss, DRLoss, QStat, PEHE)
+6. [samplers/](#6-samplers-formerly-validation-or-sampling) - ✅ Complete (core: CrossFitter, splitters)
 7. [automl/](#7-automl) - 🔶 Not implemented
 8. [inference/](#8-inference) - ✅ Partial (results + schema)
 9. [registry/](#9-registry-formerly-modeling) - ✅ Complete
@@ -652,45 +652,56 @@ Originally planned for helper functions (propensity trimming, feature preparatio
 
 ## 5. scorers/
 
-**Status**: 🔶 **NOT YET IMPLEMENTED** (directory structure exists, all files empty)
+**Status**: ✅ **CORE SCORERS IMPLEMENTED** (base_scorer.py, r_loss.py, dr_loss.py, q_stat.py, pehe.py complete)
 
-**Note**: The actual directory is named `scorers/` rather than `scoring/` as originally planned.
+**Note**: The actual directory is named `scorers/` rather than `scoring/` as originally planned. Some advanced scorers are deferred to post-v0 and prefixed with `_`.
 
 ### scorers/__init__.py
 
-```python
-"""Scoring and evaluation metrics."""
-# TODO: Import once implemented
-# from caml.scorers.r_loss import RLoss
-# from caml.scorers.dr_loss import DRLoss
-# from caml.scorers.uplift_ import QiniScorer, AUUCScorer
-# from caml.scorers.policy import PolicyValueScorer
-# from caml.scorers.calibration import CalibrationScorer
+**Status**: ✅ **IMPLEMENTED** (14 lines)
 
-# __all__ = [
-#     "RLoss",
-#     "DRLoss",
-#     "QiniScorer",
-#     "AUUCScorer",
-#     "PolicyValueScorer",
-#     "CalibrationScorer",
-# ]
+```python
+from .base_scorer import BaseScorer, clip
+from .dr_loss import DRLoss
+from .pehe import PEHE
+from .q_stat import QStat
+from .r_loss import RLoss
+
+__all__ = [
+    "BaseScorer",
+    "RLoss",
+    "DRLoss",
+    "QStat",
+    "PEHE",
+]
 ```
 
-### scorers/base.py
+### scorers/base_scorer.py
 
-**Status**: 🔶 **NOT YET IMPLEMENTED**
+**Status**: ✅ **IMPLEMENTED** (220 lines)
 
-Planned implementation from REFACTORING_PLAN.md:
+Complete implementation with:
+- `BaseScorer` ABC with `__call__(estimator, data) -> float` interface
+- `clip()` utility for propensity score trimming
+- `validate_cate_array()` for CATE prediction validation
+- `validate_scorer_inputs()` for scorer input validation
 
 ```python
-"""Base scorer class."""
+"""Scoring utilities for CATE model selection."""
+
 from abc import ABC, abstractmethod
+import numpy as np
 from caml.data.dataset import CausalDataset
 
 
 class BaseScorer(ABC):
-    """Base class for CATE scorers."""
+    """Base class for CATE scorers.
+
+    Notes
+    -----
+    Some scorers naturally return a *loss* (lower is better). If using a
+    maximization-based tuner, negate the loss or use a normalized score.
+    """
 
     @abstractmethod
     def __call__(self, estimator, data: CausalDataset) -> float:
@@ -698,243 +709,396 @@ class BaseScorer(ABC):
 
         Parameters
         ----------
-        estimator : CATEEstimator
-            Estimator to score
-        data : CausalDataset
-            Data to score on
+        estimator
+            Fitted CATE estimator implementing ``effect(X)``.
+        data
+            Causal Dataset to score on
 
         Returns
         -------
         float
-            Score (higher is better for Optuna)
+            Loss or score
         """
-        pass
+
+
+def clip(arr: np.ndarray, lb: float = 0.01, ub: float = np.inf) -> np.ndarray:
+    """Clip array values (commonly propensity scores) for stability."""
+    return np.clip(arr, lb, ub)
+
+
+def validate_cate_array(arr: np.ndarray, n_samples: int, name: str = "CATE predictions") -> np.ndarray:
+    """Validate and flatten CATE array to 1D."""
+    arr = np.asarray(arr)
+    if arr.ndim == 2 and arr.shape[1] == 1:
+        arr = arr.ravel()
+    if arr.ndim != 1:
+        raise ValueError(f"{name} must be 1D or 2D with single column.")
+    if arr.shape[0] != n_samples:
+        raise ValueError(f"{name} has {arr.shape[0]} samples, expected {n_samples}.")
+    return arr
+
+
+def validate_scorer_inputs(tau_hat: np.ndarray, reference: np.ndarray, tau_name: str, ref_name: str) -> tuple[np.ndarray, np.ndarray]:
+    """Validate and align shapes of CATE predictions and reference array."""
+    # ... implementation
+    pass
 ```
 
 ### scorers/r_loss.py
 
-**Status**: 🔶 **NOT YET IMPLEMENTED** (empty file exists)
+**Status**: ✅ **IMPLEMENTED** (144 lines)
 
-See REFACTORING_PLAN.md for complete RLoss implementation (Section 4.2).
+R-learner loss for CATE model evaluation using orthogonal residualization:
+
+```python
+"""R-loss (R-learner based) scorer for CATE model selection."""
+
+import numpy as np
+import statsmodels.api as sm
+from sklearn.base import BaseEstimator
+
+from caml.data import CausalDataset
+from caml.samplers import CrossFitter
+from caml.scorers.base_scorer import BaseScorer, validate_cate_array
+
+
+class RLoss(BaseScorer):
+    r"""R-loss for CATE model evaluation & selection via orthogonal residualization.
+
+    Parameters
+    ----------
+    treatment_model
+        Model to estimate treatment $m(X) = \mathbb{E}[T \mid X,W]$.
+    outcome_model
+        Model to estimate outcome $\ell(X) = \mathbb{E}[Y \mid X, W]$.
+    cv
+        Number of cross-fitting folds.
+    random_state
+        Random state for cross-fitting.
+    normalized
+        If ``True``, returns an $R^2$-like score in $(-\infty, 1]$.
+
+    Notes
+    -----
+    R-loss satisfies Neyman orthogonality: nuisance estimation errors have only
+    second-order effects, enabling quasi-oracle model selection.
+
+    Examples
+    --------
+    ```{python}
+    from sklearn.linear_model import LinearRegression, LogisticRegression
+    from caml.estimators.dml import WrappedLinearDML
+    from caml.data import CausalDataset, OutcomeType, TreatmentType
+    from caml.extensions.synthetic_data import SyntheticDataGenerator
+    from caml.scorers import RLoss
+
+    gen = SyntheticDataGenerator(n_cont_modifiers=3, seed=10)
+    data = CausalDataset.from_dataframe(
+        df=gen.df,
+        X=["X1_continuous", "X2_continuous", "X3_continuous"],
+        T="T1_binary",
+        Y="Y1_continuous",
+        treatment_type=TreatmentType.BINARY,
+        outcome_type=OutcomeType.CONTINUOUS,
+    )
+
+    estimator = WrappedLinearDML(model_y=LinearRegression(), model_t=LogisticRegression(), cv=3)
+    estimator.fit(data)
+
+    scorer = RLoss(treatment_model=LogisticRegression(), outcome_model=LinearRegression())
+    print(f"R-loss: {scorer(estimator, data):.2f}")
+    ```
+    """
+
+    def __init__(
+        self,
+        treatment_model: BaseEstimator,
+        outcome_model: BaseEstimator,
+        cv: int = 3,
+        random_state: int | None = None,
+        normalized: bool = False,
+    ):
+        self.treatment_model = treatment_model
+        self.outcome_model = outcome_model
+        self.cv = cv
+        self.random_state = random_state
+        self.normalized = normalized
+        self._cross_fitter = CrossFitter(cv=cv, random_state=random_state)
+
+    def __call__(self, estimator, data: CausalDataset) -> float:
+        # Get out-of-fold nuisance predictions
+        m_hat, l_hat = self._cross_fitter.fit_predict_nuisances_dml(
+            data=data,
+            outcome_model=self.outcome_model,
+            treatment_model=self.treatment_model,
+        )
+
+        # Compute residuals
+        Y_res = data.Y - m_hat
+        T_res = data.T - l_hat
+
+        # Predict CATE and compute R-loss
+        tau_hat = estimator.effect(data.X)
+        tau_hat = validate_cate_array(tau_hat, len(data.Y), "CATE predictions")
+        squared_error = (Y_res - tau_hat * T_res) ** 2
+        r_loss = np.mean(squared_error)
+
+        if self.normalized:
+            baseline_loss = sm.OLS(Y_res, T_res).fit().mse_resid
+            r_loss = 1 - r_loss / baseline_loss
+        return float(r_loss)
+```
 
 ### scorers/dr_loss.py
 
-**Status**: 🔶 **NOT YET IMPLEMENTED** (empty file exists)
+**Status**: ✅ **IMPLEMENTED** (143 lines)
 
-See REFACTORING_PLAN.md for complete DRLoss implementation (Section 4.3).
-
-### scorers/uplift_.py
-
-**Status**: 🔶 **NOT YET IMPLEMENTED** (empty file exists, note underscore suffix)
-
-See REFACTORING_PLAN.md for complete QiniScorer implementation (Section 4.4).
-
-Additional scorer:
+Doubly-robust loss using DR pseudo-outcomes:
 
 ```python
-class AUUCScorer(QiniScorer):
-    """Area Under Uplift Curve scorer."""
-
-    def __call__(self, estimator, data: CausalDataset) -> float:
-        """Compute AUUC."""
-        tau_pred = estimator.effect(data.X)
-        T = data.T.values if hasattr(data.T, 'values') else data.T
-        Y = data.Y.values if hasattr(data.Y, 'values') else data.Y
-
-        fractions, uplift = self.compute_uplift_curve(tau_pred, T, Y)
-        auuc = np.trapz(uplift, fractions)
-        return auuc
-
-    def compute_uplift_curve(self, tau_pred, T, Y):
-        """Compute uplift curve (similar to Qini but different normalization)."""
-        # Implementation here
-        pass
-```
-
-### scorers/policy.py
-
-**Status**: 🔶 **NOT YET IMPLEMENTED** (empty file exists)
-
-See REFACTORING_PLAN.md for complete PolicyValueScorer implementation.
-
-### scorers/calibration.py
-
-**Status**: 🔶 **NOT YET IMPLEMENTED** (empty file exists)
-
-Planned implementation:
-
-```python
-"""CATE calibration diagnostics."""
+"""Doubly-Robust loss (DR-Loss) scorer for CATE model selection."""
 
 import numpy as np
-import pandas as pd
-from caml.data.dataset import CausalDataset
+from caml.data import CausalDataset
+from caml.samplers import CrossFitter
+from caml.scorers.base_scorer import BaseScorer, clip, validate_scorer_inputs
 
 
-class CalibrationScorer:
-    """Check calibration of CATE predictions."""
+class DRLoss(BaseScorer):
+    r"""Doubly-robust loss for CATE model selection.
 
-    def __init__(self, n_bins: int = 10):
-        self.n_bins = n_bins
+    Parameters
+    ----------
+    treatment_model
+        Model to estimate propensity $e(X) = P(T=1 \mid X)$.
+    regression_model
+        Model to estimate outcome regressions $\mu_t(X) = \mathbb{E}[Y \mid X,T=t]$.
+    cv
+        Number of cross-fitting folds.
+    random_state
+        Random state for cross-fitting.
+    normalized
+        If ``True``, returns an $R^2$-like score in $(-\infty, 1]$.
 
-    def compute_calibration(
+    Notes
+    -----
+    DR-loss is consistent if either the propensity or outcome models are correct.
+
+    Examples
+    --------
+    ```{python}
+    from sklearn.linear_model import LinearRegression, LogisticRegression
+    from caml.estimators.dml import WrappedLinearDML
+    from caml.scorers import DRLoss
+
+    # ... setup data and estimator ...
+    scorer = DRLoss(treatment_model=LogisticRegression(), regression_model=LinearRegression())
+    print(f"DR-loss: {scorer(estimator, data):.2f}")
+    ```
+    """
+
+    def __init__(
         self,
-        tau_pred: np.ndarray,
-        tau_observed: np.ndarray
-    ) -> tuple[np.ndarray, np.ndarray]:
-        """Compute calibration by binning predicted CATE.
-
-        Returns
-        -------
-        bin_centers : np.ndarray
-            Center of each predicted CATE bin
-        bin_observed : np.ndarray
-            Average observed CATE in each bin
-        """
-        # Create bins
-        bins = np.linspace(tau_pred.min(), tau_pred.max(), self.n_bins + 1)
-        bin_indices = np.digitize(tau_pred, bins) - 1
-        bin_indices = np.clip(bin_indices, 0, self.n_bins - 1)
-
-        # Compute bin statistics
-        bin_centers = np.zeros(self.n_bins)
-        bin_observed = np.zeros(self.n_bins)
-
-        for i in range(self.n_bins):
-            mask = bin_indices == i
-            if mask.sum() > 0:
-                bin_centers[i] = tau_pred[mask].mean()
-                bin_observed[i] = tau_observed[mask].mean()
-
-        return bin_centers, bin_observed
+        treatment_model,
+        regression_model,
+        cv: int = 3,
+        random_state: int | None = None,
+        normalized: bool = False,
+    ):
+        self.treatment_model = treatment_model
+        self.regression_model = regression_model
+        self.cv = cv
+        self.random_state = random_state
+        self.normalized = normalized
+        self._cross_fitter = CrossFitter(cv=cv, random_state=random_state)
 
     def __call__(self, estimator, data: CausalDataset) -> float:
-        """Score calibration (return R^2 between predicted and observed)."""
-        tau_pred = estimator.effect(data.X)
+        # Get out-of-fold nuisance predictions
+        mu_0, mu_1, e_hat = self._cross_fitter.fit_predict_nuisances_dr(
+            data=data,
+            regression_model=self.regression_model,
+            treatment_model=self.treatment_model,
+        )
 
-        # Need to compute observed CATE (requires nuisance models)
-        # This is a simplified version - full implementation would use DR estimates
-        T = data.T.values if hasattr(data.T, 'values') else data.T
-        Y = data.Y.values if hasattr(data.Y, 'values') else data.Y
+        # Compute DR pseudo-outcome
+        dr = mu_1 + ((data.Y - mu_1) / clip(e_hat)) * data.T
+        dr -= mu_0 + ((data.Y - mu_0) / clip(1 - e_hat)) * (1 - data.T)
 
-        # Simplified: use raw Y differences by treatment group
-        tau_observed = np.zeros_like(tau_pred)
-        # This is a placeholder - real implementation needs proper CATE estimation
+        # Get CATE predictions and compute DR-loss
+        tau_hat = estimator.effect(data.X)
+        tau_hat, dr = validate_scorer_inputs(tau_hat, dr, "tau_hat", "DR pseudo-outcome")
+        dr_loss = np.mean((dr - tau_hat) ** 2)
 
-        bin_centers, bin_obs = self.compute_calibration(tau_pred, tau_observed)
-
-        # Compute R^2
-        ss_res = np.sum((bin_obs - bin_centers) ** 2)
-        ss_tot = np.sum((bin_obs - bin_obs.mean()) ** 2)
-        r2 = 1 - ss_res / ss_tot if ss_tot > 0 else 0
-
-        return r2
+        if self.normalized:
+            baseline_loss = np.mean((dr - np.mean(dr)) ** 2)
+            dr_loss = 1 - dr_loss / baseline_loss
+        return float(dr_loss)
 ```
 
-### scorers/diagnostics.py
+### scorers/q_stat.py
 
-**Status**: 🔶 **NOT YET IMPLEMENTED** (empty file exists)
+**Status**: ✅ **IMPLEMENTED** (128 lines)
 
-Planned implementation:
+Q-statistic using IPW pseudo-outcomes:
 
 ```python
-"""Additional diagnostic metrics."""
+"""Q-statistic scorer for CATE model selection."""
 
 import numpy as np
-from caml.data.dataset import CausalDataset
+from caml.data import CausalDataset
+from caml.samplers import CrossFitter
+from caml.scorers.base_scorer import BaseScorer, clip, validate_cate_array
 
 
-def compute_stability(scores: list[float]) -> dict:
-    """Compute stability metrics across CV folds.
-
-    Parameters
-    ----------
-    scores : list[float]
-        Scores from each fold
-
-    Returns
-    -------
-    dict
-        Stability metrics (mean, std, cv, min, max)
-    """
-    scores_arr = np.array(scores)
-    return {
-        "mean": scores_arr.mean(),
-        "std": scores_arr.std(),
-        "cv": scores_arr.std() / scores_arr.mean() if scores_arr.mean() != 0 else np.inf,
-        "min": scores_arr.min(),
-        "max": scores_arr.max(),
-    }
-
-
-def compute_rank_stability(rankings: list[list[str]]) -> float:
-    """Compute rank stability across folds.
-
-    Uses Kendall's tau to measure rank correlation.
+class QStat(BaseScorer):
+    r"""Q-statistic for CATE model selection via IPW pseudo-outcomes.
 
     Parameters
     ----------
-    rankings : list[list[str]]
-        List of rankings (estimator names) from each fold
+    treatment_model
+        Model to estimate propensity scores $e(X) = P(T=1 \mid X)$.
+    cv
+        Number of cross-fitting folds.
+    random_state
+        Random state for cross-fitting.
 
-    Returns
-    -------
-    float
-        Average Kendall's tau across all pairs of folds
+    Notes
+    -----
+    $\hat{Q}$ equals PEHE minus a constant, so ranking by $\hat{Q}$ is equivalent to
+    ranking by MSE. A score $\hat{Q} \geq 0$ indicates degeneracy (worse than zero-effect).
     """
-    from scipy.stats import kendalltau
 
-    n_folds = len(rankings)
-    correlations = []
+    def __init__(
+        self,
+        treatment_model,
+        cv: int = 3,
+        random_state: int | None = None,
+    ):
+        self.treatment_model = treatment_model
+        self.cv = cv
+        self.random_state = random_state
+        self._cross_fitter = CrossFitter(cv=cv, random_state=random_state)
 
-    for i in range(n_folds):
-        for j in range(i + 1, n_folds):
-            # Compute Kendall's tau
-            tau, _ = kendalltau(rankings[i], rankings[j])
-            correlations.append(tau)
+    def __call__(self, estimator, data: CausalDataset) -> float:
+        e_hat = self._cross_fitter.fit_predict_treatment_model(
+            data=data, treatment_model=self.treatment_model
+        )
 
-    return np.mean(correlations) if correlations else 1.0
+        # Compute IPW pseudo-outcome
+        ipw = (data.T * data.Y) / clip(e_hat)
+        ipw -= ((1 - data.T) * data.Y) / clip(1 - e_hat)
+
+        # Get CATE predictions
+        tau_hat = estimator.effect(data.X)
+        tau_hat = validate_cate_array(tau_hat, len(data.Y), "tau_hat")
+        ipw = validate_cate_array(ipw, len(data.Y), "IPW pseudo-outcome")
+
+        q_stat = np.mean(tau_hat**2 - 2 * tau_hat * ipw)
+        return float(q_stat)
 ```
+
+### scorers/pehe.py
+
+**Status**: ✅ **IMPLEMENTED** (127 lines)
+
+Oracle metric requiring true CATEs:
+
+```python
+"""PEHE (Precision in Estimation of Heterogeneous Effects) oracle metric."""
+
+import numpy as np
+from caml.data import CausalDataset
+from caml.scorers.base_scorer import BaseScorer, validate_scorer_inputs
+
+
+class PEHE(BaseScorer):
+    r"""Precision in Estimation of Heterogeneous Effects (PEHE) oracle metric.
+
+    Parameters
+    ----------
+    true_cates
+        True CATEs for scoring. If ``None``, uses ``data.true_cates``.
+    normalized
+        If ``True``, returns an $R^2$-like score in $(-\infty, 1]$.
+
+    Notes
+    -----
+    PEHE is only computable when both potential outcomes are observed (e.g., in
+    simulations). For real-world data, use proxy metrics like Q-statistic, R-loss,
+    or DR-loss.
+    """
+
+    def __init__(self, true_cates: np.ndarray | None = None, normalized: bool = False):
+        self.true_cates = true_cates
+        self.normalized = normalized
+
+    def __call__(self, estimator, data: CausalDataset) -> float:
+        tau_hat = estimator.effect(data.X)
+
+        if self.true_cates is not None:
+            true_cates = self.true_cates
+        else:
+            true_cates = data.true_cates
+
+        if true_cates is None:
+            raise ValueError("PEHE requires true CATEs.")
+
+        tau_hat, true_cates = validate_scorer_inputs(tau_hat, true_cates, "tau_hat", "true CATEs")
+        pehe = np.mean((true_cates - tau_hat) ** 2)
+
+        if self.normalized:
+            baseline_loss = np.mean((true_cates - np.mean(tau_hat)) ** 2)
+            pehe = 1 - pehe / baseline_loss
+        return float(pehe)
+```
+
+### Deferred Scorers (Post-v0)
+
+The following scorers are deferred to post-v0 and exist as `# TODO` placeholders with underscore prefix:
+
+| File | Purpose | Status |
+|------|---------|--------|
+| `scorers/_uplift.py` | Qini, AUUC metrics | 🔶 TODO placeholder |
+| `scorers/_policy.py` | Policy value scoring | 🔶 TODO placeholder |
+| `scorers/_calibration.py` | CATE calibration | 🔶 TODO placeholder |
+| `scorers/_diagnostics.py` | Stability metrics | 🔶 TODO placeholder |
+| `scorers/_plug_in.py` | Plug-in estimator | 🔶 TODO placeholder |
 
 ---
 
 ## 6. samplers/ (formerly validation/ or sampling/)
 
-**Status**: 🔶 **NOT YET IMPLEMENTED** (directory structure exists as `samplers/`, all files empty)
+**Status**: ✅ **CORE IMPLEMENTED** (cross_fit.py and splitters.py complete, bootstrap.py deferred)
 
 **Note**: The actual directory is named `samplers/` rather than `validation/` or `sampling/` as originally planned.
 
 ### samplers/__init__.py
 
+**Status**: ✅ **IMPLEMENTED** (5 lines)
+
 ```python
-"""Cross-fitting and validation utilities."""
-# TODO: Import once implemented
-# from caml.samplers.cross_fit import CrossFitter
-# from caml.samplers.splitters import create_splitter
-# from caml.samplers.bootstrap import BootstrapInference
+from .cross_fit import CrossFitter
+from .splitters import create_splitter
 
-# __all__ = ["CrossFitter", "create_splitter", "BootstrapInference"]
+__all__ = ["create_splitter", "CrossFitter"]
 ```
-
-### samplers/cross_fit.py
-
-**Status**: 🔶 **NOT YET IMPLEMENTED** (empty file exists)
-
-See REFACTORING_PLAN.md Section 5 for complete CrossFitter implementation.
 
 ### samplers/splitters.py
 
-**Status**: 🔶 **NOT YET IMPLEMENTED** (empty file exists)
-
-Planned implementation from REFACTORING_PLAN.md:
+**Status**: ✅ **IMPLEMENTED** (40 lines)
 
 ```python
-"""Splitter utilities."""
+"""Cross-validation splitter utilities."""
 
-from sklearn.model_selection import KFold, GroupKFold, TimeSeriesSplit
+from sklearn.model_selection import (
+    GroupKFold,
+    KFold,
+    StratifiedGroupKFold,
+    StratifiedKFold,
+)
 
 
-def create_splitter(cv=3, groups=None, time_series=False, random_state=None):
+def create_splitter(cv=3, groups=None, stratified=False, random_state=None):
     """Create appropriate cross-validation splitter.
 
     Parameters
@@ -942,9 +1106,9 @@ def create_splitter(cv=3, groups=None, time_series=False, random_state=None):
     cv : int
         Number of folds
     groups : array-like | None
-        Group labels (for GroupKFold)
-    time_series : bool
-        Whether to use TimeSeriesSplit
+        Group labels (for StratifiedGroupKFold)
+    stratified : bool
+        Whether to use stratified splitting
     random_state : int | None
         Random seed
 
@@ -954,85 +1118,217 @@ def create_splitter(cv=3, groups=None, time_series=False, random_state=None):
         sklearn splitter object
     """
     if groups is not None:
-        return GroupKFold(n_splits=cv)
-    elif time_series:
-        return TimeSeriesSplit(n_splits=cv)
+        if stratified:
+            return StratifiedGroupKFold(n_splits=cv)
+        else:
+            return GroupKFold(n_splits=cv)
     else:
-        return KFold(n_splits=cv, shuffle=True, random_state=random_state)
+        if stratified:
+            return StratifiedKFold(n_splits=cv, shuffle=True, random_state=random_state)
+        else:
+            return KFold(n_splits=cv, shuffle=True, random_state=random_state)
+```
+
+### samplers/cross_fit.py
+
+**Status**: ✅ **IMPLEMENTED** (297 lines)
+
+Complete implementation with methods for DML-style and DR-style cross-fitting:
+
+```python
+"""Cross-fitting engine for orthogonal scores and nuisance model estimation."""
+
+import numpy as np
+from sklearn.base import BaseEstimator, clone
+from sklearn.model_selection import cross_val_predict
+
+from caml._generics.utils import arr_at_least_2d
+from caml.data import CausalDataset
+from caml.samplers.splitters import create_splitter
+
+
+class CrossFitter:
+    """Cross-fitting engine for orthogonal scores.
+
+    Provides methods to fit and predict nuisance models using cross-fitting,
+    leveraged in orthogonal scoring functions such as RLoss, DRLoss, etc.
+
+    Parameters
+    ----------
+    cv
+        Number of cross-fitting folds.
+    random_state
+        Random state for cross-fitting folds.
+
+    Examples
+    --------
+    ```{python}
+    from sklearn.linear_model import LinearRegression, LogisticRegression
+    from caml.data import CausalDataset, TreatmentType, OutcomeType
+    from caml.extensions.synthetic_data import SyntheticDataGenerator
+    from caml.samplers import CrossFitter
+
+    gen = SyntheticDataGenerator(n_cont_modifiers=3, n_obs=500, seed=42)
+    data = CausalDataset.from_dataframe(
+        gen.df,
+        X=[c for c in gen.df.columns if "X" in c],
+        T="T1_binary",
+        Y="Y1_continuous",
+        treatment_type=TreatmentType.BINARY,
+        outcome_type=OutcomeType.CONTINUOUS
+    )
+
+    cross_fitter = CrossFitter(cv=5)
+    m_hat, e_hat = cross_fitter.fit_predict_nuisances_dml(
+        data=data,
+        outcome_model=LinearRegression(),
+        treatment_model=LogisticRegression()
+    )
+    print("Outcome predictions shape:", m_hat.shape)
+    print("Treatment predictions shape:", e_hat.shape)
+    ```
+    """
+
+    def __init__(self, cv: int = 3, random_state: int | None = None):
+        self.cv = cv
+        self.random_state = random_state
+
+    def fit_predict_outcome_model(
+        self, data: CausalDataset, outcome_model: BaseEstimator
+    ) -> np.ndarray:
+        r"""Cross-fit the outcome model $\mathbb{E}[Y \mid X,W]$."""
+        XW = np.hstack([data.X, data.W]) if data.W is not None else data.X
+        outcome_splitter = create_splitter(
+            cv=self.cv,
+            random_state=self.random_state,
+            stratified=data.outcome_type.is_discrete(),
+        )
+        m_hat = cross_val_predict(
+            outcome_model, XW, data.Y.ravel(), cv=outcome_splitter,
+            method="predict_proba" if data.outcome_type.is_discrete() else "predict",
+        )
+        if data.outcome_type.is_discrete():
+            m_hat = m_hat[:, 1]
+        return arr_at_least_2d(m_hat)
+
+    def fit_predict_treatment_model(
+        self, data: CausalDataset, treatment_model: BaseEstimator
+    ) -> np.ndarray:
+        r"""Cross-fit the treatment model $\mathbb{E}[T \mid X,W]$."""
+        XW = np.hstack([data.X, data.W]) if data.W is not None else data.X
+        treatment_splitter = create_splitter(
+            cv=self.cv,
+            random_state=self.random_state,
+            stratified=data.treatment_type.is_discrete(),
+        )
+        e_hat = cross_val_predict(
+            treatment_model, XW, data.T.ravel(), cv=treatment_splitter,
+            method="predict_proba" if data.treatment_type.is_discrete() else "predict",
+        )
+        if data.treatment_type.is_discrete():
+            e_hat = e_hat[:, 1]
+        return arr_at_least_2d(e_hat)
+
+    def fit_predict_regression_model(
+        self, data: CausalDataset, regression_model: BaseEstimator
+    ) -> tuple[np.ndarray, np.ndarray]:
+        r"""Cross-fit regression models for treatment/control groups separately.
+
+        Returns
+        -------
+        mu_0 : np.ndarray
+            Out-of-fold predictions $\mathbb{E}[Y \mid X,W,T=0]$
+        mu_1 : np.ndarray
+            Out-of-fold predictions $\mathbb{E}[Y \mid X,W,T=1]$
+        """
+        XW = np.hstack([data.X, data.W]) if data.W is not None else data.X
+        T_flat = data.T.ravel()
+        Y_flat = data.Y.ravel()
+
+        outcome_splitter = create_splitter(
+            cv=self.cv,
+            random_state=self.random_state,
+            stratified=data.outcome_type.is_discrete(),
+        )
+
+        mu_0 = np.zeros(len(XW))
+        mu_1 = np.zeros(len(XW))
+
+        for train_idx, test_idx in outcome_splitter.split(XW, Y_flat):
+            # Train on control group (T=0)
+            control_mask = T_flat[train_idx] == 0
+            train_control_idx = train_idx[control_mask]
+            if len(train_control_idx) > 0:
+                model_0 = clone(regression_model)
+                model_0.fit(XW[train_control_idx], Y_flat[train_control_idx])
+                if data.outcome_type.is_discrete():
+                    mu_0[test_idx] = model_0.predict_proba(XW[test_idx])[:, 1]
+                else:
+                    mu_0[test_idx] = model_0.predict(XW[test_idx])
+
+            # Train on treatment group (T=1)
+            treatment_mask = T_flat[train_idx] == 1
+            train_treatment_idx = train_idx[treatment_mask]
+            if len(train_treatment_idx) > 0:
+                model_1 = clone(regression_model)
+                model_1.fit(XW[train_treatment_idx], Y_flat[train_treatment_idx])
+                if data.outcome_type.is_discrete():
+                    mu_1[test_idx] = model_1.predict_proba(XW[test_idx])[:, 1]
+                else:
+                    mu_1[test_idx] = model_1.predict(XW[test_idx])
+
+        return arr_at_least_2d(mu_0), arr_at_least_2d(mu_1)
+
+    def fit_predict_nuisances_dml(
+        self,
+        data: CausalDataset,
+        outcome_model: BaseEstimator,
+        treatment_model: BaseEstimator,
+    ) -> tuple[np.ndarray, np.ndarray]:
+        r"""Cross-fit nuisance models for PLM formulations of DML.
+
+        Returns
+        -------
+        m_hat : np.ndarray
+            Out-of-fold outcome predictions $\mathbb{E}[Y \mid X,W]$
+        l_hat : np.ndarray
+            Out-of-fold treatment predictions $\mathbb{E}[T \mid X,W]$
+        """
+        m_hat = self.fit_predict_outcome_model(data, outcome_model)
+        l_hat = self.fit_predict_treatment_model(data, treatment_model)
+        return m_hat, l_hat
+
+    def fit_predict_nuisances_dr(
+        self,
+        data: CausalDataset,
+        regression_model: BaseEstimator,
+        treatment_model: BaseEstimator,
+    ) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
+        r"""Fit nuisance models for IRM formulation of DML (Doubly Robust).
+
+        Returns
+        -------
+        mu_0 : np.ndarray
+            Out-of-fold predictions $\mathbb{E}[Y \mid X,W,T=0]$
+        mu_1 : np.ndarray
+            Out-of-fold predictions $\mathbb{E}[Y \mid X,W,T=1]$
+        e_hat : np.ndarray
+            Out-of-fold treatment predictions $\mathbb{E}[T \mid X,W]$
+        """
+        mu_0, mu_1 = self.fit_predict_regression_model(data, regression_model)
+        e_hat = self.fit_predict_treatment_model(data, treatment_model)
+        return mu_0, mu_1, e_hat
 ```
 
 ### samplers/bootstrap.py
 
-**Status**: 🔶 **NOT YET IMPLEMENTED** (empty file exists)
+**Status**: 🔶 **DEFERRED TO POST-V0** (TODO placeholder)
 
-Planned implementation from REFACTORING_PLAN.md:
+Bootstrap inference for CATE confidence intervals. Deferred because analytic inference
+from EconML estimators is sufficient for v0.
 
 ```python
-"""Bootstrap inference."""
-
-import numpy as np
-from sklearn.base import clone
-from caml.data.dataset import CausalDataset
-
-
-class BootstrapInference:
-    """Bootstrap confidence intervals for CATE."""
-
-    def __init__(self, n_bootstrap: int = 100, random_state: int | None = None):
-        self.n_bootstrap = n_bootstrap
-        self.random_state = random_state
-
-    def fit(self, estimator, data: CausalDataset):
-        """Fit estimator on bootstrap samples."""
-        self.estimators_ = []
-
-        rng = np.random.RandomState(self.random_state)
-        n = data.n_samples
-
-        for b in range(self.n_bootstrap):
-            # Bootstrap sample
-            idx = rng.choice(n, size=n, replace=True)
-
-            # Subset data
-            data_boot = self._subset_data(data, idx)
-
-            # Fit estimator
-            est = clone(estimator)
-            est.fit(data_boot)
-            self.estimators_.append(est)
-
-        return self
-
-    def predict_interval(self, X, alpha=0.05):
-        """Predict bootstrap confidence interval."""
-        # Collect predictions from all bootstrap samples
-        preds = np.array([est.effect(X) for est in self.estimators_])
-
-        # Compute percentiles
-        lower = np.percentile(preds, 100 * alpha / 2, axis=0)
-        upper = np.percentile(preds, 100 * (1 - alpha / 2), axis=0)
-
-        return lower, upper
-
-    def _subset_data(self, data: CausalDataset, idx):
-        """Subset CausalDataset by indices."""
-        # Helper function
-        def _subset(arr, idx):
-            if arr is None:
-                return None
-            if hasattr(arr, 'iloc'):
-                return arr.iloc[idx]
-            else:
-                return arr[idx]
-
-        return CausalDataset(
-            X=_subset(data.X, idx),
-            T=_subset(data.T, idx),
-            Y=_subset(data.Y, idx),
-            W=_subset(data.W, idx),
-            treatment_type=data.treatment_type,
-            outcome_type=data.outcome_type,
-        )
+# TODO: Bootstrap Inference for Estimators
 ```
 
 ---
@@ -1669,21 +1965,29 @@ Plotting utilities for causal inference (file exists, details not inspected).
 5. **inference/** - results.py and inference_schema.py implemented (Phase 1 ✅)
 6. **extensions/** - Complete with SyntheticDataGenerator and plots.py
 7. **nuisance/** - Complete with NuisanceTuner (224 lines) and NuisanceTunerSpec (54 lines) (Phase 3 ✅)
+8. **samplers/** - Core complete with CrossFitter (297 lines) and splitters.py (40 lines) (Phase 4 ✅)
+9. **scorers/** - Core complete with BaseScorer, RLoss, DRLoss, QStat, PEHE (Phase 4 ✅)
 
 ### ⚠️ **PARTIALLY IMPLEMENTED**
-8. **estimators/native/** - InteractiveLinearRegression exists but needs protocol adaptation
+10. **estimators/native/** - InteractiveLinearRegression exists but needs protocol adaptation
 
-### 🔶 **NOT YET IMPLEMENTED** (Structure exists, files empty)
-9. **scorers/** - All empty (r_loss.py, dr_loss.py, uplift_.py, policy.py, calibration.py, diagnostics.py) - **PHASE 4 PRIORITY**
-10. **samplers/** - All empty (cross_fit.py, splitters.py, bootstrap.py) - **PHASE 4 PRIORITY**
+### 🔶 **NOT YET IMPLEMENTED** (Structure exists, files empty or TODO placeholder)
 11. **automl/** - All empty (auto_cate.py, search_space.py, objectives.py, backends/) - **PHASE 5 PRIORITY**
 
-**Overall Progress**: ~55% complete (~1,500 LOC implemented out of ~2,700 LOC planned)
+### 🔶 **DEFERRED TO POST-V0**
+12. **samplers/bootstrap.py** - Bootstrap inference (TODO placeholder)
+13. **scorers/_uplift.py** - Qini, AUUC metrics (TODO placeholder)
+14. **scorers/_policy.py** - Policy value scoring (TODO placeholder)
+15. **scorers/_calibration.py** - CATE calibration (TODO placeholder)
+16. **scorers/_diagnostics.py** - Stability metrics (TODO placeholder)
+17. **scorers/_plug_in.py** - Plug-in estimator (TODO placeholder)
+
+**Overall Progress**: ~70% complete (~2,200 LOC implemented)
 - Phase 1 (Data & Protocols): ✅ 100% complete
 - Phase 2 (Estimator Wrappers): ✅ 100% complete
 - Phase 3 (Nuisance Models): ✅ 100% complete
-- Phase 4 (Scoring & Validation): 🔶 0% complete - **NEXT PRIORITY**
-- Phase 5 (AutoML): 🔶 0% complete
+- Phase 4 (Scoring & Validation): ✅ 85% complete (core scorers done, advanced deferred)
+- Phase 5 (AutoML): 🔶 0% complete - **NEXT PRIORITY**
 - Phase 6-7 (Native & Polish): 🔶 0% complete
 
 ### benchmarking/__init__.py
@@ -1784,101 +2088,86 @@ class BenchmarkHarness:
 
 ## Directory Structure (Actual vs. Planned)
 
-### Actual Structure
+### Actual Structure (as of Jan 31, 2026)
 ```
 caml/
 ├── data/                    ✅ IMPLEMENTED
-├── protocols/               ✅ IMPLEMENTED
+├── protocols/               ✅ IMPLEMENTED (consolidated into estimators/base.py)
 ├── estimators/
-│   ├── benchmark/           ⚠️ PARTIAL (needs protocol adaptation)
-│   └── wrappers/            🔶 EMPTY
-├── nuisance/                🔶 EMPTY
-├── scoring/                 🔶 EMPTY
-├── sampling/                🔶 EMPTY (renamed from validation/)
-├── automl/                  🔶 EMPTY
-├── inference/               ⚠️ PARTIAL (results & schema done)
-├── registry/                🔶 EMPTY (renamed from modeling/)
-└── extensions/              ✅ IMPLEMENTED (new, not in original plan)
+│   ├── base.py              ✅ IMPLEMENTED - Protocols + BaseWrapperMixin
+│   ├── native/              ⚠️ PARTIAL (needs protocol adaptation)
+│   └── wrappers/            ✅ IMPLEMENTED - All 14 EconML wrappers
+├── nuisance/                ✅ IMPLEMENTED - NuisanceTuner + spec
+├── scorers/                 ✅ CORE IMPLEMENTED (RLoss, DRLoss, QStat, PEHE)
+│   └── _*.py                🔶 DEFERRED (uplift, policy, calibration, diagnostics)
+├── samplers/                ✅ CORE IMPLEMENTED (CrossFitter, splitters)
+│   └── bootstrap.py         🔶 DEFERRED
+├── automl/                  🔶 EMPTY - PHASE 5 PRIORITY
+├── inference/               ✅ IMPLEMENTED (results + schema)
+├── registry/                ✅ IMPLEMENTED
+└── extensions/              ✅ IMPLEMENTED (SyntheticDataGenerator, plots)
 ```
 
-### Notable Differences from REFACTORING_PLAN.md
-1. **`sampling/` vs `validation/`**: Directory renamed to `sampling/`
-2. **`registry/` vs `modeling/`**: Directory renamed to `registry/`
-3. **`extensions/`**: New module added with SyntheticDataGenerator and plots
-4. **`effect()` vs `predict_cate()`**: Protocol uses `effect()` as method name
-5. **`EstimatorCapabilities` vs `EstimatorCapabilities`**: Typo in implementation (missing 'i')
-6. **`uplift_.py` vs `uplift.py`**: File has underscore suffix
+### Notable Implementation Details
+
+1. **Directory Naming**:
+   - `samplers/` used instead of `sampling/` or `validation/`
+   - `scorers/` used instead of `scoring/`
+   - `registry/` used instead of `modeling/`
+   - `estimators/native/` used instead of `estimators/benchmark/`
+
+2. **File Naming**:
+   - Deferred scorer files prefixed with `_` (e.g., `_uplift.py`, `_policy.py`)
+   - `base_scorer.py` instead of `base.py` for clarity
+
+3. **Protocol Consolidation**:
+   - Protocols consolidated into `estimators/base.py` instead of separate `protocols/` module
+
+4. **Method Names**:
+   - Use `effect()` instead of `predict_cate()` as per `AutoCateEstimator` protocol
+
+5. **Scorer Exports**:
+   - Only implemented scorers exported from `__init__.py`: `BaseScorer`, `RLoss`, `DRLoss`, `QStat`, `PEHE`
+   - Deferred scorers (`_*.py`) not exported until implemented
 
 ---
 
 ## Next Implementation Steps (Priority Order)
 
-Based on REFACTORING_PLAN.md Phase breakdown (UPDATED PRIORITY):
-
-### Phase 1: ✅ COMPLETE
-- CausalDataset, schema, validation, protocols
-
-### Phase 2: 🔶 TODO - Estimator Wrappers (IMMEDIATE PRIORITY)
-- [ ] Implement `estimators/wrappers/dml.py` - 4 DML wrappers
-- [ ] Implement `estimators/wrappers/dr.py` - 2 DR wrappers
-- [ ] Implement `estimators/wrappers/meta.py` - 3 meta-learner wrappers
-- [ ] Implement `estimators/wrappers/orf.py` - 2 ORF wrappers
-- [ ] Implement `registry/registry.py` - Estimator auto-discovery
-- [ ] **Complete NumPy-style docstrings for all public classes/methods**
-- [ ] Tests validating wrapper outputs match EconML
-
-### Phase 3: 🔶 TODO - Nuisance Models
-- [ ] Implement `nuisance/spec.py` - NuisanceSpec dataclass
-- [ ] Implement `nuisance/tuner.py` - Extract NuisanceTuner from old AutoCATE
-- [ ] Implement `nuisance/models.py` - Helper functions
-- [ ] Refactor to use CausalDataset
-- [ ] **Complete NumPy-style docstrings for all public classes/methods**
-- [ ] Tests validating same outputs as old AutoCATE
-
-### Phase 4: 🔶 TODO - Cross-Fitting & Scoring
-- [ ] Implement `sampling/splitters.py` - Splitting strategies
-- [ ] Implement `sampling/cross_fit.py` - CrossFitter class
-- [ ] Implement `scoring/r_loss.py` - R-loss implementation
-- [ ] Implement `scoring/dr_loss.py` - DR-loss implementation
-- [ ] Implement `scoring/uplift_.py` - Qini, AUUC, uplift metrics
-- [ ] Implement `scoring/policy.py` - Policy value scoring
-- [ ] Implement `scoring/calibration.py` - Calibration metrics
-- [ ] Implement `scoring/diagnostics.py` - CATE-specific diagnostics
-- [ ] **Complete NumPy-style docstrings for all public classes/methods**
-- [ ] Tests for scoring on synthetic data
-
-### Phase 5: 🔶 TODO - Refactor AutoCATE
+### Phase 5: AutoCATE (IMMEDIATE PRIORITY)
 - [ ] Implement `automl/backends/base.py` - TunerBackend protocol
 - [ ] Implement `automl/backends/optuna_backend.py` - Optuna implementation
-- [ ] Implement `automl/objectives.py` - Optuna objective functions
+- [ ] Implement `automl/objectives.py` - Optuna objectives using scorers
 - [ ] Implement `automl/search_space.py` - Search space definitions
-- [ ] Refactor `automl/auto_cate.py` - Use NuisanceTuner + Optuna
+- [ ] Implement `automl/auto_cate.py` - Main AutoCATE orchestration
 - [ ] **Complete NumPy-style docstrings for all public classes/methods**
-- [ ] End-to-end AutoCATE tests
+- [ ] End-to-end tests on synthetic data
 
-### Phase 6: ⚠️ TODO - Refactor InteractiveLinearRegression
-- [ ] Add `capabilities` property to InteractiveLinearRegression
+### Phase 6: InteractiveLinearRegression Protocol Adaptation
+- [ ] Add `capabilities` property
 - [ ] Adapt `fit()` to accept CausalDataset
-- [ ] Add `effect()` method (or adapt predict)
+- [ ] Add `effect()` method
 - [ ] Ensure sklearn-compatible get_params/set_params
-- [ ] Consider adding InferenceProvider protocol
-- [ ] **Complete NumPy-style docstrings for all public methods**
-- [ ] Ensure existing tests still pass
 
-### Phase 7: 🔶 TODO - Testing & Documentation
-- [ ] Integration tests: Full AutoCATE workflow
-- [ ] Benchmarking: New vs old performance
+### Phase 7: Documentation & Polish
+- [ ] Integration tests
 - [ ] Migration guide
-- [ ] API documentation updates
 - [ ] Example notebooks
-- [ ] **Final docstring audit across all modules**
+
+### Post-v0: Deferred Components
+- [ ] `samplers/bootstrap.py` - Bootstrap inference
+- [ ] `scorers/_uplift.py` - Qini, AUUC metrics
+- [ ] `scorers/_policy.py` - Policy value scoring
+- [ ] `scorers/_calibration.py` - Calibration diagnostics
+- [ ] `scorers/_diagnostics.py` - Stability metrics
 
 ---
 
 ## Critical Notes for Implementation
 
 1. **Method naming**: Use `effect()` not `predict_cate()` per protocol
-2. **Typo fix**: `EstimatorCapabilities` should be `EstimatorCapabilities`
-3. **Directory names**: Use actual names (`sampling/`, `registry/`) not planned names
-4. **SyntheticDataGenerator**: Already available for testing implementations
-5. **InteractiveLinearRegression**: Preserve existing functionality while adding protocol compliance
+2. **Scorer convention**: Use `clip()` for propensity trimming
+3. **CrossFitter usage**: Scorers use CrossFitter for out-of-fold predictions
+4. **Normalized scores**: All scorers support `normalized=True` for R²-like interpretation
+5. **SyntheticDataGenerator**: Available for all testing implementations
+6. **true_cates**: PEHE scorer requires `data.true_cates` or explicit `true_cates` parameter

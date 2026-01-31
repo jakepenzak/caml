@@ -1,5 +1,3 @@
-import re
-
 from plum import dispatch
 from quartodoc import layout
 from quartodoc.renderers import MdRenderer
@@ -19,7 +17,7 @@ class Renderer(MdRenderer):
         header = super().render_header(el)  # pyright: ignore[reportArgumentType]
         if hasattr(el.obj, "source_link") and el.obj.source_link:
             source_link = f'\n<small class="text-muted">↗[View Source Code]({el.obj.source_link})</small>'
-            result = header + source_link
+            result = "<br>\n\n" + header + source_link
             return result
         else:
             return header

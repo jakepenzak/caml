@@ -1,0 +1,279 @@
+---
+title: "Scorer Details"
+toc-depth: 5
+toc-expand: 1
+---
+
+## Motivation {#sec-motivation}
+
+CATE model evaluation is fundamentally challenging because ground truth treatment effects are never observed—we see only factual outcomes, not counterfactuals. Scorers provide proxy metrics that correlate with the unobservable Precision in Estimating Heterogeneous Effects (PEHE), enabling model selection without ground truth.
+
+
+## Scorers Overview {#sec-scorers-overview}
+
+::: {.callout-note collapse="true"}
+
+## PEHE <small class="text-muted">[↗](../04_Reference/pehe.qmd)</small> {#sec-pehe}
+
+The gold standard for CATE evaluation is the **Precision in Estimating Heterogeneous Effects** (PEHE), also known as CATE MSE [@hill2011bayesian]:
+
+$$
+\text{PEHE}(\hat{\tau}) = \mathbb{E}_X\left[(\tau(X) - \hat{\tau}(X))^2\right]
+$$
+
+where $\tau(X) = \mathbb{E}[Y(1) - Y(0) \mid X]$ is the true CATE. PEHE is computable only when both potential outcomes are observed (e.g., in simulations). For real-world data, we must use proxy loss functions.
+
+### Normalized PEHE
+
+For interpretability, PEHE can be normalized to an $R^2$-like score in $(-\infty, 1]$:
+
+$$
+\text{PEHE}_{\text{norm}}(\hat{\tau}) = 1 - \frac{\text{PEHE}(\hat{\tau})}{\text{PEHE}(\bar{\tau})}
+$$
+
+where $\bar{\tau} = \mathbb{E}[\hat{\tau}(X)]$ is the constant-effect (mean prediction) baseline. Values near 1 indicate excellent CATE estimation; values near 0 indicate the estimator performs no better than predicting a constant effect; negative values indicate the estimator is worse than the constant baseline.
+
+### Interpretation
+
+| Metric | Range | Interpretation |
+|--------|-------|----------------|
+| Raw PEHE | $[0, \infty)$ | Lower is better |
+| Normalized | $(-\infty, 1]$ | Higher is better; 1 = perfect, 0 = constant-effect, <0 = worse than mean |
+
+: PEHE interpretation guide {#tbl-pehe-interpretation}
+
+:::
+
+::: {.callout-note collapse="true"}
+## Q-Statistic <small class="text-muted">[↗](../04_Reference/q_stat.qmd)</small> {#sec-q-stat}
+
+The Q-statistic [@yu2024qstatistic] is a model selection metric that ranks CATE estimators by their MSE/PEHE using **only** a propensity model—no outcome model required.
+
+### Relationship to PEHE
+
+The key insight is that PEHE can be decomposed into three terms:
+
+$$
+\text{PEHE}(\hat{\tau}) = \underbrace{\mathbb{E}_X[\tau^2(X)]}_{P_1:\text{ unknown constant}}
+    + \underbrace{\mathbb{E}_X[\hat{\tau}^2(X)]}_{P_2}
+    - 2\underbrace{\mathbb{E}_X[\tau(X)\hat{\tau}(X)]}_{P_3}
+$$
+
+The first term $P_1 = \mathbb{E}_X[\tau^2(X)]$ is **unknown but constant** across all estimators—it depends only on the true data-generating process, not on which estimator we evaluate. Removing this constant yields the Q parameter:
+
+$$
+Q(\hat{\tau}) = P_2(\hat{\tau}) - 2P_3(\hat{\tau}) = \text{PEHE}(\hat{\tau}) - P_1
+$$
+
+Since $Q$ differs from PEHE by only a constant, **ranking estimators by $Q$ is equivalent to ranking by PEHE/MSE**. This is the fundamental property enabling model selection without ground truth CATE.
+
+### The $\hat{Q}$ Estimator
+
+To estimate $Q$ from observed data, we use the Horvitz-Thompson Inverse Propensity Weighting (IPW) pseudo-outcome:
+
+$$
+\Gamma(x,t,y) = \frac{t \cdot y}{e(x)} - \frac{(1-t) \cdot y}{1-e(x)}
+$$
+where $e(x) = P(T=1|X=x)$ is the propensity score.
+
+Under correct propensity specification and overlap, $\mathbb{E}[\Gamma \mid X] = \tau(X)$. This yields the sample Q-statistic:
+
+$$
+\hat{Q}(\hat{\tau}) = \frac{1}{N} \sum_{n=1}^{N}
+    \left[ \hat{\tau}^2(x_n) - 2\hat{\tau}(x_n) \cdot \Gamma(x_n, t_n, y_n) \right]
+$$
+
+::: { .callout-tip }
+## Unbiasedness Property
+When propensity is known (RCT) or correctly estimated: $\mathbb{E}[\hat{Q}(\hat{\tau})] = Q(\hat{\tau})$
+
+This ensures **asymptotic oracle ranking**: the estimator with lowest $\hat{Q}$ converges to the estimator with lowest PEHE as $N \to \infty$.
+:::
+
+::: { .callout-tip }
+## Relationship to R-Loss and DR-Loss
+
+The paper [@yu2024qstatistic] shows that R-loss and DR-loss are special cases of a control variates framework applied to $\hat{Q}$:
+
+$$
+\hat{Q}(r; \hat{\tau}) = \hat{Q}(\hat{\tau}) + \frac{1}{N}\sum_n r(x_n, t_n, y_n; \hat{\tau})
+$$
+
+where $r(\cdot)$ is a zero-mean control variate function. Different choices of $r$ yield:
+
+- **Location invariance**: $r_{LI}$ — model-free variance reduction
+- **DR-loss**: $r_{DR}$ — uses outcome model predictions
+- **R-loss**: $r_R$ — uses outcome residuals (when $P(T=1) = 0.5$)
+
+All variants preserve the unbiasedness property.
+:::
+
+### Interpretation
+
+| Condition | Interpretation |
+|-----------|----------------|
+| $\hat{Q} < 0$ | Useful estimate (captures heterogeneity better than zero-effect) |
+| $\hat{Q} \geq 0$ | **Degenerate**—worse than predicting $\tau(x) = 0$ everywhere |
+| $\hat{Q}_A < \hat{Q}_B$ | Estimator A has lower MSE than B (prefer A) |
+| More negative $\hat{Q}$ | Better heterogeneity detection |
+
+: Q-statistic interpretation guide {#tbl-q-interpretation}
+
+The scale of $\hat{Q}$ is in squared-outcome units. Use it for **relative ranking** between estimators, not for absolute MSE estimation.
+
+:::
+
+::: {.callout-note collapse="true"}
+## R-Loss <small class="text-muted">[↗](../04_Reference/r_loss.qmd)</small> {#sec-r-loss}
+
+R-loss [@nie2021quasi] evaluates CATE estimators using **orthogonal residualization**—the same principle underlying the R-learner. It requires both propensity and outcome models.
+
+### Derivation
+
+The R-learner is based on the partially linear model:
+
+$$
+Y = \tau(X) \cdot T + f(X) + \varepsilon
+$$
+
+where $f(X) = \mathbb{E}[Y \mid X]$ captures the main effect. Subtracting conditional expectations:
+
+$$
+Y - \mathbb{E}[Y \mid X] = \tau(X) \cdot (T - \mathbb{E}[T \mid X]) + \varepsilon
+$$
+
+This "residual-on-residual" regression isolates the causal signal. Define the nuisance functions:
+
+- $m(X) = \mathbb{E}[Y \mid X]$ — outcome regression
+- $\ell(X) = \mathbb{E}[T \mid X]$ — propensity score
+
+and the residuals $\tilde{Y} = Y - m(X)$ and $\tilde{T} = T - \ell(X)$.
+
+### R-Loss Formula
+
+R-loss measures how well a CATE estimate $\hat{\tau}(X)$ explains the outcome residual when scaled by the treatment residual:
+
+$$
+\mathcal{L}_R(\hat{\tau}) = \mathbb{E}_X\left[(\tilde{Y} - \hat{\tau}(X) \cdot \tilde{T})^2\right]
+$$
+
+In practice, nuisance functions are estimated via cross-fitting to avoid overfitting bias.
+
+::: { .callout-tip }
+## Neyman Orthogonality
+R-loss satisfies the **Neyman orthogonality** condition: errors in nuisance estimation have only second-order effects on the loss. This "quasi-oracle" property means that even with imperfect nuisance estimates, the ranking produced by R-loss converges to the oracle ranking.
+:::
+
+### Normalized R-Loss
+
+For interpretability, R-loss can be normalized to an $R^2$-like score in $(-\infty, 1]$:
+
+$$
+R_{\text{norm}}(\hat{\tau}) = 1 - \frac{\mathcal{L}_R(\hat{\tau})}{\mathcal{L}_R(\bar{\tau})}
+$$
+
+where $\bar{\tau}$ is the constant-effect (ATE) baseline. Values near 1 indicate excellent heterogeneity detection; negative values indicate the estimator is worse than a constant-effect model.
+
+### Interpretation
+
+| Metric | Range | Interpretation |
+|--------|-------|----------------|
+| Raw R-loss | $[0, \infty)$ | Lower is better |
+| Normalized | $(-\infty, 1]$ | Higher is better; 1 = perfect, 0 = constant-effect, <0 = worse than ATE |
+
+: R-loss interpretation guide {#tbl-r-interpretation}
+
+### Self-Serving Bias
+
+::: {.callout-warning}
+## Caution
+R-loss shares assumptions with the R-learner. When evaluating R-learner estimates with R-loss, there is potential for **self-serving bias**—the metric may favor estimators that optimize the same objective. Consider using Q-statistic or DR-loss for independent validation.
+:::
+
+:::
+
+::: {.callout-note collapse="true"}
+## DR-Loss <small class="text-muted">[↗](../04_Reference/dr_loss.qmd)</small> {#sec-dr-loss}
+
+DR-loss [@kennedy2023towards] uses a **doubly-robust pseudo-outcome** that provides consistent CATE estimates if *either* the propensity model *or* the outcome models are correctly specified.
+
+### The DR Pseudo-Outcome
+
+Define the conditional outcome regressions:
+
+- $\mu_1(X) = \mathbb{E}[Y \mid X, T=1]$
+- $\mu_0(X) = \mathbb{E}[Y \mid X, T=0]$
+- $e(X) = P(T=1 \mid X)$
+
+The doubly-robust pseudo-outcome combines outcome regression with IPW correction:
+
+$$
+\mathcal{Y}^{\text{DR}} = \underbrace{\mu_1(X) - \mu_0(X)}_{\text{outcome regression}}
+    + \underbrace{\frac{T}{e(X)}(Y - \mu_1(X)) - \frac{1-T}{1-e(X)}(Y - \mu_0(X))}_{\text{IPW bias correction}}
+$$
+
+::: { .callout-tip }
+## Double Robustness Property
+Under standard causal assumptions, $\mathbb{E}[\mathcal{Y}^{\text{DR}} \mid X] = \tau(X)$ if **either**:
+
+1. The propensity model $e(X)$ is correctly specified, **or**
+2. The outcome models $\mu_0(X), \mu_1(X)$ are correctly specified
+
+This robustness to partial model misspecification is the key advantage of DR methods.
+:::
+
+### DR-Loss Formula
+
+DR-loss measures squared error between the CATE estimate and the DR pseudo-outcome:
+
+$$
+\mathcal{L}_{\text{DR}}(\hat{\tau}) = \mathbb{E}_X\left[(\mathcal{Y}^{\text{DR}} - \hat{\tau}(X))^2\right]
+$$
+
+### Normalized DR-Loss
+
+Like R-loss, DR-loss can be normalized:
+
+$$
+\text{DR}_{\text{norm}}(\hat{\tau}) = 1 - \frac{\mathcal{L}_{\text{DR}}(\hat{\tau})}{\mathcal{L}_{\text{DR}}(\bar{\tau})}
+$$
+
+where $\bar{\tau}$ is the constant-effect (ATE) baseline. Values near 1 indicate excellent heterogeneity detection; negative values indicate the estimator is worse than a constant-effect model.
+
+### Interpretation
+
+| Metric | Range | Interpretation |
+|--------|-------|----------------|
+| Raw DR-loss | $[0, \infty)$ | Lower is better |
+| Normalized | $(-\infty, 1]$ | Higher is better; 1 = perfect, <0 = worse than ATE |
+
+: DR-loss interpretation guide {#tbl-dr-interpretation}
+
+### Variance Properties
+
+DR-loss typically has **lower variance** than Q-statistic because the outcome model predictions reduce noise in the pseudo-outcome. However, this comes at the cost of requiring accurate outcome model estimation.
+
+:::
+
+## Scorer Comparison {#sec-scorer-comparison}
+
+| Scorer | Required Models | Variance | Self-Serving Bias Risk | Best For |
+|--------|-----------------|----------|------------------------|----------|
+| **PEHE** | Ground Truth CATE | N/A | N/A | Simulations, oracle ranking |
+| **Q-Statistic** | Propensity only | Higher | Lower | RCT data, unbiased ranking |
+| **R-Loss** | Propensity + Outcome | Medium | Medium | R-learner selection |
+| **DR-Loss** | Propensity + Outcome | Lower | Lower | General CATE selection |
+
+: Comparison of CATE model selection metrics {#tbl-scorer-comparison}
+
+## Forthcoming Scorers {#sec-forthcoming-scorers}
+
+- **Plug-In Surrogate Methods**: Using flexible outcome models to impute counterfactuals for direct PEHE estimation.
+- **Calibrated Scorers**: Metrics that assess how well predicted CATE distributions align with observed outcomes.
+- **Policy Risk Estimators**: Scorers focused on evaluating treatment assignment policies derived
+- **Uplift Curve Metrics**: Area under uplift curves to assess ranking quality.
+
+## References {#sec-references}
+
+::: {#refs}
+:::

@@ -129,6 +129,8 @@ markers = [
     "registry: mark tests for the registry module",
     "nuisance: mark tests for the nuisance module",
     "generics: mark tests for the generics module",
+    "samplers: mark tests for the samplers module",
+    "scorers: mark tests for the scorers module",
 ]
 typeguard-packages = "caml"
 typeguard-collection-check-strategy = "ALL_ITEMS"
