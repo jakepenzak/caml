@@ -9,11 +9,17 @@ mathematical derivation and interpretation guide.
 import numpy as np
 
 from caml.data import CausalDataset
+from caml.registry import ScorerFamily, auto_register
 from caml.samplers import CrossFitter
-from caml.scorers.base_scorer import BaseScorer, clip, validate_cate_array
+
+from ._validation import _clip, _validate_cate_array
+from .base_scorer import BaseCateScorerMixin
 
 
-class QStat(BaseScorer):
+@auto_register(
+    name="Q-Statistic", family=ScorerFamily.RANKING_RELATIVE_PROXY, is_estimator=False
+)
+class QStat(BaseCateScorerMixin):
     r"""Q-statistic for CATE model selection via IPW pseudo-outcomes.
 
     Parameters
@@ -111,16 +117,16 @@ class QStat(BaseScorer):
         )
 
         # Compute IPW pseudo-outcome
-        ipw = (data.T * data.Y) / clip(e_hat)
-        ipw -= ((1 - data.T) * data.Y) / clip(1 - e_hat)
+        ipw = (data.T * data.Y) / _clip(e_hat)
+        ipw -= ((1 - data.T) * data.Y) / _clip(1 - e_hat)
 
         # Get CATE predictions and validate shape
         tau_hat = estimator.effect(data.X)
         n_samples = len(data.Y)
-        tau_hat = validate_cate_array(tau_hat, n_samples, "CATE predictions (tau_hat)")
+        tau_hat = _validate_cate_array(tau_hat, n_samples, "CATE predictions (tau_hat)")
 
         # Flatten IPW to 1D for consistent computation
-        ipw = validate_cate_array(ipw, n_samples, "IPW pseudo-outcome")
+        ipw = _validate_cate_array(ipw, n_samples, "IPW pseudo-outcome")
 
         q_stat = np.mean(tau_hat**2 - 2 * tau_hat * ipw)
 

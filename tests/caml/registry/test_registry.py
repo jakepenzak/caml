@@ -36,7 +36,6 @@ def simple_estimator_class():
     """Fixture that creates a simple test estimator class."""
 
     class SimpleEstimator:
-        clean_name = "SimpleEstimator"
         capabilities = EstimatorCapabilities(
             treatment_types={TreatmentType.BINARY},
             outcome_types={OutcomeType.CONTINUOUS},
@@ -253,7 +252,6 @@ class TestAutoRegister:
 
         @auto_register(name="ExplicitName", family=EstimatorFamily.CUSTOM)
         class TestEstimator:
-            clean_name = "TestEstimator"
             capabilities = EstimatorCapabilities(
                 treatment_types={TreatmentType.BINARY},
                 outcome_types={OutcomeType.CONTINUOUS},
@@ -293,99 +291,11 @@ class TestAutoRegister:
         # Cleanup
         del available_estimators["ExplicitName"]
 
-    def test_auto_register_uses_clean_name(self):
-        """Test that auto_register uses clean_name when name not provided."""
-
-        @auto_register(family=EstimatorFamily.CUSTOM)
-        class AnotherEstimator:
-            clean_name = "MyCleanName"
-            capabilities = EstimatorCapabilities(
-                treatment_types={TreatmentType.BINARY},
-                outcome_types={OutcomeType.CONTINUOUS},
-                inference_types=set(),
-                estimands={Estimand.CATE},
-                supports_controls_in_first_stage_only=False,
-                supports_weights=False,
-                requires_treatment_model=False,
-                requires_outcome_model=False,
-                requires_regression_model=False,
-                supports_inference=False,
-            )
-
-            @classmethod
-            def is_compatible_with(cls, data):
-                return True
-
-            def check_compatibility(self, data, raise_error=True):
-                return True
-
-            def fit(self, data, **kwargs):
-                return self
-
-            def effect(self, X, **kwargs):
-                return np.zeros(len(X))
-
-            def get_params(self, deep=True):
-                return {}
-
-            def set_params(self, **params):
-                return self
-
-        assert "MyCleanName" in available_estimators
-        assert available_estimators["MyCleanName"]["family"] == EstimatorFamily.CUSTOM
-
-        # Cleanup
-        del available_estimators["MyCleanName"]
-
-    def test_auto_register_uses_class_name_fallback(self):
-        """Test that auto_register uses __name__ when clean_name not present."""
-
-        @auto_register(family=EstimatorFamily.CUSTOM)
-        class FallbackEstimator:
-            # No clean_name attribute
-            capabilities = EstimatorCapabilities(
-                treatment_types={TreatmentType.BINARY},
-                outcome_types={OutcomeType.CONTINUOUS},
-                inference_types=set(),
-                estimands={Estimand.CATE},
-                supports_controls_in_first_stage_only=False,
-                supports_weights=False,
-                requires_treatment_model=False,
-                requires_outcome_model=False,
-                requires_regression_model=False,
-                supports_inference=False,
-            )
-
-            @classmethod
-            def is_compatible_with(cls, data):
-                return True
-
-            def check_compatibility(self, data, raise_error=True):
-                return True
-
-            def fit(self, data, **kwargs):
-                return self
-
-            def effect(self, X, **kwargs):
-                return np.zeros(len(X))
-
-            def get_params(self, deep=True):
-                return {}
-
-            def set_params(self, **params):
-                return self
-
-        assert "FallbackEstimator" in available_estimators
-
-        # Cleanup
-        del available_estimators["FallbackEstimator"]
-
     def test_auto_register_returns_unmodified_class(self):
         """Test that decorator returns the class unmodified."""
 
         @auto_register(name="UnmodifiedTest", family=EstimatorFamily.CUSTOM)
         class OriginalEstimator:
-            clean_name = "OriginalEstimator"
             capabilities = EstimatorCapabilities(
                 treatment_types={TreatmentType.BINARY},
                 outcome_types={OutcomeType.CONTINUOUS},
@@ -420,64 +330,15 @@ class TestAutoRegister:
 
         # Class should be instantiable normally
         instance = OriginalEstimator()
-        assert hasattr(instance, "clean_name")
-        assert instance.clean_name == "OriginalEstimator"
 
         # Cleanup
         del available_estimators["UnmodifiedTest"]
-
-    def test_auto_register_default_family(self):
-        """Test that default family is EstimatorFamily.CUSTOM."""
-
-        @auto_register(name="DefaultFamilyTest")
-        class DefaultFamilyEstimator:
-            clean_name = "DefaultFamilyEstimator"
-            capabilities = EstimatorCapabilities(
-                treatment_types={TreatmentType.BINARY},
-                outcome_types={OutcomeType.CONTINUOUS},
-                inference_types=set(),
-                estimands={Estimand.CATE},
-                supports_controls_in_first_stage_only=False,
-                supports_weights=False,
-                requires_treatment_model=False,
-                requires_outcome_model=False,
-                requires_regression_model=False,
-                supports_inference=False,
-            )
-
-            @classmethod
-            def is_compatible_with(cls, data):
-                return True
-
-            def check_compatibility(self, data, raise_error=True):
-                return True
-
-            def fit(self, data, **kwargs):
-                return self
-
-            def effect(self, X, **kwargs):
-                return np.zeros(len(X))
-
-            def get_params(self, deep=True):
-                return {}
-
-            def set_params(self, **params):
-                return self
-
-        assert (
-            available_estimators["DefaultFamilyTest"]["family"]
-            == EstimatorFamily.CUSTOM
-        )
-
-        # Cleanup
-        del available_estimators["DefaultFamilyTest"]
 
     def test_auto_register_with_string_family(self):
         """Test that auto_register accepts string family values."""
 
         @auto_register(name="StringFamilyTest", family="custom")
         class StringFamilyEstimator:
-            clean_name = "StringFamilyEstimator"
             capabilities = EstimatorCapabilities(
                 treatment_types={TreatmentType.BINARY},
                 outcome_types={OutcomeType.CONTINUOUS},

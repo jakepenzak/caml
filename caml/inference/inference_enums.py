@@ -25,14 +25,6 @@ class InferenceType(Enum):
     - Bootstrap is more robust but slower; analytic is faster but requires stronger assumptions
     - DML estimators typically use analytic; tree-based methods use bootstrap
 
-    See Also
-    --------
-    [`InferenceResult`](results.qmd#caml.inference.results.InferenceResult) : Container for inference outputs.
-
-    [`InferenceProvider`](base.qmd#caml.estimators.base.InferenceProvider) : Protocol for inference-capable estimators.
-
-    [`EstimatorCapabilities`](base.qmd#caml.estimators.base.EstimatorCapabilities) : Metadata including inference types.
-
     Examples
     --------
     ```{python}

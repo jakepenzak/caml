@@ -1,4 +1,4 @@
-"""Tests for caml.inference.inference_schema module."""
+"""Tests for caml.inference.inference_enums module."""
 
 import pytest
 

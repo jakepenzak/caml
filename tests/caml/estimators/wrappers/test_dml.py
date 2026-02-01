@@ -7,7 +7,7 @@ from sklearn.linear_model import LinearRegression, LogisticRegression
 
 from caml.data import CausalDataset, OutcomeType, TreatmentType
 from caml.estimators import AutoCateEstimator
-from caml.estimators.wrappers.dml import (
+from caml.estimators.dml import (
     WrappedCausalForestDML,
     WrappedKernelDML,
     WrappedLinearDML,
@@ -38,7 +38,6 @@ class TestWrappedLinearDML:
 
     def test_class_attributes(self):
         """Test that class attributes are set correctly."""
-        assert WrappedLinearDML.clean_name == "LinearDML"
         assert WrappedLinearDML.capabilities is not None
         assert TreatmentType.BINARY in WrappedLinearDML.capabilities.treatment_types
         assert OutcomeType.CONTINUOUS in WrappedLinearDML.capabilities.outcome_types
@@ -93,7 +92,6 @@ class TestWrappedSparseLinearDML:
 
     def test_class_attributes(self):
         """Test that class attributes are set correctly."""
-        assert WrappedSparseLinearDML.clean_name == "SparseLinearDML"
         assert WrappedSparseLinearDML.capabilities is not None
 
     def test_fit_and_effect(self, binary_continuous_data):
@@ -113,7 +111,6 @@ class TestWrappedCausalForestDML:
 
     def test_class_attributes(self):
         """Test that class attributes are set correctly."""
-        assert WrappedCausalForestDML.clean_name == "CausalForestDML"
         assert WrappedCausalForestDML.capabilities is not None
 
     def test_fit_and_effect(self, binary_continuous_data):
@@ -137,7 +134,6 @@ class TestWrappedNonParamDML:
 
     def test_class_attributes(self):
         """Test that class attributes are set correctly."""
-        assert WrappedNonParamDML.clean_name == "NonParamDML"
         assert WrappedNonParamDML.capabilities is not None
 
     def test_fit_and_effect(self, binary_continuous_data):
@@ -160,7 +156,6 @@ class TestWrappedKernelDML:
 
     def test_class_attributes(self):
         """Test that class attributes are set correctly."""
-        assert WrappedKernelDML.clean_name == "KernelDML"
         assert WrappedKernelDML.capabilities is not None
 
     def test_fit_and_effect(self, binary_continuous_data):

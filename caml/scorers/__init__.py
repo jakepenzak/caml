@@ -1,11 +1,11 @@
-from .base_scorer import BaseScorer, clip
+from .base_scorer import BaseCateScorerMixin
 from .dr_loss import DRLoss
 from .pehe import PEHE
 from .q_stat import QStat
 from .r_loss import RLoss
 
 __all__ = [
-    "BaseScorer",
+    "BaseCateScorerMixin",
     "RLoss",
     "DRLoss",
     "QStat",

@@ -9,12 +9,13 @@ from __future__ import annotations
 from econml.orf import DMLOrthoForest, DROrthoForest
 
 from caml.data import CausalDataset, Estimand, OutcomeType, TreatmentType
-from caml.estimators.base import BaseWrapperMixin, EstimatorCapabilities
 from caml.inference import InferenceType
 from caml.registry import auto_register
 
+from ..base_estimator import BaseWrapperMixin, EstimatorCapabilities
 
-@auto_register(family="orf")
+
+@auto_register(name="DMLOrthoForest", family="orf")
 class WrappedDMLOrthoForest(BaseWrapperMixin):
     """Wrapper for EconML's DMLOrthoForest estimator.
 
@@ -36,16 +37,10 @@ class WrappedDMLOrthoForest(BaseWrapperMixin):
     capabilities : EstimatorCapabilities
         Metadata describing the estimator's supported treatment/outcome types,
         estimands, and inference methods.
-    clean_name : str
-        Human-readable name for the estimator ("DMLOrthoForest").
 
     See Also
     --------
     [EconML DMLOrthoForest](https://www.pywhy.org/econml/_autosummary/econml.orf.DMLOrthoForest.html) : Official documentation for EconML's DMLOrthoForest.
-
-    [`BaseWrapperMixin`](base.qmd#caml.estimators.base.BaseWrapperMixin) : Mixin providing common wrapper functionality.
-
-    [`AutoCateEstimator`](base.qmd#caml.estimators.base.AutoCateEstimator) : Protocol this wrapper implements.
 
     Examples
     --------
@@ -93,7 +88,6 @@ class WrappedDMLOrthoForest(BaseWrapperMixin):
     """
 
     # Class attributes
-    clean_name: str = "DMLOrthoForest"
     capabilities: EstimatorCapabilities = EstimatorCapabilities(
         treatment_types={
             TreatmentType.BINARY,
@@ -171,7 +165,7 @@ class WrappedDMLOrthoForest(BaseWrapperMixin):
         return self
 
 
-@auto_register(family="orf")
+@auto_register(name="DROrthoForest", family="orf")
 class WrappedDROrthoForest(BaseWrapperMixin):
     """Wrapper for EconML's DROrthoForest estimator.
 
@@ -193,16 +187,10 @@ class WrappedDROrthoForest(BaseWrapperMixin):
     capabilities : EstimatorCapabilities
         Metadata describing the estimator's supported treatment/outcome types,
         estimands, and inference methods.
-    clean_name : str
-        Human-readable name for the estimator ("DROrthoForest").
 
     See Also
     --------
     [EconML DROrthoForest](https://www.pywhy.org/econml/_autosummary/econml.orf.DROrthoForest.html) : Official documentation for EconML's DROrthoForest.
-
-    [`BaseWrapperMixin`](base.qmd#caml.estimators.base.BaseWrapperMixin) : Mixin providing common wrapper functionality.
-
-    [`AutoCateEstimator`](base.qmd#caml.estimators.base.AutoCateEstimator) : Protocol this wrapper implements.
 
     Examples
     --------
@@ -249,7 +237,6 @@ class WrappedDROrthoForest(BaseWrapperMixin):
     """
 
     # Class attributes
-    clean_name: str = "DROrthoForest"
     capabilities: EstimatorCapabilities = EstimatorCapabilities(
         treatment_types={TreatmentType.BINARY, TreatmentType.MULTI},
         outcome_types={OutcomeType.CONTINUOUS, OutcomeType.BINARY},

@@ -277,10 +277,6 @@ class TestAutoCAteEstimatorProtocol:
                 self.effect_value = None
 
             @property
-            def clean_name(self) -> str:
-                return "SimpleEstimator"
-
-            @property
             def capabilities(self) -> EstimatorCapabilities:
                 return EstimatorCapabilities(
                     treatment_types={TreatmentType.BINARY},
@@ -328,11 +324,7 @@ class TestAutoCAteEstimatorProtocol:
         """Test that incomplete estimator doesn't implement protocol."""
 
         class IncompleteEstimator:
-            @property
-            def clean_name(self) -> str:
-                return "Incomplete"
-
-            # Missing capabilities, fit, effect, etc.
+            pass
 
         estimator = IncompleteEstimator()
         assert not isinstance(estimator, AutoCateEstimator)

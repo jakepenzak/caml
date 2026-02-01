@@ -6,7 +6,7 @@ from sklearn.linear_model import LinearRegression, LogisticRegression
 
 from caml.data import CausalDataset, OutcomeType, TreatmentType
 from caml.estimators import AutoCateEstimator
-from caml.estimators.wrappers.orf import WrappedDMLOrthoForest, WrappedDROrthoForest
+from caml.estimators.orf import WrappedDMLOrthoForest, WrappedDROrthoForest
 from caml.extensions.synthetic_data import SyntheticDataGenerator
 
 pytestmark = pytest.mark.estimators
@@ -31,7 +31,6 @@ class TestWrappedDMLOrthoForest:
 
     def test_class_attributes(self):
         """Test that class attributes are set correctly."""
-        assert WrappedDMLOrthoForest.clean_name == "DMLOrthoForest"
         assert WrappedDMLOrthoForest.capabilities is not None
         assert (
             TreatmentType.BINARY in WrappedDMLOrthoForest.capabilities.treatment_types
@@ -91,7 +90,6 @@ class TestWrappedDROrthoForest:
 
     def test_class_attributes(self):
         """Test that class attributes are set correctly."""
-        assert WrappedDROrthoForest.clean_name == "DROrthoForest"
         assert WrappedDROrthoForest.capabilities is not None
 
     def test_fit_and_effect(self, binary_continuous_data):

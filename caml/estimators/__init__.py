@@ -1,6 +1,6 @@
 import sys
 
-from .base import (
+from .base_estimator import (
     AutoCateEstimator,
     BaseWrapperMixin,
     EstimatorCapabilities,

@@ -1,4 +1,4 @@
-"""Tests for caml.data.data_schema module."""
+"""Tests for caml.data.data_enums."""
 
 import pytest
 

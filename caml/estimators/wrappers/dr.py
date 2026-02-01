@@ -9,12 +9,13 @@ from __future__ import annotations
 from econml.dr import DRLearner, ForestDRLearner, LinearDRLearner, SparseLinearDRLearner
 
 from caml.data import CausalDataset, Estimand, OutcomeType, TreatmentType
-from caml.estimators.base import BaseWrapperMixin, EstimatorCapabilities
 from caml.inference import InferenceType
 from caml.registry import auto_register
 
+from ..base_estimator import BaseWrapperMixin, EstimatorCapabilities
 
-@auto_register(family="dr")
+
+@auto_register(name="DRLearner", family="dr")
 class WrappedDRLearner(BaseWrapperMixin):
     """Wrapper for EconML's DRLearner estimator.
 
@@ -36,16 +37,11 @@ class WrappedDRLearner(BaseWrapperMixin):
     capabilities : EstimatorCapabilities
         Metadata describing the estimator's supported treatment/outcome types,
         estimands, and inference methods.
-    clean_name : str
-        Human-readable name for the estimator ("DRLearner").
 
     See Also
     --------
     [EconML DRLearner](https://www.pywhy.org/EconML/_autosummary/econml.dr.DRLearner.html) : Official documentation for EconML's DRLearner.
 
-    [`BaseWrapperMixin`](base.qmd#caml.estimators.base.BaseWrapperMixin) : Mixin providing common wrapper functionality.
-
-    [`AutoCateEstimator`](base.qmd#caml.estimators.base.AutoCateEstimator) : Protocol this wrapper implements.
 
     Examples
     --------
@@ -93,7 +89,6 @@ class WrappedDRLearner(BaseWrapperMixin):
     """
 
     # Class attributes
-    clean_name: str = "DRLearner"
     capabilities: EstimatorCapabilities = EstimatorCapabilities(
         treatment_types={
             TreatmentType.BINARY,
@@ -171,7 +166,7 @@ class WrappedDRLearner(BaseWrapperMixin):
         return self
 
 
-@auto_register(family="dr")
+@auto_register(name="LinearDRLearner", family="dr")
 class WrappedLinearDRLearner(BaseWrapperMixin):
     """Wrapper for EconML's LinearDRLearner estimator.
 
@@ -193,16 +188,10 @@ class WrappedLinearDRLearner(BaseWrapperMixin):
     capabilities : EstimatorCapabilities
         Metadata describing the estimator's supported treatment/outcome types,
         estimands, and inference methods.
-    clean_name : str
-        Human-readable name for the estimator ("LinearDRLearner").
 
     See Also
     --------
     [EconML LinearDRLearner](https://www.pywhy.org/econml/_autosummary/econml.dr.LinearDRLearner.html) : Official documentation for EconML's LinearDRLearner.
-
-    [`BaseWrapperMixin`](base.qmd#caml.estimators.base.BaseWrapperMixin) : Mixin providing common wrapper functionality.
-
-    [`AutoCateEstimator`](base.qmd#caml.estimators.base.AutoCateEstimator) : Protocol this wrapper implements.
 
     Examples
     --------
@@ -252,7 +241,6 @@ class WrappedLinearDRLearner(BaseWrapperMixin):
     """
 
     # Class attributes
-    clean_name: str = "LinearDRLearner"
     capabilities: EstimatorCapabilities = EstimatorCapabilities(
         treatment_types={
             TreatmentType.BINARY,
@@ -330,7 +318,7 @@ class WrappedLinearDRLearner(BaseWrapperMixin):
         return self
 
 
-@auto_register(family="dr")
+@auto_register(name="SparseLinearDRLearner", family="dr")
 class WrappedSparseLinearDRLearner(BaseWrapperMixin):
     """Wrapper for EconML's SparseLinearDRLearner estimator.
 
@@ -352,16 +340,11 @@ class WrappedSparseLinearDRLearner(BaseWrapperMixin):
     capabilities : EstimatorCapabilities
         Metadata describing the estimator's supported treatment/outcome types,
         estimands, and inference methods.
-    clean_name : str
-        Human-readable name for the estimator ("SparseLinearDRLearner").
+
 
     See Also
     --------
     [EconML SparseLinearDRLearner](https://www.pywhy.org/econml/_autosummary/econml.dr.SparseLinearDRLearner.html) : Official documentation for EconML's SparseLinearDRLearner.
-
-    [`BaseWrapperMixin`](base.qmd#caml.estimators.base.BaseWrapperMixin) : Mixin providing common wrapper functionality.
-
-    [`AutoCateEstimator`](base.qmd#caml.estimators.base.AutoCateEstimator) : Protocol this wrapper implements.
 
     Examples
     --------
@@ -412,7 +395,6 @@ class WrappedSparseLinearDRLearner(BaseWrapperMixin):
     """
 
     # Class attributes
-    clean_name: str = "SparseLinearDRLearner"
     capabilities: EstimatorCapabilities = EstimatorCapabilities(
         treatment_types={
             TreatmentType.BINARY,
@@ -490,7 +472,7 @@ class WrappedSparseLinearDRLearner(BaseWrapperMixin):
         return self
 
 
-@auto_register(family="dr")
+@auto_register(name="ForestDRLearner", family="dr")
 class WrappedForestDRLearner(BaseWrapperMixin):
     """Wrapper for EconML's ForestDRLearner estimator.
 
@@ -511,23 +493,17 @@ class WrappedForestDRLearner(BaseWrapperMixin):
     capabilities : EstimatorCapabilities
         Metadata describing the estimator's supported treatment/outcome types,
         estimands, and inference methods.
-    clean_name : str
-        Human-readable name for the estimator ("ForestDRLearner").
 
     See Also
     --------
     [EconML ForestDRLearner](https://www.pywhy.org/econml/_autosummary/econml.dr.ForestDRLearner.html) : Official documentation for EconML's ForestDRLearner.
-
-    [`BaseWrapperMixin`](base.qmd#caml.estimators.base.BaseWrapperMixin) : Mixin providing common wrapper functionality.
-
-    [`AutoCateEstimator`](base.qmd#caml.estimators.base.AutoCateEstimator) : Protocol this wrapper implements.
 
     Examples
     --------
     ```{python}
     from sklearn.linear_model import LogisticRegression, LassoCV
 
-    from caml.estimators.wrappers.dr import WrappedForestDRLearner
+    from caml.estimators.dr import WrappedForestDRLearner
     from caml.data import CausalDataset, TreatmentType, OutcomeType
     from caml.extensions.synthetic_data import SyntheticDataGenerator
     from caml.estimators import AutoCateEstimator
@@ -571,7 +547,6 @@ class WrappedForestDRLearner(BaseWrapperMixin):
     """
 
     # Class attributes
-    clean_name: str = "ForestDRLearner"
     capabilities: EstimatorCapabilities = EstimatorCapabilities(
         treatment_types={
             TreatmentType.BINARY,

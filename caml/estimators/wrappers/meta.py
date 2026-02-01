@@ -9,12 +9,13 @@ from __future__ import annotations
 from econml.metalearners import SLearner, TLearner, XLearner
 
 from caml.data import CausalDataset, Estimand, OutcomeType, TreatmentType
-from caml.estimators.base import BaseWrapperMixin, EstimatorCapabilities
 from caml.inference import InferenceType
 from caml.registry import auto_register
 
+from ..base_estimator import BaseWrapperMixin, EstimatorCapabilities
 
-@auto_register(family="meta")
+
+@auto_register(name="SLearner", family="meta")
 class WrappedSLearner(BaseWrapperMixin):
     """Wrapper for EconML's S-Learner estimator.
 
@@ -37,16 +38,10 @@ class WrappedSLearner(BaseWrapperMixin):
     capabilities : EstimatorCapabilities
         Metadata describing the estimator's supported treatment/outcome types,
         estimands, and inference methods.
-    clean_name : str
-        Human-readable name for the estimator ("SLearner").
 
     See Also
     --------
     [EconML SLearner](https://www.pywhy.org/econml/_autosummary/econml.metalearners.SLearner.html) : Official documentation for EconML's SLearner.
-
-    [`BaseWrapperMixin`](base.qmd#caml.estimators.base.BaseWrapperMixin) : Mixin providing common wrapper functionality.
-
-    [`AutoCateEstimator`](base.qmd#caml.estimators.base.AutoCateEstimator) : Protocol this wrapper implements.
 
     Examples
     --------
@@ -90,7 +85,6 @@ class WrappedSLearner(BaseWrapperMixin):
     """
 
     # Class attributes
-    clean_name: str = "SLearner"
     capabilities: EstimatorCapabilities = EstimatorCapabilities(
         treatment_types={
             TreatmentType.BINARY,
@@ -162,7 +156,7 @@ class WrappedSLearner(BaseWrapperMixin):
         return self
 
 
-@auto_register(family="meta")
+@auto_register(name="TLearner", family="meta")
 class WrappedTLearner(BaseWrapperMixin):
     """Wrapper for EconML's T-Learner estimator.
 
@@ -184,16 +178,10 @@ class WrappedTLearner(BaseWrapperMixin):
     capabilities : EstimatorCapabilities
         Metadata describing the estimator's supported treatment/outcome types,
         estimands, and inference methods.
-    clean_name : str
-        Human-readable name for the estimator ("TLearner").
 
     See Also
     --------
     [EconML TLearner](https://www.pywhy.org/econml/_autosummary/econml.metalearners.TLearner.html) : Official documentation for EconML's TLearner.
-
-    [`BaseWrapperMixin`](base.qmd#caml.estimators.base.BaseWrapperMixin) : Mixin providing common wrapper functionality.
-
-    [`AutoCateEstimator`](base.qmd#caml.estimators.base.AutoCateEstimator) : Protocol this wrapper implements.
 
     Examples
     --------
@@ -237,7 +225,6 @@ class WrappedTLearner(BaseWrapperMixin):
     """
 
     # Class attributes
-    clean_name: str = "TLearner"
     capabilities: EstimatorCapabilities = EstimatorCapabilities(
         treatment_types={
             TreatmentType.BINARY,
@@ -308,7 +295,7 @@ class WrappedTLearner(BaseWrapperMixin):
         return self
 
 
-@auto_register(family="meta")
+@auto_register(name="XLearner", family="meta")
 class WrappedXLearner(BaseWrapperMixin):
     """Wrapper for EconML's X-Learner estimator.
 
@@ -331,16 +318,10 @@ class WrappedXLearner(BaseWrapperMixin):
     capabilities : EstimatorCapabilities
         Metadata describing the estimator's supported treatment/outcome types,
         estimands, and inference methods.
-    clean_name : str
-        Human-readable name for the estimator ("XLearner").
 
     See Also
     --------
     [EconML XLearner](https://www.pywhy.org/econml/_autosummary/econml.metalearners.XLearner.html) : Official documentation for EconML's XLearner.
-
-    [`BaseWrapperMixin`](base.qmd#caml.estimators.base.BaseWrapperMixin) : Mixin providing common wrapper functionality.
-
-    [`AutoCateEstimator`](base.qmd#caml.estimators.base.AutoCateEstimator) : Protocol this wrapper implements.
 
     Examples
     --------
@@ -387,7 +368,6 @@ class WrappedXLearner(BaseWrapperMixin):
     """
 
     # Class attributes
-    clean_name: str = "XLearner"
     capabilities: EstimatorCapabilities = EstimatorCapabilities(
         treatment_types={
             TreatmentType.BINARY,

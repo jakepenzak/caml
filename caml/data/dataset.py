@@ -13,14 +13,15 @@ import numpy as np
 import pandas as pd
 
 from caml._generics.utils import arr_at_least_2d
-from caml.data._validation import (
+
+from ._validation import (
     check_1d_targets,
     check_missing_data,
     check_outcome_type_matches_data,
     check_shapes_match,
     check_treatment_type_matches_data,
 )
-from caml.data.data_schema import OutcomeType, TreatmentType
+from .data_enums import OutcomeType, TreatmentType
 
 
 @dataclass
@@ -62,14 +63,6 @@ class CausalDataset:
     ------
     ValueError
         If validation fails (shape mismatch, wrong types, missing values).
-
-    See Also
-    --------
-    [`TreatmentType`](data_schema.qmd#caml.data.data_schema.TreatmentType) : Treatment variable categories.
-
-    [`OutcomeType`](data_schema.qmd#caml.data.data_schema.OutcomeType) : Outcome variable categories.
-
-    [`AutoCateEstimator`](base.qmd#caml.estimators.base.AutoCateEstimator) : Protocol for CATE estimators.
 
     Notes
     -----

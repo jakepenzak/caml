@@ -6,28 +6,19 @@ toc-expand: 1
 
 ## Motivation {#sec-motivation}
 
-Conditional Average Treatment Effect (CATE) estimators aim to learn heterogeneous treatment effects $\tau(X) = \mathbb{E}[Y(1) - Y(0) \mid X]$ from observational or experimental data. Modern CATE estimation leverages machine learning to flexibly model nuisance functions (propensity scores, outcome regressions) while maintaining valid causal inference through debiasing techniques. This page provides high-level mathematical foundations for the wrapped estimators in CaML.
+Conditional Average Treatment Effect (CATE) estimators aim to learn heterogeneous treatment effects $\tau(X) = \mathbb{E}[Y(1) - Y(0) \mid X]$, or $\tau(X,t) = \partial \mathbb{E}[Y(t) \mid X]$ for continuous treatments, from observational or experimental data. Modern CATE estimation leverages machine learning to flexibly model nuisance functions (propensity scores, outcome regressions) while maintaining valid causal inference through debiasing techniques. This page provides high-level mathematical foundations for the wrapped estimators in CaML.
 
 ::: {.callout-tip}
 ## Further Reading
 For comprehensive theoretical foundations, see [Chapter 15 of *Applied Causal Inference Powered by ML and AI*](https://chapters.causalml-book.org/CausalML_chap_15.pdf) [@chernozhukov2024causalml] and the [EconML documentation](https://www.pywhy.org/econml/).
 :::
 
-## Estimator Comparison {#sec-estimator-comparison}
+## Estimator Overview {#sec-estimator-overview}
 
-| Estimator Family | Underlying Model | Continuous $T$ | Analytic Inference | Computational Cost | Key Strengths | Key Weaknesses |
-|-----------------|------------------|:--------------:|:------------------:|:------------------:|---------------|----------------|
-| **Meta-learners** | Direct outcome modeling | ✗ | ✗ | Low | Simple, intuitive | Regularization bias, no debiasing |
-| **DML (PLM)** | Partially Linear Model | ✓ | ✓ | Medium | Neyman orthogonality, flexible | Assumes additive treatment effect |
-| **DR (IRM)** | Interactive Regression Model | ✗ | ✓ | Medium | Doubly robust, handles discrete $T$ well | Requires accurate propensity estimation |
-| **Orthogonal Forests** | Adaptive forest splitting | ✓ | ✗ | High | Nonparametric heterogeneity, honest inference | Computationally expensive, large $N$ needed |
-
-: CATE Estimator Comparison {#tbl-estimator-comparison}
-
-## Meta-Learners {#sec-meta-learners}
+### Meta-Learners {#sec-meta-learners}
 
 ::: {.callout-note collapse="true"}
-## S-Learner <small class="text-muted">[↗](../04_Reference/WrappedSLearner.qmd)</small> {#sec-s-learner}
+### S-Learner <small class="text-muted">[↗](../04_Reference/meta.qmd#caml.estimators.meta.WrappedSLearner)</small> {#sec-s-learner}
 
 The **S-Learner** (Single Learner) [@kunzel2019metalearners] trains a single model on the combined feature space $(X, T)$ to predict outcomes, then estimates CATE by differencing predictions:
 
@@ -78,7 +69,7 @@ where $e(x) = P(T=1 \mid X=x)$ is the propensity score.
 **Advantage**: More efficient than T-learner when treatment groups are imbalanced; borrows strength across groups.
 :::
 
-## Double Machine Learning (Partially Linear Model) {#sec-dml}
+### Double Machine Learning (Partially Linear Model) {#sec-dml}
 
 ::: {.callout-note collapse="true"}
 ## PLM Formulation {#sec-plm-formulation}
@@ -167,7 +158,7 @@ Provides maximum flexibility but typically requires bootstrap for inference.
 **KernelDML** uses kernel ridge regression for the final CATE model, providing smooth nonparametric estimation with analytic confidence intervals.
 :::
 
-## Doubly Robust Learners (Interactive Regression Model) {#sec-dr-learners}
+### Doubly Robust Learners (Interactive Regression Model) {#sec-dr-learners}
 
 ::: {.callout-note collapse="true"}
 ## IRM Formulation {#sec-irm-formulation}
@@ -227,7 +218,7 @@ $$
 **ForestDRLearner** uses a random forest to model nonparametric heterogeneity in the DR pseudo-outcome. Analogous to CausalForestDML but under the IRM framework.
 :::
 
-## Orthogonal Random Forests {#sec-orthogonal-forests}
+### Orthogonal Random Forests {#sec-orthogonal-forests}
 
 ::: {.callout-note collapse="true"}
 ## ORF Formulation {#sec-orf-formulation}
@@ -263,9 +254,12 @@ ORF methods are computationally expensive due to local nuisance estimation at ea
 **DROrthoForest** combines ORF's adaptive learning with DR's pseudo-outcome construction. Provides robustness to model misspecification for discrete treatments.
 :::
 
-## [InteractiveLinearRegression](../04_Reference/InteractiveLinearRegression.qmd) {#sec-interactive-linear-regression}
+### Native CaML Estimators {#sec-native-caml-estimators}
 
-The outlined Interactive Linear Regression is motivated by and adapted from @chernozhukov2024chapter2.
+::: {.callout-note collapse="true"}
+## InteractiveLinearRegression <small class="text-muted">[↗]()</small> {#sec-interactive-linear-regression}
+
+The outlined Interactive Linear Regression is motivated by and adapted from [@chernozhukov2024chapter2].
 
 ### Model Specification
 
@@ -324,10 +318,21 @@ $$
 
 where $\text{VCV}(\mathbf{\Theta}_k)$ is the variance-covariance matrix of the estimated coefficients for the $k$-th outcome.
 
-This logic extends naturally to the estimation of GATEs and CATEs (e.g., $\bar{d} = \mathbb{E}_n\left[D_{T=1} - D_{T=0} | \mathbf{G}=g\right]$,
-$\bar{d} = \mathbb{E}_n\left[D_{T=1} - D_{T=0} | \mathbf{G}=g, \mathbf{X}=x\right]$, $\dots$, etc.) and to continuous treatments
-(e.g., $\bar{d} = \mathbb{E}_n\left[D_{T=t+1} - D_{T=t}\right]$, $\dots$, etc.).
+This logic extends naturally to the estimation of GATEs and CATEs and to continuous treatments.
 
+:::
+
+## Estimator Comparison {#sec-estimator-comparison}
+
+| Estimator Family | Underlying Model | Continuous $T$ | Analytic Inference | Computational Cost | Key Strengths | Key Weaknesses |
+|-----------------|------------------|:--------------:|:------------------:|:------------------:|---------------|----------------|
+| **Meta-learners** | Direct outcome modeling | ✗ | ✗ | Low | Simple, intuitive | Regularization bias, no debiasing |
+| **DML (PLM)** | Partially Linear Model | ✓ | ✓ | Medium | Neyman orthogonality, flexible | Assumes additive treatment effect |
+| **DR (IRM)** | Interactive Regression Model | ✗ | ✓ | Medium | Doubly robust, handles discrete $T$ well | Requires accurate propensity estimation |
+| **Orthogonal Forests** | Adaptive forest splitting | ✓ | ✗ | High | Nonparametric heterogeneity, honest inference | Computationally expensive, large $N$ needed |
+| **Native CaML** | Interactive Linear Regression | ✓ | ✓ | Low-Medium | Transparent, interpretable, analytic inference | Assumes linear interactions |
+
+: CATE Estimator Comparison {#tbl-estimator-comparison}
 
 ## References {#sec-references}
 

@@ -6,7 +6,8 @@ import numpy as np
 from flaml import AutoML
 
 from caml.data import CausalDataset
-from caml.nuisance.spec import NuisanceTunerSpec
+
+from .spec import NuisanceTunerSpec
 
 
 class NuisanceTuner:

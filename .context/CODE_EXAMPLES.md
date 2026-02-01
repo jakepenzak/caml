@@ -9,7 +9,7 @@ This document provides detailed code examples for every file in the proposed dir
 ## Table of Contents
 
 1. [data/](#1-data) - ✅ Complete
-2. [estimators/base.py (Protocols + BaseWrapperMixin)](#2-estimatorsbasepy-protocols--basewrappermixin) - ✅ Complete
+2. [estimators/base_estimator.py (Protocols + BaseWrapperMixin)](#2-estimatorsbasepy-protocols--basewrappermixin) - ✅ Complete
 3. [estimators/](#3-estimators) - ✅ Complete (all wrappers)
 4. [nuisance/](#4-nuisance) - ✅ Complete
 5. [scorers/](#5-scorers) - ✅ Complete (core scorers: RLoss, DRLoss, QStat, PEHE)
@@ -28,12 +28,12 @@ This document provides detailed code examples for every file in the proposed dir
 ```python
 """Data containers and validation."""
 from caml.data.dataset import CausalDataset
-from caml.data.data_schema import TreatmentType, OutcomeType, Estimand
+from caml.data.data_enums import TreatmentType, OutcomeType, Estimand
 
 __all__ = ["CausalDataset", "TreatmentType", "OutcomeType", "Estimand"]
 ```
 
-### data/data_schema.py
+### data/data_enums.py
 
 **Status**: ✅ **IMPLEMENTED**
 
@@ -98,11 +98,11 @@ Complete validation utilities including:
 
 ---
 
-## 2. estimators/base.py (Protocols + BaseWrapperMixin)
+## 2. estimators/base_estimator.py (Protocols + BaseWrapperMixin)
 
 **Status**: ✅ **FULLY IMPLEMENTED** (697 lines)
 
-**Note**: Original plan had separate `protocols/` directory. Actual implementation consolidates all protocols into `caml/estimators/base.py` for better cohesion and discoverability.
+**Note**: Original plan had separate `protocols/` directory. Actual implementation consolidates all protocols into `caml/estimators/base_estimator.py` for better cohesion and discoverability.
 
 ### Key Components
 
@@ -113,7 +113,7 @@ This single file contains all protocol definitions and the base wrapper implemen
 3. `InferenceProvider` - Protocol for uncertainty quantification
 4. `BaseWrapperMixin` - ABC providing common wrapper functionality (NEW - not in original plan)
 
-### estimators/base.py
+### estimators/base_estimator.py
 
 ```python
 """Shared base functionality, protocols, and interfaces for CATE estimator wrappers."""
@@ -159,10 +159,7 @@ class EstimatorCapabilities:
 class AutoCateEstimator(Protocol):
     """Core protocol defining the interface for CATE estimators."""
 
-    @property
-    def clean_name(self) -> str:
-        """Human-readable name of the estimator."""
-        ...
+
 
     @property
     def capabilities(self) -> EstimatorCapabilities:
@@ -229,11 +226,7 @@ class BaseWrapperMixin(ABC):
     _is_fitted: bool = False
 
     # Abstract methods (must implement in each wrapper)
-    @property
-    @abstractmethod
-    def clean_name(self) -> str:
-        """Human-readable name of the estimator."""
-        pass
+
 
     @property
     @abstractmethod
@@ -341,7 +334,7 @@ class BaseWrapperMixin(ABC):
 
 ```python
 """CATE estimators and wrappers."""
-from caml.estimators.base import (
+from caml.estimators.base_estimator import (
     AutoCateEstimator,
     EstimatorCapabilities,
     InferenceProvider,
@@ -356,7 +349,7 @@ __all__ = [
 ]
 ```
 
-### estimators/base.py
+### estimators/base_estimator.py
 
 **Status**: ✅ **FULLY IMPLEMENTED** (697 lines)
 
@@ -429,7 +422,7 @@ from econml.dml import (
 )
 
 from caml.data import CausalDataset, Estimand, OutcomeType, TreatmentType
-from caml.estimators.base import BaseWrapperMixin, EstimatorCapabilities
+from caml.estimators.base_estimator import BaseWrapperMixin, EstimatorCapabilities
 from caml.inference import InferenceType
 
 
@@ -471,10 +464,7 @@ class WrappedLinearDML(BaseWrapperMixin):
             supports_inference=True,
         )
 
-    @property
-    def clean_name(self) -> str:
-        """Human-readable name."""
-        return "LinearDML"
+
 
     def fit(
         self,
@@ -661,14 +651,14 @@ Originally planned for helper functions (propensity trimming, feature preparatio
 **Status**: ✅ **IMPLEMENTED** (14 lines)
 
 ```python
-from .base_scorer import BaseScorer, clip
+from .base_scorer import BaseCateScorerMixin, _clip
 from .dr_loss import DRLoss
 from .pehe import PEHE
 from .q_stat import QStat
 from .r_loss import RLoss
 
 __all__ = [
-    "BaseScorer",
+    "BaseCateScorerMixin",
     "RLoss",
     "DRLoss",
     "QStat",
@@ -681,8 +671,8 @@ __all__ = [
 **Status**: ✅ **IMPLEMENTED** (220 lines)
 
 Complete implementation with:
-- `BaseScorer` ABC with `__call__(estimator, data) -> float` interface
-- `clip()` utility for propensity score trimming
+- `BaseCateScorerMixin` ABC with `__call__(estimator, data) -> float` interface
+- `_clip()` utility for propensity score trimming
 - `validate_cate_array()` for CATE prediction validation
 - `validate_scorer_inputs()` for scorer input validation
 
@@ -694,7 +684,7 @@ import numpy as np
 from caml.data.dataset import CausalDataset
 
 
-class BaseScorer(ABC):
+class BaseCateScorerMixin(ABC):
     """Base class for CATE scorers.
 
     Notes
@@ -721,7 +711,7 @@ class BaseScorer(ABC):
         """
 
 
-def clip(arr: np.ndarray, lb: float = 0.01, ub: float = np.inf) -> np.ndarray:
+def _clip(arr: np.ndarray, lb: float = 0.01, ub: float = np.inf) -> np.ndarray:
     """Clip array values (commonly propensity scores) for stability."""
     return np.clip(arr, lb, ub)
 
@@ -759,10 +749,10 @@ from sklearn.base import BaseEstimator
 
 from caml.data import CausalDataset
 from caml.samplers import CrossFitter
-from caml.scorers.base_scorer import BaseScorer, validate_cate_array
+from caml.scorers.base_scorer import BaseCateScorerMixin, validate_cate_array
 
 
-class RLoss(BaseScorer):
+class RLoss(BaseCateScorerMixin):
     r"""R-loss for CATE model evaluation & selection via orthogonal residualization.
 
     Parameters
@@ -861,10 +851,10 @@ Doubly-robust loss using DR pseudo-outcomes:
 import numpy as np
 from caml.data import CausalDataset
 from caml.samplers import CrossFitter
-from caml.scorers.base_scorer import BaseScorer, clip, validate_scorer_inputs
+from caml.scorers.base_scorer import BaseCateScorerMixin, _clip, validate_scorer_inputs
 
 
-class DRLoss(BaseScorer):
+class DRLoss(BaseCateScorerMixin):
     r"""Doubly-robust loss for CATE model selection.
 
     Parameters
@@ -921,8 +911,8 @@ class DRLoss(BaseScorer):
         )
 
         # Compute DR pseudo-outcome
-        dr = mu_1 + ((data.Y - mu_1) / clip(e_hat)) * data.T
-        dr -= mu_0 + ((data.Y - mu_0) / clip(1 - e_hat)) * (1 - data.T)
+        dr = mu_1 + ((data.Y - mu_1) / _clip(e_hat)) * data.T
+        dr -= mu_0 + ((data.Y - mu_0) / _clip(1 - e_hat)) * (1 - data.T)
 
         # Get CATE predictions and compute DR-loss
         tau_hat = estimator.effect(data.X)
@@ -947,10 +937,10 @@ Q-statistic using IPW pseudo-outcomes:
 import numpy as np
 from caml.data import CausalDataset
 from caml.samplers import CrossFitter
-from caml.scorers.base_scorer import BaseScorer, clip, validate_cate_array
+from caml.scorers.base_scorer import BaseCateScorerMixin, _clip, validate_cate_array
 
 
-class QStat(BaseScorer):
+class QStat(BaseCateScorerMixin):
     r"""Q-statistic for CATE model selection via IPW pseudo-outcomes.
 
     Parameters
@@ -985,8 +975,8 @@ class QStat(BaseScorer):
         )
 
         # Compute IPW pseudo-outcome
-        ipw = (data.T * data.Y) / clip(e_hat)
-        ipw -= ((1 - data.T) * data.Y) / clip(1 - e_hat)
+        ipw = (data.T * data.Y) / _clip(e_hat)
+        ipw -= ((1 - data.T) * data.Y) / _clip(1 - e_hat)
 
         # Get CATE predictions
         tau_hat = estimator.effect(data.X)
@@ -1008,10 +998,10 @@ Oracle metric requiring true CATEs:
 
 import numpy as np
 from caml.data import CausalDataset
-from caml.scorers.base_scorer import BaseScorer, validate_scorer_inputs
+from caml.scorers.base_scorer import BaseCateScorerMixin, validate_scorer_inputs
 
 
-class PEHE(BaseScorer):
+class PEHE(BaseCateScorerMixin):
     r"""Precision in Estimation of Heterogeneous Effects (PEHE) oracle metric.
 
     Parameters
@@ -1688,7 +1678,7 @@ def create_dr_loss_objective(propensity_model, outcome_model, data, cv=3, random
 """Result containers for inference."""
 from dataclasses import dataclass
 import numpy as np
-from caml.inference.inference_schema import InferenceType
+from caml.inference.inference_enums import InferenceType
 
 
 @dataclass
@@ -1717,7 +1707,7 @@ class InferenceResult:
         return f"InferenceResult(n={n})"
 ```
 
-### inference/inference_schema.py
+### inference/inference_enums.py
 
 **Status**: ✅ **IMPLEMENTED**
 
@@ -1962,11 +1952,11 @@ Plotting utilities for causal inference (file exists, details not inspected).
 2. **estimators/base.py** - Protocols (AutoCateEstimator, InferenceProvider), BaseWrapperMixin, EstimatorCapabilities (Phase 1 ✅)
 3. **estimators/wrappers/** - All 14 EconML wrappers complete: 5 DML, 4 DR, 3 meta-learners, 2 ORF (Phase 2 ✅)
 4. **registry/** - Complete with model_bank.py (72 lines) and registry.py (163 lines) (Phase 2 ✅)
-5. **inference/** - results.py and inference_schema.py implemented (Phase 1 ✅)
+5. **inference/** - results.py and inference_enums.py implemented (Phase 1 ✅)
 6. **extensions/** - Complete with SyntheticDataGenerator and plots.py
 7. **nuisance/** - Complete with NuisanceTuner (224 lines) and NuisanceTunerSpec (54 lines) (Phase 3 ✅)
 8. **samplers/** - Core complete with CrossFitter (297 lines) and splitters.py (40 lines) (Phase 4 ✅)
-9. **scorers/** - Core complete with BaseScorer, RLoss, DRLoss, QStat, PEHE (Phase 4 ✅)
+9. **scorers/** - Core complete with BaseCateScorerMixin, RLoss, DRLoss, QStat, PEHE (Phase 4 ✅)
 
 ### ⚠️ **PARTIALLY IMPLEMENTED**
 10. **estimators/native/** - InteractiveLinearRegression exists but needs protocol adaptation
@@ -2094,7 +2084,7 @@ caml/
 ├── data/                    ✅ IMPLEMENTED
 ├── protocols/               ✅ IMPLEMENTED (consolidated into estimators/base.py)
 ├── estimators/
-│   ├── base.py              ✅ IMPLEMENTED - Protocols + BaseWrapperMixin
+│   ├── base_estimator.py              ✅ IMPLEMENTED - Protocols + BaseWrapperMixin
 │   ├── native/              ⚠️ PARTIAL (needs protocol adaptation)
 │   └── wrappers/            ✅ IMPLEMENTED - All 14 EconML wrappers
 ├── nuisance/                ✅ IMPLEMENTED - NuisanceTuner + spec
@@ -2127,7 +2117,7 @@ caml/
    - Use `effect()` instead of `predict_cate()` as per `AutoCateEstimator` protocol
 
 5. **Scorer Exports**:
-   - Only implemented scorers exported from `__init__.py`: `BaseScorer`, `RLoss`, `DRLoss`, `QStat`, `PEHE`
+   - Only implemented scorers exported from `__init__.py`: `BaseCateScorerMixin`, `RLoss`, `DRLoss`, `QStat`, `PEHE`
    - Deferred scorers (`_*.py`) not exported until implemented
 
 ---
@@ -2166,7 +2156,7 @@ caml/
 ## Critical Notes for Implementation
 
 1. **Method naming**: Use `effect()` not `predict_cate()` per protocol
-2. **Scorer convention**: Use `clip()` for propensity trimming
+2. **Scorer convention**: Use `_clip()` for propensity trimming
 3. **CrossFitter usage**: Scorers use CrossFitter for out-of-fold predictions
 4. **Normalized scores**: All scorers support `normalized=True` for R²-like interpretation
 5. **SyntheticDataGenerator**: Available for all testing implementations

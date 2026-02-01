@@ -27,7 +27,7 @@ jobs:
           python-version: ${{ vars.PYTHON_VERSION }}
 
       - name: Create environment
-        run: uv sync --all-groups --frozen
+        run: uv sync --all-groups --all-extras --frozen
 
       - name: Render & Publish Docs
         shell: bash -l {0}

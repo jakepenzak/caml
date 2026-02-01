@@ -19,14 +19,6 @@ class TreatmentType(Enum):
     CONTINUOUS : str
         Continuous treatment (e.g., dosage). Supported by DML and DR learners.
 
-    See Also
-    --------
-    [`OutcomeType`](data_schema.qmd#caml.data.data_schema.OutcomeType) : Outcome variable categories.
-
-    [`CausalDataset`](dataset.qmd#caml.data.dataset.CausalDataset) : Data container using treatment types.
-
-    [`EstimatorCapabilities`](base.qmd#caml.estimators.base.EstimatorCapabilities) : Estimator capability metadata.
-
     Examples
     --------
     ```{python}
@@ -66,12 +58,6 @@ class OutcomeType(Enum):
     -----
     Outcome type affects nuisance model selection (e.g., ``LGBMClassifier`` vs
     ``LGBMRegressor``) rather than core CATE estimation strategy.
-
-    See Also
-    --------
-    [`TreatmentType`](data_schema.qmd#caml.data.data_schema.TreatmentType) : Treatment variable categories.
-
-    [`CausalDataset`](dataset.qmd#caml.data.dataset.CausalDataset) : Data container using outcome types.
 
     Examples
     --------
@@ -117,12 +103,6 @@ class Estimand(Enum):
     -----
     Most CATE estimators naturally estimate CATE, from which ATE/ATT/ATC can be
     derived via aggregation.
-
-    See Also
-    --------
-    [`EstimatorCapabilities`](base.qmd#caml.estimators.base.EstimatorCapabilities) : Metadata including supported estimands.
-
-    [`AutoCateEstimator`](base.qmd#caml.estimators.base.AutoCateEstimator) : Protocol for CATE estimators.
 
     Examples
     --------

@@ -9,7 +9,7 @@ toc-expand: 1
 CATE model evaluation is fundamentally challenging because ground truth treatment effects are never observed—we see only factual outcomes, not counterfactuals. Scorers provide proxy metrics that correlate with the unobservable Precision in Estimating Heterogeneous Effects (PEHE), enabling model selection without ground truth.
 
 
-## Scorers Overview {#sec-scorers-overview}
+## Scorer Overview {#sec-scorer-overview}
 
 ::: {.callout-note collapse="true"}
 

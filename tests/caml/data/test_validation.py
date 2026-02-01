@@ -4,6 +4,7 @@ import numpy as np
 import pandas as pd
 import pytest
 
+from caml.data import OutcomeType, TreatmentType
 from caml.data._validation import (
     check_1d_targets,
     check_missing_data,
@@ -11,7 +12,6 @@ from caml.data._validation import (
     check_shapes_match,
     check_treatment_type_matches_data,
 )
-from caml.data.data_schema import OutcomeType, TreatmentType
 
 pytestmark = [pytest.mark.data]
 

@@ -2,17 +2,21 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Callable, Literal
+from typing import TYPE_CHECKING, Callable
 
 from caml.data import CausalDataset
-from caml.registry.registry_schema import EstimatorFamily
+
+from .registry_enums import EstimatorFamily, ScorerFamily
 
 if TYPE_CHECKING:
-    from caml.estimators.base import AutoCateEstimator
+    from caml.estimators import AutoCateEstimator
 
 
 available_estimators: dict = dict()
 """Dictionary of available estimators with their corresponding classes and families."""
+
+available_scorers: dict = dict()
+"""Dictionary of available scorers with their corresponding classes and families."""
 
 
 def get_compatible_estimators(
@@ -116,8 +120,6 @@ def register_estimator(
 
     class SimpleEstimator:
 
-        clean_name = "SimpleEstimator"
-
         capabilities = EstimatorCapabilities(
             treatment_types={TreatmentType.BINARY},
             outcome_types={OutcomeType.CONTINUOUS},
@@ -177,10 +179,51 @@ def register_estimator(
     }
 
 
+def register_scorer(
+    name: str,
+    scorer: Callable,
+    family: ScorerFamily | str = ScorerFamily.CUSTOM,
+) -> None:
+    """Register a new scorer in the global registry.
+
+    Parameters
+    ----------
+    name
+        Name of the scorer to register.
+    scorer
+        Scorer function to register.
+    family
+        Family for the scorer.
+
+    Examples
+    --------
+    ```{python}
+    import numpy as np
+    from caml.scorers import BaseCateScorerMixin
+    from caml.registry import register_scorer, available_scorers, ScorerFamily
+
+    class NegMAEOnOracleCATE(BaseCateScorerMixin):
+        def __call__(self, estimator, data):
+            tau_hat = estimator.effect(data.X)
+            mae = np.mean(np.abs(tau_hat - data.true_cates))
+            return -mae
+
+    # Current available estimators
+    print(available_scorers.keys())
+
+    # Updated available estimators
+    register_scorer(name="NegMAEOnOracleCATE", scorer=NegMAEOnOracleCATE, family=ScorerFamily.CUSTOM)
+    print(available_scorers.keys())
+    ```
+    """
+    available_scorers[name] = {
+        "scorer": scorer,
+        "family": family if isinstance(family, ScorerFamily) else ScorerFamily(family),
+    }
+
+
 def auto_register(
-    name: str | None = None,
-    family: EstimatorFamily | str = EstimatorFamily.CUSTOM,
-    type: Literal["estimator"] = "estimator",
+    name: str, family: EstimatorFamily | ScorerFamily | str, is_estimator: bool = True
 ) -> Callable:
     """Decorator to register estimators and scorers in the global registry.
 
@@ -190,17 +233,16 @@ def auto_register(
     Parameters
     ----------
     name
-        The name to register the object under. If None, uses the class's
-        ``clean_name`` attribute or ``__name__``.
+        The name to register the object under.
     family
-        The family of the estimator or scorer (e.g., "dml", "dr", "meta", "orf", "custom").
-    type
-        The type of the object to register: "estimator" or "scorer".
+        The family of the estimator or scorer.
+    is_estimator
+        If True, registers as an estimator; if False, registers as a scorer.
 
     Returns
     -------
     Callable
-        The decorated class (unmodified).
+        The decorated object (unmodified).
 
     Examples
     --------
@@ -212,8 +254,6 @@ def auto_register(
 
     @auto_register(name="MyCustomEstimator", family=EstimatorFamily.CUSTOM)
     class MyCustomEstimator:
-
-        clean_name = "MyCustomEstimator"
 
         capabilities = EstimatorCapabilities(
             treatment_types={TreatmentType.BINARY},
@@ -260,18 +300,35 @@ def auto_register(
     # Check that it was registered
     print("MyCustomEstimator" in available_estimators)
     ```
+
+    ```{python}
+    from caml.registry import auto_register, available_scorers, ScorerFamily
+
+
+    @auto_register(name="NegMAEOnOracleCATE", family=ScorerFamily.ORACLE, is_estimator=False)
+    class NegMAEOnOracleCATE(BaseCateScorerMixin):
+        def __call__(self, estimator, data):
+            tau_hat = estimator.effect(data.X)
+            mae = np.mean(np.abs(tau_hat - data.true_cates))
+            return -mae
+
+    # Check that it was registered
+    print("NegMAEOnOracleCATE" in available_scorers)
+    ```
     """
 
     def decorator(obj):
         """Inner decorator that performs the registration."""
-        registry_name = name
-        if registry_name is None:
-            registry_name = getattr(obj, "clean_name", obj.__name__)
-        if type == "estimator":
-            register_estimator(name=registry_name, estimator=obj, family=family)
-        # Future extension: add scorer registration here
-        # elif type == "scorer":
-        #     register_scorer(name=registry_name, scorer=obj, family=family)
+        if is_estimator:
+            if not (isinstance(family, str) or isinstance(family, EstimatorFamily)):
+                raise ValueError(
+                    "Estimator family must be a string or EstimatorFamily enum."
+                )
+            register_estimator(name=name, estimator=obj, family=family)
+        else:
+            if not (isinstance(family, str) or isinstance(family, ScorerFamily)):
+                raise ValueError("Scorer family must be a string or ScorerFamily enum.")
+            register_scorer(name=name, scorer=obj, family=family)
 
         return obj
 

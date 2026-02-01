@@ -9,10 +9,14 @@ comparison with proxy metrics.
 import numpy as np
 
 from caml.data import CausalDataset
-from caml.scorers.base_scorer import BaseScorer, validate_scorer_inputs
+from caml.registry import ScorerFamily, auto_register
+
+from ._validation import _validate_scorer_inputs
+from .base_scorer import BaseCateScorerMixin
 
 
-class PEHE(BaseScorer):
+@auto_register(name="PEHE", family=ScorerFamily.ORACLE, is_estimator=False)
+class PEHE(BaseCateScorerMixin):
     r"""Precision in Estimation of Heterogeneous Effects (PEHE) oracle metric.
 
     Parameters
@@ -112,7 +116,7 @@ class PEHE(BaseScorer):
             )
 
         # Validate and align shapes
-        tau_hat, true_cates = validate_scorer_inputs(
+        tau_hat, true_cates = _validate_scorer_inputs(
             tau_hat, true_cates, "CATE predictions (tau_hat)", "true CATEs"
         )
 

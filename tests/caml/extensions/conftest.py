@@ -110,8 +110,7 @@ def functional_form_generator(request):
 @pytest.fixture
 def simple_causal_dataset(simple_binary_treatment_dataset):
     """Convert to CausalDataset for protocol testing."""
-    from caml.data.data_schema import OutcomeType, TreatmentType
-    from caml.data.dataset import CausalDataset
+    from caml.data import CausalDataset, OutcomeType, TreatmentType
 
     gen = simple_binary_treatment_dataset
 

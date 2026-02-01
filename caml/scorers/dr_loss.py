@@ -9,11 +9,15 @@ mathematical derivation and interpretation guide.
 import numpy as np
 
 from caml.data import CausalDataset
+from caml.registry import ScorerFamily, auto_register
 from caml.samplers import CrossFitter
-from caml.scorers.base_scorer import BaseScorer, clip, validate_scorer_inputs
+
+from ._validation import _clip, _validate_scorer_inputs
+from .base_scorer import BaseCateScorerMixin
 
 
-class DRLoss(BaseScorer):
+@auto_register(name="DRLoss", family=ScorerFamily.PSUEDO_OUTCOME, is_estimator=False)
+class DRLoss(BaseCateScorerMixin):
     r"""Doubly-robust loss for CATE model selection.
 
     Parameters
@@ -123,12 +127,12 @@ class DRLoss(BaseScorer):
         )
 
         # Compute DR pseudo-outcome
-        dr = mu_1 + ((data.Y - mu_1) / clip(e_hat)) * data.T
-        dr -= mu_0 + ((data.Y - mu_0) / clip(1 - e_hat)) * (1 - data.T)
+        dr = mu_1 + ((data.Y - mu_1) / _clip(e_hat)) * data.T
+        dr -= mu_0 + ((data.Y - mu_0) / _clip(1 - e_hat)) * (1 - data.T)
 
         # Get estimator CATE predictions tau_hat and validate shapes
         tau_hat = estimator.effect(data.X)
-        tau_hat, dr = validate_scorer_inputs(
+        tau_hat, dr = _validate_scorer_inputs(
             tau_hat, dr, "CATE predictions (tau_hat)", "DR pseudo-outcome"
         )
 

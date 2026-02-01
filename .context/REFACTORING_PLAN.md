@@ -81,7 +81,7 @@ This plan refactors CaML into a focused **AutoCATE modeling package** with:
 | **Diagnostics** | Stability, sensitivity, overlap checks | 🔶 **Deferred to post-v0** |
 
 **Implemented Scorers** (in `scorers/`):
-- `BaseScorer` - Abstract base with validation utilities
+- `BaseCateScorerMixin` - Abstract base with validation utilities
 - `RLoss` - R-learner loss for model selection
 - `DRLoss` - Doubly-robust loss for model selection
 - `QStat` - Q-statistic for model ranking
@@ -115,7 +115,7 @@ caml/
 ├── data/                         # ✅ IMPLEMENTED - Data containers & validation
 │   ├── __init__.py
 │   ├── dataset.py                # ✅ CausalDataset class
-│   ├── data_schema.py            # ✅ TreatmentType, OutcomeType, Estimand enums
+│   ├── data_enums.py            # ✅ TreatmentType, OutcomeType, Estimand enums
 │   └── _validation.py            # ✅ Overlap, positivity, missing data checks
 │
 ├── protocols/                    # ⚠️ DEPRECATED - Consolidated into estimators/base.py
@@ -123,7 +123,7 @@ caml/
 │
 ├── estimators/                   # ✅ IMPLEMENTED - CATE estimators
 │   ├── __init__.py               # ✅ Exports protocols and wrappers
-│   ├── base.py                   # ✅ NEW - AutoCateEstimator, InferenceProvider, BaseWrapperMixin (697 lines)
+│   ├── base_estimator.py                   # ✅ NEW - AutoCateEstimator, InferenceProvider, BaseWrapperMixin (697 lines)
 │   ├── native/                   # ⚠️ PARTIAL (renamed from benchmark/)
 │   │   ├── __init__.py
 │   │   └── interactive_ols.py    # ⚠️ EXISTS (24,781 bytes) - Needs protocol adaptation
@@ -140,8 +140,8 @@ caml/
 │   └── spec.py                   # ✅ IMPLEMENTED (54 lines) - NuisanceTunerSpec dataclass
 │
 ├── scorers/                      # ✅ IMPLEMENTED - Scoring & evaluation (core scorers complete)
-│   ├── __init__.py               # ✅ Exports BaseScorer, RLoss, DRLoss, QStat, PEHE
-│   ├── base_scorer.py            # ✅ BaseScorer ABC, clip(), validation utilities (220 lines)
+│   ├── __init__.py               # ✅ Exports BaseCateScorerMixin, RLoss, DRLoss, QStat, PEHE
+│   ├── base_scorer.py            # ✅ BaseCateScorerMixin ABC, _clip(), validation utilities (220 lines)
 │   ├── r_loss.py                 # ✅ RLoss scorer (144 lines)
 │   ├── dr_loss.py                # ✅ DRLoss scorer (143 lines)
 │   ├── q_stat.py                 # ✅ QStat scorer (128 lines)
@@ -171,7 +171,7 @@ caml/
 ├── inference/                    # ✅ IMPLEMENTED - Inference utilities
 │   ├── __init__.py               # ✅ Implemented
 │   ├── results.py                # ✅ InferenceResult dataclass
-│   └── inference_schema.py       # ✅ InferenceType enum
+│   └── inference_enums.py       # ✅ InferenceType enum
 │
 ├── registry/                     # ✅ IMPLEMENTED - Model registry (renamed from modeling/)
 │   ├── __init__.py               # ✅ IMPLEMENTED (11 lines)
@@ -210,7 +210,7 @@ from dataclasses import dataclass, field
 from typing import Optional
 import pandas as pd
 import numpy as np
-from caml.data.data_schema import TreatmentType, OutcomeType
+from caml.data.data_enums import TreatmentType, OutcomeType
 
 @dataclass
 class CausalDataset:
@@ -276,11 +276,11 @@ class CausalDataset:
         )
 ```
 
-### 3.2 Estimator Protocols (estimators/base.py)
+### 3.2 Estimator Protocols (estimators/base_estimator.py)
 
 **Purpose**: Define interfaces all estimators must satisfy
 
-**Note**: Protocols consolidated into `estimators/base.py` instead of separate `protocols/` module for better cohesion.
+**Note**: Protocols consolidated into `estimators/base_estimator.py` instead of separate `protocols/` module for better cohesion.
 
 ```python
 from typing import Protocol, runtime_checkable
@@ -288,7 +288,7 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass
 import numpy as np
 from caml.data.dataset import CausalDataset
-from caml.data.data_schema import TreatmentType, OutcomeType, Estimand
+from caml.data.data_enums import TreatmentType, OutcomeType, Estimand
 from caml.inference import InferenceType, InferenceResult
 
 @dataclass(frozen=True)
@@ -318,10 +318,7 @@ class AutoCateEstimator(Protocol):
 
     capabilities: EstimatorCapabilities
 
-    @property
-    def clean_name(self) -> str:
-        """Human-readable name of the estimator."""
-        ...
+
 
     @classmethod
     def is_compatible_with(cls, data: CausalDataset) -> bool:
@@ -363,7 +360,7 @@ class InferenceProvider(Protocol):
         ...
 ```
 
-### 3.2.1 BaseWrapperMixin (estimators/base.py)
+### 3.2.1 BaseWrapperMixin (estimators/base_estimator.py)
 
 **Purpose**: Abstract base class providing common wrapper functionality for all EconML wrappers
 
@@ -380,11 +377,7 @@ class BaseWrapperMixin(ABC):
     _is_fitted: bool = False
 
     # Abstract methods (must implement in each wrapper)
-    @property
-    @abstractmethod
-    def clean_name(self) -> str:
-        """Human-readable name of the estimator."""
-        pass
+
 
     @property
     @abstractmethod
@@ -493,8 +486,8 @@ class BaseWrapperMixin(ABC):
 
 ```python
 from econml.dml import LinearDML
-from caml.estimators.base import BaseWrapperMixin, EstimatorCapabilities
-from caml.data.data_schema import TreatmentType, OutcomeType, Estimand
+from caml.estimators.base_estimator import BaseWrapperMixin, EstimatorCapabilities
+from caml.data.data_enums import TreatmentType, OutcomeType, Estimand
 from caml.data.dataset import CausalDataset
 from caml.inference import InferenceType
 import numpy as np
@@ -543,10 +536,6 @@ class WrappedLinearDML(BaseWrapperMixin):
             supports_inference=True,
         )
 
-    @property
-    def clean_name(self) -> str:
-        """Human-readable name for display."""
-        return "LinearDML"
 
     def fit(self, data: CausalDataset, **fit_kwargs) -> "WrappedLinearDML":
         """Fit using CausalDataset.
@@ -1219,11 +1208,11 @@ class CrossFitter:
 **Goal**: Core data structures and protocols
 
 1. ✅ Create `data/dataset.py` - `CausalDataset` class
-2. ✅ Create `data/data_schema.py` - `TreatmentType`, `OutcomeType`, `Estimand` enums
+2. ✅ Create `data/data_enums.py` - `TreatmentType`, `OutcomeType`, `Estimand` enums
 3. ✅ Create `data/_validation.py` - validation functions
 4. ✅ Create `protocols/estimator.py` - `CATEEstimator` protocol, `EstimatorCapabilities`
 5. ✅ Create `inference/results.py` - `InferenceResult` dataclass
-6. ✅ Create `inference/inference_schema.py` - `InferenceType` enum
+6. ✅ Create `inference/inference_enums.py` - `InferenceType` enum
 7. ✅ Create `protocols/inference.py` - `InferenceProvider` protocol
 8. ✅ **Tests**: Validate `CausalDataset.from_dataframe()`, validation logic
 
@@ -1240,7 +1229,7 @@ class CrossFitter:
 **Goal**: Wrap EconML estimators ✅ ACHIEVED
 
 **Implemented**:
-1. ✅ `estimators/base.py` - AutoCateEstimator, InferenceProvider, EstimatorCapabilities, BaseWrapperMixin (697 lines)
+1. ✅ `estimators/base_estimator.py` - AutoCateEstimator, InferenceProvider, EstimatorCapabilities, BaseWrapperMixin (697 lines)
 2. ✅ `estimators/wrappers/dml.py` - 5 DML wrappers (LinearDML, SparseLinearDML, CausalForestDML, NonParamDML, KernelDML) (779 lines)
 3. ✅ `estimators/wrappers/dr.py` - 4 DR wrappers (DRLearner, LinearDRLearner, SparseLinearDRLearner, ForestDRLearner) (652 lines)
 4. ✅ `estimators/wrappers/meta.py` - 3 meta-learners (SLearner, TLearner, XLearner) (439 lines)
@@ -1268,10 +1257,6 @@ class CrossFitter:
 3. **Auto-Configuration**:
    - Wrappers automatically set `discrete_treatment`/`discrete_outcome` flags from CausalDataset metadata
    - No manual configuration needed for treatment/outcome types
-
-4. **Clean Names**:
-   - All estimators have `clean_name` property for display
-   - Example: `WrappedLinearDML.clean_name == "LinearDML"`
 
 5. **Attribute Delegation**:
    - All EconML-specific attributes/methods accessible via wrapper
@@ -1317,7 +1302,7 @@ class CrossFitter:
 **Implemented**:
 1. ✅ `samplers/splitters.py` - Splitting strategies (40 lines)
 2. ✅ `samplers/cross_fit.py` - `CrossFitter` class with DML and DR nuisance methods (297 lines)
-3. ✅ `scorers/base_scorer.py` - `BaseScorer` ABC with validation utilities (220 lines)
+3. ✅ `scorers/base_scorer.py` - `BaseCateScorerMixin` ABC with validation utilities (220 lines)
 4. ✅ `scorers/r_loss.py` - `RLoss` scorer with normalization option (144 lines)
 5. ✅ `scorers/dr_loss.py` - `DRLoss` scorer with normalization option (143 lines)
 6. ✅ `scorers/q_stat.py` - `QStat` scorer for IPW-based ranking (128 lines)
@@ -1343,8 +1328,8 @@ class CrossFitter:
    - Methods: `fit_predict_nuisances_dml()`, `fit_predict_nuisances_dr()`, `fit_predict_outcome_model()`, `fit_predict_treatment_model()`, `fit_predict_regression_model()`
 
 2. **Scorer Base Class**:
-   - `BaseScorer` ABC with `__call__(estimator, data) -> float`
-   - Utility functions: `clip()`, `validate_cate_array()`, `validate_scorer_inputs()`
+   - `BaseCateScorerMixin` ABC with `__call__(estimator, data) -> float`
+   - Utility functions: `_clip()`, `validate_cate_array()`, `validate_scorer_inputs()`
    - All scorers support `normalized` parameter for R²-like interpretation
 
 3. **Scorer API Consistency**:
@@ -1453,7 +1438,7 @@ These files exist as `# TODO` placeholders with underscore prefix to indicate de
 
 ```python
 from caml.data.dataset import CausalDataset
-from caml.data.data_schema import TreatmentType, OutcomeType
+from caml.data.data_enums import TreatmentType, OutcomeType
 from caml.automl.auto_cate import AutoCATE
 
 # Load your data
@@ -1624,7 +1609,7 @@ Based on actual implementation inspection (Jan 25, 2026):
    - `_validation.py` (private module) instead of `validation.py`
 
 3. **Protocol Consolidation**:
-   - Protocols consolidated into `estimators/base.py` instead of separate `protocols/` module
+   - Protocols consolidated into `estimators/base_estimator.py` instead of separate `protocols/` module
    - Better cohesion and discoverability
    - Single source of truth for estimator interfaces
 
@@ -1644,8 +1629,8 @@ Based on actual implementation inspection (Jan 25, 2026):
    - Contains `plots.py` for visualization
 
 7. **Schema Enhancements**:
-   - `Estimand` enum added to `data/data_schema.py`
-   - `InferenceType` enum in separate `inference/inference_schema.py`
+   - `Estimand` enum added to `data/data_enums.py`
+   - `InferenceType` enum in separate `inference/inference_enums.py`
    - More comprehensive `EstimatorCapabilities` with 10 attributes
 
 ### Phase 2 Implementation Patterns Observed
@@ -1681,10 +1666,7 @@ class WrappedEstimator(BaseWrapperMixin):
             supports_inference=...,
         )
 
-    @property
-    def clean_name(self) -> str:
-        """Human-readable name for display."""
-        return "EstimatorName"
+
 
     def fit(self, data: CausalDataset, **fit_kwargs):
         """Fit with auto-configuration.

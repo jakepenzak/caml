@@ -37,7 +37,7 @@
 | Directory (native) | `estimators/native/` | `estimators/benchmark/` |
 | Files | `uplift_.py`, `_validation.py` | `uplift.py`, `validation.py` |
 | Methods | `effect()`, `from_dataframe()` | `predict_cate()` |
-| Protocols Location | `estimators/base.py` | `protocols/estimator.py` (deprecated) |
+| Protocols Location | `estimators/base_estimator.py` | `protocols/estimator.py` (deprecated) |
 | Classes | `EstimatorCapabilities` (typo!) | `EstimatorCapabilities` |
 | Nuisance Attributes | `treatment_model_`, `outcome_model_`, `regression_model_` | `propensity_model_` |
 
@@ -52,9 +52,9 @@
 ```markdown
 See Also
 --------
-[`TreatmentType`](data_schema.qmd#caml.data.data_schema.TreatmentType) : Enum defining treatment variable types.
+[`TreatmentType`](data_enums.qmd#caml.data.data_enums.TreatmentType) : Enum defining treatment variable types.
 
-[`OutcomeType`](data_schema.qmd#caml.data.data_schema.OutcomeType) : Enum defining outcome variable types.
+[`OutcomeType`](data_enums.qmd#caml.data.data_enums.OutcomeType) : Enum defining outcome variable types.
 ```
 - Always include module docstring
 - Include: Parameters, Returns, Raises, Examples (type hints in parameters not needed, taken from fn signature)
@@ -110,7 +110,7 @@ When starting work:
 **Next files to implement in order:**
 
 1. `caml/samplers/cross_fit.py` (200 lines) — Cross-fitting engine for orthogonal scores
-2. `caml/scorers/base.py` (50 lines) — BaseScorer abstract class
+2. `caml/scorers/base_scorer.py` (50 lines) — BaseCateScorerMixin abstract class
 3. `caml/scorers/r_loss.py` (150 lines) — R-loss scorer for CATE model selection
 4. `caml/scorers/dr_loss.py` (180 lines) — Doubly-robust loss scorer
 5. `caml/scorers/uplift_.py` (120 lines) — Qini, AUUC uplift metrics
@@ -137,7 +137,7 @@ When starting work:
 
 **Reference implementations:**
 - `caml/data/dataset.py` — Complete NumPy docstrings, validation patterns
-- `caml/estimators/base.py` — Protocols (AutoCateEstimator, InferenceProvider), BaseWrapperMixin
+- `caml/estimators/base_estimator.py` — Protocols (AutoCateEstimator, InferenceProvider), BaseWrapperMixin
 - `caml/estimators/wrappers/dml.py` — Complete DML wrapper implementation (779 lines)
 - `caml/nuisance/tuner.py` — FLAML-based nuisance tuner with Ray/Spark support (224 lines)
 - `caml/nuisance/spec.py` — NuisanceTunerSpec dataclass (54 lines)
@@ -146,9 +146,9 @@ When starting work:
 - `caml/extensions/synthetic_data.py` — Test data generator
 
 **Schemas & structures:**
-- `caml/data/data_schema.py` — Enums (`TreatmentType`, `OutcomeType`, `Estimand`)
+- `caml/data/data_enums.py` — Enums (`TreatmentType`, `OutcomeType`, `Estimand`)
 - `caml/inference/results.py` — `InferenceResult` dataclass
-- `caml/inference/inference_schema.py` — `InferenceType` enum
+- `caml/inference/inference_enums.py` — `InferenceType` enum
 
 ## Common Pitfalls
 

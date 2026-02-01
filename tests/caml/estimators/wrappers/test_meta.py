@@ -7,7 +7,7 @@ from sklearn.linear_model import LogisticRegression
 
 from caml.data import CausalDataset, OutcomeType, TreatmentType
 from caml.estimators import AutoCateEstimator
-from caml.estimators.wrappers.meta import (
+from caml.estimators.meta import (
     WrappedSLearner,
     WrappedTLearner,
     WrappedXLearner,
@@ -36,7 +36,6 @@ class TestWrappedSLearner:
 
     def test_class_attributes(self):
         """Test that class attributes are set correctly."""
-        assert WrappedSLearner.clean_name == "SLearner"
         assert WrappedSLearner.capabilities is not None
         assert TreatmentType.BINARY in WrappedSLearner.capabilities.treatment_types
         assert OutcomeType.CONTINUOUS in WrappedSLearner.capabilities.outcome_types
@@ -80,7 +79,6 @@ class TestWrappedTLearner:
 
     def test_class_attributes(self):
         """Test that class attributes are set correctly."""
-        assert WrappedTLearner.clean_name == "TLearner"
         assert WrappedTLearner.capabilities is not None
 
     def test_fit_and_effect(self, binary_continuous_data):
@@ -100,7 +98,6 @@ class TestWrappedXLearner:
 
     def test_class_attributes(self):
         """Test that class attributes are set correctly."""
-        assert WrappedXLearner.clean_name == "XLearner"
         assert WrappedXLearner.capabilities is not None
 
     def test_fit_and_effect(self, binary_continuous_data):

@@ -15,12 +15,13 @@ from econml.dml import (
 )
 
 from caml.data import CausalDataset, Estimand, OutcomeType, TreatmentType
-from caml.estimators.base import BaseWrapperMixin, EstimatorCapabilities
 from caml.inference import InferenceType
 from caml.registry import auto_register
 
+from ..base_estimator import BaseWrapperMixin, EstimatorCapabilities
 
-@auto_register(family="dml")
+
+@auto_register(name="LinearDML", family="dml")
 class WrappedLinearDML(BaseWrapperMixin):
     """Wrapper for EconML's LinearDML estimator.
 
@@ -41,16 +42,10 @@ class WrappedLinearDML(BaseWrapperMixin):
     capabilities : EstimatorCapabilities
         Metadata describing the estimator's supported treatment/outcome types,
         estimands, and inference methods (class attribute).
-    clean_name : str
-        Human-readable name for the estimator ("LinearDML") (class attribute).
 
     See Also
     --------
     [EconML LinearDML](https://www.pywhy.org/EconML/_autosummary/econml.dml.LinearDML.html#econml.dml.LinearDML) : Official documentation for EconML's LinearDML.
-
-    [`BaseWrapperMixin`](base.qmd#caml.estimators.base.BaseWrapperMixin) : Mixin providing common wrapper functionality.
-
-    [`AutoCateEstimator`](base.qmd#caml.estimators.base.AutoCateEstimator) : Protocol this wrapper implements.
 
     Examples
     --------
@@ -98,7 +93,6 @@ class WrappedLinearDML(BaseWrapperMixin):
     """
 
     # Class attributes
-    clean_name: str = "LinearDML"
     capabilities: EstimatorCapabilities = EstimatorCapabilities(
         treatment_types={
             TreatmentType.BINARY,
@@ -161,7 +155,7 @@ class WrappedLinearDML(BaseWrapperMixin):
         return self
 
 
-@auto_register(family="dml")
+@auto_register(name="SparseLinearDML", family="dml")
 class WrappedSparseLinearDML(BaseWrapperMixin):
     """Wrapper for EconML's SparseLinearDML estimator.
 
@@ -182,16 +176,10 @@ class WrappedSparseLinearDML(BaseWrapperMixin):
     capabilities : EstimatorCapabilities
         Metadata describing the estimator's supported treatment/outcome types,
         estimands, and inference methods.
-    clean_name : str
-        Human-readable tests/caml/estimators/wrappers/test_orf.pyname for the estimator ("SparseLinearDML").
 
     See Also
     --------
     [EconML SparseLinearDML](https://www.pywhy.org/EconML/_autosummary/econml.dml.SparseLinearDML.html) : Official documentation for EconML's SparseLinearDML.
-
-    [`BaseWrapperMixin`](base.qmd#caml.estimators.base.BaseWrapperMixin) : Mixin providing common wrapper functionality.
-
-    [`AutoCateEstimator`](base.qmd#caml.estimators.base.AutoCateEstimator) : Protocol this wrapper implements.
 
     Examples
     --------
@@ -243,7 +231,6 @@ class WrappedSparseLinearDML(BaseWrapperMixin):
     """
 
     # Class attributes
-    clean_name: str = "SparseLinearDML"
     capabilities: EstimatorCapabilities = EstimatorCapabilities(
         treatment_types={
             TreatmentType.BINARY,
@@ -325,7 +312,7 @@ class WrappedSparseLinearDML(BaseWrapperMixin):
         return self
 
 
-@auto_register(family="dml")
+@auto_register(name="CausalForestDML", family="dml")
 class WrappedCausalForestDML(BaseWrapperMixin):
     """Wrapper for EconML's CausalForestDML estimator.
 
@@ -347,16 +334,10 @@ class WrappedCausalForestDML(BaseWrapperMixin):
     capabilities : EstimatorCapabilities
         Metadata describing the estimator's supported treatment/outcome types,
         estimands, and inference methods.
-    clean_name : str
-        Human-readable name for the estimator ("CausalForestDML").
 
     See Also
     --------
     [EconML CausalForestDML](https://www.pywhy.org/EconML/_autosummary/econml.dml.CausalForestDML.html) : Official documentation for EconML's CausalForestDML.
-
-    [`BaseWrapperMixin`](base.qmd#caml.estimators.base.BaseWrapperMixin) : Mixin providing common wrapper functionality.
-
-    [`AutoCateEstimator`](base.qmd#caml.estimators.base.AutoCateEstimator) : Protocol this wrapper implements.
 
     Examples
     --------
@@ -407,7 +388,6 @@ class WrappedCausalForestDML(BaseWrapperMixin):
     """
 
     # Class attributes
-    clean_name: str = "CausalForestDML"
     capabilities: EstimatorCapabilities = EstimatorCapabilities(
         treatment_types={
             TreatmentType.BINARY,
@@ -489,7 +469,7 @@ class WrappedCausalForestDML(BaseWrapperMixin):
         return self
 
 
-@auto_register(family="dml")
+@auto_register(name="NonParamDML", family="dml")
 class WrappedNonParamDML(BaseWrapperMixin):
     """Wrapper for EconML's NonParamDML estimator.
 
@@ -510,16 +490,10 @@ class WrappedNonParamDML(BaseWrapperMixin):
     capabilities : EstimatorCapabilities
         Metadata describing the estimator's supported treatment/outcome types,
         estimands, and inference methods.
-    clean_name : str
-        Human-readable name for the estimator ("NonParamDML").
 
     See Also
     --------
     [EconML NonParamDML](https://www.pywhy.org/EconML/_autosummary/econml.dml.NonParamDML.html) : Official documentation for EconML's NonParamDML.
-
-    [`BaseWrapperMixin`](base.qmd#caml.estimators.base.BaseWrapperMixin) : Mixin providing common wrapper functionality.
-
-    [`AutoCateEstimator`](base.qmd#caml.estimators.base.AutoCateEstimator) : Protocol this wrapper implements.
 
     Examples
     --------
@@ -567,7 +541,6 @@ class WrappedNonParamDML(BaseWrapperMixin):
     """
 
     # Class attributes
-    clean_name: str = "NonParamDML"
     capabilities: EstimatorCapabilities = EstimatorCapabilities(
         treatment_types={
             TreatmentType.BINARY,
@@ -648,7 +621,7 @@ class WrappedNonParamDML(BaseWrapperMixin):
         return self
 
 
-@auto_register(family="dml")
+@auto_register(name="KernelDML", family="dml")
 class WrappedKernelDML(BaseWrapperMixin):
     """Wrapper for EconML's KernelDML estimator.
 
@@ -670,16 +643,10 @@ class WrappedKernelDML(BaseWrapperMixin):
     capabilities : EstimatorCapabilities
         Metadata describing the estimator's supported treatment/outcome types,
         estimands, and inference methods.
-    clean_name : str
-        Human-readable name for the estimator ("KernelDML").
 
     See Also
     --------
     [EconML KernelDML](https://www.pywhy.org/EconML/_autosummary/econml.dml.KernelDML.html) : Official documentation for EconML's KernelDML.
-
-    [`BaseWrapperMixin`](base.qmd#caml.estimators.base.BaseWrapperMixin) : Mixin providing common wrapper functionality.
-
-    [`AutoCateEstimator`](base.qmd#caml.estimators.base.AutoCateEstimator) : Protocol this wrapper implements.
 
     Examples
     --------
@@ -725,7 +692,6 @@ class WrappedKernelDML(BaseWrapperMixin):
     """
 
     # Class attributes
-    clean_name: str = "KernelDML"
     capabilities: EstimatorCapabilities = EstimatorCapabilities(
         treatment_types={
             TreatmentType.BINARY,

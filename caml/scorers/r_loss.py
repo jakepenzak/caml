@@ -11,12 +11,15 @@ import statsmodels.api as sm
 from sklearn.base import BaseEstimator
 
 from caml.data import CausalDataset
+from caml.registry import ScorerFamily, auto_register
 from caml.samplers import CrossFitter
-from caml.scorers.base_scorer import BaseScorer, validate_cate_array
+
+from ._validation import _validate_cate_array
+from .base_scorer import BaseCateScorerMixin
 
 
-## Add supported outcome and treatment types!
-class RLoss(BaseScorer):
+@auto_register(name="RLoss", family=ScorerFamily.PSUEDO_OUTCOME, is_estimator=False)
+class RLoss(BaseCateScorerMixin):
     r"""R-loss for CATE model evaluation & selection via orthogonal residualization.
 
     Parameters
@@ -126,11 +129,11 @@ class RLoss(BaseScorer):
         # Step 3: Predict CATE for data and validate shape
         tau_hat = estimator.effect(data.X)
         n_samples = len(data.Y)
-        tau_hat = validate_cate_array(tau_hat, n_samples, "CATE predictions (tau_hat)")
+        tau_hat = _validate_cate_array(tau_hat, n_samples, "CATE predictions (tau_hat)")
 
         # Flatten residuals to 1D for consistent computation
-        Y_res = validate_cate_array(Y_res, n_samples, "outcome residuals (Y_res)")
-        T_res = validate_cate_array(T_res, n_samples, "treatment residuals (T_res)")
+        Y_res = _validate_cate_array(Y_res, n_samples, "outcome residuals (Y_res)")
+        T_res = _validate_cate_array(T_res, n_samples, "treatment residuals (T_res)")
 
         # Step 4: Compute R-loss
         squared_error = (Y_res - tau_hat * T_res) ** 2

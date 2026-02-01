@@ -118,13 +118,15 @@ quartodoc:
       contents:
         - name: dataset
           member_order: source
-        - name: data_schema
+        - name: data_enums
           member_order: source
 
     - subtitle: Estimators
       desc: "`caml.estimators` \n\n Native and wrapped CATE estimators."
       package: caml.estimators
       contents:
+        - name: base_estimator
+          member_order: source
         - name: dml
           member_order: source
           member_options:
@@ -159,8 +161,6 @@ quartodoc:
           members:
             - WrappedDMLOrthoForest
             - WrappedDROrthoForest
-        - name: base
-          member_order: source
 
     - subtitle: Scorers
       desc: "`caml.scorers` \n\n Primary CATE scoring & validation metrics."
@@ -195,7 +195,7 @@ quartodoc:
       contents:
         - name: registry
           member_order: source
-        - name: registry_schema
+        - name: registry_enums
           member_order: source
 
     - subtitle: Nuisance
@@ -222,7 +222,7 @@ quartodoc:
       contents:
         - name: results
           member_order: source
-        - name: inference_schema
+        - name: inference_enums
           member_order: source
 
     - title: CaML Extensions

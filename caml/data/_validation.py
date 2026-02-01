@@ -3,7 +3,7 @@ from __future__ import annotations
 import numpy as np
 import pandas as pd
 
-from caml.data.data_schema import OutcomeType, TreatmentType
+from .data_enums import OutcomeType, TreatmentType
 
 
 def check_shapes_match(X, T, Y, W=None) -> None:

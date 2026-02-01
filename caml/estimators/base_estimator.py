@@ -4,6 +4,7 @@ Defines the fundamental interfaces that all AutoCATE estimators in CaML must imp
 The protocol-based design enables flexible estimator composition, automatic compatibility
 checking, and seamless integration with AutoML workflows.
 """
+# TODO: Rethink exact protocol, ABC, etc. structure and relationships
 
 from __future__ import annotations
 
@@ -38,7 +39,7 @@ class EstimatorCapabilities:
     estimands
         Target causal quantities the estimator estimates (typically ``{Estimand.CATE}``).
     supports_controls_in_first_stage_only
-        If True, confounders (W) used only in nuisance models, not final CATE prediction.
+        If True, confounders (W) can be used only in nuisance models, not final CATE model.
     supports_weights
         If True, estimator handles sample weights.
     requires_treatment_model
@@ -49,18 +50,6 @@ class EstimatorCapabilities:
         If True, estimator needs a regression model - $\mathbb{E}[Y|T,X,W]$.
     supports_inference
         If True, estimator implements ``InferenceProvider`` protocol.
-
-    See Also
-    --------
-    [`TreatmentType`](data_schema.qmd#caml.data.data_schema.TreatmentType) : Treatment variable categories.
-
-    [`OutcomeType`](data_schema.qmd#caml.data.data_schema.OutcomeType) : Outcome variable categories.
-
-    [`InferenceType`](inference_schema.qmd#caml.inference.inference_schema.InferenceType) : Inference method categories.
-
-    [`Estimand`](data_schema.qmd#caml.data.data_schema.Estimand) : Target estimand types.
-
-    [`AutoCateEstimator`](base.qmd#caml.estimators.base.AutoCateEstimator) : Protocol using this metadata.
 
     Examples
     --------
@@ -95,6 +84,7 @@ class EstimatorCapabilities:
     requires_regression_model: bool
     supports_inference: bool
 
+    # TODO: Refine compatibility logic!!
     def is_compatible(self, data: CausalDataset) -> bool:
         """Check if estimator can handle the given dataset.
 
@@ -155,8 +145,6 @@ class AutoCateEstimator(Protocol):
 
     Attributes
     ----------
-    clean_name : str
-        Human-readable name of the estimator (class attribute).
     capabilities : EstimatorCapabilities
         Metadata describing what the estimator supports (class attribute).
 
@@ -165,15 +153,7 @@ class AutoCateEstimator(Protocol):
     - This is a Protocol (structural subtyping), not a base class
     - Runtime-checkable via ``isinstance(obj, AutoCateEstimator)``
     - Method name is ``effect()`` not ``predict_cate()`` per CaML conventions
-    - ``clean_name`` and ``capabilities`` are class attributes, not properties
-
-    See Also
-    --------
-    [`EstimatorCapabilities`](base.qmd#caml.estimators.base.EstimatorCapabilities) : Metadata for estimator capabilities.
-
-    [`InferenceProvider`](base.qmd#caml.estimators.base.InferenceProvider) : Additional protocol for inference.
-
-    [`CausalDataset`](dataset.qmd#caml.data.dataset.CausalDataset) : Data container for CATE estimation.
+    - ``capabilities`` is class attributes, not properties
 
     Examples
     --------
@@ -184,7 +164,6 @@ class AutoCateEstimator(Protocol):
 
     class SimpleEstimator:
         # Class attributes
-        clean_name: str = "SimpleEstimator"
         capabilities: EstimatorCapabilities = EstimatorCapabilities(
             treatment_types={TreatmentType.BINARY},
             outcome_types={OutcomeType.CONTINUOUS},
@@ -231,7 +210,6 @@ class AutoCateEstimator(Protocol):
     ```
     """
 
-    clean_name: str
     capabilities: EstimatorCapabilities
 
     @classmethod
@@ -366,14 +344,6 @@ class InferenceProvider(Protocol):
     Defines interface for uncertainty quantification via confidence intervals and
     standard errors. Separate from ``AutoCateEstimator`` to enable flexible composition.
 
-    See Also
-    --------
-    [`AutoCateEstimator`](base.qmd#caml.estimators.base.AutoCateEstimator) : Core protocol for CATE estimation.
-
-    [`InferenceResult`](results.qmd#caml.inference.results.InferenceResult) : Dataclass for inference outputs.
-
-    [`InferenceType`](inference_schema.qmd#caml.inference.inference_schema.InferenceType) : Enum defining inference method types.
-
     Notes
     -----
     - Runtime-checkable via ``isinstance(obj, InferenceProvider)``
@@ -445,8 +415,6 @@ class BaseWrapperMixin(ABC):
 
     Attributes
     ----------
-    clean_name : str
-        Human-readable name of the estimator (class attribute, must be set by subclass).
     capabilities : EstimatorCapabilities
         Metadata describing what the estimator supports (class attribute, must be set by subclass).
     """
@@ -455,7 +423,6 @@ class BaseWrapperMixin(ABC):
     _is_fitted: bool = False
 
     # Class attributes that must be overridden by subclasses
-    clean_name: str
     capabilities: EstimatorCapabilities
 
     @abstractmethod
@@ -494,7 +461,7 @@ class BaseWrapperMixin(ABC):
         Examples
         --------
         ```{python}
-        from caml.estimators.wrappers.dml import WrappedLinearDML
+        from caml.estimators.dml import WrappedLinearDML
         from caml.data import CausalDataset, TreatmentType, OutcomeType
         from caml.extensions.synthetic_data import SyntheticDataGenerator
 
@@ -559,7 +526,7 @@ class BaseWrapperMixin(ABC):
         Examples
         --------
         ```{python}
-        from caml.estimators.wrappers.dml import WrappedLinearDML
+        from caml.estimators.dml import WrappedLinearDML
         from caml.data import CausalDataset, TreatmentType, OutcomeType
         import numpy as np
 

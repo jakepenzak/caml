@@ -7,7 +7,7 @@ from sklearn.linear_model import LinearRegression, LogisticRegression
 
 from caml.data import CausalDataset, OutcomeType, TreatmentType
 from caml.estimators import AutoCateEstimator
-from caml.estimators.wrappers.dr import (
+from caml.estimators.dr import (
     WrappedDRLearner,
     WrappedForestDRLearner,
     WrappedLinearDRLearner,
@@ -37,7 +37,6 @@ class TestWrappedDRLearner:
 
     def test_class_attributes(self):
         """Test that class attributes are set correctly."""
-        assert WrappedDRLearner.clean_name == "DRLearner"
         assert WrappedDRLearner.capabilities is not None
         assert TreatmentType.BINARY in WrappedDRLearner.capabilities.treatment_types
         assert OutcomeType.CONTINUOUS in WrappedDRLearner.capabilities.outcome_types
@@ -91,7 +90,6 @@ class TestWrappedLinearDRLearner:
 
     def test_class_attributes(self):
         """Test that class attributes are set correctly."""
-        assert WrappedLinearDRLearner.clean_name == "LinearDRLearner"
         assert WrappedLinearDRLearner.capabilities is not None
 
     def test_fit_and_effect(self, binary_continuous_data):
@@ -113,7 +111,6 @@ class TestWrappedSparseLinearDRLearner:
 
     def test_class_attributes(self):
         """Test that class attributes are set correctly."""
-        assert WrappedSparseLinearDRLearner.clean_name == "SparseLinearDRLearner"
         assert WrappedSparseLinearDRLearner.capabilities is not None
 
     def test_fit_and_effect(self, binary_continuous_data):
@@ -135,7 +132,6 @@ class TestWrappedForestDRLearner:
 
     def test_class_attributes(self):
         """Test that class attributes are set correctly."""
-        assert WrappedForestDRLearner.clean_name == "ForestDRLearner"
         assert WrappedForestDRLearner.capabilities is not None
 
     def test_fit_and_effect(self, binary_continuous_data):

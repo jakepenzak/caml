@@ -8,7 +8,7 @@ from dataclasses import dataclass
 
 import numpy as np
 
-from caml.inference.inference_schema import InferenceType
+from .inference_enums import InferenceType
 
 
 # TODO: Implement helpers for generating summaries, CIs, hypothesis tests, etc.
@@ -29,12 +29,6 @@ class InferenceResult:
         Standard error(s) matching shape of ``effect``.
     method
         Inference method used (``InferenceType.ANALYTIC`` or ``InferenceType.BOOTSTRAP``).
-
-    See Also
-    --------
-    [`InferenceType`](inference_schema.qmd#caml.inference.inference_schema.InferenceType) : Inference method categories.
-
-    [`InferenceProvider`](base.qmd#caml.estimators.base.InferenceProvider) : Protocol for inference-capable estimators.
 
     Examples
     --------

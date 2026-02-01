@@ -1,4 +1,4 @@
-"""Scoring utilities for CATE model selection.
+"""Shared base functionality, protocols, and interfaces for CATE scorers.
 
 CaML scorers evaluate fitted CATE estimators (minimum requirement is estimators implement ``effect(X)``)
 on a `CausalDataset`. They are primarily intended for model selection (e.g., Optuna),
@@ -11,13 +11,87 @@ outcome regressions). In CaML these are computed out-of-fold using
 """
 
 from abc import ABC, abstractmethod
+from dataclasses import dataclass
+from typing import Protocol, runtime_checkable
 
-import numpy as np
-
-from caml.data.dataset import CausalDataset
+from caml.data import CausalDataset, OutcomeType, TreatmentType
 
 
-class BaseScorer(ABC):
+@dataclass(frozen=True)
+class ScorerCapabilities:
+    r""""""
+
+    treatment_types: set[TreatmentType]
+    outcome_types: set[OutcomeType]
+    supports_weights: bool
+    requires_treatment_model: bool
+    requires_outcome_model: bool
+    requires_regression_model: bool
+    requires_oracle_cates: bool = False
+
+    # TODO: Refine compatibility logic!!
+    def is_compatible(self, data: CausalDataset) -> bool:
+        """Check if scorer can handle the given dataset.
+
+        Parameters
+        ----------
+        data
+            Dataset to check compatibility with.
+
+        Returns
+        -------
+        bool
+            True if estimator supports the dataset's treatment and outcome types.
+
+        Examples
+        --------
+        ```{python}
+        from caml.data import TreatmentType, OutcomeType, Estimand, CausalDataset
+        from caml.estimators import EstimatorCapabilities
+        import numpy as np
+
+        capabilities = EstimatorCapabilities(
+            treatment_types={TreatmentType.BINARY},
+            outcome_types={OutcomeType.CONTINUOUS},
+            inference_types=set(),
+            estimands={Estimand.CATE},
+            supports_controls_in_first_stage_only=False,
+            supports_weights=True,
+            requires_treatment_model=True,
+            requires_outcome_model=True,
+            requires_regression_model=False,
+            supports_inference=False
+        )
+
+        np.random.seed(42)
+        data = CausalDataset(
+            X=np.random.randn(100, 3),
+            T=np.random.binomial(1, 0.5, 100),
+            Y=np.random.randn(100),
+            treatment_type=TreatmentType.BINARY,
+            outcome_type=OutcomeType.CONTINUOUS
+        )
+
+        print(capabilities.is_compatible(data))  # True
+        ```
+        """
+        return (
+            data.treatment_type in self.treatment_types
+            and data.outcome_type in self.outcome_types
+        )
+
+
+@runtime_checkable
+class CateScorer(Protocol):
+    capabilities: ScorerCapabilities
+
+    @classmethod
+    def is_compatible_with(cls, data: CausalDataset) -> bool: ...
+
+    def __call__(self, estimator, data: CausalDataset) -> float: ...
+
+
+class BaseCateScorerMixin(ABC):
     """Base class for CATE scorers.
 
     Notes
@@ -29,15 +103,17 @@ class BaseScorer(ABC):
     --------
     ```{python}
     import numpy as np
-    from caml.scorers.base_scorer import BaseScorer
+    from caml.scorers import BaseCateScorerMixin
 
-    class NegMAEOnOracleCATE(BaseScorer):
+    class NegMAEOnOracleCATE(BaseCateScorerMixin):
         def __call__(self, estimator, data):
             tau_hat = estimator.effect(data.X)
             mae = np.mean(np.abs(tau_hat - data.true_cates))
             return -mae
     ```
     """
+
+    capabilities: ScorerCapabilities
 
     @abstractmethod
     def __call__(self, estimator, data: CausalDataset) -> float:
@@ -56,164 +132,5 @@ class BaseScorer(ABC):
             Loss or score
         """
 
-
-def clip(arr: np.ndarray, lb: float = 0.01, ub: float = np.inf) -> np.ndarray:
-    """Clip array values (commonly propensity scores) for stability.
-
-    Used to trim propensity scores when they appear in denominators (e.g., IPW,
-    DR), preventing extreme weights.
-
-    Parameters
-    ----------
-    arr
-        Array to clip
-    lb
-        Lower bound
-    ub
-        Upper bound
-
-    Returns
-    -------
-    np.ndarray
-        Clipped array
-    """
-    return np.clip(arr, lb, ub)
-
-
-def validate_cate_array(
-    arr: np.ndarray,
-    n_samples: int,
-    name: str = "CATE predictions",
-) -> np.ndarray:
-    """Validate and flatten CATE array to 1D.
-
-    Ensures CATE predictions have the correct number of samples and converts
-    to 1D array for consistent downstream computation. Handles common shape
-    variations from different estimators (e.g., ``(n,)``, ``(n, 1)``).
-
-    Parameters
-    ----------
-    arr
-        Array of CATE predictions to validate.
-    n_samples
-        Expected number of samples.
-    name
-        Name of the array for error messages (e.g., "tau_hat", "true_cates").
-
-    Returns
-    -------
-    np.ndarray
-        1D array of shape ``(n_samples,)``.
-
-    Raises
-    ------
-    ValueError
-        If array has wrong number of samples or incompatible shape.
-
-    Examples
-    --------
-    ```{python}
-    import numpy as np
-    from caml.scorers.base_scorer import validate_cate_array
-
-    # 2D array with shape (100, 1) -> flattened to (100,)
-    arr_2d = np.random.randn(100, 1)
-    arr_1d = validate_cate_array(arr_2d, n_samples=100, name="tau_hat")
-    print(arr_1d.shape)  # (100,)
-
-    # Already 1D array passes through
-    arr = np.random.randn(100)
-    result = validate_cate_array(arr, n_samples=100)
-    print(result.shape)  # (100,)
-    ```
-    """
-    arr = np.asarray(arr)
-
-    # Handle 2D arrays with single column (common from estimators)
-    if arr.ndim == 2:
-        if arr.shape[1] == 1:
-            arr = arr.ravel()
-        else:
-            raise ValueError(
-                f"{name} has invalid shape {arr.shape}. Expected 1D array or 2D with "
-                f"single column (n, 1), but got {arr.shape[1]} columns."
-            )
-
-    # Validate 1D shape
-    if arr.ndim != 1:
-        raise ValueError(
-            f"{name} must be 1D or 2D with single column, got {arr.ndim}D array "
-            f"with shape {arr.shape}."
-        )
-
-    # Validate number of samples
-    if arr.shape[0] != n_samples:
-        raise ValueError(f"{name} has {arr.shape[0]} samples, expected {n_samples}.")
-
-    return arr
-
-
-def validate_scorer_inputs(
-    tau_hat: np.ndarray,
-    reference: np.ndarray,
-    tau_name: str = "CATE predictions",
-    ref_name: str = "reference",
-) -> tuple[np.ndarray, np.ndarray]:
-    """Validate and align shapes of CATE predictions and reference array.
-
-    Ensures both arrays have the same number of samples and converts to 1D
-    for consistent computation. This is the primary validation function for
-    scorer ``__call__`` methods.
-
-    Parameters
-    ----------
-    tau_hat
-        Estimated CATE values from estimator.
-    reference
-        Reference array to compare against (e.g., true_cates, pseudo-outcome).
-    tau_name
-        Name for tau_hat in error messages.
-    ref_name
-        Name for reference in error messages.
-
-    Returns
-    -------
-    tuple[np.ndarray, np.ndarray]
-        Tuple of (tau_hat, reference) as validated 1D arrays.
-
-    Raises
-    ------
-    ValueError
-        If arrays have incompatible shapes or different sample counts.
-
-    Examples
-    --------
-    ```{python}
-    import numpy as np
-    from caml.scorers.base_scorer import validate_scorer_inputs
-
-    # Different shapes but same n_samples -> both flattened
-    tau = np.random.randn(100, 1)
-    ref = np.random.randn(100)
-    tau_flat, ref_flat = validate_scorer_inputs(tau, ref)
-    print(tau_flat.shape, ref_flat.shape)  # (100,) (100,)
-    ```
-    """
-    reference = np.asarray(reference)
-
-    # Determine expected n_samples from reference
-    if reference.ndim == 1:
-        n_samples = reference.shape[0]
-    elif reference.ndim == 2 and reference.shape[1] == 1:
-        n_samples = reference.shape[0]
-    else:
-        raise ValueError(
-            f"{ref_name} has invalid shape {reference.shape}. Expected 1D array "
-            f"or 2D with single column."
-        )
-
-    # Validate and flatten both arrays
-    tau_hat = validate_cate_array(tau_hat, n_samples, tau_name)
-    reference = validate_cate_array(reference, n_samples, ref_name)
-
-    return tau_hat, reference
+    @classmethod
+    def is_compatible_with(cls, data: CausalDataset) -> bool: ...
