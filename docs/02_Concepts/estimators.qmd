@@ -1,8 +1,269 @@
 ---
 title: "Estimator Details"
+toc-depth: 5
+toc-expand: 1
 ---
 
-## [InteractiveLinearRegression](../04_Reference/InteractiveLinearRegression.qmd)
+## Motivation {#sec-motivation}
+
+Conditional Average Treatment Effect (CATE) estimators aim to learn heterogeneous treatment effects $\tau(X) = \mathbb{E}[Y(1) - Y(0) \mid X]$ from observational or experimental data. Modern CATE estimation leverages machine learning to flexibly model nuisance functions (propensity scores, outcome regressions) while maintaining valid causal inference through debiasing techniques. This page provides high-level mathematical foundations for the wrapped estimators in CaML.
+
+::: {.callout-tip}
+## Further Reading
+For comprehensive theoretical foundations, see [Chapter 15 of *Applied Causal Inference Powered by ML and AI*](https://chapters.causalml-book.org/CausalML_chap_15.pdf) [@chernozhukov2024causalml] and the [EconML documentation](https://www.pywhy.org/econml/).
+:::
+
+## Estimator Comparison {#sec-estimator-comparison}
+
+| Estimator Family | Underlying Model | Continuous $T$ | Analytic Inference | Computational Cost | Key Strengths | Key Weaknesses |
+|-----------------|------------------|:--------------:|:------------------:|:------------------:|---------------|----------------|
+| **Meta-learners** | Direct outcome modeling | ✗ | ✗ | Low | Simple, intuitive | Regularization bias, no debiasing |
+| **DML (PLM)** | Partially Linear Model | ✓ | ✓ | Medium | Neyman orthogonality, flexible | Assumes additive treatment effect |
+| **DR (IRM)** | Interactive Regression Model | ✗ | ✓ | Medium | Doubly robust, handles discrete $T$ well | Requires accurate propensity estimation |
+| **Orthogonal Forests** | Adaptive forest splitting | ✓ | ✗ | High | Nonparametric heterogeneity, honest inference | Computationally expensive, large $N$ needed |
+
+: CATE Estimator Comparison {#tbl-estimator-comparison}
+
+## Meta-Learners {#sec-meta-learners}
+
+::: {.callout-note collapse="true"}
+## S-Learner <small class="text-muted">[↗](../04_Reference/WrappedSLearner.qmd)</small> {#sec-s-learner}
+
+The **S-Learner** (Single Learner) [@kunzel2019metalearners] trains a single model on the combined feature space $(X, T)$ to predict outcomes, then estimates CATE by differencing predictions:
+
+$$
+\hat{\tau}(x) = \hat{\mu}(x, 1) - \hat{\mu}(x, 0)
+$$
+
+where $\hat{\mu}(x, t) = \mathbb{E}[Y \mid X=x, T=t]$ is the fitted outcome model.
+
+**Limitation**: When the base learner applies regularization, it may shrink treatment effect coefficients toward zero—especially when the treatment effect is small relative to main effects. This **regularization bias** can cause S-learner to underestimate heterogeneity.
+:::
+
+::: {.callout-note collapse="true"}
+## T-Learner <small class="text-muted">[↗](../04_Reference/WrappedTLearner.qmd)</small> {#sec-t-learner}
+
+The **T-Learner** (Two Learner) [@kunzel2019metalearners] trains separate outcome models for each treatment group:
+
+$$
+\hat{\tau}(x) = \hat{\mu}_1(x) - \hat{\mu}_0(x)
+$$
+
+where $\hat{\mu}_t(x) = \mathbb{E}[Y \mid X=x, T=t]$ for $t \in \{0, 1\}$.
+
+**Advantage**: More flexible than S-learner; can capture different functional forms across treatment arms.
+
+**Limitation**: Requires sufficient samples in each treatment group; errors in both models compound in the CATE estimate.
+:::
+
+::: {.callout-note collapse="true"}
+## X-Learner <small class="text-muted">[↗](../04_Reference/WrappedXLearner.qmd)</small> {#sec-x-learner}
+
+The **X-Learner** [@kunzel2019metalearners] uses a two-stage approach with propensity-weighted combination:
+
+**Stage 1**: Fit T-learner models $\hat{\mu}_0, \hat{\mu}_1$
+
+**Stage 2**: Impute treatment effects using cross-group predictions:
+$$
+\tilde{D}_i^1 = Y_i^1 - \hat{\mu}_0(X_i^1), \quad \tilde{D}_i^0 = \hat{\mu}_1(X_i^0) - Y_i^0
+$$
+
+**Stage 3**: Fit CATE models $\hat{\tau}_1(x), \hat{\tau}_0(x)$ on the imputed effects, then combine:
+$$
+\hat{\tau}(x) = e(x) \hat{\tau}_0(x) + (1 - e(x)) \hat{\tau}_1(x)
+$$
+
+where $e(x) = P(T=1 \mid X=x)$ is the propensity score.
+
+**Advantage**: More efficient than T-learner when treatment groups are imbalanced; borrows strength across groups.
+:::
+
+## Double Machine Learning (Partially Linear Model) {#sec-dml}
+
+::: {.callout-note collapse="true"}
+## PLM Formulation {#sec-plm-formulation}
+
+Double Machine Learning (DML) [@chernozhukov2018double] estimates CATE under the **Partially Linear Model (PLM)**:
+
+$$
+Y = \underbrace{\tau(X) \cdot T}_{\text{causal effect}} + \underbrace{g(X)}_{\text{baseline}} + \varepsilon, \quad \mathbb{E}[\varepsilon \mid X, T] = 0
+$$
+
+The key insight is that direct estimation suffers from **regularization bias** when ML methods are used for nuisance functions. DML addresses this via **Neyman orthogonality**: construct moment conditions whose derivatives with respect to nuisance parameters vanish at the true values.
+
+### Residual-on-Residual Regression
+
+Define nuisance functions:
+
+- $m(X) = \mathbb{E}[Y \mid X]$ — outcome regression
+- $\ell(X) = \mathbb{E}[T \mid X]$ — propensity (treatment regression)
+
+The PLM implies:
+$$
+\underbrace{Y - m(X)}_{\tilde{Y}} = \tau(X) \cdot \underbrace{(T - \ell(X))}_{\tilde{T}} + \varepsilon
+$$
+
+This **residual-on-residual** regression isolates the causal signal. The CATE is then estimated by regressing $\tilde{Y}$ on $\tilde{T}$ with $X$-dependent coefficients.
+
+### Cross-Fitting
+
+To avoid overfitting bias, DML uses $K$-fold cross-fitting: nuisance models are trained on $K-1$ folds and used to compute residuals on the held-out fold. This ensures residuals are independent of the models that generated them.
+:::
+
+::: {.callout-note collapse="true"}
+## LinearDML <small class="text-muted">[↗](../04_Reference/WrappedLinearDML.qmd)</small> {#sec-linear-dml}
+
+**LinearDML** assumes CATE is linear in features:
+$$
+\tau(X) = X^\top \theta
+$$
+
+After computing orthogonalized residuals $\tilde{Y}, \tilde{T}$, it solves:
+$$
+\hat{\theta} = \arg\min_\theta \sum_i (\tilde{Y}_i - \tilde{T}_i \cdot X_i^\top \theta)^2
+$$
+
+Provides **analytic confidence intervals** via debiased moment conditions. Efficient when linear CATE is reasonable.
+:::
+
+::: {.callout-note collapse="true"}
+## SparseLinearDML <small class="text-muted">[↗](../04_Reference/WrappedSparseLinearDML.qmd)</small> {#sec-sparse-linear-dml}
+
+**SparseLinearDML** extends LinearDML with $\ell_1$ regularization (Lasso) for feature selection:
+$$
+\hat{\theta} = \arg\min_\theta \sum_i (\tilde{Y}_i - \tilde{T}_i \cdot X_i^\top \theta)^2 + \alpha \|\theta\|_1
+$$
+
+Uses **debiased Lasso** [@zhang2014confidence] for valid inference despite regularization. Appropriate when only a subset of features drive heterogeneity.
+:::
+
+::: {.callout-note collapse="true"}
+## CausalForestDML <small class="text-muted">[↗](../04_Reference/WrappedCausalForestDML.qmd)</small> {#sec-causal-forest-dml}
+
+**CausalForestDML** uses a causal forest [@wager2018estimation] as the final CATE model:
+
+1. Compute orthogonalized residuals $\tilde{Y}, \tilde{T}$ via cross-fitting
+2. Train a generalized random forest that splits on heterogeneity in $\tilde{Y}/\tilde{T}$
+
+The forest uses **honest splitting**: separate samples for determining tree structure and estimating leaf values. This provides asymptotically valid confidence intervals without bootstrap.
+
+**Advantage**: Captures nonlinear, nonparametric heterogeneity while maintaining DML's debiasing properties.
+:::
+
+::: {.callout-note collapse="true"}
+## NonParamDML <small class="text-muted">[↗](../04_Reference/WrappedNonParamDML.qmd)</small> {#sec-nonparam-dml}
+
+**NonParamDML** allows any ML model as the final CATE model:
+$$
+\hat{\tau}(x) = \text{model\_final}.\text{fit}(\tilde{T}, \tilde{Y}, X).\text{predict}(X)
+$$
+
+Provides maximum flexibility but typically requires bootstrap for inference.
+:::
+
+::: {.callout-note collapse="true"}
+## KernelDML <small class="text-muted">[↗](../04_Reference/WrappedKernelDML.qmd)</small> {#sec-kernel-dml}
+
+**KernelDML** uses kernel ridge regression for the final CATE model, providing smooth nonparametric estimation with analytic confidence intervals.
+:::
+
+## Doubly Robust Learners (Interactive Regression Model) {#sec-dr-learners}
+
+::: {.callout-note collapse="true"}
+## IRM Formulation {#sec-irm-formulation}
+
+Doubly Robust (DR) learners estimate CATE under the **Interactive Regression Model (IRM)**—a generalization of PLM that allows treatment to interact with unobserved heterogeneity:
+
+$$
+Y = g(T, X) + \varepsilon, \quad \mathbb{E}[\varepsilon \mid X, T] = 0
+$$
+
+Unlike PLM's additive structure, IRM allows $g(1, X) - g(0, X)$ to depend arbitrarily on $X$. This is more flexible but requires **discrete treatments** for the DR pseudo-outcome construction.
+
+### DR Pseudo-Outcome
+
+The doubly robust pseudo-outcome combines outcome regression with IPW correction:
+
+$$
+\Gamma^{\text{DR}} = \underbrace{\hat{\mu}_1(X) - \hat{\mu}_0(X)}_{\text{outcome regression}} + \underbrace{\frac{T(Y - \hat{\mu}_1(X))}{e(X)} - \frac{(1-T)(Y - \hat{\mu}_0(X))}{1-e(X)}}_{\text{IPW bias correction}}
+$$
+
+where $\hat{\mu}_t(X) = \mathbb{E}[Y \mid X, T=t]$ and $e(X) = P(T=1 \mid X)$.
+
+**Double Robustness**: $\mathbb{E}[\Gamma^{\text{DR}} \mid X] = \tau(X)$ if **either** the propensity model **or** the outcome models are correctly specified.
+
+CATE is then estimated by regressing $\Gamma^{\text{DR}}$ on $X$ with various final models.
+:::
+
+::: {.callout-note collapse="true"}
+## DRLearner <small class="text-muted">[↗](../04_Reference/WrappedDRLearner.qmd)</small> {#sec-dr-learner}
+
+**DRLearner** [@kennedy2023towards] uses a flexible ML model to regress the DR pseudo-outcome on features:
+$$
+\hat{\tau}(x) = \text{model\_final}.\text{fit}(\Gamma^{\text{DR}}, X).\text{predict}(x)
+$$
+
+Provides maximum flexibility with DR's robustness guarantees.
+:::
+
+::: {.callout-note collapse="true"}
+## LinearDRLearner <small class="text-muted">[↗](../04_Reference/WrappedLinearDRLearner.qmd)</small> {#sec-linear-dr-learner}
+
+**LinearDRLearner** assumes linear CATE and provides **analytic confidence intervals** via debiased moment conditions:
+$$
+\tau(X) = X^\top \theta, \quad \hat{\theta} = \arg\min_\theta \sum_i (\Gamma_i^{\text{DR}} - X_i^\top \theta)^2
+$$
+:::
+
+::: {.callout-note collapse="true"}
+## SparseLinearDRLearner <small class="text-muted">[↗](../04_Reference/WrappedSparseLinearDRLearner.qmd)</small> {#sec-sparse-linear-dr-learner}
+
+**SparseLinearDRLearner** combines DR pseudo-outcomes with Lasso regularization for sparse CATE estimation with valid inference via debiased Lasso.
+:::
+
+::: {.callout-note collapse="true"}
+## ForestDRLearner <small class="text-muted">[↗](../04_Reference/WrappedForestDRLearner.qmd)</small> {#sec-forest-dr-learner}
+
+**ForestDRLearner** uses a random forest to model nonparametric heterogeneity in the DR pseudo-outcome. Analogous to CausalForestDML but under the IRM framework.
+:::
+
+## Orthogonal Random Forests {#sec-orthogonal-forests}
+
+::: {.callout-note collapse="true"}
+## ORF Formulation {#sec-orf-formulation}
+
+Orthogonal Random Forests (ORF) [@oprescu2019orthogonal] extend generalized random forests to directly estimate CATE with built-in debiasing. The key innovations are:
+
+1. **Local orthogonalization**: At each tree node, compute orthogonalized residuals using local nuisance estimates
+2. **Honest splitting**: Use separate samples for determining splits and estimating leaf values
+3. **Adaptive kernel weighting**: Forest structure defines an adaptive kernel for local CATE estimation
+
+The splitting criterion maximizes heterogeneity in the local CATE estimate:
+$$
+\Delta(\mathcal{L}, \mathcal{R}) = \frac{n_\mathcal{L} n_\mathcal{R}}{n_\mathcal{L} + n_\mathcal{R}} (\hat{\tau}_\mathcal{L} - \hat{\tau}_\mathcal{R})^2
+$$
+
+where $\hat{\tau}_\mathcal{L}, \hat{\tau}_\mathcal{R}$ are CATE estimates in left/right child nodes.
+
+::: {.callout-warning}
+## Computational Cost
+ORF methods are computationally expensive due to local nuisance estimation at each split. They typically require larger sample sizes ($N \geq 1000$) for stable estimates.
+:::
+:::
+
+::: {.callout-note collapse="true"}
+## DMLOrthoForest <small class="text-muted">[↗](../04_Reference/WrappedDMLOrthoForest.qmd)</small> {#sec-dml-orthoforest}
+
+**DMLOrthoForest** combines ORF's adaptive learning with DML's PLM-based orthogonalization. Supports continuous treatments.
+:::
+
+::: {.callout-note collapse="true"}
+## DROrthoForest <small class="text-muted">[↗](../04_Reference/WrappedDROrthoForest.qmd)</small> {#sec-dr-orthoforest}
+
+**DROrthoForest** combines ORF's adaptive learning with DR's pseudo-outcome construction. Provides robustness to model misspecification for discrete treatments.
+:::
+
+## [InteractiveLinearRegression](../04_Reference/InteractiveLinearRegression.qmd) {#sec-interactive-linear-regression}
 
 The outlined Interactive Linear Regression is motivated by and adapted from @chernozhukov2024chapter2.
 
@@ -68,7 +329,7 @@ $\bar{d} = \mathbb{E}_n\left[D_{T=1} - D_{T=0} | \mathbf{G}=g, \mathbf{X}=x\righ
 (e.g., $\bar{d} = \mathbb{E}_n\left[D_{T=t+1} - D_{T=t}\right]$, $\dots$, etc.).
 
 
-## References
+## References {#sec-references}
 
 ::: {#refs}
 :::
