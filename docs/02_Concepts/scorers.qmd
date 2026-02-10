@@ -9,11 +9,28 @@ toc-expand: 1
 CATE model evaluation is fundamentally challenging because ground truth treatment effects are never observed—we see only factual outcomes, not counterfactuals. Scorers provide proxy metrics that correlate with the unobservable Precision in Estimating Heterogeneous Effects (PEHE), enabling model selection without ground truth.
 
 
+## Scorer Taxonomy {#sec-scorer-taxonomy}
+
+CaML organizes CATE scoring metrics into seven families based on their methodological foundations and data requirements. This taxonomy may evolve over time. The following table provides a comprehensive overview:
+
+| Family | Label | Description | Examples |
+|--------|-------|-------------|----------|
+| **Oracle** | <span class="label-oracle">Oracle</span> | Gold-standard metrics comparing predictions to true CATE. Only computable when ground truth is available (simulations). | PEHE, Normalized PEHE |
+| **Plug-In** <br> (forthcoming) | <span class="label-plugin">Plug-In</span> | Surrogate metrics using a learned reference CATE model. | T-Loss, S-Loss |
+| **Pseudo-Outcome** | <span class="label-pseudo">Pseudo-Outcome</span> | Metrics based on transformed outcomes that provide unbiased CATE proxies under model correctness. | DR-Loss, R-Loss |
+| **Ranking (Proxy)** | <span class="label-ranking-proxy">Ranking Proxy</span> | Relative performance proxies that rank estimators by reformulating PEHE into identifiable quantities. | Q-Statistic |
+| **Ranking (Curve)** <br> (forthcoming) | <span class="label-ranking-curve">Ranking Curve</span> | Cumulative gain metrics evaluating treatment prioritization quality via uplift curves. | Qini, AUUC, Uplift, Calibration |
+| **Policy** <br> (forthcoming) | <span class="label-policy">Policy</span> | Decision-value metrics assessing expected outcomes under treatment assignment policies. | Policy Value, Policy Regret |
+
+: Scorer family taxonomy {#tbl-scorer-taxonomy}
+
 ## Scorer Overview {#sec-scorer-overview}
 
 ::: {.callout-note collapse="true"}
 
 ## PEHE <small class="text-muted">[↗](../04_Reference/pehe.qmd)</small> {#sec-pehe}
+
+<span class="label-oracle">Oracle</span>
 
 The gold standard for CATE evaluation is the **Precision in Estimating Heterogeneous Effects** (PEHE), also known as CATE MSE [@hill2011bayesian]:
 
@@ -45,7 +62,10 @@ where $\bar{\tau} = \mathbb{E}[\hat{\tau}(X)]$ is the constant-effect (mean pred
 :::
 
 ::: {.callout-note collapse="true"}
+
 ## Q-Statistic <small class="text-muted">[↗](../04_Reference/q_stat.qmd)</small> {#sec-q-stat}
+
+<span class="label-ranking-proxy">Ranking Proxy</span>
 
 The Q-statistic [@yu2024qstatistic] is a model selection metric that ranks CATE estimators by their MSE/PEHE using **only** a propensity model—no outcome model required.
 
@@ -126,6 +146,8 @@ The scale of $\hat{Q}$ is in squared-outcome units. Use it for **relative rankin
 ::: {.callout-note collapse="true"}
 ## R-Loss <small class="text-muted">[↗](../04_Reference/r_loss.qmd)</small> {#sec-r-loss}
 
+<span class="label-pseudo">Pseudo-Outcome</span>
+
 R-loss [@nie2021quasi] evaluates CATE estimators using **orthogonal residualization**—the same principle underlying the R-learner. It requires both propensity and outcome models.
 
 ### Derivation
@@ -194,6 +216,8 @@ R-loss shares assumptions with the R-learner. When evaluating R-learner estimate
 
 ::: {.callout-note collapse="true"}
 ## DR-Loss <small class="text-muted">[↗](../04_Reference/dr_loss.qmd)</small> {#sec-dr-loss}
+
+<span class="label-pseudo">Pseudo-Outcome</span>
 
 DR-loss [@kennedy2023towards] uses a **doubly-robust pseudo-outcome** that provides consistent CATE estimates if *either* the propensity model *or* the outcome models are correctly specified.
 
@@ -265,13 +289,6 @@ DR-loss typically has **lower variance** than Q-statistic because the outcome mo
 | **DR-Loss** | Propensity + Outcome | Lower | Lower | General CATE selection |
 
 : Comparison of CATE model selection metrics {#tbl-scorer-comparison}
-
-## Forthcoming Scorers {#sec-forthcoming-scorers}
-
-- **Plug-In Surrogate Methods**: Using flexible outcome models to impute counterfactuals for direct PEHE estimation.
-- **Calibrated Scorers**: Metrics that assess how well predicted CATE distributions align with observed outcomes.
-- **Policy Risk Estimators**: Scorers focused on evaluating treatment assignment policies derived
-- **Uplift Curve Metrics**: Area under uplift curves to assess ranking quality.
 
 ## References {#sec-references}
 

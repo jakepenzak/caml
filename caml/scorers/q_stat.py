@@ -13,7 +13,7 @@ from caml.registry import ScorerFamily, auto_register
 from caml.samplers import CrossFitter
 
 from ._validation import _clip, _validate_cate_array
-from .base_scorer import BaseCateScorerMixin
+from .base_scorer import BaseCateScorerMixin, ScorerCapabilities
 
 
 @auto_register(
@@ -52,6 +52,8 @@ class QStat(BaseCateScorerMixin):
     See [Scorer Details](../docs/02_Concepts/scorers.qmd#sec-q-statistic) for the full
     derivation, interpretation, and degeneracy indicators.
     """
+
+    capabilities: ScorerCapabilities = None
 
     def __init__(
         self,
@@ -131,3 +133,7 @@ class QStat(BaseCateScorerMixin):
         q_stat = np.mean(tau_hat**2 - 2 * tau_hat * ipw)
 
         return float(q_stat)
+
+    @classmethod
+    def is_compatible_with(cls, data: CausalDataset) -> bool:
+        return True

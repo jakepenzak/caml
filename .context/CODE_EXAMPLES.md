@@ -12,7 +12,7 @@ This document provides detailed code examples for every file in the proposed dir
 2. [estimators/base_estimator.py (Protocols + BaseWrapperMixin)](#2-estimatorsbasepy-protocols--basewrappermixin) - ✅ Complete
 3. [estimators/](#3-estimators) - ✅ Complete (all wrappers)
 4. [nuisance/](#4-nuisance) - ✅ Complete
-5. [scorers/](#5-scorers) - ✅ Complete (core scorers: RLoss, DRLoss, QStat, PEHE)
+5. [scorers/](#5-scorers) - ✅ Complete (core scorers: RLoss, DRLoss, QStat, Pehe)
 6. [samplers/](#6-samplers-formerly-validation-or-sampling) - ✅ Complete (core: CrossFitter, splitters)
 7. [automl/](#7-automl) - 🔶 Not implemented
 8. [inference/](#8-inference) - ✅ Partial (results + schema)
@@ -653,7 +653,7 @@ Originally planned for helper functions (propensity trimming, feature preparatio
 ```python
 from .base_scorer import BaseCateScorerMixin, _clip
 from .dr_loss import DRLoss
-from .pehe import PEHE
+from .pehe import Pehe
 from .q_stat import QStat
 from .r_loss import RLoss
 
@@ -662,7 +662,7 @@ __all__ = [
     "RLoss",
     "DRLoss",
     "QStat",
-    "PEHE",
+    "Pehe",
 ]
 ```
 
@@ -1001,7 +1001,7 @@ from caml.data import CausalDataset
 from caml.scorers.base_scorer import BaseCateScorerMixin, validate_scorer_inputs
 
 
-class PEHE(BaseCateScorerMixin):
+class Pehe(BaseCateScorerMixin):
     r"""Precision in Estimation of Heterogeneous Effects (PEHE) oracle metric.
 
     Parameters
@@ -1031,7 +1031,7 @@ class PEHE(BaseCateScorerMixin):
             true_cates = data.true_cates
 
         if true_cates is None:
-            raise ValueError("PEHE requires true CATEs.")
+            raise ValueError("Pehe requires true CATEs.")
 
         tau_hat, true_cates = validate_scorer_inputs(tau_hat, true_cates, "tau_hat", "true CATEs")
         pehe = np.mean((true_cates - tau_hat) ** 2)
@@ -2117,7 +2117,7 @@ caml/
    - Use `effect()` instead of `predict_cate()` as per `AutoCateEstimator` protocol
 
 5. **Scorer Exports**:
-   - Only implemented scorers exported from `__init__.py`: `BaseCateScorerMixin`, `RLoss`, `DRLoss`, `QStat`, `PEHE`
+   - Only implemented scorers exported from `__init__.py`: `BaseCateScorerMixin`, `RLoss`, `DRLoss`, `QStat`, `Pehe`
    - Deferred scorers (`_*.py`) not exported until implemented
 
 ---

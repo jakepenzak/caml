@@ -103,9 +103,21 @@ class BaseCateScorerMixin(ABC):
     --------
     ```{python}
     import numpy as np
-    from caml.scorers import BaseCateScorerMixin
+    from caml.scorers import BaseCateScorerMixin, ScorerCapabilities
+    from caml.data import TreatmentType, OutcomeType
 
     class NegMAEOnOracleCATE(BaseCateScorerMixin):
+
+        capabilities: ScorerCapabilities = ScorerCapabilities(
+            treatment_types={TreatmentType.BINARY},
+            outcome_types={OutcomeType.CONTINUOUS},
+            supports_weights=False,
+            requires_treatment_model=False,
+            requires_outcome_model=False,
+            requires_regression_model=False,
+            requires_oracle_cates=False
+        )
+
         def __call__(self, estimator, data):
             tau_hat = estimator.effect(data.X)
             mae = np.mean(np.abs(tau_hat - data.true_cates))
@@ -133,4 +145,11 @@ class BaseCateScorerMixin(ABC):
         """
 
     @classmethod
-    def is_compatible_with(cls, data: CausalDataset) -> bool: ...
+    def is_compatible_with(cls, data: CausalDataset) -> bool:
+        return cls.capabilities.is_compatible(data)
+
+    def __init_subclass__(cls, **kwargs) -> None:
+        """Strictly enforce that subclasses define required class attributes."""
+        super().__init_subclass__(**kwargs)
+        if "capabilities" not in cls.__dict__:
+            raise TypeError(f"{cls.__name__} must define capabilities")

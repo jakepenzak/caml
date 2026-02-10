@@ -12,11 +12,11 @@ from caml.data import CausalDataset
 from caml.registry import ScorerFamily, auto_register
 
 from ._validation import _validate_scorer_inputs
-from .base_scorer import BaseCateScorerMixin
+from .base_scorer import BaseCateScorerMixin, ScorerCapabilities
 
 
-@auto_register(name="PEHE", family=ScorerFamily.ORACLE, is_estimator=False)
-class PEHE(BaseCateScorerMixin):
+@auto_register(name="Pehe", family=ScorerFamily.ORACLE, is_estimator=False)
+class Pehe(BaseCateScorerMixin):
     r"""Precision in Estimation of Heterogeneous Effects (PEHE) oracle metric.
 
     Parameters
@@ -41,6 +41,8 @@ class PEHE(BaseCateScorerMixin):
     See [Scorer Details](../02_Concepts/scorers.qmd#sec-pehe) for relationship to
     proxy metrics and interpretation guide.
     """
+
+    capabilities: ScorerCapabilities = None
 
     def __init__(self, true_cates: np.ndarray | None = None, normalized: bool = False):
         self.true_cates = true_cates
@@ -75,7 +77,7 @@ class PEHE(BaseCateScorerMixin):
         from caml.estimators.dml import WrappedLinearDML
         from caml.data import CausalDataset, OutcomeType, TreatmentType
         from caml.extensions.synthetic_data import SyntheticDataGenerator
-        from caml.scorers import PEHE
+        from caml.scorers import Pehe
 
         gen = SyntheticDataGenerator(n_cont_modifiers=3, n_cont_confounders=3, seed=10)
         df = gen.df
@@ -95,10 +97,10 @@ class PEHE(BaseCateScorerMixin):
         estimator = WrappedLinearDML(model_y=LinearRegression(), model_t=LogisticRegression(), cv=3)
         estimator.fit(data)
 
-        scorer = PEHE()
+        scorer = Pehe()
         print(f"PEHE: {scorer(estimator, data):.2f}")
 
-        nrm_scorer = PEHE(normalized=True)
+        nrm_scorer = Pehe(normalized=True)
         print(f"Normalized PEHE: {nrm_scorer(estimator, data):.2f}")
         ```
         """
@@ -111,7 +113,7 @@ class PEHE(BaseCateScorerMixin):
 
         if true_cates is None:
             raise ValueError(
-                "PEHE requires true CATEs. Provide `true_cates=` to the scorer or set "
+                "Pehe requires true CATEs. Provide `true_cates=` to the scorer or set "
                 "`data.true_cates`."
             )
 
@@ -128,3 +130,7 @@ class PEHE(BaseCateScorerMixin):
             pehe = 1 - pehe / baseline_loss
 
         return float(pehe)
+
+    @classmethod
+    def is_compatible_with(cls, data: CausalDataset) -> bool:
+        return True

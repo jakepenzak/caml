@@ -85,7 +85,7 @@ This plan refactors CaML into a focused **AutoCATE modeling package** with:
 - `RLoss` - R-learner loss for model selection
 - `DRLoss` - Doubly-robust loss for model selection
 - `QStat` - Q-statistic for model ranking
-- `PEHE` - Oracle metric (requires true CATEs)
+- `Pehe` - Oracle metric (requires true CATEs)
 
 **Deferred Scorers** (prefixed with `_`, empty TODO files):
 - `_uplift.py` - Qini, AUUC
@@ -1306,7 +1306,7 @@ class CrossFitter:
 4. ✅ `scorers/r_loss.py` - `RLoss` scorer with normalization option (144 lines)
 5. ✅ `scorers/dr_loss.py` - `DRLoss` scorer with normalization option (143 lines)
 6. ✅ `scorers/q_stat.py` - `QStat` scorer for IPW-based ranking (128 lines)
-7. ✅ `scorers/pehe.py` - `PEHE` oracle metric requiring true CATEs (127 lines)
+7. ✅ `scorers/pehe.py` - `Pehe` oracle metric requiring true CATEs (127 lines)
 8. ✅ **Docstrings**: Complete NumPy-style docstrings with runnable examples
 9. ✅ **Tests**: Validation on synthetic data with `SyntheticDataGenerator`
 

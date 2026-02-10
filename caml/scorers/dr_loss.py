@@ -13,7 +13,7 @@ from caml.registry import ScorerFamily, auto_register
 from caml.samplers import CrossFitter
 
 from ._validation import _clip, _validate_scorer_inputs
-from .base_scorer import BaseCateScorerMixin
+from .base_scorer import BaseCateScorerMixin, ScorerCapabilities
 
 
 @auto_register(name="DRLoss", family=ScorerFamily.PSUEDO_OUTCOME, is_estimator=False)
@@ -53,6 +53,8 @@ class DRLoss(BaseCateScorerMixin):
     See [Scorer Details](../02_Concepts/scorers.qmd#sec-dr-loss) for the full
     derivation, double robustness property, and interpretation guide.
     """
+
+    capabilities: ScorerCapabilities = None
 
     def __init__(
         self,
@@ -144,3 +146,7 @@ class DRLoss(BaseCateScorerMixin):
             baseline_loss = np.mean((dr - np.mean(dr)) ** 2)
             dr_loss = 1 - dr_loss / baseline_loss
         return float(dr_loss)
+
+    @classmethod
+    def is_compatible_with(cls, data: CausalDataset) -> bool:
+        return True

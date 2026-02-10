@@ -75,7 +75,7 @@ def _(data, tuner):
 def _(
     CausalDataset,
     OutcomeType,
-    PEHE,
+    Pehe,
     SyntheticDataGenerator,
     TreatmentType,
     np,
@@ -103,10 +103,10 @@ def _(
     )
     estimator.fit(dataa)
 
-    scorer = PEHE()
+    scorer = Pehe()
     print(f"PEHE: {scorer(estimator, dataa)}")
 
-    nrm_scorer = PEHE(normalized=True)
+    nrm_scorer = Pehe(normalized=True)
     print(f"Normalized PEHE: {nrm_scorer(estimator, dataa):.2f}")
     return dataa, estimator, true_cates
 
@@ -164,12 +164,12 @@ def _(data, tuner):
 
 @app.cell
 def _(data, mod):
-    from caml.scorers.pehe import PEHE
+    from caml.scorers.pehe import Pehe
 
-    pehe = PEHE(normalized=True)
+    pehe = Pehe(normalized=True)
 
     pehe(estimator=mod, data=data)
-    return (PEHE,)
+    return (Pehe,)
 
 
 @app.cell

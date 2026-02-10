@@ -199,10 +199,20 @@ def register_scorer(
     --------
     ```{python}
     import numpy as np
-    from caml.scorers import BaseCateScorerMixin
+    from caml.scorers import BaseCateScorerMixin, ScorerCapabilities
     from caml.registry import register_scorer, available_scorers, ScorerFamily
 
     class NegMAEOnOracleCATE(BaseCateScorerMixin):
+        capabilities: ScorerCapabilities = ScorerCapabilities(
+            treatment_types={TreatmentType.BINARY},
+            outcome_types={OutcomeType.CONTINUOUS},
+            supports_weights=False,
+            requires_treatment_model=False,
+            requires_outcome_model=False,
+            requires_regression_model=False,
+            requires_oracle_cates=False
+        )
+
         def __call__(self, estimator, data):
             tau_hat = estimator.effect(data.X)
             mae = np.mean(np.abs(tau_hat - data.true_cates))
@@ -307,6 +317,17 @@ def auto_register(
 
     @auto_register(name="NegMAEOnOracleCATE", family=ScorerFamily.ORACLE, is_estimator=False)
     class NegMAEOnOracleCATE(BaseCateScorerMixin):
+
+        capabilities: ScorerCapabilities = ScorerCapabilities(
+            treatment_types={TreatmentType.BINARY},
+            outcome_types={OutcomeType.CONTINUOUS},
+            supports_weights=False,
+            requires_treatment_model=False,
+            requires_outcome_model=False,
+            requires_regression_model=False,
+            requires_oracle_cates=False
+        )
+
         def __call__(self, estimator, data):
             tau_hat = estimator.effect(data.X)
             mae = np.mean(np.abs(tau_hat - data.true_cates))

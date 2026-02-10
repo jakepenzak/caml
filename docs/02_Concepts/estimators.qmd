@@ -13,12 +13,29 @@ Conditional Average Treatment Effect (CATE) estimators aim to learn heterogeneou
 For comprehensive theoretical foundations, see [Chapter 15 of *Applied Causal Inference Powered by ML and AI*](https://chapters.causalml-book.org/CausalML_chap_15.pdf) [@chernozhukov2024causalml] and the [EconML documentation](https://www.pywhy.org/econml/).
 :::
 
+## Estimator Taxonomy {#sec-estimator-taxonomy}
+
+CaML organizes CATE estimators into five families based on their underlying causal models and methodological approaches. The following table provides a comprehensive overview:
+
+| Family | Label | Description | Examples |
+|--------|-------|-------------|----------|
+| **Meta-Learners** | <span class="label-meta">Meta-Learner</span> | Direct outcome modeling approaches that estimate CATE by combining predictions from standard ML models. Simple but subject to regularization bias. | S-Learner, T-Learner, X-Learner |
+| **DML** | <span class="label-dml">DML</span> | Double Machine Learning estimators based on the Partially Linear Model (PLM). Use orthogonal residualization and cross-fitting for debiased estimation. | LinearDML, CausalForestDML, NonParamDML |
+| **DR** | <span class="label-dr">DR</span> | Doubly Robust estimators based on the Interactive Regression Model (IRM). Combine outcome regression with IPW correction for robustness to model misspecification. | DRLearner, LinearDRLearner, ForestDRLearner |
+| **ORF** | <span class="label-orf">ORF</span> | Orthogonal Random Forest estimators that use adaptive tree splitting with built-in local orthogonalization. Nonparametric but computationally intensive. | DMLOrthoForest, DROrthoForest |
+| **Custom** | <span class="label-custom">Custom</span> | User-defined or native CaML estimators that don't fall into the predefined families. | InteractiveLinearRegression |
+
+: Estimator family taxonomy {#tbl-estimator-taxonomy}
+
+
 ## Estimator Overview {#sec-estimator-overview}
 
 ### Meta-Learners {#sec-meta-learners}
 
 ::: {.callout-note collapse="true"}
 ### S-Learner <small class="text-muted">[↗](../04_Reference/meta.qmd#caml.estimators.meta.WrappedSLearner)</small> {#sec-s-learner}
+
+<span class="label-meta">Meta-Learner</span>
 
 The **S-Learner** (Single Learner) [@kunzel2019metalearners] trains a single model on the combined feature space $(X, T)$ to predict outcomes, then estimates CATE by differencing predictions:
 
@@ -33,6 +50,8 @@ where $\hat{\mu}(x, t) = \mathbb{E}[Y \mid X=x, T=t]$ is the fitted outcome mode
 
 ::: {.callout-note collapse="true"}
 ## T-Learner <small class="text-muted">[↗](../04_Reference/WrappedTLearner.qmd)</small> {#sec-t-learner}
+
+<span class="label-meta">Meta-Learner</span>
 
 The **T-Learner** (Two Learner) [@kunzel2019metalearners] trains separate outcome models for each treatment group:
 
@@ -49,6 +68,8 @@ where $\hat{\mu}_t(x) = \mathbb{E}[Y \mid X=x, T=t]$ for $t \in \{0, 1\}$.
 
 ::: {.callout-note collapse="true"}
 ## X-Learner <small class="text-muted">[↗](../04_Reference/WrappedXLearner.qmd)</small> {#sec-x-learner}
+
+<span class="label-meta">Meta-Learner</span>
 
 The **X-Learner** [@kunzel2019metalearners] uses a two-stage approach with propensity-weighted combination:
 
@@ -73,6 +94,8 @@ where $e(x) = P(T=1 \mid X=x)$ is the propensity score.
 
 ::: {.callout-note collapse="true"}
 ## PLM Formulation {#sec-plm-formulation}
+
+<span class="label-dml">DML</span>
 
 Double Machine Learning (DML) [@chernozhukov2018double] estimates CATE under the **Partially Linear Model (PLM)**:
 
@@ -104,6 +127,8 @@ To avoid overfitting bias, DML uses $K$-fold cross-fitting: nuisance models are 
 ::: {.callout-note collapse="true"}
 ## LinearDML <small class="text-muted">[↗](../04_Reference/WrappedLinearDML.qmd)</small> {#sec-linear-dml}
 
+<span class="label-dml">DML</span>
+
 **LinearDML** assumes CATE is linear in features:
 $$
 \tau(X) = X^\top \theta
@@ -120,6 +145,8 @@ Provides **analytic confidence intervals** via debiased moment conditions. Effic
 ::: {.callout-note collapse="true"}
 ## SparseLinearDML <small class="text-muted">[↗](../04_Reference/WrappedSparseLinearDML.qmd)</small> {#sec-sparse-linear-dml}
 
+<span class="label-dml">DML</span>
+
 **SparseLinearDML** extends LinearDML with $\ell_1$ regularization (Lasso) for feature selection:
 $$
 \hat{\theta} = \arg\min_\theta \sum_i (\tilde{Y}_i - \tilde{T}_i \cdot X_i^\top \theta)^2 + \alpha \|\theta\|_1
@@ -130,6 +157,8 @@ Uses **debiased Lasso** [@zhang2014confidence] for valid inference despite regul
 
 ::: {.callout-note collapse="true"}
 ## CausalForestDML <small class="text-muted">[↗](../04_Reference/WrappedCausalForestDML.qmd)</small> {#sec-causal-forest-dml}
+
+<span class="label-dml">DML</span>
 
 **CausalForestDML** uses a causal forest [@wager2018estimation] as the final CATE model:
 
@@ -144,6 +173,8 @@ The forest uses **honest splitting**: separate samples for determining tree stru
 ::: {.callout-note collapse="true"}
 ## NonParamDML <small class="text-muted">[↗](../04_Reference/WrappedNonParamDML.qmd)</small> {#sec-nonparam-dml}
 
+<span class="label-dml">DML</span>
+
 **NonParamDML** allows any ML model as the final CATE model:
 $$
 \hat{\tau}(x) = \text{model\_final}.\text{fit}(\tilde{T}, \tilde{Y}, X).\text{predict}(X)
@@ -155,6 +186,8 @@ Provides maximum flexibility but typically requires bootstrap for inference.
 ::: {.callout-note collapse="true"}
 ## KernelDML <small class="text-muted">[↗](../04_Reference/WrappedKernelDML.qmd)</small> {#sec-kernel-dml}
 
+<span class="label-dml">DML</span>
+
 **KernelDML** uses kernel ridge regression for the final CATE model, providing smooth nonparametric estimation with analytic confidence intervals.
 :::
 
@@ -162,6 +195,8 @@ Provides maximum flexibility but typically requires bootstrap for inference.
 
 ::: {.callout-note collapse="true"}
 ## IRM Formulation {#sec-irm-formulation}
+
+<span class="label-dr">DR</span>
 
 Doubly Robust (DR) learners estimate CATE under the **Interactive Regression Model (IRM)**—a generalization of PLM that allows treatment to interact with unobserved heterogeneity:
 
@@ -189,6 +224,8 @@ CATE is then estimated by regressing $\Gamma^{\text{DR}}$ on $X$ with various fi
 ::: {.callout-note collapse="true"}
 ## DRLearner <small class="text-muted">[↗](../04_Reference/WrappedDRLearner.qmd)</small> {#sec-dr-learner}
 
+<span class="label-dr">DR</span>
+
 **DRLearner** [@kennedy2023towards] uses a flexible ML model to regress the DR pseudo-outcome on features:
 $$
 \hat{\tau}(x) = \text{model\_final}.\text{fit}(\Gamma^{\text{DR}}, X).\text{predict}(x)
@@ -200,6 +237,8 @@ Provides maximum flexibility with DR's robustness guarantees.
 ::: {.callout-note collapse="true"}
 ## LinearDRLearner <small class="text-muted">[↗](../04_Reference/WrappedLinearDRLearner.qmd)</small> {#sec-linear-dr-learner}
 
+<span class="label-dr">DR</span>
+
 **LinearDRLearner** assumes linear CATE and provides **analytic confidence intervals** via debiased moment conditions:
 $$
 \tau(X) = X^\top \theta, \quad \hat{\theta} = \arg\min_\theta \sum_i (\Gamma_i^{\text{DR}} - X_i^\top \theta)^2
@@ -209,11 +248,15 @@ $$
 ::: {.callout-note collapse="true"}
 ## SparseLinearDRLearner <small class="text-muted">[↗](../04_Reference/WrappedSparseLinearDRLearner.qmd)</small> {#sec-sparse-linear-dr-learner}
 
+<span class="label-dr">DR</span>
+
 **SparseLinearDRLearner** combines DR pseudo-outcomes with Lasso regularization for sparse CATE estimation with valid inference via debiased Lasso.
 :::
 
 ::: {.callout-note collapse="true"}
 ## ForestDRLearner <small class="text-muted">[↗](../04_Reference/WrappedForestDRLearner.qmd)</small> {#sec-forest-dr-learner}
+
+<span class="label-dr">DR</span>
 
 **ForestDRLearner** uses a random forest to model nonparametric heterogeneity in the DR pseudo-outcome. Analogous to CausalForestDML but under the IRM framework.
 :::
@@ -222,6 +265,8 @@ $$
 
 ::: {.callout-note collapse="true"}
 ## ORF Formulation {#sec-orf-formulation}
+
+<span class="label-orf">ORF</span>
 
 Orthogonal Random Forests (ORF) [@oprescu2019orthogonal] extend generalized random forests to directly estimate CATE with built-in debiasing. The key innovations are:
 
@@ -245,11 +290,15 @@ ORF methods are computationally expensive due to local nuisance estimation at ea
 ::: {.callout-note collapse="true"}
 ## DMLOrthoForest <small class="text-muted">[↗](../04_Reference/WrappedDMLOrthoForest.qmd)</small> {#sec-dml-orthoforest}
 
+<span class="label-orf">ORF</span>
+
 **DMLOrthoForest** combines ORF's adaptive learning with DML's PLM-based orthogonalization. Supports continuous treatments.
 :::
 
 ::: {.callout-note collapse="true"}
 ## DROrthoForest <small class="text-muted">[↗](../04_Reference/WrappedDROrthoForest.qmd)</small> {#sec-dr-orthoforest}
+
+<span class="label-orf">ORF</span>
 
 **DROrthoForest** combines ORF's adaptive learning with DR's pseudo-outcome construction. Provides robustness to model misspecification for discrete treatments.
 :::

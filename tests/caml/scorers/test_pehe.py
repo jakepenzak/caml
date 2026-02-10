@@ -5,17 +5,17 @@ import pytest
 
 from caml.data import CausalDataset, OutcomeType, TreatmentType
 from caml.extensions.synthetic_data import SyntheticDataGenerator
-from caml.scorers import PEHE
+from caml.scorers import Pehe
 
 pytestmark = [pytest.mark.scorers]
 
 
-class TestPEHEInit:
-    """Test PEHE initialization."""
+class TestPeheInit:
+    """Test Pehe initialization."""
 
     def test_default_init(self):
         """Test default initialization."""
-        scorer = PEHE()
+        scorer = Pehe()
 
         assert scorer.true_cates is None
         assert scorer.normalized is False
@@ -23,18 +23,18 @@ class TestPEHEInit:
     def test_custom_init(self):
         """Test custom initialization with true_cates."""
         true_cates = np.array([1.0, 2.0, 3.0])
-        scorer = PEHE(true_cates=true_cates, normalized=True)
+        scorer = Pehe(true_cates=true_cates, normalized=True)
 
         np.testing.assert_array_equal(scorer.true_cates, true_cates)
         assert scorer.normalized is True
 
 
-class TestPEHEComputation:
-    """Test PEHE computation."""
+class TestPeheComputation:
+    """Test Pehe computation."""
 
     def test_returns_float(self, fitted_estimator, causal_dataset):
         """Test that scorer returns a float."""
-        scorer = PEHE()
+        scorer = Pehe()
 
         result = scorer(fitted_estimator, causal_dataset)
 
@@ -42,7 +42,7 @@ class TestPEHEComputation:
 
     def test_unnormalized_is_positive(self, fitted_estimator, causal_dataset):
         """Test that unnormalized PEHE is non-negative (MSE)."""
-        scorer = PEHE(normalized=False)
+        scorer = Pehe(normalized=False)
 
         result = scorer(fitted_estimator, causal_dataset)
 
@@ -50,7 +50,7 @@ class TestPEHEComputation:
 
     def test_normalized_bounded_above(self, fitted_estimator, causal_dataset):
         """Test that normalized PEHE is bounded above by 1."""
-        scorer = PEHE(normalized=True)
+        scorer = Pehe(normalized=True)
 
         result = scorer(fitted_estimator, causal_dataset)
 
@@ -58,7 +58,7 @@ class TestPEHEComputation:
 
     def test_uses_data_true_cates_by_default(self, fitted_estimator, causal_dataset):
         """Test that scorer uses data.true_cates when not provided."""
-        scorer = PEHE()
+        scorer = Pehe()
 
         # Should not raise since causal_dataset has true_cates
         result = scorer(fitted_estimator, causal_dataset)
@@ -69,14 +69,14 @@ class TestPEHEComputation:
         """Test that scorer uses provided true_cates."""
         # Provide different true_cates
         custom_cates = np.zeros_like(causal_dataset.true_cates)
-        scorer = PEHE(true_cates=custom_cates)
+        scorer = Pehe(true_cates=custom_cates)
 
         result = scorer(fitted_estimator, causal_dataset)
 
         assert isinstance(result, float)
 
 
-class TestPEHEValidation:
+class TestPeheValidation:
     """Test PEHE validation and error handling."""
 
     def test_raises_without_true_cates(self, fitted_estimator):
@@ -99,13 +99,13 @@ class TestPEHEValidation:
             # No true_cates provided
         )
 
-        scorer = PEHE()
+        scorer = Pehe()
 
         with pytest.raises(ValueError, match="requires true CATEs"):
             scorer(fitted_estimator, data_no_cates)
 
 
-class TestPEHEPerformance:
+class TestPehePerformance:
     """Test PEHE produces reasonable scores for well-fitted estimators."""
 
     def test_normalized_positive_for_good_estimator(
@@ -117,7 +117,7 @@ class TestPEHEPerformance:
         variance in true CATEs than a naive baseline, which should hold for a
         correctly specified DML estimator on linear synthetic data.
         """
-        scorer = PEHE(normalized=True)
+        scorer = Pehe(normalized=True)
 
         result = scorer(fitted_estimator, causal_dataset)
 
@@ -131,7 +131,7 @@ class TestPEHEPerformance:
         PEHE to be substantially positive (>0.5), indicating good CATE recovery
         against ground truth.
         """
-        scorer = PEHE(normalized=True)
+        scorer = Pehe(normalized=True)
 
         result = scorer(fitted_estimator, causal_dataset)
 
@@ -146,7 +146,7 @@ class TestPEHEPerformance:
         The raw PEHE should be small relative to the variance of true CATEs
         for a well-fitted estimator.
         """
-        scorer = PEHE(normalized=False)
+        scorer = Pehe(normalized=False)
 
         result = scorer(fitted_estimator, causal_dataset)
         true_cate_var = np.var(causal_dataset.true_cates)
@@ -157,8 +157,8 @@ class TestPEHEPerformance:
         ), f"Expected PEHE ({result}) < true CATE variance ({true_cate_var})"
 
 
-class TestPEHEShapeHandling:
-    """Test PEHE shape validation and error handling."""
+class TestPeheShapeHandling:
+    """Test Pehe shape validation and error handling."""
 
     def test_handles_2d_estimator_output(self, causal_dataset):
         """Test that scorer handles 2D (n, 1) estimator output."""
@@ -169,7 +169,7 @@ class TestPEHEShapeHandling:
             def effect(self, X):
                 return np.zeros((len(X), 1))
 
-        scorer = PEHE()
+        scorer = Pehe()
         result = scorer(MockEstimator2D(), causal_dataset)
 
         assert isinstance(result, float)
@@ -183,7 +183,7 @@ class TestPEHEShapeHandling:
             def effect(self, X):
                 return np.zeros(10)  # Wrong number
 
-        scorer = PEHE()
+        scorer = Pehe()
 
         with pytest.raises(ValueError, match="samples"):
             scorer(MockEstimatorWrongSamples(), causal_dataset)
@@ -197,7 +197,7 @@ class TestPEHEShapeHandling:
             def effect(self, X):
                 return np.zeros((len(X), 3))
 
-        scorer = PEHE()
+        scorer = Pehe()
 
         with pytest.raises(ValueError, match="columns"):
             scorer(MockEstimatorMultiColumn(), causal_dataset)

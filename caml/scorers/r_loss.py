@@ -15,7 +15,7 @@ from caml.registry import ScorerFamily, auto_register
 from caml.samplers import CrossFitter
 
 from ._validation import _validate_cate_array
-from .base_scorer import BaseCateScorerMixin
+from .base_scorer import BaseCateScorerMixin, ScorerCapabilities
 
 
 @auto_register(name="RLoss", family=ScorerFamily.PSUEDO_OUTCOME, is_estimator=False)
@@ -49,6 +49,8 @@ class RLoss(BaseCateScorerMixin):
     See [Scorer Details](../02_Concepts/scorers.qmd#sec-r-loss) for the full
     derivation, interpretation, and self-serving bias considerations.
     """
+
+    capabilities: ScorerCapabilities = None
 
     def __init__(
         self,
@@ -144,3 +146,7 @@ class RLoss(BaseCateScorerMixin):
             baseline_loss = sm.OLS(Y_res, T_res).fit().mse_resid
             r_loss = 1 - r_loss / baseline_loss
         return float(r_loss)
+
+    @classmethod
+    def is_compatible_with(cls, data: CausalDataset) -> bool:
+        return True

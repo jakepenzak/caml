@@ -651,3 +651,9 @@ class BaseWrapperMixin(ABC):
                 f"{self.__class__.__name__} must be fitted before prediction. "
                 "Call .fit() first."
             )
+
+    def __init_subclass__(cls, **kwargs) -> None:
+        """Strictly enforce that subclasses define required class attributes."""
+        super().__init_subclass__(**kwargs)
+        if "capabilities" not in cls.__dict__:
+            raise TypeError(f"{cls.__name__} must define capabilities")
