@@ -27,7 +27,8 @@ keywords = [
     "causal machine learning",
     "causal ai",
     "conditional average treatment effect",
-    "cate estimation"
+    "CATE estimation",
+    "CATE"
 ]
 classifiers = [
     "Development Status :: 2 - Pre-Alpha",

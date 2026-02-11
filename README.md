@@ -1,9 +1,14 @@
+---
+title: ""
+toc-depth: 0
+toc-expand: 0
+---
+
 <div align="center">
 <center>
 
 <img src="https://raw.githubusercontent.com/jakepenzak/caml/main/docs/assets/main_logo.svg" align="center" alt="CaML Logo" height="auto" width=500px/>
 
-<br>
 <br>
 
 [![image](https://img.shields.io/pypi/v/caml.svg)](https://pypi.python.org/pypi/caml)
@@ -20,38 +25,94 @@
 <a href="https://app.codacy.com/gh/jakepenzak/caml/dashboard?utm_source=gh&utm_medium=referral&utm_content=&utm_campaign=Badge_grade"><img src="https://app.codacy.com/project/badge/Grade/cd6cc54c704e4a7aafe20f851bc39236"/></a>
 [![codecov](https://codecov.io/gh/jakepenzak/caml/graph/badge.svg?token=UBABBZXO85)](https://codecov.io/gh/jakepenzak/caml)
 
-**C**ausal **a**uto**ML**
+**C**ausal **a**uto**ML** - Production-Ready Automated Causal Machine Learning
 
 </center>
 </div>
 
-## Welcome!
+## 🎯 What is CaML?
 
-CaML provides a high-level API for an _opinionated_ framework in performing Causal ML to estimate Average Treatment Effects (ATEs),
-Group Average Treatment Effects (GATEs), and Conditional Average Treatment Effects (CATEs), and to provide mechanisms to utilize these
-models for out of sample validation, prediction, & policy prescription.
+**CaML** is a production-ready framework for **automated heterogeneous treatment effect estimation and validation**. It combines state-of-the-art causal inference methods with AutoML optimization to deliver robust, validated CATE (Conditional Average Treatment Effect) models at scale.
 
-The codebase is comprised primarily of extensions & abstractions over top of [EconML](https://github.com/py-why/EconML)
-& [DoubleML](https://docs.doubleml.org/stable/api/generated/doubleml.datasets.make_confounded_irm_data.html#doubleml.datasets.make_confounded_irm_data)
-with techniques motivated heavily by [Causal ML Book](https://causalml-book.org/) and additional research.
+### Why CaML?
 
-## Background
+> **The Challenge**: Estimating heterogeneous treatment effects requires choosing among dozens of estimators, tuning nuisance models, and validating with specialized metrics. This process is complex, time-consuming, and error-prone.
 
-The origins of CaML are rooted in a desire to develop a set of helper tools to abstract and streamline techniques
-& best pratices in Causal ML/Econometrics for estimating ATEs, GATEs, and CATEs, along with policy prescription. In
-addition, we seek to provide a framework for validating & scoring these models on out of sample data to help
-set the foundations for an AutoML framework for CATE models.
+> **The Solution**: CaML automates the entire pipeline—from estimator selection to model validation—while maintaining rigorous statistical foundations and production-grade reliability, modularity, and extensibility.
 
-As we began working on these helper tools, we begun to see the value in reformulating this framework into a reusable
-package for wider use amongst the community and to provide an opinionated framework that can be integrated into productionalized
-systems, particularly experimentation platforms, for efficient estimation of causal parameters for reporting & decision-making
-purposes.
+> **⚠️ Important**: CaML provides tools, not magic. Standard causal inference assumptions (unconfoundedness, overlap, SUTVA) must hold for valid inference.
 
-**All of the standard assumptions for causal inference still apply in order for these tools & techniques to provide
-unbiased inference.** A great resource for the CausalML landscape is the [CausalML book](https://www.causalml-book.org/) written and
-publicly available generously by V. Chernozhukov, C. Hansen, N. Kallus, M. Spindler, & V. Syrgkanis.
 
-Given a key motivation is to provide a tool for productionalized systems, we are building this package with interoperability
-and extensibility as core values. As of now, the tools utilized still rely on in-memory datasets for estimation (via [EconML](https://github.com/py-why/EconML)
-for causal models & [flaml](https://microsoft.github.io/FLAML/) for AutoML of nuissance functions), but we leverage Ray & Spark for distributing
-certain processes where appropriate and if available for the user.
+## ✨ Key Features
+
+
+### 🔬 **Rigorous Causal Inference**
+- **14 EconML Estimators**: DML, DR learners, Meta-learners, Causal Forests, Orthogonal Random Forests
+- **Custom CATE Scoring**: R-loss, DR-loss, Qini curves, policy value, calibration diagnostics
+- **Orthogonal Learning**: Cross-fitted nuisance models with rigorous score-based validation
+
+### 🤖 **Dual AutoML Architecture**
+- **FLAML for Nuisance Models**: Automated tuning of propensity and outcome models with Ray/Spark support
+- **Optuna for CATE Selection**: Hyperparameter optimization across estimator families
+- **Intelligent Model Registry**: Automatic compatibility filtering based on data characteristics
+
+### 🏗️ **Production-Ready Design**
+- **Protocol-Based**: Extensible interfaces for custom estimators and scorers
+- **Type-Safe**: Modern Python 3.10+ with comprehensive type hints
+- **Validated Data Structures**: Rich metadata tracking and automatic validation
+
+
+### 📊 **Comprehensive Capabilities**
+- **Multiple Estimands**: ATE, CATE, GATE estimation with valid inference
+- **Flexible Treatment Types**: Binary, continuous, multi-valued treatments
+- **Out-of-Sample Validation**: Cross-fitting, bootstrap inference, policy evaluation
+- **Interpretability**: Effect heterogeneity analysis, feature importance, uplift curves
+
+## 🏛️ Architecture Highlights
+
+CaML is built on three core pillars:
+
+### 1️⃣ **EconML-First Philosophy**
+We **wrap** proven estimators from [EconML](https://github.com/py-why/EconML) rather than reimplementing them, ensuring statistical rigor while adding AutoML capabilities and production tooling.
+
+### 2️⃣ **Custom Validation Framework**
+Traditional ML metrics fail for CATE models. CaML implements specialized scoring, such as:
+
+- **R-loss**: Optimal for CATE model selection under unconfoundedness
+- **DR-loss**: Doubly-robust scoring with nuisance model protection
+- **Uplift Metrics**: Qini coefficients, AUUC for ranking-based evaluation
+- **Policy Value**: Direct business impact estimation
+
+### 3️⃣ **Protocol-Based Extensibility**
+Every component follows clear protocols (`AutoCateEstimator`, `CateScorer`) and base classes (`BaseCateScorerMixin`), making it trivial to:
+
+- Add custom estimators alongside EconML wrappers
+- Implement domain-specific scoring metrics
+
+## 📚 Documentation
+
+- **API Reference**: [Coming Soon]
+- **User Guide**: [Coming Soon]
+- **Tutorials**: [Coming Soon]
+- **Research Papers**: See [references](https://www.causalml-book.org/)
+
+## 🤝 Contributing
+
+CaML is an experimental project welcoming contributions! Key areas:
+
+- **Estimator Wrappers**: Additional EconML estimators or custom implementations
+- **Scoring Metrics**: Domain-specific CATE validation approaches
+- **Benchmarking**: Comparative studies on synthetic/real datasets
+- **Documentation**: Examples, tutorials, case studies
+
+See [contribution guidelines](https://caml-docs.com/05_Contributors/getting_started.html)
+
+---
+
+<center>
+
+**Built with ❤️ for the causal inference community**
+
+[⭐ Star us on GitHub](https://github.com/jakepenzak/caml) • [📖 Read the Docs](#) • [🐛 Report Issues](https://github.com/jakepenzak/caml/issues)
+
+</center>
