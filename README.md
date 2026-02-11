@@ -1,14 +1,9 @@
----
-title: ""
-toc-depth: 0
-toc-expand: 0
----
-
 <div align="center">
 <center>
 
 <img src="https://raw.githubusercontent.com/jakepenzak/caml/main/docs/assets/main_logo.svg" align="center" alt="CaML Logo" height="auto" width=500px/>
 
+<br>
 <br>
 
 [![image](https://img.shields.io/pypi/v/caml.svg)](https://pypi.python.org/pypi/caml)
@@ -109,6 +104,7 @@ See [contribution guidelines](https://caml-docs.com/05_Contributors/getting_star
 
 ---
 
+<div align="center">
 <center>
 
 **Built with ❤️ for the causal inference community**
@@ -116,3 +112,4 @@ See [contribution guidelines](https://caml-docs.com/05_Contributors/getting_star
 [⭐ Star us on GitHub](https://github.com/jakepenzak/caml) • [📖 Read the Docs](#) • [🐛 Report Issues](https://github.com/jakepenzak/caml/issues)
 
 </center>
+</div>
