@@ -56,11 +56,6 @@ def simple_estimator_class():
         def is_compatible_with(cls, data: CausalDataset) -> bool:
             return cls.capabilities.is_compatible(data)
 
-        def check_compatibility(
-            self, data: CausalDataset, raise_error: bool = True
-        ) -> bool:
-            return self.capabilities.is_compatible(data)
-
         def fit(self, data, **kwargs):
             T = np.asarray(data.T)
             Y = np.asarray(data.Y)
@@ -269,9 +264,6 @@ class TestAutoRegister:
             def is_compatible_with(cls, data):
                 return True
 
-            def check_compatibility(self, data, raise_error=True):
-                return True
-
             def fit(self, data, **kwargs):
                 return self
 
@@ -313,9 +305,6 @@ class TestAutoRegister:
             def is_compatible_with(cls, data):
                 return True
 
-            def check_compatibility(self, data, raise_error=True):
-                return True
-
             def fit(self, data, **kwargs):
                 return self
 
@@ -329,7 +318,7 @@ class TestAutoRegister:
                 return self
 
         # Class should be instantiable normally
-        instance = OriginalEstimator()
+        OriginalEstimator()
 
         # Cleanup
         del available_estimators["UnmodifiedTest"]
@@ -354,9 +343,6 @@ class TestAutoRegister:
 
             @classmethod
             def is_compatible_with(cls, data):
-                return True
-
-            def check_compatibility(self, data, raise_error=True):
                 return True
 
             def fit(self, data, **kwargs):

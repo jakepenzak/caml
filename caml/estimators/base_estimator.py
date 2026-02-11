@@ -43,11 +43,11 @@ class EstimatorCapabilities:
     supports_weights
         If True, estimator handles sample weights.
     requires_treatment_model
-        If True, estimator needs a treatment model - $\mathbb{E}[T|X,W]$.
+        If True, estimator needs a treatment model - $\mathbb{E}[T \mid X,W]$.
     requires_outcome_model
-        If True, estimator needs an outcome model - $\mathbb{E}[Y|X,W]$.
+        If True, estimator needs an outcome model - $\mathbb{E}[Y \mid X,W]$.
     requires_regression_model
-        If True, estimator needs a regression model - $\mathbb{E}[Y|T,X,W]$.
+        If True, estimator needs a regression model - $\mathbb{E}[Y \mid T,X,W]$.
     supports_inference
         If True, estimator implements ``InferenceProvider`` protocol.
 
@@ -127,7 +127,7 @@ class EstimatorCapabilities:
             outcome_type=OutcomeType.CONTINUOUS
         )
 
-        print(capabilities.is_compatible(data))  # True
+        print(capabilities.is_compatible(data))
         ```
         """
         return (
@@ -143,16 +143,10 @@ class AutoCateEstimator(Protocol):
     All CATE estimators in CaML must implement this protocol. Defines minimal interface
     for fitting and prediction, compatible with scikit-learn conventions.
 
-    Attributes
-    ----------
-    capabilities : EstimatorCapabilities
-        Metadata describing what the estimator supports (class attribute).
-
     Notes
     -----
     - This is a Protocol (structural subtyping), not a base class
     - Runtime-checkable via ``isinstance(obj, AutoCateEstimator)``
-    - Method name is ``effect()`` not ``predict_cate()`` per CaML conventions
     - ``capabilities`` is class attributes, not properties
 
     Examples
@@ -183,12 +177,6 @@ class AutoCateEstimator(Protocol):
         @classmethod
         def is_compatible_with(cls, data: CausalDataset) -> bool:
             return cls.capabilities.is_compatible(data)
-
-        def check_compatibility(
-            self, data: CausalDataset, raise_error: bool = True
-        ) -> bool:
-            is_compatible = self.capabilities.is_compatible(data)
-            return is_compatible
 
         def fit(self, data, **kwargs):
             T = np.asarray(data.T)
@@ -229,32 +217,6 @@ class AutoCateEstimator(Protocol):
         -------
         bool
             True if estimator supports the dataset's treatment and outcome types.
-        """
-        ...
-
-    def check_compatibility(
-        self, data: CausalDataset, raise_error: bool = True
-    ) -> bool:
-        """Check compatibility and optionally raise detailed error (instance method).
-
-        Parameters
-        ----------
-        data
-            Dataset to check.
-        raise_error
-            If True, raise ValueError with detailed message on incompatibility.
-            If False, return boolean.
-
-        Returns
-        -------
-        bool
-            True if compatible (only returned if raise_error=False).
-
-        Raises
-        ------
-        ValueError
-            If incompatible and raise_error=True. Error message includes details
-            about what's required vs what was provided.
         """
         ...
 
@@ -499,72 +461,6 @@ class BaseWrapperMixin(ABC):
         """
         return cls.capabilities.is_compatible(data)
 
-    def check_compatibility(
-        self, data: CausalDataset, raise_error: bool = True
-    ) -> bool:
-        """Check compatibility and optionally raise detailed error (instance method).
-
-        Parameters
-        ----------
-        data
-            Dataset to check.
-        raise_error
-            If True, raise ValueError with detailed message on incompatibility.
-            If False, return boolean.
-
-        Returns
-        -------
-        bool
-            True if compatible (only returned if raise_error=False).
-
-        Raises
-        ------
-        ValueError
-            If incompatible and raise_error=True. Error message includes details
-            about what's required vs what was provided.
-
-        Examples
-        --------
-        ```{python}
-        from caml.estimators.dml import WrappedLinearDML
-        from caml.data import CausalDataset, TreatmentType, OutcomeType
-        import numpy as np
-
-        # Create incompatible data (binary outcome, but LinearDML needs continuous)
-        data = CausalDataset(
-            X=np.random.randn(100, 3),
-            T=np.random.binomial(1, 0.5, 100),
-            Y=np.random.binomial(1, 0.5, 100),  # Binary outcome
-            treatment_type=TreatmentType.BINARY,
-            outcome_type=OutcomeType.BINARY  # LinearDML needs CONTINUOUS
-        )
-
-        est = WrappedLinearDML()
-
-        # Check without raising (for conditional logic)
-        is_ok = est.check_compatibility(data, raise_error=False)
-        print(f"Compatible: {is_ok}")
-
-        # Check with raising (for validation in fit())
-        try:
-            est.check_compatibility(data, raise_error=True)
-        except ValueError as e:
-            print(f"Error: {e}")
-        ```
-        """
-        is_compatible = self.capabilities.is_compatible(data)
-
-        if not is_compatible and raise_error:
-            raise ValueError(
-                f"Data incompatible with {self.__class__.__name__}.\n"
-                f"  Required treatment types: {self.capabilities.treatment_types}\n"
-                f"  Required outcome types: {self.capabilities.outcome_types}\n"
-                f"  Got treatment type: {data.treatment_type}\n"
-                f"  Got outcome type: {data.outcome_type}"
-            )
-
-        return is_compatible
-
     def effect(self, X: np.ndarray | pd.DataFrame, **effect_kwargs) -> np.ndarray:
         """Predict CATE for given features.
 
@@ -653,7 +549,7 @@ class BaseWrapperMixin(ABC):
             )
 
     def __init_subclass__(cls, **kwargs) -> None:
-        """Strictly enforce that subclasses define required class attributes."""
+        """Strictly enforce that subclasses define required class attributes (capabilities)."""
         super().__init_subclass__(**kwargs)
         if "capabilities" not in cls.__dict__:
             raise TypeError(f"{cls.__name__} must define capabilities")

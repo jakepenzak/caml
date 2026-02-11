@@ -1,4 +1,4 @@
-"""Copyright (c) 2024 Jacob Pieniazek. All rights reserved."""
+"""Copyright (c) 2026 Jacob Pieniazek. All rights reserved."""
 
 import warnings
 

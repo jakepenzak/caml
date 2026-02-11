@@ -8,7 +8,7 @@ comparison with proxy metrics.
 
 import numpy as np
 
-from caml.data import CausalDataset
+from caml.data import CausalDataset, OutcomeType, TreatmentType
 from caml.registry import ScorerFamily, auto_register
 
 from ._validation import _validate_scorer_inputs
@@ -42,7 +42,15 @@ class Pehe(BaseCateScorerMixin):
     proxy metrics and interpretation guide.
     """
 
-    capabilities: ScorerCapabilities = None
+    capabilities = ScorerCapabilities(
+        treatment_types={TreatmentType.BINARY, TreatmentType.CONTINUOUS},
+        outcome_types={OutcomeType.CONTINUOUS, OutcomeType.BINARY},
+        requires_treatment_model=False,
+        requires_outcome_model=False,
+        requires_regression_model=False,
+        requires_oracle_cates=True,
+        supports_weights=False,
+    )
 
     def __init__(self, true_cates: np.ndarray | None = None, normalized: bool = False):
         self.true_cates = true_cates
@@ -130,7 +138,3 @@ class Pehe(BaseCateScorerMixin):
             pehe = 1 - pehe / baseline_loss
 
         return float(pehe)
-
-    @classmethod
-    def is_compatible_with(cls, data: CausalDataset) -> bool:
-        return True

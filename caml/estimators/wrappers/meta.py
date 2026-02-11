@@ -136,7 +136,10 @@ class WrappedSLearner(BaseWrapperMixin):
         S-Learner trains a single model on the combined feature space [X, T].
         W (confounders) are not supported separately - include them in X if needed.
         """
-        self.check_compatibility(data, raise_error=True)
+        if not self.is_compatible_with(data):
+            raise ValueError(
+                f"{self.__class__.__name__} is not compatible with the provided data. "
+            )
 
         self._estimator.fit(
             Y=data.Y,
@@ -276,7 +279,10 @@ class WrappedTLearner(BaseWrapperMixin):
         T-Learner trains separate models for each treatment group.
         W (confounders) are not supported separately - include them in X if needed.
         """
-        self.check_compatibility(data, raise_error=True)
+        if not self.is_compatible_with(data):
+            raise ValueError(
+                f"{self.__class__.__name__} is not compatible with the provided data. "
+            )
 
         self._estimator.fit(
             Y=data.Y,
@@ -419,7 +425,10 @@ class WrappedXLearner(BaseWrapperMixin):
         X-Learner uses propensity score weighting to combine first and second stage
         models. W (confounders) are not supported separately - include them in X if needed.
         """
-        self.check_compatibility(data, raise_error=True)
+        if not self.is_compatible_with(data):
+            raise ValueError(
+                f"{self.__class__.__name__} is not compatible with the provided data. "
+            )
 
         self._estimator.fit(
             Y=data.Y,

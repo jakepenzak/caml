@@ -10,7 +10,7 @@ import numpy as np
 import statsmodels.api as sm
 from sklearn.base import BaseEstimator
 
-from caml.data import CausalDataset
+from caml.data import CausalDataset, OutcomeType, TreatmentType
 from caml.registry import ScorerFamily, auto_register
 from caml.samplers import CrossFitter
 
@@ -18,7 +18,7 @@ from ._validation import _validate_cate_array
 from .base_scorer import BaseCateScorerMixin, ScorerCapabilities
 
 
-@auto_register(name="RLoss", family=ScorerFamily.PSUEDO_OUTCOME, is_estimator=False)
+@auto_register(name="RLoss", family=ScorerFamily.PSEUDO_OUTCOME, is_estimator=False)
 class RLoss(BaseCateScorerMixin):
     r"""R-loss for CATE model evaluation & selection via orthogonal residualization.
 
@@ -50,7 +50,15 @@ class RLoss(BaseCateScorerMixin):
     derivation, interpretation, and self-serving bias considerations.
     """
 
-    capabilities: ScorerCapabilities = None
+    capabilities = ScorerCapabilities(
+        treatment_types={TreatmentType.BINARY, TreatmentType.CONTINUOUS},
+        outcome_types={OutcomeType.CONTINUOUS, OutcomeType.BINARY},
+        requires_treatment_model=True,
+        requires_outcome_model=True,
+        requires_regression_model=False,
+        requires_oracle_cates=False,
+        supports_weights=False,
+    )
 
     def __init__(
         self,
@@ -146,7 +154,3 @@ class RLoss(BaseCateScorerMixin):
             baseline_loss = sm.OLS(Y_res, T_res).fit().mse_resid
             r_loss = 1 - r_loss / baseline_loss
         return float(r_loss)
-
-    @classmethod
-    def is_compatible_with(cls, data: CausalDataset) -> bool:
-        return True

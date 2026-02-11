@@ -31,8 +31,8 @@ def get_compatible_estimators(
     data
         Dataset to check compatibility.
     families
-        Estimator families to include: ["dml", "dr", "meta", "orf"] or any custom ones created using
-        `register_estimator`. Defaults to None, which includes all available estimators.
+        Estimator families to include: ["dml", "dr", "meta", "orf", "custom"].
+        Defaults to None, which includes all available estimators.
 
     Returns
     -------
@@ -95,6 +95,84 @@ def get_compatible_estimators(
     return compatible_estimators
 
 
+def get_compatible_scorers(
+    data: CausalDataset, families: list[ScorerFamily | str] | None = None
+) -> dict:
+    """Get scorers compatible with dataset.
+
+    For custom scorers, ensure they are registered using `register_scorer`.
+
+    Parameters
+    ----------
+    data
+        Dataset to check compatibility.
+    families
+        Scorer families to include: ["oracle", "plug_in", "pseudo_outcome", "ranking_relative_proxy",
+        "ranking_curve", "policy", "custom"]. Defaults to None,
+        which includes all available scorers.
+
+    Returns
+    -------
+    dict
+        List of compatible scorer CLASSES (not instantiated).
+
+    Examples
+    --------
+    ```{python}
+    from caml.registry import get_compatible_scorers, ScorerFamily
+    from caml.data import CausalDataset, TreatmentType, OutcomeType
+    from caml.extensions.synthetic_data import SyntheticDataGenerator
+
+    gen = SyntheticDataGenerator(seed=42)
+    data = CausalDataset.from_dataframe(
+        gen.df,
+        X=[c for c in gen.df.columns if "X" in c],
+        T="T1_binary",
+        Y="Y1_continuous",
+        treatment_type=TreatmentType.BINARY,
+        outcome_type=OutcomeType.CONTINUOUS,
+        true_cates=gen.cates
+    )
+
+    # Automatically filter to compatible scorers
+    compatible = get_compatible_scorers(data, families=[ScorerFamily.ORACLE, "pseudo_outcome"])
+    print(f"Found {len(compatible)} compatible scorers")
+    compatible
+    ```
+    """
+    if families is None:
+        candidate_scorers = available_scorers
+    else:
+        # Normalize families to ScorerFamily enum
+        normalized_families = []
+        for family in families:
+            if isinstance(family, str):
+                normalized_families.append(ScorerFamily(family))
+            else:
+                normalized_families.append(family)
+
+        candidate_scorers = {}
+        for family in normalized_families:
+            candidate_scorers.update(
+                {
+                    name: scorer
+                    for name, scorer in available_scorers.items()
+                    if scorer["family"] == family
+                }
+            )
+
+    # Filter to compatible classes
+    compatible_scorers = {
+        **{
+            name: scorer
+            for name, scorer in candidate_scorers.items()
+            if scorer["scorer"].is_compatible_with(data)
+        }
+    }
+
+    return compatible_scorers
+
+
 def register_estimator(
     name: str,
     estimator: AutoCateEstimator,
@@ -139,12 +217,6 @@ def register_estimator(
         def is_compatible_with(cls, data: CausalDataset) -> bool:
             temp_instance = cls()
             return temp_instance.capabilities.is_compatible(data)
-
-        def check_compatibility(
-            self, data: CausalDataset, raise_error: bool = True
-        ) -> bool:
-            is_compatible = self.capabilities.is_compatible(data)
-            return is_compatible
 
         def fit(self, data, **kwargs):
             T = np.asarray(data.T)
@@ -285,11 +357,6 @@ def auto_register(
         def is_compatible_with(cls, data: CausalDataset) -> bool:
             temp_instance = cls()
             return temp_instance.capabilities.is_compatible(data)
-
-        def check_compatibility(
-            self, data: CausalDataset, raise_error: bool = True
-        ) -> bool:
-            return self.capabilities.is_compatible(data)
 
         def fit(self, data, **kwargs):
             T = np.asarray(data.T)

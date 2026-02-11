@@ -47,7 +47,7 @@ class ScorerFamily(Enum):
         Oracle metrics that compare predictions to the true CATE (eg, PEHE).
     PLUG_IN : str
         Plug-in surrogate metrics based on a learned CATE reference. (eg, T-Loss)
-    PSUEDO_OUTCOME : str
+    PSEUDO_OUTCOME : str
         Pseudo-outcome (transformed outcome) based metrics (eg, DR-Loss).
     RANKING_RELATIVE_PROXY : str
         Relative performance proxy metrics based on ranking or loss reformulation (eg, Q-Statistic).
@@ -69,7 +69,7 @@ class ScorerFamily(Enum):
 
     ORACLE = "oracle"
     PLUG_IN = "plug_in"
-    PSUEDO_OUTCOME = "pseudo_outcome"
+    PSEUDO_OUTCOME = "pseudo_outcome"
     RANKING_RELATIVE_PROXY = "ranking_relative_proxy"
     RANKING_CURVE = "ranking_curve"
     POLICY = "policy"

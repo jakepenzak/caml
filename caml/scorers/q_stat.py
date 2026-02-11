@@ -8,7 +8,7 @@ mathematical derivation and interpretation guide.
 
 import numpy as np
 
-from caml.data import CausalDataset
+from caml.data import CausalDataset, OutcomeType, TreatmentType
 from caml.registry import ScorerFamily, auto_register
 from caml.samplers import CrossFitter
 
@@ -53,7 +53,15 @@ class QStat(BaseCateScorerMixin):
     derivation, interpretation, and degeneracy indicators.
     """
 
-    capabilities: ScorerCapabilities = None
+    capabilities = ScorerCapabilities(
+        treatment_types={TreatmentType.BINARY},
+        outcome_types={OutcomeType.CONTINUOUS, OutcomeType.BINARY},
+        requires_treatment_model=True,
+        requires_outcome_model=False,
+        requires_regression_model=False,
+        requires_oracle_cates=False,
+        supports_weights=False,
+    )
 
     def __init__(
         self,
@@ -133,7 +141,3 @@ class QStat(BaseCateScorerMixin):
         q_stat = np.mean(tau_hat**2 - 2 * tau_hat * ipw)
 
         return float(q_stat)
-
-    @classmethod
-    def is_compatible_with(cls, data: CausalDataset) -> bool:
-        return True

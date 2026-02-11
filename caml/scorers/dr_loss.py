@@ -8,7 +8,7 @@ mathematical derivation and interpretation guide.
 
 import numpy as np
 
-from caml.data import CausalDataset
+from caml.data import CausalDataset, OutcomeType, TreatmentType
 from caml.registry import ScorerFamily, auto_register
 from caml.samplers import CrossFitter
 
@@ -16,7 +16,7 @@ from ._validation import _clip, _validate_scorer_inputs
 from .base_scorer import BaseCateScorerMixin, ScorerCapabilities
 
 
-@auto_register(name="DRLoss", family=ScorerFamily.PSUEDO_OUTCOME, is_estimator=False)
+@auto_register(name="DRLoss", family=ScorerFamily.PSEUDO_OUTCOME, is_estimator=False)
 class DRLoss(BaseCateScorerMixin):
     r"""Doubly-robust loss for CATE model selection.
 
@@ -54,7 +54,15 @@ class DRLoss(BaseCateScorerMixin):
     derivation, double robustness property, and interpretation guide.
     """
 
-    capabilities: ScorerCapabilities = None
+    capabilities = ScorerCapabilities(
+        treatment_types={TreatmentType.BINARY},
+        outcome_types={OutcomeType.CONTINUOUS, OutcomeType.BINARY},
+        requires_treatment_model=True,
+        requires_outcome_model=False,
+        requires_regression_model=True,
+        requires_oracle_cates=False,
+        supports_weights=False,
+    )
 
     def __init__(
         self,
@@ -146,7 +154,3 @@ class DRLoss(BaseCateScorerMixin):
             baseline_loss = np.mean((dr - np.mean(dr)) ** 2)
             dr_loss = 1 - dr_loss / baseline_loss
         return float(dr_loss)
-
-    @classmethod
-    def is_compatible_with(cls, data: CausalDataset) -> bool:
-        return True

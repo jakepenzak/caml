@@ -79,7 +79,7 @@ class TestWrappedLinearDML:
             model_y=LinearRegression(), model_t=LogisticRegression()
         )
         # Should not raise
-        assert estimator.check_compatibility(binary_continuous_data, raise_error=True)
+        assert estimator.is_compatible_with(binary_continuous_data)
 
     def test_is_compatible_with_classmethod(self, binary_continuous_data):
         """Test classmethod is_compatible_with works without instantiation."""

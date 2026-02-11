@@ -141,7 +141,10 @@ class WrappedDMLOrthoForest(BaseWrapperMixin):
         learning and leaf value estimation. This provides valid inference without
         overfitting bias.
         """
-        self.check_compatibility(data, raise_error=True)
+        if not self.is_compatible_with(data):
+            raise ValueError(
+                f"{self.__class__.__name__} is not compatible with the provided data. "
+            )
 
         self._estimator.discrete_treatment = (
             True if data.treatment_type.is_discrete() else False
@@ -286,7 +289,10 @@ class WrappedDROrthoForest(BaseWrapperMixin):
         debiasing, providing both adaptive heterogeneity learning and robustness
         to model misspecification.
         """
-        self.check_compatibility(data, raise_error=True)
+        if not self.is_compatible_with(data):
+            raise ValueError(
+                f"{self.__class__.__name__} is not compatible with the provided data. "
+            )
 
         self._estimator.fit(
             Y=data.Y,

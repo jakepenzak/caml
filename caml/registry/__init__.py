@@ -3,6 +3,7 @@ from .registry import (
     available_estimators,
     available_scorers,
     get_compatible_estimators,
+    get_compatible_scorers,
     register_estimator,
     register_scorer,
 )
@@ -15,6 +16,7 @@ __all__ = [
     "EstimatorFamily",
     "ScorerFamily",
     "get_compatible_estimators",
+    "get_compatible_scorers",
     "register_estimator",
     "auto_register",
 ]

@@ -126,7 +126,10 @@ class WrappedLinearDML(BaseWrapperMixin):
         data: CausalDataset,
         **fit_kwargs,
     ) -> WrappedLinearDML:
-        self.check_compatibility(data, raise_error=True)
+        if not self.is_compatible_with(data):
+            raise ValueError(
+                f"{self.__class__.__name__} is not compatible with the provided data. "
+            )
 
         self._estimator.discrete_outcome = (
             True if data.outcome_type.is_discrete() else False
@@ -283,7 +286,10 @@ class WrappedSparseLinearDML(BaseWrapperMixin):
         This method automatically sets ``discrete_treatment`` and ``discrete_outcome``
         flags based on the data's treatment_type and outcome_type.
         """
-        self.check_compatibility(data, raise_error=True)
+        if not self.is_compatible_with(data):
+            raise ValueError(
+                f"{self.__class__.__name__} is not compatible with the provided data. "
+            )
 
         self._estimator.discrete_outcome = (
             True if data.outcome_type.is_discrete() else False
@@ -440,7 +446,10 @@ class WrappedCausalForestDML(BaseWrapperMixin):
         This method automatically sets ``discrete_treatment`` flag based on the
         data's treatment_type. CausalForestDML only supports continuous outcomes.
         """
-        self.check_compatibility(data, raise_error=True)
+        if not self.is_compatible_with(data):
+            raise ValueError(
+                f"{self.__class__.__name__} is not compatible with the provided data. "
+            )
 
         self._estimator.discrete_outcome = (
             True if data.outcome_type.is_discrete() else False
@@ -592,7 +601,10 @@ class WrappedNonParamDML(BaseWrapperMixin):
         This method automatically sets ``discrete_treatment`` flag based on the
         data's treatment_type. NonParamDML only supports continuous outcomes.
         """
-        self.check_compatibility(data, raise_error=True)
+        if not self.is_compatible_with(data):
+            raise ValueError(
+                f"{self.__class__.__name__} is not compatible with the provided data. "
+            )
 
         self._estimator.discrete_outcome = (
             True if data.outcome_type.is_discrete() else False
@@ -744,7 +756,10 @@ class WrappedKernelDML(BaseWrapperMixin):
         This method automatically sets ``discrete_treatment`` flag based on the
         data's treatment_type. KernelDML only supports continuous outcomes.
         """
-        self.check_compatibility(data, raise_error=True)
+        if not self.is_compatible_with(data):
+            raise ValueError(
+                f"{self.__class__.__name__} is not compatible with the provided data. "
+            )
 
         self._estimator.discrete_outcome = (
             True if data.outcome_type.is_discrete() else False

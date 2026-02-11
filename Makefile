@@ -26,7 +26,7 @@ docs-refresh:
 
 tests:
 	@echo "Running tests with pytest..."
-	@uv run pytest tests/
+	@uv run pytest tests/ -n auto
 
 coverage:
 	@echo "Loading coverage report in browser..."

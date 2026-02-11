@@ -296,11 +296,6 @@ class TestAutoCAteEstimatorProtocol:
                 temp_instance = cls()
                 return temp_instance.capabilities.is_compatible(data)
 
-            def check_compatibility(
-                self, data: CausalDataset, raise_error: bool = True
-            ) -> bool:
-                return self.capabilities.is_compatible(data)
-
             def fit(self, data: CausalDataset, **kwargs):
                 T = np.asarray(data.T)
                 Y = np.asarray(data.Y)

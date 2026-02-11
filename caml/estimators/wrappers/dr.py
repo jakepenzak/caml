@@ -140,7 +140,10 @@ class WrappedDRLearner(BaseWrapperMixin):
         DRLearner automatically handles discrete treatments. This method prepares
         the data in the format expected by EconML.
         """
-        self.check_compatibility(data, raise_error=True)
+        if not self.is_compatible_with(data):
+            raise ValueError(
+                f"{self.__class__.__name__} is not compatible with the provided data. "
+            )
 
         self._estimator.discrete_outcome = (
             True if data.outcome_type.is_discrete() else False
@@ -292,7 +295,10 @@ class WrappedLinearDRLearner(BaseWrapperMixin):
         LinearDRLearner automatically handles discrete treatments and provides
         analytic inference via debiased moment conditions.
         """
-        self.check_compatibility(data, raise_error=True)
+        if not self.is_compatible_with(data):
+            raise ValueError(
+                f"{self.__class__.__name__} is not compatible with the provided data. "
+            )
 
         self._estimator.discrete_outcome = (
             True if data.outcome_type.is_discrete() else False
@@ -446,7 +452,10 @@ class WrappedSparseLinearDRLearner(BaseWrapperMixin):
         SparseLinearDRLearner automatically handles discrete treatments and provides
         analytic inference via debiased Lasso.
         """
-        self.check_compatibility(data, raise_error=True)
+        if not self.is_compatible_with(data):
+            raise ValueError(
+                f"{self.__class__.__name__} is not compatible with the provided data. "
+            )
 
         self._estimator.discrete_outcome = (
             True if data.outcome_type.is_discrete() else False
@@ -598,7 +607,10 @@ class WrappedForestDRLearner(BaseWrapperMixin):
         ForestDRLearner automatically handles discrete treatments and provides
         bootstrap inference for the random forest final model.
         """
-        self.check_compatibility(data, raise_error=True)
+        if not self.is_compatible_with(data):
+            raise ValueError(
+                f"{self.__class__.__name__} is not compatible with the provided data. "
+            )
 
         self._estimator.discrete_outcome = (
             True if data.outcome_type.is_discrete() else False

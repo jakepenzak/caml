@@ -41,7 +41,7 @@ class TestScorerFamily:
         """Test that ScorerFamily has expected values."""
         assert ScorerFamily.ORACLE.value == "oracle"
         assert ScorerFamily.PLUG_IN.value == "plug_in"
-        assert ScorerFamily.PSUEDO_OUTCOME.value == "pseudo_outcome"
+        assert ScorerFamily.PSEUDO_OUTCOME.value == "pseudo_outcome"
         assert ScorerFamily.RANKING_RELATIVE_PROXY.value == "ranking_relative_proxy"
         assert ScorerFamily.RANKING_CURVE.value == "ranking_curve"
         assert ScorerFamily.POLICY.value == "policy"
@@ -51,7 +51,7 @@ class TestScorerFamily:
         """Test creating ScorerFamily from string."""
         assert ScorerFamily("oracle") == ScorerFamily.ORACLE
         assert ScorerFamily("plug_in") == ScorerFamily.PLUG_IN
-        assert ScorerFamily("pseudo_outcome") == ScorerFamily.PSUEDO_OUTCOME
+        assert ScorerFamily("pseudo_outcome") == ScorerFamily.PSEUDO_OUTCOME
         assert (
             ScorerFamily("ranking_relative_proxy")
             == ScorerFamily.RANKING_RELATIVE_PROXY
@@ -65,7 +65,7 @@ class TestScorerFamily:
         all_families = {
             ScorerFamily.ORACLE,
             ScorerFamily.PLUG_IN,
-            ScorerFamily.PSUEDO_OUTCOME,
+            ScorerFamily.PSEUDO_OUTCOME,
             ScorerFamily.RANKING_RELATIVE_PROXY,
             ScorerFamily.RANKING_CURVE,
             ScorerFamily.POLICY,

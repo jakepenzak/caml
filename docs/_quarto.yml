@@ -92,7 +92,7 @@ website:
 
   page-footer:
     border: false
-    left: "© Copyright 2024, Jacob Pieniazek"
+    left: "© Copyright 2026, Jacob Pieniazek"
     right: |
       Powered by: [![](/assets/external_logos/quarto.png){width=85px}](https://quarto.org/)
 
@@ -127,6 +127,8 @@ quartodoc:
       contents:
         - name: base_estimator
           member_order: source
+          member_options:
+            include_private: true
         - name: dml
           member_order: source
           member_options:
@@ -174,20 +176,22 @@ quartodoc:
           member_order: source
           member_options:
             include_private: true
+            include_inherited: true
         - name: r_loss
           member_order: source
           member_options:
             include_private: true
+            include_inherited: true
         - name: dr_loss
           member_order: source
-          include_private: true
           member_options:
             include_private: true
+            include_inherited: true
         - name: q_stat
           member_order: source
-          include_private: true
           member_options:
             include_private: true
+            include_inherited: true
 
     - subtitle: Registry
       desc: "`caml.registry` \n\n AutoCATE estimator registry."
