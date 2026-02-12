@@ -1,4 +1,4 @@
-"""Shared base functionality, protocols, and interfaces for CATE estimator wrappers.
+"""Shared base functionality, protocols, and interfaces for AutoCATE estimators.
 
 Defines the fundamental interfaces that all AutoCATE estimators in CaML must implement.
 The protocol-based design enables flexible estimator composition, automatic compatibility
@@ -8,6 +8,7 @@ checking, and seamless integration with AutoML workflows.
 
 from __future__ import annotations
 
+import inspect
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from typing import Protocol, runtime_checkable
@@ -220,7 +221,7 @@ class AutoCateEstimator(Protocol):
         """
         ...
 
-    def fit(self, data: CausalDataset, **kwargs) -> AutoCateEstimator:
+    def fit(self, data: CausalDataset, **kwargs):
         """Fit the CATE estimator on causal data.
 
         Parameters
@@ -229,11 +230,6 @@ class AutoCateEstimator(Protocol):
             Causal dataset with treatment (T), outcome (Y), and covariates (X, W).
         **kwargs
             Estimator-specific arguments (e.g., nuisance model hyperparameters).
-
-        Returns
-        -------
-        AutoCateEstimator
-            Fitted estimator instance (self).
 
         Raises
         ------
@@ -372,35 +368,14 @@ class InferenceProvider(Protocol):
         ...
 
 
-class BaseWrapperMixin(ABC):
-    """Mixin and ABC providing common functionality and strict inerface enforcement for EconML wrappers.
-
-    Attributes
-    ----------
-    capabilities : EstimatorCapabilities
-        Metadata describing what the estimator supports (class attribute, must be set by subclass).
-    """
+class BaseAutoCateEstimatorMixin(ABC):
+    """Base class and mixin for `AutoCateEstimator`."""
 
     _estimator: BaseCateEstimator
     _is_fitted: bool = False
 
     # Class attributes that must be overridden by subclasses
     capabilities: EstimatorCapabilities
-
-    @abstractmethod
-    def fit(self, data: CausalDataset, **fit_kwargs) -> BaseWrapperMixin:
-        """Fit the estimator on causal data."""
-        pass
-
-    @abstractmethod
-    def get_params(self, deep: bool = True) -> dict:
-        """Get estimator parameters (scikit-learn compatible)."""
-        pass
-
-    @abstractmethod
-    def set_params(self, **params) -> dict:
-        """Set estimator parameters (scikit-learn compatible)."""
-        pass
 
     @classmethod
     def is_compatible_with(cls, data: CausalDataset) -> bool:
@@ -461,80 +436,25 @@ class BaseWrapperMixin(ABC):
         """
         return cls.capabilities.is_compatible(data)
 
-    def effect(self, X: np.ndarray | pd.DataFrame, **effect_kwargs) -> np.ndarray:
-        """Predict CATE for given features.
+    @abstractmethod
+    def fit(self, data: CausalDataset, **fit_kwargs) -> AutoCateEstimator:
+        """Fit the estimator on causal data."""
+        ...
 
-        Parameters
-        ----------
-        X
-            Feature matrix.
-        **effect_kwargs
-            Additional arguments passed to EconML's effect().
-            For discrete treatment: T0, T1 specify treatment comparison (default 0 vs 1).
-            For continuous treatment: T0, T1 specify dose levels to compare.
+    @abstractmethod
+    def effect(self, X: np.ndarray | pd.DataFrame) -> np.ndarray:
+        """Predict/estimate CATE for given features."""
+        ...
 
-        Returns
-        -------
-        np.ndarray
-            Estimated CATE.
-        """
-        self._check_fitted()
-        return self._estimator.effect(X, **effect_kwargs)
+    @abstractmethod
+    def get_params(self, deep: bool = True) -> dict:
+        """Get estimator parameters (scikit-learn compatible)."""
+        ...
 
-    def effect_inference(
-        self,
-        X: np.ndarray | pd.DataFrame,
-        inference_type: InferenceType | None = None,
-        bootstrapper: bool | None = None,
-        **effect_inference_kwargs,
-    ) -> InferenceResult:
-        """Get complete inference results for CATE estimates.
-
-        Returns results in a single ``InferenceResult`` object, which can be used for hypothesis testing and confidence interval generation.
-
-        **TODO: Implement Bootstrapper & cache functionality**
-
-        Parameters
-        ----------
-        X
-            Feature matrix for inference.
-        inference_type
-            Inference method to use (``InferenceType.ANALYTIC``, ``InferenceType.BOOTSTRAP``, or ``None`` for auto-selection).
-        bootstrapper
-            Bootstrap sampler to use if ``inference_type`` is ``InferenceType.BOOTSTRAP``. If ``None``, uses default bootstrapper.
-        **effect_inference_kwargs
-            Additional arguments (e.g., ``n_bootstrap``, ``random_state``).
-
-        Returns
-        -------
-        InferenceResult
-            Complete inference results with point estimates, CIs, stderr, and metadata.
-
-        Raises
-        ------
-        ValueError
-            If method not supported.
-        """
-        if inference_type == InferenceType.BOOTSTRAP:
-            raise NotImplementedError("Bootstrap inference not yet implemented.")
-
-        effect_inference = self._estimator.effect_inference(
-            X, **effect_inference_kwargs
-        )
-
-        return InferenceResult(
-            effect=effect_inference.point_estimate,
-            stderr=effect_inference.stderr,
-            method=inference_type,
-        )
-
-    def __getattr__(self, name: str):
-        """Forward attribute access to underlying estimator if not found on Wrapper."""
-        if self._estimator is not None and hasattr(self._estimator, name):
-            return getattr(self._estimator, name)
-        raise AttributeError(
-            f"'{self.__class__.__name__}' object has no attribute '{name}'"
-        )
+    @abstractmethod
+    def set_params(self, **params) -> dict:
+        """Set estimator parameters (scikit-learn compatible)."""
+        ...
 
     def _check_fitted(self):
         """Check if estimator has been fitted."""
@@ -551,5 +471,6 @@ class BaseWrapperMixin(ABC):
     def __init_subclass__(cls, **kwargs) -> None:
         """Strictly enforce that subclasses define required class attributes (capabilities)."""
         super().__init_subclass__(**kwargs)
-        if "capabilities" not in cls.__dict__:
+
+        if "capabilities" not in cls.__dict__ and not inspect.isabstract(cls):
             raise TypeError(f"{cls.__name__} must define capabilities")

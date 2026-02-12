@@ -12,11 +12,12 @@ from caml.data import CausalDataset, Estimand, OutcomeType, TreatmentType
 from caml.inference import InferenceType
 from caml.registry import auto_register
 
-from ..base_estimator import BaseWrapperMixin, EstimatorCapabilities
+from ..base_estimator import EstimatorCapabilities
+from .base_wrapper import BaseEconMLWrapperMixin
 
 
 @auto_register(name="SLearner", family="meta")
-class WrappedSLearner(BaseWrapperMixin):
+class WrappedSLearner(BaseEconMLWrapperMixin):
     """Wrapper for EconML's S-Learner estimator.
 
     S-Learner (Single Learner) estimates CATE using a single model that predicts the
@@ -160,7 +161,7 @@ class WrappedSLearner(BaseWrapperMixin):
 
 
 @auto_register(name="TLearner", family="meta")
-class WrappedTLearner(BaseWrapperMixin):
+class WrappedTLearner(BaseEconMLWrapperMixin):
     """Wrapper for EconML's T-Learner estimator.
 
     T-Learner (Two Learner) estimates CATE by training separate models for each
@@ -302,7 +303,7 @@ class WrappedTLearner(BaseWrapperMixin):
 
 
 @auto_register(name="XLearner", family="meta")
-class WrappedXLearner(BaseWrapperMixin):
+class WrappedXLearner(BaseEconMLWrapperMixin):
     """Wrapper for EconML's X-Learner estimator.
 
     X-Learner estimates CATE using a more sophisticated two-stage approach than T-Learner.

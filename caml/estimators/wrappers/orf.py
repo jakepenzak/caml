@@ -12,11 +12,12 @@ from caml.data import CausalDataset, Estimand, OutcomeType, TreatmentType
 from caml.inference import InferenceType
 from caml.registry import auto_register
 
-from ..base_estimator import BaseWrapperMixin, EstimatorCapabilities
+from ..base_estimator import EstimatorCapabilities
+from .base_wrapper import BaseEconMLWrapperMixin
 
 
 @auto_register(name="DMLOrthoForest", family="orf")
-class WrappedDMLOrthoForest(BaseWrapperMixin):
+class WrappedDMLOrthoForest(BaseEconMLWrapperMixin):
     """Wrapper for EconML's DMLOrthoForest estimator.
 
     DMLOrthoForest estimates CATE using an orthogonal random forest with DML-style
@@ -169,7 +170,7 @@ class WrappedDMLOrthoForest(BaseWrapperMixin):
 
 
 @auto_register(name="DROrthoForest", family="orf")
-class WrappedDROrthoForest(BaseWrapperMixin):
+class WrappedDROrthoForest(BaseEconMLWrapperMixin):
     """Wrapper for EconML's DROrthoForest estimator.
 
     DROrthoForest estimates CATE using an orthogonal random forest with doubly robust

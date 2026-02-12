@@ -2,7 +2,7 @@ import sys
 
 from .base_estimator import (
     AutoCateEstimator,
-    BaseWrapperMixin,
+    BaseAutoCateEstimatorMixin,
     EstimatorCapabilities,
     InferenceProvider,
 )
@@ -15,7 +15,7 @@ sys.modules["caml.estimators.meta"] = meta
 sys.modules["caml.estimators.orf"] = orf
 
 __all__ = [
-    "BaseWrapperMixin",
+    "BaseAutoCateEstimatorMixin",
     "AutoCateEstimator",
     "EstimatorCapabilities",
     "InferenceProvider",

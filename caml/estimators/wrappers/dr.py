@@ -12,11 +12,12 @@ from caml.data import CausalDataset, Estimand, OutcomeType, TreatmentType
 from caml.inference import InferenceType
 from caml.registry import auto_register
 
-from ..base_estimator import BaseWrapperMixin, EstimatorCapabilities
+from ..base_estimator import EstimatorCapabilities
+from .base_wrapper import BaseEconMLWrapperMixin
 
 
 @auto_register(name="DRLearner", family="dr")
-class WrappedDRLearner(BaseWrapperMixin):
+class WrappedDRLearner(BaseEconMLWrapperMixin):
     """Wrapper for EconML's DRLearner estimator.
 
     DRLearner estimates CATE using doubly robust learning with flexible model choices
@@ -170,7 +171,7 @@ class WrappedDRLearner(BaseWrapperMixin):
 
 
 @auto_register(name="LinearDRLearner", family="dr")
-class WrappedLinearDRLearner(BaseWrapperMixin):
+class WrappedLinearDRLearner(BaseEconMLWrapperMixin):
     """Wrapper for EconML's LinearDRLearner estimator.
 
     LinearDRLearner estimates CATE using doubly robust learning with a linear final model.
@@ -325,7 +326,7 @@ class WrappedLinearDRLearner(BaseWrapperMixin):
 
 
 @auto_register(name="SparseLinearDRLearner", family="dr")
-class WrappedSparseLinearDRLearner(BaseWrapperMixin):
+class WrappedSparseLinearDRLearner(BaseEconMLWrapperMixin):
     """Wrapper for EconML's SparseLinearDRLearner estimator.
 
     SparseLinearDRLearner estimates CATE using doubly robust learning with a sparse
@@ -482,7 +483,7 @@ class WrappedSparseLinearDRLearner(BaseWrapperMixin):
 
 
 @auto_register(name="ForestDRLearner", family="dr")
-class WrappedForestDRLearner(BaseWrapperMixin):
+class WrappedForestDRLearner(BaseEconMLWrapperMixin):
     """Wrapper for EconML's ForestDRLearner estimator.
 
     ForestDRLearner estimates CATE using doubly robust learning with a random forest

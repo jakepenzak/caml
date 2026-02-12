@@ -10,6 +10,7 @@ outcome regressions). In CaML these are computed out-of-fold using
 `CrossFitter`.
 """
 
+import inspect
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from typing import Protocol, runtime_checkable
@@ -195,12 +196,7 @@ class CateScorer(Protocol):
 
 
 class BaseCateScorerMixin(ABC):
-    """Base class for CATE scorers.
-
-    Notes
-    -----
-    Some scorers naturally return a *loss* (lower is better). If using a
-    maximization-based tuner, negate the loss or use a normalized score.
+    """Base class and mixin for `CateScorer`.
 
     Examples
     --------
@@ -308,5 +304,5 @@ class BaseCateScorerMixin(ABC):
     def __init_subclass__(cls, **kwargs) -> None:
         """Strictly enforce that subclasses define required class attributes (capabilities)."""
         super().__init_subclass__(**kwargs)
-        if "capabilities" not in cls.__dict__:
+        if "capabilities" not in cls.__dict__ and not inspect.isabstract(cls):
             raise TypeError(f"{cls.__name__} must define capabilities")

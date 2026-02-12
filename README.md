@@ -41,8 +41,8 @@
 ## ✨ Key Features
 
 ### 🔬 **Rigorous Causal Inference**
-- **14 EconML Estimators**: DML, DR learners, Meta-learners, Causal Forests, Orthogonal Random Forests
-- **Custom CATE Scoring**: R-loss, DR-loss, Qini curves, policy value, calibration diagnostics
+- **10+ CATE Estimators**: DML, DR learners, Meta-learners, Causal Forests, Orthogonal Random Forests, and more
+- **Custom CATE Scoring**: R-loss, DR-loss, Qini curves, Q-statistic, policy value, calibration diagnostics, and more
 
 ### 🤖 **Dual AutoML Architecture**
 - **FLAML for Nuisance Models**: Automated tuning of propensity and outcome models with Ray/Spark support
@@ -58,11 +58,13 @@
 
 CaML is built on three core pillars:
 
-### 1️⃣ **EconML-First Philosophy**
-We **wrap** proven estimators from [EconML](https://github.com/py-why/EconML) rather than reimplementing them, ensuring statistical rigor while adding AutoML capabilities and production tooling.
+### 1️⃣ **Wrap-First Philosophy**
+We **wrap** proven CATE estimators from existing open-source tooling (e.g., [EconML](https://github.com/py-why/EconML)) rather than reimplementing them, ensuring battle-tested estimators while adding AutoML capabilities and production tooling.
+
+Where a gap exists, we implement from scratch with a focus on modularity and extensibility.
 
 ### 2️⃣ **Custom Validation Framework**
-Traditional ML metrics fail for CATE models. CaML implements specialized scoring and loss functions, including:
+Traditional ML metrics fall short for CATE models. CaML implements custom, specialized scoring and loss functions, grouped into the following taxonomy:
 
 - **Orcale** - Gold-standard metrics comparing predictions to true CATE. Only computable when ground truth is available (simulations).
 - **Plug-In** - Surrogate metrics using a learned reference CATE model.
@@ -74,8 +76,8 @@ Traditional ML metrics fail for CATE models. CaML implements specialized scoring
 ### 3️⃣ **Protocol-Based Extensibility**
 Every component follows clear protocols and base classes, making it trivial to:
 
-- Add custom estimators alongside EconML wrappers
-- Implement domain-specific scoring metrics
+- Add custom estimators alongside wrappers
+- Implement domain-specific and custom scoring metrics alongside built-in options
 
 ## 📚 Documentation
 

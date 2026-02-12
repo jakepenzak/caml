@@ -18,11 +18,12 @@ from caml.data import CausalDataset, Estimand, OutcomeType, TreatmentType
 from caml.inference import InferenceType
 from caml.registry import auto_register
 
-from ..base_estimator import BaseWrapperMixin, EstimatorCapabilities
+from ..base_estimator import EstimatorCapabilities
+from .base_wrapper import BaseEconMLWrapperMixin
 
 
 @auto_register(name="LinearDML", family="dml")
-class WrappedLinearDML(BaseWrapperMixin):
+class WrappedLinearDML(BaseEconMLWrapperMixin):
     """Wrapper for EconML's LinearDML estimator.
 
     LinearDML estimates CATE using Double Machine Learning with a linear final model.
@@ -159,7 +160,7 @@ class WrappedLinearDML(BaseWrapperMixin):
 
 
 @auto_register(name="SparseLinearDML", family="dml")
-class WrappedSparseLinearDML(BaseWrapperMixin):
+class WrappedSparseLinearDML(BaseEconMLWrapperMixin):
     """Wrapper for EconML's SparseLinearDML estimator.
 
     SparseLinearDML estimates CATE using Double Machine Learning with a sparse linear (Lasso)
@@ -319,7 +320,7 @@ class WrappedSparseLinearDML(BaseWrapperMixin):
 
 
 @auto_register(name="CausalForestDML", family="dml")
-class WrappedCausalForestDML(BaseWrapperMixin):
+class WrappedCausalForestDML(BaseEconMLWrapperMixin):
     """Wrapper for EconML's CausalForestDML estimator.
 
     CausalForestDML estimates CATE using Double Machine Learning with a causal forest
@@ -479,7 +480,7 @@ class WrappedCausalForestDML(BaseWrapperMixin):
 
 
 @auto_register(name="NonParamDML", family="dml")
-class WrappedNonParamDML(BaseWrapperMixin):
+class WrappedNonParamDML(BaseEconMLWrapperMixin):
     """Wrapper for EconML's NonParamDML estimator.
 
     NonParamDML estimates CATE using Double Machine Learning with a fully nonparametric
@@ -634,7 +635,7 @@ class WrappedNonParamDML(BaseWrapperMixin):
 
 
 @auto_register(name="KernelDML", family="dml")
-class WrappedKernelDML(BaseWrapperMixin):
+class WrappedKernelDML(BaseEconMLWrapperMixin):
     """Wrapper for EconML's KernelDML estimator.
 
     KernelDML estimates CATE using Double Machine Learning with kernel methods for the
