@@ -129,10 +129,12 @@ quartodoc:
           member_order: source
           member_options:
             include_private: true
+            member_order: source
         - name: dml
           member_order: source
           member_options:
             include_inherited: true
+            member_order: source
           members:
             - WrappedLinearDML
             - WrappedSparseLinearDML
@@ -143,6 +145,7 @@ quartodoc:
           member_order: source
           member_options:
             include_inherited: true
+            member_order: source
           members:
             - WrappedDRLearner
             - WrappedLinearDRLearner
@@ -152,6 +155,7 @@ quartodoc:
           member_order: source
           member_options:
             include_inherited: true
+            member_order: source
           members:
             - WrappedSLearner
             - WrappedTLearner
@@ -160,6 +164,7 @@ quartodoc:
           member_order: source
           member_options:
             include_inherited: true
+            member_order: source
           members:
             - WrappedDMLOrthoForest
             - WrappedDROrthoForest
@@ -172,26 +177,31 @@ quartodoc:
           member_order: source
           member_options:
             include_private: true
+            member_order: source
         - name: pehe
           member_order: source
           member_options:
             include_private: true
             include_inherited: true
+            member_order: source
         - name: r_loss
           member_order: source
           member_options:
             include_private: true
             include_inherited: true
+            member_order: source
         - name: dr_loss
           member_order: source
           member_options:
             include_private: true
             include_inherited: true
+            member_order: source
         - name: q_stat
           member_order: source
           member_options:
             include_private: true
             include_inherited: true
+            member_order: source
 
     - subtitle: Registry
       desc: "`caml.registry` \n\n AutoCATE estimator registry."

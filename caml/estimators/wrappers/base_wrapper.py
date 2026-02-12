@@ -6,6 +6,7 @@ from abc import abstractmethod
 
 import numpy as np
 import pandas as pd
+from econml._cate_estimator import BaseCateEstimator
 
 from caml.data import CausalDataset
 from caml.inference import InferenceResult, InferenceType
@@ -15,6 +16,8 @@ from ..base_estimator import AutoCateEstimator, BaseAutoCateEstimatorMixin
 
 class BaseEconMLWrapperMixin(BaseAutoCateEstimatorMixin):
     """Mixin providing common functionality for EconML wrappers."""
+
+    _estimator: BaseCateEstimator
 
     @abstractmethod
     def fit(self, data: CausalDataset, **kwargs) -> AutoCateEstimator: ...
@@ -36,7 +39,7 @@ class BaseEconMLWrapperMixin(BaseAutoCateEstimatorMixin):
         np.ndarray
             Estimated CATE.
         """
-        self._check_fitted()
+        self.check_fitted()
         return self._estimator.effect(X, **effect_kwargs)
 
     def effect_inference(

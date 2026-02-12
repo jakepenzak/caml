@@ -4,7 +4,6 @@ Defines the fundamental interfaces that all AutoCATE estimators in CaML must imp
 The protocol-based design enables flexible estimator composition, automatic compatibility
 checking, and seamless integration with AutoML workflows.
 """
-# TODO: Rethink exact protocol, ABC, etc. structure and relationships
 
 from __future__ import annotations
 
@@ -15,7 +14,6 @@ from typing import Protocol, runtime_checkable
 
 import numpy as np
 import pandas as pd
-from econml._cate_estimator import BaseCateEstimator
 
 from caml.data import CausalDataset, Estimand, OutcomeType, TreatmentType
 from caml.inference import InferenceResult, InferenceType
@@ -85,7 +83,6 @@ class EstimatorCapabilities:
     requires_regression_model: bool
     supports_inference: bool
 
-    # TODO: Refine compatibility logic!!
     def is_compatible(self, data: CausalDataset) -> bool:
         """Check if estimator can handle the given dataset.
 
@@ -128,7 +125,7 @@ class EstimatorCapabilities:
             outcome_type=OutcomeType.CONTINUOUS
         )
 
-        print(capabilities.is_compatible(data))
+        capabilities.is_compatible(data)
         ```
         """
         return (
@@ -139,27 +136,127 @@ class EstimatorCapabilities:
 
 @runtime_checkable
 class AutoCateEstimator(Protocol):
-    """Core protocol defining the interface for CATE estimators.
+    """Protocol defining the core CATE estimator interface (structural subtyping).
 
-    All CATE estimators in CaML must implement this protocol. Defines minimal interface
-    for fitting and prediction, compatible with scikit-learn conventions.
+    Specifies the minimal interface all CATE estimators must implement, compatible
+    with scikit-learn conventions. Runtime-checkable via ``isinstance(obj, AutoCateEstimator)``.
 
     Notes
     -----
-    - This is a Protocol (structural subtyping), not a base class
-    - Runtime-checkable via ``isinstance(obj, AutoCateEstimator)``
-    - ``capabilities`` is class attributes, not properties
+    This is a Protocol using structural typing - any class implementing these methods
+    will satisfy this interface. For a base implementation with validation, parameter
+    handling, and helper utilities, see ``BaseAutoCateEstimatorMixin``.
+
+    The ``capabilities`` attribute must be a class attribute, not an instance attribute.
+
+    See Also
+    --------
+    [`BaseAutoCateEstimatorMixin`](base_estimator.qmd#caml.estimators.base_estimator.BaseAutoCateEstimatorMixin) : ABC base class with concrete implementations.
+
+    [`EstimatorCapabilities`](base_estimator.qmd#caml.estimators.base_estimator.EstimatorCapabilities) : Metadata for estimator features.
+    """
+
+    capabilities: EstimatorCapabilities
+
+    @classmethod
+    def is_compatible_with(cls, data: CausalDataset) -> bool:
+        """Check estimator-data compatibility (class method)."""
+        ...
+
+    def fit(self, data: CausalDataset, **kwargs):
+        """Fit the estimator on causal data."""
+        ...
+
+    def effect(self, X: np.ndarray | pd.DataFrame, **kwargs) -> np.ndarray:
+        """Predict CATE for given features."""
+        ...
+
+    def get_params(self, deep: bool = True) -> dict:
+        """Get estimator parameters (scikit-learn compatible)."""
+        ...
+
+    def set_params(self, **params):
+        """Set estimator parameters (scikit-learn compatible)."""
+        ...
+
+
+@runtime_checkable
+class InferenceProvider(Protocol):
+    """Protocol for estimators providing statistical inference for CATE estimates.
+
+    Defines interface for uncertainty quantification via confidence intervals and
+    standard errors. Separate from ``AutoCateEstimator`` to enable flexible composition.
+
+    Notes
+    -----
+    This is a structural typing Protocol. Estimators can implement both
+    ``AutoCateEstimator`` and ``InferenceProvider`` to provide complete
+    CATE estimation with uncertainty quantification.
+
+    For estimators without native inference, use ``BootstrapInferenceWrapper``
+    from the samplers module.
+
+    The ``inference_type`` parameter with value ``None`` or ``'auto'`` should
+    delegate to the estimator's preferred inference method.
+    """
+
+    def effect_inference(
+        self,
+        X: np.ndarray | pd.DataFrame,
+        inference_type: InferenceType | None = None,
+        bootstrapper: bool | None = None,
+        **effect_inference_kwargs,
+    ) -> InferenceResult:
+        """Get complete inference results for CATE estimates."""
+        ...
+
+
+class BaseAutoCateEstimatorMixin(ABC):
+    """Abstract base class for ``AutoCateEstimator`` with validation and utilities.
+
+    Provides concrete implementations of compatibility checking, parameter methods,
+    and fitting validation. Subclasses must implement ``fit()`` and ``effect()``.
+
+    This class serves as the recommended base for all CATE estimators in CaML,
+    providing a consistent interface and common utilities.
+
+    Notes
+    -----
+    **Abstract Methods (must be implemented by subclasses):**
+
+    - ``fit()`` - Fit the estimator on causal data
+    - ``effect()`` - Predict CATE for features
+
+    **Concrete Methods (provided by this base class):**
+
+    - ``is_compatible_with()`` - Class method for compatibility checking
+    - ``get_params()`` - Get estimator parameters (scikit-learn compatible)
+    - ``set_params()`` - Set estimator parameters (scikit-learn compatible)
+    - ``check_fitted()`` - Internal validation utility
+
+    **Required Class Attributes:**
+
+    - ``capabilities`` - ``EstimatorCapabilities`` instance defining supported features
+
+    Subclasses must define ``capabilities`` as a class attribute. Failure to do so
+    will raise a ``TypeError`` on class definition (enforced by ``__init_subclass__``).
+
+    See Also
+    --------
+    [`AutoCateEstimator`](base_estimator.qmd#caml.estimators.base_estimator.AutoCateEstimator) : Protocol defining the interface.
+
+    [`EstimatorCapabilities`](base_estimator.qmd#caml.estimators.base_estimator.EstimatorCapabilities) : Metadata for estimator features.
 
     Examples
     --------
     ```{python}
     import numpy as np
     from caml.data import CausalDataset, TreatmentType, OutcomeType, Estimand
-    from caml.estimators import AutoCateEstimator, EstimatorCapabilities
+    from caml.estimators import EstimatorCapabilities, BaseAutoCateEstimatorMixin
 
-    class SimpleEstimator:
-        # Class attributes
-        capabilities: EstimatorCapabilities = EstimatorCapabilities(
+    class SimpleEstimator(BaseAutoCateEstimatorMixin):
+        # Required class attribute
+        capabilities = EstimatorCapabilities(
             treatment_types={TreatmentType.BINARY},
             outcome_types={OutcomeType.CONTINUOUS},
             inference_types=set(),
@@ -173,217 +270,191 @@ class AutoCateEstimator(Protocol):
         )
 
         def __init__(self):
+            self._is_fitted = False
             self.effect_value = None
 
-        @classmethod
-        def is_compatible_with(cls, data: CausalDataset) -> bool:
-            return cls.capabilities.is_compatible(data)
-
         def fit(self, data, **kwargs):
+            # Abstract method implementation
             T = np.asarray(data.T)
             Y = np.asarray(data.Y)
             self.effect_value = Y[T == 1].mean() - Y[T == 0].mean()
+            self._is_fitted = True
             return self
 
         def effect(self, X, **kwargs):
+            # Abstract method implementation
+            self.check_fitted()
             n = len(X) if hasattr(X, '__len__') else 1
             return np.full(n, self.effect_value)
 
-        def get_params(self, deep=True):
-            return {}
+    # Verify protocol conformance
+    from caml.estimators import AutoCateEstimator
+    est = SimpleEstimator()
+    assert isinstance(est, AutoCateEstimator)
+    assert isinstance(est, BaseAutoCateEstimatorMixin)
+    ```
 
-        def set_params(self, **params):
-            return self
+    ```{python}
+    # Use is_compatible_with before instantiation
+    from caml.extensions.synthetic_data import SyntheticDataGenerator
 
-    assert isinstance(SimpleEstimator(), AutoCateEstimator)
+    gen = SyntheticDataGenerator(seed=42)
+    data = CausalDataset.from_dataframe(
+        gen.df,
+        X=[c for c in gen.df.columns if "X" in c],
+        T="T1_binary",
+        Y="Y1_continuous",
+        treatment_type=TreatmentType.BINARY,
+        outcome_type=OutcomeType.CONTINUOUS
+    )
+
+    # Check compatibility before instantiating
+    if SimpleEstimator.is_compatible_with(data):
+        est = SimpleEstimator()
+        est.fit(data)
+        cate = est.effect(data.X)
+        print(f"CATE estimate: {cate[0]:.3f}")
     ```
     """
 
+    _is_fitted: bool = False
+
+    # Class attribute that must be overridden by subclasses
     capabilities: EstimatorCapabilities
 
-    @classmethod
-    def is_compatible_with(cls, data: CausalDataset) -> bool:
-        """Check if estimator can handle the given dataset (class method).
+    @abstractmethod
+    def fit(self, data: CausalDataset, **kwargs) -> AutoCateEstimator:
+        """Fit the CATE estimator on causal data (**ABSTRACT**).
 
-        This is a class method, so you can check compatibility without
-        instantiating the estimator. Useful for filtering candidate
-        estimators in AutoML workflows.
+        Notes
+        -----
+        **This is an abstract method.** Subclasses must provide a complete
+        implementation that fits the estimator to the provided dataset.
 
-        Parameters
-        ----------
-        data
-            Dataset to check compatibility with.
+        Implementations should:
 
-        Returns
-        -------
-        bool
-            True if estimator supports the dataset's treatment and outcome types.
-        """
-        ...
-
-    def fit(self, data: CausalDataset, **kwargs):
-        """Fit the CATE estimator on causal data.
+        1. Validate data compatibility (optional - can use ``is_compatible_with``)
+        2. Fit any nuisance models required (treatment, outcome, regression)
+        3. Fit the final CATE model
+        4. Set ``self._is_fitted = True``
+        5. Return ``self`` for method chaining
 
         Parameters
         ----------
         data
             Causal dataset with treatment (T), outcome (Y), and covariates (X, W).
         **kwargs
-            Estimator-specific arguments (e.g., nuisance model hyperparameters).
+            Estimator-specific arguments (e.g., nuisance models, hyperparameters).
+
+        Returns
+        -------
+        AutoCateEstimator
+            Fitted estimator instance (self).
 
         Raises
         ------
         ValueError
             If dataset is incompatible with estimator capabilities.
+
+        Examples
+        --------
+        ```python
+        # Typical implementation pattern
+        from caml.data import CausalDataset
+        from caml.estimators import BaseAutoCateEstimatorMixin
+
+
+        class MyEstimator(BaseAutoCateEstimatorMixin):
+            # ... capabilities definition ...
+
+            def fit(self, data: CausalDataset, **kwargs):
+                # 1. Validate compatibility
+                if not self.is_compatible_with(data):
+                    raise ValueError("Incompatible data")
+
+                # 2. Fit nuisance models (if needed)
+                self._fit_treatment_model(data)
+
+                # 3. Fit CATE model
+                # ... fit logic ...
+
+                # 4. Mark as fitted
+                self._is_fitted = True
+
+                # 5. Return self for chaining
+                return self
+        ```
         """
         ...
 
+    @abstractmethod
     def effect(self, X: np.ndarray | pd.DataFrame, **kwargs) -> np.ndarray:
-        """Predict CATE for given features.
+        """Predict CATE for given features (**ABSTRACT**).
+
+        Notes
+        -----
+        **This is an abstract method.** Subclasses must provide a complete
+        implementation that predicts CATE for new observations.
+
+        Implementations should:
+
+        1. Call ``self.check_fitted()`` to validate estimator state
+        2. Convert input to appropriate format (if needed)
+        3. Compute CATE predictions
+        4. Return predictions as NumPy array
 
         Parameters
         ----------
         X
-            Feature matrix for CATE prediction.
+            Feature matrix for CATE prediction. Can be NumPy array or pandas DataFrame.
         **kwargs
-            Additional prediction arguments.
+            Additional prediction arguments (estimator-specific).
 
         Returns
         -------
         np.ndarray
-            CATE estimates. Shape (n_samples,) for binary treatment.
+            CATE estimates. Shape ``(n_samples,)`` for binary treatment,
+            ``(n_samples, n_treatments)`` for multi-valued treatment.
 
         Raises
         ------
         RuntimeError
             If called before ``fit()``.
 
-        Notes
-        -----
-        For binary treatments: returns E[Y(1) - Y(0) | X].
+        Examples
+        --------
+        ```python
+        # Typical implementation pattern
+        import numpy as np
+        from caml.estimators import BaseAutoCateEstimatorMixin
+
+
+        class MyEstimator(BaseAutoCateEstimatorMixin):
+            # ... capabilities definition ...
+
+            def effect(self, X, **kwargs):
+                # 1. Check if fitted
+                self.check_fitted()
+
+                # 2. Convert input format if needed
+                X = np.asarray(X)
+
+                # 3. Compute predictions
+                # ... prediction logic ...
+                cate = np.random.randn(len(X))  # Placeholder for actual predictions
+
+                # 4. Return as array
+                return np.asarray(cate)
+        ```
         """
         ...
-
-    def get_params(self, deep: bool = True) -> dict:
-        """Get estimator parameters (scikit-learn compatible).
-
-        Parameters
-        ----------
-        deep
-            If True, return parameters of nested estimators.
-
-        Returns
-        -------
-        dict
-            Parameter names and values.
-        """
-        ...
-
-    def set_params(self, **params) -> dict:
-        """Set estimator parameters (scikit-learn compatible).
-
-        Parameters
-        ----------
-        **params
-            Parameter names and values to set.
-
-        Returns
-        -------
-        dict
-            Estimator instance (self).
-        """
-        ...
-
-
-@runtime_checkable
-class InferenceProvider(Protocol):
-    """Protocol for estimators providing statistical inference for CATE estimates.
-
-    Defines interface for uncertainty quantification via confidence intervals and
-    standard errors. Separate from ``AutoCateEstimator`` to enable flexible composition.
-
-    Notes
-    -----
-    - Runtime-checkable via ``isinstance(obj, InferenceProvider)``
-    - Estimators can implement both ``AutoCateEstimator`` and ``InferenceProvider``
-    - For estimators without native inference, use ``BootstrapInferenceWrapper``
-    - Method parameter ``'auto'`` delegates to estimator's preferred inference method
-
-    Examples
-    --------
-    ```{python}
-    from caml.inference import InferenceType, InferenceResult
-    from caml.estimators import InferenceProvider
-
-    class InferenceCapableEstimator:
-
-        def __init__(self):
-            self.effect_value = None
-            self.se_value = 0.1
-
-        def effect_inference(self, X, **effect_inference_kwargs) -> InferenceResult:
-            cate = self._estimator.effect_inference(X)
-            return InferenceResult(
-                effect=cate,
-                stderr=se,
-                method=InferenceType.ANALYTIC
-            )
-
-    assert isinstance(InferenceCapableEstimator(), InferenceProvider)
-    ```
-    """
-
-    def effect_inference(
-        self,
-        X: np.ndarray | pd.DataFrame,
-        inference_type: InferenceType | None = None,
-        bootstrapper: bool | None = None,
-        **effect_inference_kwargs,
-    ) -> InferenceResult:
-        """Get complete inference results for CATE estimates.
-
-        Returns results in a single ``InferenceResult`` object, which can be used for hypothesis testing and confidence interval generation.
-
-        Parameters
-        ----------
-        X
-            Feature matrix for inference.
-        inference_type
-            Inference method to use (``InferenceType.ANALYTIC``, ``InferenceType.BOOTSTRAP``, or ``None`` for auto-selection).
-        bootstrapper
-            Bootstrap sampler to use if ``inference_type`` is ``InferenceType.BOOTSTRAP``. If ``None``, uses default bootstrapper.
-        **effect_inference_kwargs
-            Additional arguments (e.g., ``n_bootstrap``, ``random_state``).
-
-        Returns
-        -------
-        InferenceResult
-            Complete inference results with point estimates, CIs, stderr, and metadata.
-
-        Raises
-        ------
-        ValueError
-            If method not supported.
-        """
-        ...
-
-
-class BaseAutoCateEstimatorMixin(ABC):
-    """Base class and mixin for `AutoCateEstimator`."""
-
-    _estimator: BaseCateEstimator
-    _is_fitted: bool = False
-
-    # Class attributes that must be overridden by subclasses
-    capabilities: EstimatorCapabilities
 
     @classmethod
     def is_compatible_with(cls, data: CausalDataset) -> bool:
-        """Check if estimator can handle the given dataset (class method).
+        """Check estimator-data compatibility (**CONCRETE**).
 
-        This is a class method, so you can check compatibility without
-        instantiating the estimator. Useful for filtering candidate
-        estimators in AutoML workflows.
+        This is a class method enabling compatibility checking without instantiation.
+        Useful for filtering candidate estimators in AutoML workflows before fitting.
 
         Parameters
         ----------
@@ -398,11 +469,11 @@ class BaseAutoCateEstimatorMixin(ABC):
         Examples
         --------
         ```{python}
-        from caml.estimators.dml import WrappedLinearDML
+        from caml.estimators.wrappers.dml import WrappedLinearDML
         from caml.data import CausalDataset, TreatmentType, OutcomeType
         from caml.extensions.synthetic_data import SyntheticDataGenerator
 
-        # Generate data
+        # Generate test data
         gen = SyntheticDataGenerator(seed=42)
         data = CausalDataset.from_dataframe(
             gen.df,
@@ -421,47 +492,107 @@ class BaseAutoCateEstimatorMixin(ABC):
         ```
 
         ```{python}
-        # Check multiple estimators efficiently
-        from caml.estimators.dml import (
+        # Filter multiple estimators efficiently
+        from caml.estimators.wrappers.dml import (
             WrappedLinearDML,
+            WrappedSparseLinearDML,
         )
 
-        candidates = [WrappedLinearDML]
+        candidates = [WrappedLinearDML, WrappedSparseLinearDML]
         compatible = [
             est_class for est_class in candidates
             if est_class.is_compatible_with(data)
         ]
-        print(f"Compatible estimators: {[c.__name__ for c in compatible]}")
+        print(f"Compatible: {[c.__name__ for c in compatible]}")
         ```
         """
         return cls.capabilities.is_compatible(data)
 
-    @abstractmethod
-    def fit(self, data: CausalDataset, **fit_kwargs) -> AutoCateEstimator:
-        """Fit the estimator on causal data."""
-        ...
-
-    @abstractmethod
-    def effect(self, X: np.ndarray | pd.DataFrame) -> np.ndarray:
-        """Predict/estimate CATE for given features."""
-        ...
-
-    @abstractmethod
     def get_params(self, deep: bool = True) -> dict:
-        """Get estimator parameters (scikit-learn compatible)."""
+        """Get estimator parameters (**CONCRETE**).
+
+        Returns a dictionary of parameter names and values. If ``deep=True``,
+        recursively gets parameters of nested estimators.
+
+        Parameters
+        ----------
+        deep
+            If True, return parameters of nested estimators (e.g., nuisance models).
+
+        Returns
+        -------
+        dict
+            Parameter names mapped to their values.
+
+        Examples
+        --------
+        ```python
+        from caml.estimators.wrappers.dml import WrappedLinearDML
+        from sklearn.linear_model import LassoCV
+
+        est = WrappedLinearDML(model_y=LassoCV(), model_t=LassoCV(), discrete_treatment=True)
+
+        params = est.get_params(deep=True)
+        print(f"discrete_treatment: {params['discrete_treatment']}")
+        ```
+        """
         ...
 
-    @abstractmethod
-    def set_params(self, **params) -> dict:
-        """Set estimator parameters (scikit-learn compatible)."""
+    def set_params(self, **params):
+        """Set estimator parameters (**CONCRETE**).
+
+        Allows setting parameters after initialization. Useful for hyperparameter
+        tuning and grid search.
+
+        Parameters
+        ----------
+        **params
+            Parameter names and values to set.
+
+        Returns
+        -------
+        BaseAutoCateEstimatorMixin
+            Estimator instance (self) for method chaining.
+
+        Raises
+        ------
+        ValueError
+            If parameter name is invalid.
+
+        Examples
+        --------
+        ```python
+        from caml.estimators.wrappers.dml import WrappedLinearDML
+
+        est = WrappedLinearDML()
+        est.set_params(discrete_treatment=False)
+        print(est.get_params()["discrete_treatment"])
+        ```
+
+        ```{python}
+        # Method chaining
+        est = WrappedLinearDML().set_params(
+            discrete_treatment=True,
+            random_state=42
+        )
+        ```
+        """
         ...
 
-    def _check_fitted(self):
-        """Check if estimator has been fitted."""
-        if self._estimator is None:
-            raise RuntimeError(
-                f"{self.__class__.__name__} has no underlying estimator set."
-            )
+    def check_fitted(self):
+        """Check if estimator has been fitted (**CONCRETE**).
+
+        Raises
+        ------
+        RuntimeError
+            If estimator has no underlying estimator or has not been fitted.
+
+        Notes
+        -----
+        This is an internal utility method. Subclasses should call this at the
+        start of ``effect()`` and other post-fit methods to ensure the estimator
+        has been properly fitted.
+        """
         if not hasattr(self, "_is_fitted") or not self._is_fitted:
             raise RuntimeError(
                 f"{self.__class__.__name__} must be fitted before prediction. "
@@ -469,8 +600,17 @@ class BaseAutoCateEstimatorMixin(ABC):
             )
 
     def __init_subclass__(cls, **kwargs) -> None:
-        """Strictly enforce that subclasses define required class attributes (capabilities)."""
+        """Enforce that subclasses define required class attributes (**CONCRETE**).
+
+        Raises
+        ------
+        TypeError
+            If non-abstract subclass doesn't define ``capabilities``.
+        """
         super().__init_subclass__(**kwargs)
 
         if "capabilities" not in cls.__dict__ and not inspect.isabstract(cls):
-            raise TypeError(f"{cls.__name__} must define capabilities")
+            raise TypeError(
+                f"{cls.__name__} must define 'capabilities' as a class attribute. "
+                f"See EstimatorCapabilities for details."
+            )

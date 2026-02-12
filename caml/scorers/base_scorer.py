@@ -1,13 +1,13 @@
 """Shared base functionality, protocols, and interfaces for CATE scorers.
 
 CaML scorers evaluate fitted CATE estimators (minimum requirement is estimators implement ``effect(X)``)
-on a `CausalDataset`. They are primarily intended for model selection (e.g., Optuna),
+on a ``CausalDataset``. They are primarily intended for model selection (e.g., Optuna),
 where scores are compared across candidate estimators. These scores can also be used
 for general evaluation outside of CaML's tuning framework.
 
 Most causal scores depend on nuisance quantities (e.g., propensity scores,
 outcome regressions). In CaML these are computed out-of-fold using
-`CrossFitter`.
+``CrossFitter``.
 """
 
 import inspect
@@ -28,17 +28,21 @@ class ScorerCapabilities:
     Parameters
     ----------
     treatment_types
-        Treatment variable types the estimator supports (e.g., ``{TreatmentType.BINARY}``).
+        Treatment variable types the scorer supports (e.g., ``{TreatmentType.BINARY}``).
     outcome_types
-        Outcome variable types the estimator supports (e.g., ``{OutcomeType.CONTINUOUS}``).
+        Outcome variable types the scorer supports (e.g., ``{OutcomeType.CONTINUOUS}``).
     requires_treatment_model
-        If True, estimator needs a treatment model - $\mathbb{E}[T \mid X,W]$.
+        If True, scorer needs a treatment model - $\mathbb{E}[T \mid X,W]$.
     requires_outcome_model
-        If True, estimator needs an outcome model - $\mathbb{E}[Y \mid X,W]$.
+        If True, scorer needs an outcome model - $\mathbb{E}[Y \mid X,W]$.
     requires_regression_model
-        If True, estimator needs a regression model - $\mathbb{E}[Y \mid T,X,W]$.
+        If True, scorer needs a regression model - $\mathbb{E}[Y \mid T,X,W]$.
     requires_oracle_cates
-        Whether the scorer requires oracle CATEs to be available.
+        If True, scorer requires oracle CATEs to be available (for simulation studies).
+    higher_is_better
+        If True, higher scores indicate better performance (e.g., R^2). If False, lower scores are better (e.g., MSE).
+    supports_weights
+        If True, scorer handles sample weights (not yet supported in CaML).
 
     Examples
     --------
@@ -52,7 +56,9 @@ class ScorerCapabilities:
         requires_treatment_model=True,
         requires_outcome_model=True,
         requires_regression_model=False,
-        requires_oracle_cates=False
+        requires_oracle_cates=False,
+        higher_is_better=False,
+        supports_weights=False
     )
     ```
     """
@@ -63,11 +69,9 @@ class ScorerCapabilities:
     requires_outcome_model: bool
     requires_regression_model: bool
     requires_oracle_cates: bool = False
-    supports_weights: bool = (
-        False  # Not Supported Yet - for future use with weighted scores like R-loss
-    )
+    higher_is_better: bool = False
+    supports_weights: bool = False
 
-    # TODO: Refine compatibility logic!!
     def is_compatible(self, data: CausalDataset) -> bool:
         """Check if scorer can handle the given dataset.
 
@@ -84,7 +88,7 @@ class ScorerCapabilities:
         Examples
         --------
         ```{python}
-        from caml.data import TreatmentType, OutcomeType, Estimand, CausalDataset
+        from caml.data import TreatmentType, OutcomeType, CausalDataset
         from caml.scorers import ScorerCapabilities
         import numpy as np
 
@@ -94,7 +98,8 @@ class ScorerCapabilities:
             requires_treatment_model=True,
             requires_outcome_model=True,
             requires_regression_model=False,
-            requires_oracle_cates=False
+            requires_oracle_cates=False,
+            higher_is_better=False,
         )
 
         np.random.seed(42)
@@ -106,7 +111,7 @@ class ScorerCapabilities:
             outcome_type=OutcomeType.CONTINUOUS
         )
 
-        print(capabilities.is_compatible(data))
+        capabilities.is_compatible(data)
         ```
         """
         return (
@@ -117,86 +122,73 @@ class ScorerCapabilities:
 
 @runtime_checkable
 class CateScorer(Protocol):
-    """Core protocol defining the inferface for CATE scorers.
+    """Protocol defining the core CATE scorer interface (structural subtyping).
 
-    All CATE scorers in CaML must implement this protocol.
+    Specifies the minimal interface all CATE scorers must implement. Scorers evaluate
+    fitted CATE estimators on a dataset and return a score. Runtime-checkable via
+    ``isinstance(obj, CateScorer)``.
 
     Notes
     -----
-    - This is a Protocol (structural subtyping), not a base class
-    - Runtime-checkable via ``isinstance(obj, CateScorer)``
-    - ``capabilities`` is class attributes, not properties
+    This is a Protocol using structural typing - any class implementing these methods
+    will satisfy this interface. For a base implementation with compatibility checking
+    and validation utilities, see ``BaseCateScorerMixin``.
 
-    Examples
+    The ``capabilities`` attribute must be a class attribute, not an instance attribute.
+
+    Scorers are callable objects that take a fitted estimator and dataset, returning
+    a score.
+
+    See Also
     --------
-    ```{python}
-    import numpy as np
-    from caml.scorers import CateScorer, ScorerCapabilities, BaseCateScorerMixin
-    from caml.data import TreatmentType, OutcomeType
+    [`BaseCateScorerMixin`](base_scorer.qmd#caml.scorers.base_scorer.BaseCateScorerMixin) : ABC base class with concrete implementations.
 
-    class NegMAEOnOracleCATE(BaseCateScorerMixin):
-
-        capabilities: ScorerCapabilities = ScorerCapabilities(
-            treatment_types={TreatmentType.BINARY},
-            outcome_types={OutcomeType.CONTINUOUS},
-            supports_weights=False,
-            requires_treatment_model=False,
-            requires_outcome_model=False,
-            requires_regression_model=False,
-            requires_oracle_cates=True
-        )
-
-        def __call__(self, estimator, data):
-            tau_hat = estimator.effect(data.X)
-            mae = np.mean(np.abs(tau_hat - data.true_cates))
-            return -mae
-
-    assert isinstance(NegMAEOnOracleCATE(), CateScorer)
-    ```
+    [`ScorerCapabilities`](base_scorer.qmd#caml.scorers.base_scorer.ScorerCapabilities) : Metadata for scorer features.
     """
 
     capabilities: ScorerCapabilities
 
     @classmethod
     def is_compatible_with(cls, data: CausalDataset) -> bool:
-        """Check if scorer can handle the given dataset (class method).
-
-        This is a class method, so you can check compatibility without
-        instantiating the estimator. Useful for filtering candidate
-        estimators in AutoML workflows.
-
-        Parameters
-        ----------
-        data
-            Dataset to check compatibility with.
-
-        Returns
-        -------
-        bool
-            True if scorer supports the dataset's treatment and outcome types.
-        """
+        """Check scorer-data compatibility (class method)."""
         ...
 
     def __call__(self, estimator, data: CausalDataset) -> float:
-        """Score the estimator on data.
-
-        Parameters
-        ----------
-        estimator
-            Fitted CATE estimator implementing ``effect(X)``.
-        data
-            Causal Dataset to score on
-
-        Returns
-        -------
-        float
-            Loss or score
-        """
+        """Score the estimator on data."""
         ...
 
 
 class BaseCateScorerMixin(ABC):
-    """Base class and mixin for `CateScorer`.
+    """Abstract base class for ``CateScorer`` with validation and utilities.
+
+    Provides concrete implementation of compatibility checking. Subclasses must
+    implement ``__call__()`` to define the scoring logic.
+
+    This class serves as the recommended base for all CATE scorers in CaML,
+    providing a consistent interface and common utilities.
+
+    Notes
+    -----
+    **Abstract Methods (must be implemented by subclasses):**
+
+    - ``__call__()`` - Compute score for estimator on dataset
+
+    **Concrete Methods (provided by this base class):**
+
+    - ``is_compatible_with()`` - Class method for compatibility checking
+
+    **Required Class Attributes:**
+
+    - ``capabilities`` - ``ScorerCapabilities`` instance defining supported features
+
+    Subclasses must define ``capabilities`` as a class attribute. Failure to do so
+    will raise a ``TypeError`` on class definition (enforced by ``__init_subclass__``).
+
+    See Also
+    --------
+    [`CateScorer`](base_scorer.qmd#caml.scorers.base_scorer.CateScorer) : Protocol defining the interface.
+
+    [`ScorerCapabilities`](base_scorer.qmd#caml.scorers.base_scorer.ScorerCapabilities) : Metadata for scorer features.
 
     Examples
     --------
@@ -205,51 +197,154 @@ class BaseCateScorerMixin(ABC):
     from caml.scorers import BaseCateScorerMixin, ScorerCapabilities
     from caml.data import TreatmentType, OutcomeType
 
-    class NegMAEOnOracleCATE(BaseCateScorerMixin):
-
-        capabilities: ScorerCapabilities = ScorerCapabilities(
+    class MAEOnOracleCATE(BaseCateScorerMixin):
+        # Required class attribute
+        capabilities = ScorerCapabilities(
             treatment_types={TreatmentType.BINARY},
             outcome_types={OutcomeType.CONTINUOUS},
             supports_weights=False,
             requires_treatment_model=False,
             requires_outcome_model=False,
             requires_regression_model=False,
-            requires_oracle_cates=False
+            requires_oracle_cates=True,
+            higher_is_better=False,
         )
 
         def __call__(self, estimator, data):
+            # Abstract method implementation
             tau_hat = estimator.effect(data.X)
             mae = np.mean(np.abs(tau_hat - data.true_cates))
-            return -mae
+            return mae
+
+    # Verify protocol conformance
+    from caml.scorers import CateScorer
+    scorer = MAEOnOracleCATE()
+    assert isinstance(scorer, CateScorer)
+    assert isinstance(scorer, BaseCateScorerMixin)
+    ```
+
+    ```{python}
+    # Use is_compatible_with before instantiation
+    from caml.extensions.synthetic_data import SyntheticDataGenerator
+    from caml.data import CausalDataset
+
+    gen = SyntheticDataGenerator(seed=42)
+    data = CausalDataset.from_dataframe(
+        gen.df,
+        X=[c for c in gen.df.columns if "X" in c],
+        T="T1_binary",
+        Y="Y1_continuous",
+        treatment_type=TreatmentType.BINARY,
+        outcome_type=OutcomeType.CONTINUOUS,
+        true_cates=gen.cates
+    )
+
+    # Check compatibility before instantiating
+    if MAEOnOracleCATE.is_compatible_with(data):
+        print("MAEOnOracleCATE can handle this data!")
     ```
     """
 
+    # Class attribute that must be overridden by subclasses
     capabilities: ScorerCapabilities
 
     @abstractmethod
     def __call__(self, estimator, data: CausalDataset) -> float:
-        """Score the estimator on data.
+        """Score the estimator on data (**ABSTRACT**).
+
+        Notes
+        -----
+        **This is an abstract method.** Subclasses must provide a complete
+        implementation that computes a score for the estimator on the dataset.
+
+        Implementations should:
+
+        1. Extract CATE predictions via ``estimator.effect(data.X)``
+        2. Compute the score using the predictions and any necessary nuisance quantities (e.g., true CATEs, pseudo-outcomes)
+        3. Return a scalar score
 
         Parameters
         ----------
         estimator
-            Fitted CATE estimator implementing ``effect(X)``.
+            Fitted CATE estimator implementing ``effect(X)`` method.
         data
-            Causal Dataset to score on
+            Causal dataset to score on.
 
         Returns
         -------
         float
-            Loss or score
+            Score value.
+
+        Examples
+        --------
+        ```python
+        # Typical implementation pattern for oracle-based scorer
+        import numpy as np
+        from caml.scorers import BaseCateScorerMixin, ScorerCapabilities
+        from caml.data import TreatmentType, OutcomeType
+
+
+        class RMSEScorer(BaseCateScorerMixin):
+            capabilities = ScorerCapabilities(
+                treatment_types={TreatmentType.BINARY},
+                outcome_types={OutcomeType.CONTINUOUS},
+                requires_treatment_model=False,
+                requires_outcome_model=False,
+                requires_regression_model=False,
+                requires_oracle_cates=True,
+                higher_is_better=False,
+            )
+
+            def __call__(self, estimator, data):
+                # 1. Get CATE predictions
+                tau_hat = estimator.effect(data.X)
+
+                # 2. Compute score (requires oracle CATEs)
+                rmse = np.sqrt(np.mean((tau_hat - data.true_cates) ** 2))
+
+                # 3. Return score
+                return rmse
+        ```
+
+        ```python
+        # Pattern for scorer using nuisance models (pseudo-outcome)
+        from caml.scorers import BaseCateScorerMixin, ScorerCapabilities
+
+
+        class PseudoOutcomeScorer(BaseCateScorerMixin):
+            capabilities = ScorerCapabilities(
+                treatment_types={TreatmentType.BINARY},
+                outcome_types={OutcomeType.CONTINUOUS},
+                requires_treatment_model=True,
+                requires_outcome_model=True,
+                requires_regression_model=False,
+                requires_oracle_cates=False,
+                higher_is_better=False,
+            )
+
+            def __call__(self, estimator, data):
+                # 1. Get predictions
+                tau_hat = estimator.effect(data.X)
+
+                # 2. Extract nuisance predictions (computed out-of-fold)
+                # Assume data has nuisance_predictions attribute
+                pseudo_outcome = compute_pseudo_outcome(data, nuisance_preds)
+
+                # 3. Compute score
+                score = np.mean((tau_hat - pseudo_outcome) ** 2)
+
+                # 4. Return score
+                return score
+        ```
         """
+        ...
 
     @classmethod
     def is_compatible_with(cls, data: CausalDataset) -> bool:
-        """Check if scorer can handle the given dataset (class method).
+        """Check scorer-data compatibility (**CONCRETE**).
 
-        This is a class method, so you can check compatibility without
-        instantiating the estimator. Useful for filtering candidate
-        estimators in AutoML workflows.
+        This is a class method enabling compatibility checking without instantiation.
+        Useful for filtering candidate scorers before evaluation.
 
         Parameters
         ----------
@@ -264,11 +359,11 @@ class BaseCateScorerMixin(ABC):
         Examples
         --------
         ```{python}
-        from caml.scorers import DRLoss
+        from caml.scorers import RLoss
         from caml.data import CausalDataset, TreatmentType, OutcomeType
         from caml.extensions.synthetic_data import SyntheticDataGenerator
 
-        # Generate data
+        # Generate test data
         gen = SyntheticDataGenerator(seed=42)
         data = CausalDataset.from_dataframe(
             gen.df,
@@ -280,29 +375,35 @@ class BaseCateScorerMixin(ABC):
         )
 
         # Check compatibility WITHOUT instantiating
-        if DRLoss.is_compatible_with(data):
-            print("DRLoss can handle this data!")
+        if RLoss.is_compatible_with(data):
+            print("RLoss can handle this data!")
         ```
 
         ```{python}
-        # Check multiple estimators efficiently
-        from caml.scorers import (
-            DRLoss,
-            RLoss
-        )
+        # Filter multiple scorers efficiently
+        from caml.scorers import RLoss, DRLoss
 
-        candidates = [DRLoss, RLoss]
+        candidates = [RLoss, DRLoss]
         compatible = [
-            scr_class for scr_class in candidates
-            if scr_class.is_compatible_with(data)
+            scorer_class for scorer_class in candidates
+            if scorer_class.is_compatible_with(data)
         ]
-        print(f"Compatible scorers: {[c.__name__ for c in compatible]}")
+        print(f"Compatible: {[c.__name__ for c in compatible]}")
         ```
         """
         return cls.capabilities.is_compatible(data)
 
     def __init_subclass__(cls, **kwargs) -> None:
-        """Strictly enforce that subclasses define required class attributes (capabilities)."""
+        """Enforce that subclasses define required class attributes - (**CONCRETE**).
+
+        Raises
+        ------
+        TypeError
+            If non-abstract subclass doesn't define ``capabilities``.
+        """
         super().__init_subclass__(**kwargs)
         if "capabilities" not in cls.__dict__ and not inspect.isabstract(cls):
-            raise TypeError(f"{cls.__name__} must define capabilities")
+            raise TypeError(
+                f"{cls.__name__} must define 'capabilities' as a class attribute. "
+                f"See ScorerCapabilities for details."
+            )

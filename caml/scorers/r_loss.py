@@ -57,6 +57,7 @@ class RLoss(BaseCateScorerMixin):
         requires_outcome_model=True,
         requires_regression_model=False,
         requires_oracle_cates=False,
+        higher_is_better=False,
         supports_weights=False,
     )
 
