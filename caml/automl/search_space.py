@@ -2,13 +2,38 @@
 
 Provides dataclass-based specifications that can be converted to Optuna,
 or other AutoML library formats.
+
+```{python}
+
+from caml.automl import (
+    IntSpec,
+    FloatSpec,
+    CategoricalSpec,
+    BoolSpec,
+    ConstantSpec,
+    NuisanceModelSpec,
+    SearchSpaceSpec,
+    SearchSpace
+)
+
+search_space: SearchSpace = (
+    IntSpec(name="cv", lower=2, upper=10),
+    FloatSpec(name="alpha", lower=0.0, upper=1.0),
+    CategoricalSpec(name="solver", choices=["auto", "svd", "cholesky", "lsqr"]),
+    BoolSpec(name="fit_intercept"),
+    ConstantSpec(name="random_state", value=42),
+    NuisanceModelSpec(name="model_y", model_type="outcome"),
+)
+
+assert all(isinstance(spec, SearchSpaceSpec) for spec in search_space)
+```
 """
 
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
-from typing import Any, Literal
+from typing import Any, Literal, Sequence
 
 
 @dataclass
@@ -236,6 +261,10 @@ class BoolSpec(SearchSpaceSpec):
         """Sample boolean using Optuna."""
         return trial.suggest_categorical(self.name, [True, False])
 
+    def validate(self) -> None:
+        """No validation needed for boolean spec."""
+        pass
+
 
 @dataclass
 class ConstantSpec(SearchSpaceSpec):
@@ -266,6 +295,10 @@ class ConstantSpec(SearchSpaceSpec):
     def to_optuna(self, trial) -> Any:
         """Return constant value (no sampling)."""
         return self.value
+
+    def validate(self) -> None:
+        """No validation needed for constant spec."""
+        pass
 
 
 @dataclass
@@ -314,5 +347,5 @@ class NuisanceModelSpec(SearchSpaceSpec):
         )
 
 
-SearchSpace = list[SearchSpaceSpec]
-"""Convenience type alias for a list of search space specifications."""
+SearchSpace = Sequence[SearchSpaceSpec]
+"""Convenience alias for a sequence of search space specifications. That is, `Sequence[SearchSpaceSpec]`."""

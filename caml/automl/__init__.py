@@ -1,4 +1,4 @@
-from .search_space_specs import (
+from .search_space import (
     BoolSpec,
     CategoricalSpec,
     ConstantSpec,
@@ -6,10 +6,12 @@ from .search_space_specs import (
     IntSpec,
     NuisanceModelSpec,
     SearchSpace,
+    SearchSpaceSpec,
 )
 
 __all__ = [
     "SearchSpace",
+    "SearchSpaceSpec",
     "IntSpec",
     "FloatSpec",
     "CategoricalSpec",

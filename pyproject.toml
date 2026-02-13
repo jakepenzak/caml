@@ -128,6 +128,7 @@ filterwarnings = [
 ]
 addopts = "--cov=caml/ --cov-branch --cov-report=term-missing --cov-report=html:tests/reports/htmlcov --cov-report=xml:tests/reports/coverage.xml"
 markers = [
+    "automl: mark tests for the automl module",
     "data: mark tests for the data module",
     "extensions: mark tests for the extensions module",
     "inference: mark tests for the inference module",

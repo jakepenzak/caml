@@ -109,8 +109,11 @@ quartodoc:
       desc: "`caml` \n\n Core CaML modules."
 
     - subtitle: AutoML
-      desc: "`caml.automl` \n\n Primary AutoML Estimator."
+      desc: "`caml.automl` \n\n Primary AutoML CATE Estimator and search space specifications."
       package: caml.automl
+      contents:
+        - name: search_space
+          member_order: source
 
     - subtitle: Data
       desc: "`caml.data` \n\n CaML Data Containers and schemas."
