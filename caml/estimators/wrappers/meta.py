@@ -153,12 +153,6 @@ class WrappedSLearner(BaseEconMLWrapperMixin):
 
         return self
 
-    def get_params(self, deep=True):
-        return {}
-
-    def set_params(self, **params):
-        return self
-
 
 @auto_register(name="TLearner", family="meta")
 class WrappedTLearner(BaseEconMLWrapperMixin):
@@ -293,12 +287,6 @@ class WrappedTLearner(BaseEconMLWrapperMixin):
 
         self._is_fitted = True
 
-        return self
-
-    def get_params(self, deep=True):
-        return {}
-
-    def set_params(self, **params):
         return self
 
 
@@ -439,10 +427,4 @@ class WrappedXLearner(BaseEconMLWrapperMixin):
 
         self._is_fitted = True
 
-        return self
-
-    def get_params(self, deep=True):
-        return {}
-
-    def set_params(self, **params):
         return self

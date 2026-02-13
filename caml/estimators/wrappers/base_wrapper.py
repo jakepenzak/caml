@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import inspect
 from abc import abstractmethod
 
 import numpy as np
@@ -88,6 +89,90 @@ class BaseEconMLWrapperMixin(BaseAutoCateEstimatorMixin):
             stderr=effect_inference.stderr,
             method=inference_type,
         )
+
+    def get_params(self, deep=True):
+        """Get parameters for this estimator.
+
+        Returns all parameters of the underlying LinearDML estimator,
+        including defaults that weren't explicitly passed.
+
+        Parameters
+        ----------
+        deep
+            If True, will return the parameters for this estimator and
+            contained subobjects that are estimators.
+
+        Returns
+        -------
+        dict
+            Parameter names mapped to their values.
+        """
+        # Get the __init__ signature of LinearDML
+        sig = inspect.signature(self._estimator.__init__)
+
+        # Start with all default parameters
+        params = {}
+        for param_name, param in sig.parameters.items():
+            if param_name == "self":
+                continue
+            if param.default != inspect.Parameter.empty:
+                params[param_name] = param.default
+
+        # Override with user-provided kwargs
+        params.update(self._econml_kwargs)
+
+        # If deep=True, try to get params from nested estimators
+        if deep:
+            for key, value in list(params.items()):
+                if hasattr(value, "get_params"):
+                    nested_params = value.get_params(deep=True)
+                    params.update({f"{key}__{k}": v for k, v in nested_params.items()})
+
+        return params
+
+    def set_params(self, **params):
+        """Set the parameters of this estimator.
+
+        Parameters
+        ----------
+        **params
+            Estimator parameters.
+
+        Returns
+        -------
+        self
+            Estimator instance.
+        """
+        # Handle nested parameters (e.g., model_y__alpha)
+        nested_params = {}
+        direct_params = {}
+
+        for key, value in params.items():
+            if "__" in key:
+                # This is a nested parameter
+                estimator_name, param_name = key.split("__", 1)
+                if estimator_name not in nested_params:
+                    nested_params[estimator_name] = {}
+                nested_params[estimator_name][param_name] = value
+            else:
+                direct_params[key] = value
+
+        # Update direct parameters
+        self._econml_kwargs.update(direct_params)
+
+        # Update nested estimators
+        for estimator_name, nested_dict in nested_params.items():
+            if estimator_name in self._econml_kwargs:
+                estimator = self._econml_kwargs[estimator_name]
+                if hasattr(estimator, "set_params"):
+                    estimator.set_params(**nested_dict)
+
+        # Recreate estimator with updated parameters
+        self._estimator = self._estimator.__class__(**self._econml_kwargs)
+        # Reset fitted state since parameters changed
+        self._is_fitted = False
+
+        return self
 
     def __getattr__(self, name: str):
         """Forward attribute access to underlying estimator if not found on Wrapper."""

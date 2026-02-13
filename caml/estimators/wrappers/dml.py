@@ -152,12 +152,6 @@ class WrappedLinearDML(BaseEconMLWrapperMixin):
 
         return self
 
-    def get_params(self, deep=True):
-        return {}
-
-    def set_params(self, **params):
-        return self
-
 
 @auto_register(name="SparseLinearDML", family="dml")
 class WrappedSparseLinearDML(BaseEconMLWrapperMixin):
@@ -310,12 +304,6 @@ class WrappedSparseLinearDML(BaseEconMLWrapperMixin):
 
         self._is_fitted = True
 
-        return self
-
-    def get_params(self, deep=True):
-        return {}
-
-    def set_params(self, **params):
         return self
 
 
@@ -472,12 +460,6 @@ class WrappedCausalForestDML(BaseEconMLWrapperMixin):
 
         return self
 
-    def get_params(self, deep=True):
-        return {}
-
-    def set_params(self, **params):
-        return self
-
 
 @auto_register(name="NonParamDML", family="dml")
 class WrappedNonParamDML(BaseEconMLWrapperMixin):
@@ -627,12 +609,6 @@ class WrappedNonParamDML(BaseEconMLWrapperMixin):
 
         return self
 
-    def get_params(self, deep=True):
-        return {}
-
-    def set_params(self, **params):
-        return self
-
 
 @auto_register(name="KernelDML", family="dml")
 class WrappedKernelDML(BaseEconMLWrapperMixin):
@@ -780,10 +756,4 @@ class WrappedKernelDML(BaseEconMLWrapperMixin):
 
         self._is_fitted = True
 
-        return self
-
-    def get_params(self, deep=True):
-        return {}
-
-    def set_params(self, **params):
         return self

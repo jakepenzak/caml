@@ -163,12 +163,6 @@ class WrappedDRLearner(BaseEconMLWrapperMixin):
 
         return self
 
-    def get_params(self, deep=True):
-        return {}
-
-    def set_params(self, **params):
-        return self
-
 
 @auto_register(name="LinearDRLearner", family="dr")
 class WrappedLinearDRLearner(BaseEconMLWrapperMixin):
@@ -316,12 +310,6 @@ class WrappedLinearDRLearner(BaseEconMLWrapperMixin):
 
         self._is_fitted = True
 
-        return self
-
-    def get_params(self, deep=True):
-        return {}
-
-    def set_params(self, **params):
         return self
 
 
@@ -475,12 +463,6 @@ class WrappedSparseLinearDRLearner(BaseEconMLWrapperMixin):
 
         return self
 
-    def get_params(self, deep=True):
-        return {}
-
-    def set_params(self, **params):
-        return self
-
 
 @auto_register(name="ForestDRLearner", family="dr")
 class WrappedForestDRLearner(BaseEconMLWrapperMixin):
@@ -628,10 +610,4 @@ class WrappedForestDRLearner(BaseEconMLWrapperMixin):
 
         self._is_fitted = True
 
-        return self
-
-    def get_params(self, deep=True):
-        return {}
-
-    def set_params(self, **params):
         return self

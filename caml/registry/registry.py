@@ -194,9 +194,9 @@ def register_estimator(
     ```{python}
     from caml.registry import register_estimator, available_estimators, EstimatorFamily
     from caml.data import CausalDataset, TreatmentType, OutcomeType, Estimand
-    from caml.estimators import EstimatorCapabilities
+    from caml.estimators import EstimatorCapabilities, BaseAutoCateEstimatorMixin
 
-    class SimpleEstimator:
+    class SimpleEstimator(BaseAutoCateEstimatorMixin):
 
         capabilities = EstimatorCapabilities(
             treatment_types={TreatmentType.BINARY},
@@ -211,12 +211,8 @@ def register_estimator(
             supports_inference=False
             )
 
-        def __init__(self):
-            self.effect_value = None
-
-        def is_compatible_with(cls, data: CausalDataset) -> bool:
-            temp_instance = cls()
-            return temp_instance.capabilities.is_compatible(data)
+        def __init__(self, x: str = "x"):
+            self.x = x
 
         def fit(self, data, **kwargs):
             T = np.asarray(data.T)
@@ -227,13 +223,6 @@ def register_estimator(
         def effect(self, X, **kwargs):
             n = len(X) if hasattr(X, '__len__') else 1
             return np.full(n, self.effect_value)
-
-        def get_params(self, deep=True):
-            return {}
-
-        def set_params(self, **params):
-            return self
-
 
     # Current available estimators
     print(available_estimators.keys())
@@ -331,11 +320,11 @@ def auto_register(
     ```{python}
     from caml.registry import auto_register, available_estimators, EstimatorFamily
     from caml.data import CausalDataset, TreatmentType, OutcomeType, Estimand
-    from caml.estimators import EstimatorCapabilities
+    from caml.estimators import EstimatorCapabilities, BaseAutoCateEstimatorMixin
     import numpy as np
 
     @auto_register(name="MyCustomEstimator", family=EstimatorFamily.CUSTOM)
-    class MyCustomEstimator:
+    class MyCustomEstimator(BaseAutoCateEstimatorMixin):
 
         capabilities = EstimatorCapabilities(
             treatment_types={TreatmentType.BINARY},
@@ -350,8 +339,8 @@ def auto_register(
             supports_inference=False
         )
 
-        def __init__(self):
-            self.effect_value = None
+        def __init__(self, x: str = "x"):
+            self.x = x
 
         @classmethod
         def is_compatible_with(cls, data: CausalDataset) -> bool:
@@ -368,19 +357,12 @@ def auto_register(
             n = len(X) if hasattr(X, '__len__') else 1
             return np.full(n, self.effect_value)
 
-        def get_params(self, deep=True):
-            return {}
-
-        def set_params(self, **params):
-            return self
-
     # Check that it was registered
     print("MyCustomEstimator" in available_estimators)
     ```
 
     ```{python}
     from caml.registry import auto_register, available_scorers, ScorerFamily
-
 
     @auto_register(name="NegMAEOnOracleCATE", family=ScorerFamily.ORACLE, is_estimator=False)
     class NegMAEOnOracleCATE(BaseCateScorerMixin):

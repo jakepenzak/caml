@@ -14,6 +14,7 @@ from typing import Protocol, runtime_checkable
 
 import numpy as np
 import pandas as pd
+from sklearn.base import BaseEstimator
 
 from caml.data import CausalDataset, Estimand, OutcomeType, TreatmentType
 from caml.inference import InferenceResult, InferenceType
@@ -179,6 +180,10 @@ class AutoCateEstimator(Protocol):
         """Set estimator parameters (scikit-learn compatible)."""
         ...
 
+    # def search_space(self) -> SearchSpace:
+    #     """Return hyperparameter search space for AutoML tuning."""
+    #     ...
+
 
 @runtime_checkable
 class InferenceProvider(Protocol):
@@ -211,11 +216,14 @@ class InferenceProvider(Protocol):
         ...
 
 
-class BaseAutoCateEstimatorMixin(ABC):
+class BaseAutoCateEstimatorMixin(ABC, BaseEstimator):
     """Abstract base class for ``AutoCateEstimator`` with validation and utilities.
 
     Provides concrete implementations of compatibility checking, parameter methods,
-    and fitting validation. Subclasses must implement ``fit()`` and ``effect()``.
+    and fitting validation, with utilities inhereted from scikit-learn's `BaseEstimator`
+    (e.g., `get_params` and `set_params`).
+
+    Subclasses must implement ``fit()`` and ``effect()``.
 
     This class serves as the recommended base for all CATE estimators in CaML,
     providing a consistent interface and common utilities.
@@ -230,8 +238,6 @@ class BaseAutoCateEstimatorMixin(ABC):
     **Concrete Methods (provided by this base class):**
 
     - ``is_compatible_with()`` - Class method for compatibility checking
-    - ``get_params()`` - Get estimator parameters (scikit-learn compatible)
-    - ``set_params()`` - Set estimator parameters (scikit-learn compatible)
     - ``check_fitted()`` - Internal validation utility
 
     **Required Class Attributes:**
@@ -269,7 +275,8 @@ class BaseAutoCateEstimatorMixin(ABC):
             supports_inference=False
         )
 
-        def __init__(self):
+        def __init__(self, some_param: int = 42):
+            self.some_param = some_param
             self._is_fitted = False
             self.effect_value = None
 
@@ -292,6 +299,9 @@ class BaseAutoCateEstimatorMixin(ABC):
     est = SimpleEstimator()
     assert isinstance(est, AutoCateEstimator)
     assert isinstance(est, BaseAutoCateEstimatorMixin)
+
+    print(est.set_params(some_param=100))
+    print(est.get_params())
     ```
 
     ```{python}
@@ -507,77 +517,6 @@ class BaseAutoCateEstimatorMixin(ABC):
         ```
         """
         return cls.capabilities.is_compatible(data)
-
-    def get_params(self, deep: bool = True) -> dict:
-        """Get estimator parameters (**CONCRETE**).
-
-        Returns a dictionary of parameter names and values. If ``deep=True``,
-        recursively gets parameters of nested estimators.
-
-        Parameters
-        ----------
-        deep
-            If True, return parameters of nested estimators (e.g., nuisance models).
-
-        Returns
-        -------
-        dict
-            Parameter names mapped to their values.
-
-        Examples
-        --------
-        ```python
-        from caml.estimators.wrappers.dml import WrappedLinearDML
-        from sklearn.linear_model import LassoCV
-
-        est = WrappedLinearDML(model_y=LassoCV(), model_t=LassoCV(), discrete_treatment=True)
-
-        params = est.get_params(deep=True)
-        print(f"discrete_treatment: {params['discrete_treatment']}")
-        ```
-        """
-        ...
-
-    def set_params(self, **params):
-        """Set estimator parameters (**CONCRETE**).
-
-        Allows setting parameters after initialization. Useful for hyperparameter
-        tuning and grid search.
-
-        Parameters
-        ----------
-        **params
-            Parameter names and values to set.
-
-        Returns
-        -------
-        BaseAutoCateEstimatorMixin
-            Estimator instance (self) for method chaining.
-
-        Raises
-        ------
-        ValueError
-            If parameter name is invalid.
-
-        Examples
-        --------
-        ```python
-        from caml.estimators.wrappers.dml import WrappedLinearDML
-
-        est = WrappedLinearDML()
-        est.set_params(discrete_treatment=False)
-        print(est.get_params()["discrete_treatment"])
-        ```
-
-        ```{python}
-        # Method chaining
-        est = WrappedLinearDML().set_params(
-            discrete_treatment=True,
-            random_state=42
-        )
-        ```
-        """
-        ...
 
     def check_fitted(self):
         """Check if estimator has been fitted (**CONCRETE**).

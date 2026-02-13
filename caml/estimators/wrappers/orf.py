@@ -162,12 +162,6 @@ class WrappedDMLOrthoForest(BaseEconMLWrapperMixin):
 
         return self
 
-    def get_params(self, deep=True):
-        return {}
-
-    def set_params(self, **params):
-        return self
-
 
 @auto_register(name="DROrthoForest", family="orf")
 class WrappedDROrthoForest(BaseEconMLWrapperMixin):
@@ -304,10 +298,4 @@ class WrappedDROrthoForest(BaseEconMLWrapperMixin):
 
         self._is_fitted = True
 
-        return self
-
-    def get_params(self, deep=True):
-        return {}
-
-    def set_params(self, **params):
         return self
