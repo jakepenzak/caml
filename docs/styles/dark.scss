@@ -1,0 +1,48 @@
+/*-- scss:rules --*/
+
+/* Dark Mode Only - Scoped to .quarto-dark */
+.quarto-dark {
+    /* Navbar - Solar Background Color */
+    .navbar {
+        background-color: #002b36 !important;
+        text-transform: none;
+        font-size: 1.1rem;
+    }
+
+    .navbar-brand,
+    .navbar-nav .nav-link {
+        color: #93a1a1 !important;
+    }
+
+    .navbar-brand:hover,
+    .navbar-nav .nav-link:hover {
+        color: #2aa198 !important;
+    }
+
+    .navbar-nav .nav-link.active {
+        color: #2aa198 !important;
+    }
+
+    /* Inline Code - Solar Colors */
+    code:not(pre > code) {
+        color: #ffff !important;
+        background-color: #343a40 !important;
+        padding: 2px 4px;
+        border-radius: 4px;
+    }
+
+    /* Dropdowns - Solar Dark Theme */
+    .dropdown-menu {
+        background-color: #073642 !important;
+        color: #93a1a1 !important;
+    }
+
+    .dropdown-menu .dropdown-item {
+        color: #93a1a1 !important;
+    }
+
+    .dropdown-menu .dropdown-item:hover {
+        background-color: #002b36 !important;
+        color: #2aa198 !important;
+    }
+}
