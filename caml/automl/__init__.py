@@ -7,6 +7,7 @@ from .search_space import (
     NuisanceModelSpec,
     SearchSpace,
     SearchSpaceSpec,
+    StandardMLSpec,
 )
 
 __all__ = [

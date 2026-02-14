@@ -1,7 +1,7 @@
 from .registry import (
+    AVAILABLE_CATE_ESTIMATORS,
+    AVAILABLE_CATE_SCORERS,
     auto_register,
-    available_estimators,
-    available_scorers,
     get_compatible_estimators,
     get_compatible_scorers,
     register_estimator,
@@ -10,8 +10,8 @@ from .registry import (
 from .registry_enums import EstimatorFamily, ScorerFamily
 
 __all__ = [
-    "available_estimators",
-    "available_scorers",
+    "AVAILABLE_CATE_ESTIMATORS",
+    "AVAILABLE_CATE_SCORERS",
     "register_scorer",
     "EstimatorFamily",
     "ScorerFamily",

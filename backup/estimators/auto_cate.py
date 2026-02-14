@@ -23,7 +23,6 @@ from caml._generics.monkey_patch import DRTester
 from caml._generics.utils import is_module_available
 from caml.estimators.cross_section.cate.modeling.model_bank import (
     AutoCateEstimator,
-    available_estimators,
 )
 
 _HAS_PYSPARK = is_module_available("pyspark")

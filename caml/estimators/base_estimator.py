@@ -281,7 +281,7 @@ class BaseAutoCateEstimatorMixin(ABC, BaseEstimator):
         )
 
         default_search_space = (
-            IntSpec(name="some_param", low=1, high=100, default=42)
+            IntSpec(name="some_param", lower=1, upper=100)
         )
 
         def __init__(self, some_param: int = 42):
@@ -570,6 +570,7 @@ class BaseAutoCateEstimatorMixin(ABC, BaseEstimator):
             )
 
     def _validate_search_space(self):
+        """Validate that all attributes in the default search space are present in the estimator's parameters."""
         for attr in self.default_search_space:
             if attr.name not in self.get_params(deep=False):
                 raise TypeError(

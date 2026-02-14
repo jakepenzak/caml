@@ -7,9 +7,9 @@ from caml.data import CausalDataset, Estimand, OutcomeType, TreatmentType
 from caml.estimators import EstimatorCapabilities
 from caml.extensions.synthetic_data import SyntheticDataGenerator
 from caml.registry import (
+    AVAILABLE_CATE_ESTIMATORS,
     EstimatorFamily,
     auto_register,
-    available_estimators,
     get_compatible_estimators,
     register_estimator,
 )
@@ -76,17 +76,17 @@ def simple_estimator_class():
 
 
 class TestAvailableEstimators:
-    """Tests for available_estimators dict."""
+    """Tests for AVAILABLE_CATE_ESTIMATORS dict."""
 
-    def test_available_estimators_populated(self):
-        """Test that available_estimators is populated on import."""
+    def test_AVAILABLE_CATE_ESTIMATORS_populated(self):
+        """Test that AVAILABLE_CATE_ESTIMATORS is populated on import."""
         # Should have DML estimators from auto-registration
-        assert len(available_estimators) > 0
-        assert "LinearDML" in available_estimators
+        assert len(AVAILABLE_CATE_ESTIMATORS) > 0
+        assert "LinearDML" in AVAILABLE_CATE_ESTIMATORS
 
     def test_estimator_structure(self):
         """Test that estimators have correct structure."""
-        for name, entry in available_estimators.items():
+        for name, entry in AVAILABLE_CATE_ESTIMATORS.items():
             assert "estimator" in entry
             assert "family" in entry
             assert isinstance(entry["family"], EstimatorFamily)
@@ -158,37 +158,37 @@ class TestRegisterEstimator:
 
     def test_register_new_estimator(self, simple_estimator_class):
         """Test registering a new estimator."""
-        initial_count = len(available_estimators)
+        initial_count = len(AVAILABLE_CATE_ESTIMATORS)
         register_estimator(
             name="TestSimpleEstimator",
             estimator=simple_estimator_class,
             family=EstimatorFamily.CUSTOM,
         )
 
-        assert len(available_estimators) == initial_count + 1
-        assert "TestSimpleEstimator" in available_estimators
+        assert len(AVAILABLE_CATE_ESTIMATORS) == initial_count + 1
+        assert "TestSimpleEstimator" in AVAILABLE_CATE_ESTIMATORS
         assert (
-            available_estimators["TestSimpleEstimator"]["family"]
+            AVAILABLE_CATE_ESTIMATORS["TestSimpleEstimator"]["family"]
             == EstimatorFamily.CUSTOM
         )
         assert (
-            available_estimators["TestSimpleEstimator"]["estimator"]
+            AVAILABLE_CATE_ESTIMATORS["TestSimpleEstimator"]["estimator"]
             == simple_estimator_class
         )
 
         # Cleanup
-        del available_estimators["TestSimpleEstimator"]
+        del AVAILABLE_CATE_ESTIMATORS["TestSimpleEstimator"]
 
     def test_register_with_default_family(self, simple_estimator_class):
         """Test registering estimator with default 'custom' family."""
         register_estimator(name="TestDefaultFamily", estimator=simple_estimator_class)
         assert (
-            available_estimators["TestDefaultFamily"]["family"]
+            AVAILABLE_CATE_ESTIMATORS["TestDefaultFamily"]["family"]
             == EstimatorFamily.CUSTOM
         )
 
         # Cleanup
-        del available_estimators["TestDefaultFamily"]
+        del AVAILABLE_CATE_ESTIMATORS["TestDefaultFamily"]
 
     def test_register_with_string_family(self, simple_estimator_class):
         """Test registering estimator with string family value."""
@@ -196,11 +196,12 @@ class TestRegisterEstimator:
             name="TestStringFamily", estimator=simple_estimator_class, family="custom"
         )
         assert (
-            available_estimators["TestStringFamily"]["family"] == EstimatorFamily.CUSTOM
+            AVAILABLE_CATE_ESTIMATORS["TestStringFamily"]["family"]
+            == EstimatorFamily.CUSTOM
         )
 
         # Cleanup
-        del available_estimators["TestStringFamily"]
+        del AVAILABLE_CATE_ESTIMATORS["TestStringFamily"]
 
     def test_registered_estimator_appears_in_get_compatible(
         self, binary_continuous_dataset, simple_estimator_class
@@ -219,12 +220,12 @@ class TestRegisterEstimator:
         assert result["TestCompatible"]["family"] == EstimatorFamily.CUSTOM
 
         # Cleanup
-        del available_estimators["TestCompatible"]
+        del AVAILABLE_CATE_ESTIMATORS["TestCompatible"]
 
     def test_overwrite_existing_estimator(self, simple_estimator_class):
         """Test that registering with existing name overwrites."""
         # Store original
-        original_entry = available_estimators["LinearDML"].copy()
+        original_entry = AVAILABLE_CATE_ESTIMATORS["LinearDML"].copy()
 
         # Overwrite
         register_estimator(
@@ -232,11 +233,16 @@ class TestRegisterEstimator:
             estimator=simple_estimator_class,
             family=EstimatorFamily.CUSTOM,
         )
-        assert available_estimators["LinearDML"]["estimator"] == simple_estimator_class
-        assert available_estimators["LinearDML"]["family"] == EstimatorFamily.CUSTOM
+        assert (
+            AVAILABLE_CATE_ESTIMATORS["LinearDML"]["estimator"]
+            == simple_estimator_class
+        )
+        assert (
+            AVAILABLE_CATE_ESTIMATORS["LinearDML"]["family"] == EstimatorFamily.CUSTOM
+        )
 
         # Restore original
-        available_estimators["LinearDML"] = original_entry
+        AVAILABLE_CATE_ESTIMATORS["LinearDML"] = original_entry
 
 
 class TestAutoRegister:
@@ -276,12 +282,15 @@ class TestAutoRegister:
             def set_params(self, **params):
                 return self
 
-        assert "ExplicitName" in available_estimators
-        assert available_estimators["ExplicitName"]["estimator"] == TestEstimator
-        assert available_estimators["ExplicitName"]["family"] == EstimatorFamily.CUSTOM
+        assert "ExplicitName" in AVAILABLE_CATE_ESTIMATORS
+        assert AVAILABLE_CATE_ESTIMATORS["ExplicitName"]["estimator"] == TestEstimator
+        assert (
+            AVAILABLE_CATE_ESTIMATORS["ExplicitName"]["family"]
+            == EstimatorFamily.CUSTOM
+        )
 
         # Cleanup
-        del available_estimators["ExplicitName"]
+        del AVAILABLE_CATE_ESTIMATORS["ExplicitName"]
 
     def test_auto_register_returns_unmodified_class(self):
         """Test that decorator returns the class unmodified."""
@@ -321,7 +330,7 @@ class TestAutoRegister:
         OriginalEstimator()
 
         # Cleanup
-        del available_estimators["UnmodifiedTest"]
+        del AVAILABLE_CATE_ESTIMATORS["UnmodifiedTest"]
 
     def test_auto_register_with_string_family(self):
         """Test that auto_register accepts string family values."""
@@ -358,8 +367,9 @@ class TestAutoRegister:
                 return self
 
         assert (
-            available_estimators["StringFamilyTest"]["family"] == EstimatorFamily.CUSTOM
+            AVAILABLE_CATE_ESTIMATORS["StringFamilyTest"]["family"]
+            == EstimatorFamily.CUSTOM
         )
 
         # Cleanup
-        del available_estimators["StringFamilyTest"]
+        del AVAILABLE_CATE_ESTIMATORS["StringFamilyTest"]

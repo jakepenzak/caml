@@ -347,5 +347,58 @@ class NuisanceModelSpec(SearchSpaceSpec):
         )
 
 
+@dataclass
+class StandardMLSpec(SearchSpaceSpec):
+    """Reference to a traditional ML model for use in meta-learners and final stage models.
+
+    Parameters
+    ----------
+    name
+        Parameter name (e.g., "model_final", etc.).
+    models
+        Type of nuisance model to use.
+
+    Examples
+    --------
+    ```python
+    from caml.automl import StandardMLSpec
+
+    # For DML estimators using traditional ML models for nuisances
+    model_y_spec = StandardMLSpec(
+        name="model_final", models=["lightgbm", "xgboost", "random_forest"]
+    )
+    ```
+    """
+
+    models: Sequence[str] | None = None
+
+    def __post_init__(self):
+        """Validate model type.
+
+        If `models` is not provided, default to the full set of currently
+        registered standard ML estimators (resolved lazily).
+        """
+        from caml.estimators.standard_ml import AVAILABLE_STANDARD_ML_ESTIMATORS
+
+        self._VALID_KEYS = list(AVAILABLE_STANDARD_ML_ESTIMATORS.keys())
+        if self.models is None:
+            # Resolve available models lazily to avoid circular import issues.
+            self.models = self._VALID_KEYS
+        self.validate()
+
+    def validate(self) -> None:
+        """Validate traditional ML model type."""
+        if self.models is None:
+            raise ValueError("models cannot be None after __post_init__")
+        if any(mt not in self._VALID_KEYS for mt in self.models):
+            raise ValueError(
+                f"Invalid model_types: {self.models}. Must be subset of {self._VALID_KEYS}."
+            )
+
+    def to_optuna(self, trial) -> Any:
+        """Not applicable for traditional ML models."""
+        raise NotImplementedError("StandardMLSpec is handled separately, not by Optuna")
+
+
 SearchSpace = Sequence[SearchSpaceSpec]
 """Convenience alias for a sequence of search space specifications. That is, `Sequence[SearchSpaceSpec]`."""

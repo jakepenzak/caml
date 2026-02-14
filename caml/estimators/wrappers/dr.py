@@ -18,6 +18,7 @@ from caml.automl import (
     IntSpec,
     NuisanceModelSpec,
     SearchSpace,
+    StandardMLSpec,
 )
 from caml.data import CausalDataset, Estimand, OutcomeType, TreatmentType
 from caml.inference import InferenceType
@@ -127,9 +128,7 @@ class WrappedDRLearner(BaseEconMLWrapperMixin):
     default_search_space: SearchSpace = (
         NuisanceModelSpec(name="model_propensity", model_type="treatment"),
         NuisanceModelSpec(name="model_regression", model_type="regression"),
-        CategoricalSpec(
-            name="model_final", choices=[None]
-        ),  # TODO: Add standard ML models
+        StandardMLSpec(name="model_final"),
         FloatSpec(name="min_propensity", lower=1e-6, upper=0.01, log=True),
         IntSpec(name="cv", lower=2, upper=5, step=1),
         CategoricalSpec(name="mc_iters", choices=[None, 2, 3]),
@@ -670,11 +669,11 @@ class WrappedForestDRLearner(BaseEconMLWrapperMixin):
         IntSpec(name="cv", lower=2, upper=5, step=1),
         CategoricalSpec(name="mc_iters", choices=[None, 2, 3]),
         CategoricalSpec(name="mc_agg", choices=["mean", "median"]),
-        IntSpec(name="n_estimators", lower=50, upper=300, step=50),
+        IntSpec(name="n_estimators", lower=50, upper=500, step=50),
         CategoricalSpec(name="criterion", choices=["mse", "het"]),
         CategoricalSpec(name="max_depth", choices=[None, 2, 3, 5, 10, 15, 20]),
-        FloatSpec(name="min_samples_split", lower=5, upper=30, step=5),
-        FloatSpec(name="min_samples_leaf", lower=5, upper=30, step=5),
+        FloatSpec(name="min_samples_split", lower=1e-5, upper=0.1, log=True),
+        FloatSpec(name="min_samples_leaf", lower=1e-5, upper=0.1, log=True),
         CategoricalSpec(name="min_var_fraction_leaf", choices=[None, 0.01, 0.05, 0.1]),
         CategoricalSpec(name="max_features", choices=["auto", "sqrt", "log2"]),
         CategoricalSpec(name="max_samples", choices=[0.3, 0.45, 0.6, 0.8]),

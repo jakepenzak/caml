@@ -172,6 +172,20 @@ quartodoc:
           members:
             - WrappedDMLOrthoForest
             - WrappedDROrthoForest
+        - name: standard_ml
+          member_order: source
+          member_options:
+            include_inherited: true
+            member_order: source
+          members:
+            - AVAILABLE_STANDARD_ML_ESTIMATORS
+            - LGBMModel
+            - XGBoostModel
+            - XGBoostLimitDepthModel
+            - RandomForestModel
+            - ExtraTreesModel
+            - LogisticRegressionModel
+            - ElasticNetModel
 
     - subtitle: Scorers
       desc: "`caml.scorers` \n\n Primary CATE scoring & validation metrics."

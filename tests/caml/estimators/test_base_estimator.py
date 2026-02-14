@@ -3,6 +3,7 @@
 import numpy as np
 import pytest
 
+from caml.automl import SearchSpace
 from caml.data import CausalDataset, Estimand, OutcomeType, TreatmentType
 from caml.estimators import AutoCateEstimator, EstimatorCapabilities
 from caml.inference import InferenceType
@@ -266,30 +267,30 @@ class TestCompatibilityChecking:
 # ==============================================================================
 
 
-class TestAutoCAteEstimatorProtocol:
+class TestAutoCateEstimatorProtocol:
     """Test AutoCateEstimator protocol."""
 
     def test_simple_estimator_implements_protocol(self):
         """Test that a simple estimator implements the protocol."""
 
         class SimpleEstimator:
+            capabilities: EstimatorCapabilities = EstimatorCapabilities(
+                treatment_types={TreatmentType.BINARY},
+                outcome_types={OutcomeType.CONTINUOUS},
+                inference_types=set(),
+                estimands={Estimand.CATE},
+                supports_controls_in_first_stage_only=False,
+                supports_weights=False,
+                requires_treatment_model=False,
+                requires_outcome_model=False,
+                requires_regression_model=False,
+                supports_inference=False,
+            )
+
+            default_search_space: SearchSpace = ()
+
             def __init__(self):
                 self.effect_value = None
-
-            @property
-            def capabilities(self) -> EstimatorCapabilities:
-                return EstimatorCapabilities(
-                    treatment_types={TreatmentType.BINARY},
-                    outcome_types={OutcomeType.CONTINUOUS},
-                    inference_types=set(),
-                    estimands={Estimand.CATE},
-                    supports_controls_in_first_stage_only=False,
-                    supports_weights=False,
-                    requires_treatment_model=False,
-                    requires_outcome_model=False,
-                    requires_regression_model=False,
-                    supports_inference=False,
-                )
 
             @classmethod
             def is_compatible_with(cls, data: CausalDataset) -> bool:

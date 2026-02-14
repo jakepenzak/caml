@@ -9,6 +9,11 @@ from __future__ import annotations
 from econml.orf import DMLOrthoForest, DROrthoForest
 
 from caml.automl import (
+    BoolSpec,
+    CategoricalSpec,
+    FloatSpec,
+    IntSpec,
+    NuisanceModelSpec,
     SearchSpace,
 )
 from caml.data import CausalDataset, Estimand, OutcomeType, TreatmentType
@@ -41,6 +46,8 @@ class WrappedDMLOrthoForest(BaseEconMLWrapperMixin):
     capabilities : EstimatorCapabilities
         Metadata describing the estimator's supported treatment/outcome types,
         estimands, and inference methods.
+    default_search_space : SearchSpace
+        Default hyperparameter search space for tuning the estimator.
 
     See Also
     --------
@@ -115,7 +122,18 @@ class WrappedDMLOrthoForest(BaseEconMLWrapperMixin):
         supports_inference=True,
     )
 
-    default_search_space: SearchSpace = ()  # TODO: Define search space for hyperparameter tuning
+    default_search_space: SearchSpace = (
+        NuisanceModelSpec(name="model_T", model_type="treatment"),
+        NuisanceModelSpec(name="model_Y", model_type="outcome"),
+        IntSpec(name="n_trees", lower=50, upper=500, step=50),
+        IntSpec(name="min_leaf_size", lower=5, upper=105, step=10),
+        CategoricalSpec(name="max_depth", choices=[2, 3, 5, 10, 15, 20, 30]),
+        FloatSpec(name="subsample_ratio", lower=0.1, upper=1.0, step=0.1),
+        CategoricalSpec(name="bootstrap", choices=[False, True]),
+        FloatSpec(name="lambda_reg", lower=0.001, upper=0.1, log=True),
+        BoolSpec(name="global_residualization"),
+        CategoricalSpec(name="global_res_cv", choices=[2, 3, 5]),
+    )
 
     def __init__(self, **econml_kwargs):
         self._econml_kwargs = econml_kwargs
@@ -190,6 +208,8 @@ class WrappedDROrthoForest(BaseEconMLWrapperMixin):
     capabilities : EstimatorCapabilities
         Metadata describing the estimator's supported treatment/outcome types,
         estimands, and inference methods.
+    default_search_space : SearchSpace
+        Default hyperparameter search space for tuning the estimator.
 
     See Also
     --------
@@ -259,7 +279,15 @@ class WrappedDROrthoForest(BaseEconMLWrapperMixin):
         supports_inference=True,
     )
 
-    default_search_space: SearchSpace = ()  # TODO: Define search space for hyperparameter tuning
+    default_search_space: SearchSpace = (
+        NuisanceModelSpec(name="propensity_model", model_type="treatment"),
+        NuisanceModelSpec(name="model_Y", model_type="outcome"),
+        IntSpec(name="n_trees", lower=50, upper=500, step=50),
+        IntSpec(name="min_leaf_size", lower=5, upper=105, step=10),
+        CategoricalSpec(name="max_depth", choices=[2, 3, 5, 10, 15, 20, 30]),
+        FloatSpec(name="subsample_ratio", lower=0.1, upper=1.0, step=0.1),
+        FloatSpec(name="lambda_reg", lower=0.001, upper=0.1, log=True),
+    )
 
     def __init__(self, **econml_kwargs):
         self._econml_kwargs = econml_kwargs

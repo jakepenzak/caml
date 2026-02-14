@@ -12,10 +12,10 @@ if TYPE_CHECKING:
     from caml.estimators import AutoCateEstimator
 
 
-available_estimators: dict = dict()
+AVAILABLE_CATE_ESTIMATORS: dict = dict()
 """Dictionary of available estimators with their corresponding classes and families."""
 
-available_scorers: dict = dict()
+AVAILABLE_CATE_SCORERS: dict = dict()
 """Dictionary of available scorers with their corresponding classes and families."""
 
 
@@ -63,7 +63,7 @@ def get_compatible_estimators(
     ```
     """
     if families is None:
-        candidate_estimators = available_estimators
+        candidate_estimators = AVAILABLE_CATE_ESTIMATORS
     else:
         # Normalize families to EstimatorFamily enum
         normalized_families = []
@@ -78,7 +78,7 @@ def get_compatible_estimators(
             candidate_estimators.update(
                 {
                     name: est
-                    for name, est in available_estimators.items()
+                    for name, est in AVAILABLE_CATE_ESTIMATORS.items()
                     if est["family"] == family
                 }
             )
@@ -141,7 +141,7 @@ def get_compatible_scorers(
     ```
     """
     if families is None:
-        candidate_scorers = available_scorers
+        candidate_scorers = AVAILABLE_CATE_SCORERS
     else:
         # Normalize families to ScorerFamily enum
         normalized_families = []
@@ -156,7 +156,7 @@ def get_compatible_scorers(
             candidate_scorers.update(
                 {
                     name: scorer
-                    for name, scorer in available_scorers.items()
+                    for name, scorer in AVAILABLE_CATE_SCORERS.items()
                     if scorer["family"] == family
                 }
             )
@@ -192,9 +192,10 @@ def register_estimator(
     Examples
     --------
     ```{python}
-    from caml.registry import register_estimator, available_estimators, EstimatorFamily
+    from caml.registry import register_estimator, AVAILABLE_CATE_ESTIMATORS, EstimatorFamily
     from caml.data import CausalDataset, TreatmentType, OutcomeType, Estimand
     from caml.estimators import EstimatorCapabilities, BaseAutoCateEstimatorMixin
+    from caml.automl import SearchSpace, IntSpec
 
     class SimpleEstimator(BaseAutoCateEstimatorMixin):
 
@@ -211,8 +212,12 @@ def register_estimator(
             supports_inference=False
             )
 
-        def __init__(self, x: str = "x"):
-            self.x = x
+        default_search_space = (
+            IntSpec(name="x", lower=1, upper=10),
+        )
+
+        def __init__(self, x: int = 1):
+            self.x = 1
 
         def fit(self, data, **kwargs):
             T = np.asarray(data.T)
@@ -225,14 +230,14 @@ def register_estimator(
             return np.full(n, self.effect_value)
 
     # Current available estimators
-    print(available_estimators.keys())
+    print(AVAILABLE_CATE_ESTIMATORS.keys())
 
     # Updated available estimators
     register_estimator(name="SimpleEstimator", estimator=SimpleEstimator, family=EstimatorFamily.CUSTOM)
-    print(available_estimators.keys())
+    print(AVAILABLE_CATE_ESTIMATORS.keys())
     ```
     """
-    available_estimators[name] = {
+    AVAILABLE_CATE_ESTIMATORS[name] = {
         "estimator": estimator,
         "family": family
         if isinstance(family, EstimatorFamily)
@@ -261,7 +266,7 @@ def register_scorer(
     ```{python}
     import numpy as np
     from caml.scorers import BaseCateScorerMixin, ScorerCapabilities
-    from caml.registry import register_scorer, available_scorers, ScorerFamily
+    from caml.registry import register_scorer, AVAILABLE_CATE_SCORERS, ScorerFamily
 
     class NegMAEOnOracleCATE(BaseCateScorerMixin):
         capabilities: ScorerCapabilities = ScorerCapabilities(
@@ -280,14 +285,14 @@ def register_scorer(
             return -mae
 
     # Current available estimators
-    print(available_scorers.keys())
+    print(AVAILABLE_CATE_SCORERS.keys())
 
     # Updated available estimators
     register_scorer(name="NegMAEOnOracleCATE", scorer=NegMAEOnOracleCATE, family=ScorerFamily.CUSTOM)
-    print(available_scorers.keys())
+    print(AVAILABLE_CATE_SCORERS.keys())
     ```
     """
-    available_scorers[name] = {
+    AVAILABLE_CATE_SCORERS[name] = {
         "scorer": scorer,
         "family": family if isinstance(family, ScorerFamily) else ScorerFamily(family),
     }
@@ -318,10 +323,12 @@ def auto_register(
     Examples
     --------
     ```{python}
-    from caml.registry import auto_register, available_estimators, EstimatorFamily
+    import numpy as np
+
+    from caml.registry import auto_register, AVAILABLE_CATE_ESTIMATORS, EstimatorFamily
     from caml.data import CausalDataset, TreatmentType, OutcomeType, Estimand
     from caml.estimators import EstimatorCapabilities, BaseAutoCateEstimatorMixin
-    import numpy as np
+    from caml.automl import SearchSpace, IntSpec
 
     @auto_register(name="MyCustomEstimator", family=EstimatorFamily.CUSTOM)
     class MyCustomEstimator(BaseAutoCateEstimatorMixin):
@@ -339,7 +346,11 @@ def auto_register(
             supports_inference=False
         )
 
-        def __init__(self, x: str = "x"):
+        default_search_space = (
+            IntSpec(name="x", lower=1, upper=10),
+        )
+
+        def __init__(self, x: int = 1):
             self.x = x
 
         @classmethod
@@ -358,11 +369,11 @@ def auto_register(
             return np.full(n, self.effect_value)
 
     # Check that it was registered
-    print("MyCustomEstimator" in available_estimators)
+    print("MyCustomEstimator" in AVAILABLE_CATE_ESTIMATORS)
     ```
 
     ```{python}
-    from caml.registry import auto_register, available_scorers, ScorerFamily
+    from caml.registry import auto_register, AVAILABLE_CATE_SCORERS, ScorerFamily
 
     @auto_register(name="NegMAEOnOracleCATE", family=ScorerFamily.ORACLE, is_estimator=False)
     class NegMAEOnOracleCATE(BaseCateScorerMixin):
@@ -383,7 +394,7 @@ def auto_register(
             return -mae
 
     # Check that it was registered
-    print("NegMAEOnOracleCATE" in available_scorers)
+    print("NegMAEOnOracleCATE" in AVAILABLE_CATE_SCORERS)
     ```
     """
 

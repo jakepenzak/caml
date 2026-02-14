@@ -9,7 +9,9 @@ from __future__ import annotations
 from econml.metalearners import SLearner, TLearner, XLearner
 
 from caml.automl import (
+    NuisanceModelSpec,
     SearchSpace,
+    StandardMLSpec,
 )
 from caml.data import CausalDataset, Estimand, OutcomeType, TreatmentType
 from caml.inference import InferenceType
@@ -42,6 +44,8 @@ class WrappedSLearner(BaseEconMLWrapperMixin):
     capabilities : EstimatorCapabilities
         Metadata describing the estimator's supported treatment/outcome types,
         estimands, and inference methods.
+    default_search_space: SearchSpace
+        Default hyperparameter search space for AutoML tuning.
 
     See Also
     --------
@@ -111,7 +115,7 @@ class WrappedSLearner(BaseEconMLWrapperMixin):
         supports_inference=True,
     )
 
-    default_search_space: SearchSpace = ()  # TODO: Define search space for hyperparameter tuning
+    default_search_space: SearchSpace = (StandardMLSpec(name="model_final"),)
 
     def __init__(self, **econml_kwargs):
         self._econml_kwargs = econml_kwargs
@@ -181,6 +185,8 @@ class WrappedTLearner(BaseEconMLWrapperMixin):
     capabilities : EstimatorCapabilities
         Metadata describing the estimator's supported treatment/outcome types,
         estimands, and inference methods.
+    default_search_space: SearchSpace
+        Default hyperparameter search space for AutoML tuning.
 
     See Also
     --------
@@ -250,7 +256,7 @@ class WrappedTLearner(BaseEconMLWrapperMixin):
         supports_inference=True,
     )
 
-    default_search_space: SearchSpace = ()  # TODO: Define search space for hyperparameter tuning
+    default_search_space: SearchSpace = (StandardMLSpec(name="models"),)
 
     def __init__(self, **econml_kwargs):
         self._econml_kwargs = econml_kwargs
@@ -320,6 +326,8 @@ class WrappedXLearner(BaseEconMLWrapperMixin):
     capabilities : EstimatorCapabilities
         Metadata describing the estimator's supported treatment/outcome types,
         estimands, and inference methods.
+    default_search_space: SearchSpace
+        Default hyperparameter search space for AutoML tuning.
 
     See Also
     --------
@@ -392,7 +400,11 @@ class WrappedXLearner(BaseEconMLWrapperMixin):
         supports_inference=True,
     )
 
-    default_search_space: SearchSpace = ()  # TODO: Define search space for hyperparameter tuning
+    default_search_space: SearchSpace = (
+        StandardMLSpec(name="models"),
+        StandardMLSpec(name="cate_models"),
+        NuisanceModelSpec(name="propensity_model", model_type="treatment"),
+    )
 
     def __init__(self, **econml_kwargs):
         self._econml_kwargs = econml_kwargs

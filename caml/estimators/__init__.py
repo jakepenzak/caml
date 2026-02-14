@@ -1,5 +1,6 @@
 import sys
 
+from . import standard_ml
 from .base_estimator import (
     AutoCateEstimator,
     BaseAutoCateEstimatorMixin,
@@ -13,6 +14,7 @@ sys.modules["caml.estimators.dml"] = dml
 sys.modules["caml.estimators.dr"] = dr
 sys.modules["caml.estimators.meta"] = meta
 sys.modules["caml.estimators.orf"] = orf
+sys.modules["caml.estimators.standard_ml"] = standard_ml
 
 __all__ = [
     "BaseAutoCateEstimatorMixin",
@@ -23,4 +25,5 @@ __all__ = [
     "dr",
     "meta",
     "orf",
+    "standard_ml",
 ]
