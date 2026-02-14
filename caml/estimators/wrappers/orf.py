@@ -8,6 +8,9 @@ from __future__ import annotations
 
 from econml.orf import DMLOrthoForest, DROrthoForest
 
+from caml.automl import (
+    SearchSpace,
+)
 from caml.data import CausalDataset, Estimand, OutcomeType, TreatmentType
 from caml.inference import InferenceType
 from caml.registry import auto_register
@@ -111,6 +114,8 @@ class WrappedDMLOrthoForest(BaseEconMLWrapperMixin):
         requires_regression_model=False,
         supports_inference=True,
     )
+
+    default_search_space: SearchSpace = ()  # TODO: Define search space for hyperparameter tuning
 
     def __init__(self, **econml_kwargs):
         self._econml_kwargs = econml_kwargs
@@ -253,6 +258,8 @@ class WrappedDROrthoForest(BaseEconMLWrapperMixin):
         requires_regression_model=True,
         supports_inference=True,
     )
+
+    default_search_space: SearchSpace = ()  # TODO: Define search space for hyperparameter tuning
 
     def __init__(self, **econml_kwargs):
         self._econml_kwargs = econml_kwargs

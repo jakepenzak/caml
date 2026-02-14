@@ -13,7 +13,18 @@ from econml.dml import (
     NonParamDML,
     SparseLinearDML,
 )
+from sklearn.pipeline import Pipeline
+from sklearn.preprocessing import PolynomialFeatures, RobustScaler
 
+from caml.automl import (
+    BoolSpec,
+    CategoricalSpec,
+    ConstantSpec,
+    FloatSpec,
+    IntSpec,
+    NuisanceModelSpec,
+    SearchSpace,
+)
 from caml.data import CausalDataset, Estimand, OutcomeType, TreatmentType
 from caml.inference import InferenceType
 from caml.registry import auto_register
@@ -43,6 +54,8 @@ class WrappedLinearDML(BaseEconMLWrapperMixin):
     capabilities : EstimatorCapabilities
         Metadata describing the estimator's supported treatment/outcome types,
         estimands, and inference methods (class attribute).
+    default_search_space : SearchSpace
+        Default hyperparameter search space for tuning the estimator (class attribute).
 
     See Also
     --------
@@ -117,6 +130,39 @@ class WrappedLinearDML(BaseEconMLWrapperMixin):
         supports_inference=True,
     )
 
+    default_search_space: SearchSpace = (
+        NuisanceModelSpec(name="model_y", model_type="outcome"),
+        NuisanceModelSpec(name="model_t", model_type="treatment"),
+        CategoricalSpec(
+            name="featurizer",
+            choices=[
+                None,
+                RobustScaler(),  # Just scaling (no polynomials)
+                Pipeline(
+                    [
+                        ("scaler", RobustScaler()),
+                        ("poly", PolynomialFeatures(degree=2, include_bias=False)),
+                    ]
+                ),
+                Pipeline(
+                    [
+                        ("scaler", RobustScaler()),
+                        (
+                            "poly",
+                            PolynomialFeatures(
+                                degree=2, interaction_only=True, include_bias=False
+                            ),
+                        ),
+                    ]
+                ),
+            ],
+        ),
+        BoolSpec(name="fit_cate_intercept"),
+        IntSpec(name="cv", lower=2, upper=5, step=1),
+        IntSpec(name="mc_iters", lower=1, upper=3, step=1),
+        CategoricalSpec(name="mc_agg", choices=["mean", "median"]),
+    )
+
     def __init__(self, **econml_kwargs):
         self._econml_kwargs = econml_kwargs
         self._estimator = LinearDML(**self._econml_kwargs)
@@ -174,6 +220,8 @@ class WrappedSparseLinearDML(BaseEconMLWrapperMixin):
     capabilities : EstimatorCapabilities
         Metadata describing the estimator's supported treatment/outcome types,
         estimands, and inference methods.
+    default_search_space : SearchSpace
+        Default hyperparameter search space for tuning the estimator.
 
     See Also
     --------
@@ -250,6 +298,45 @@ class WrappedSparseLinearDML(BaseEconMLWrapperMixin):
         requires_outcome_model=True,
         requires_regression_model=False,
         supports_inference=True,
+    )
+
+    default_search_space: SearchSpace = (
+        NuisanceModelSpec(name="model_y", model_type="outcome"),
+        NuisanceModelSpec(name="model_t", model_type="treatment"),
+        CategoricalSpec(
+            name="featurizer",
+            choices=[
+                None,
+                RobustScaler(),  # Just scaling (no polynomials)
+                Pipeline(
+                    [
+                        ("scaler", RobustScaler()),
+                        ("poly", PolynomialFeatures(degree=2, include_bias=False)),
+                    ]
+                ),
+                Pipeline(
+                    [
+                        ("scaler", RobustScaler()),
+                        (
+                            "poly",
+                            PolynomialFeatures(
+                                degree=2, interaction_only=True, include_bias=False
+                            ),
+                        ),
+                    ]
+                ),
+            ],
+        ),
+        CategoricalSpec(name="alpha", choices=["auto", 0.01, 0.05, 0.1, 0.5, 1.0]),
+        IntSpec(name="n_alphas", lower=50, upper=150, step=50),
+        CategoricalSpec(name="alpha_cov", choices=["auto", 0.01, 0.1, 1.0]),
+        IntSpec(name="n_alphas_cov", lower=5, upper=15, step=5),
+        BoolSpec(name="fit_cate_intercept"),
+        IntSpec(name="cv", lower=2, upper=5, step=1),
+        CategoricalSpec(name="mc_iters", choices=[None, 2, 3]),
+        CategoricalSpec(name="mc_agg", choices=["mean", "median"]),
+        ConstantSpec(name="max_iter", value=1000),
+        ConstantSpec(name="tol", value=1e-4),
     )
 
     def __init__(self, **econml_kwargs):
@@ -329,6 +416,8 @@ class WrappedCausalForestDML(BaseEconMLWrapperMixin):
     capabilities : EstimatorCapabilities
         Metadata describing the estimator's supported treatment/outcome types,
         estimands, and inference methods.
+    default_search_space : SearchSpace
+        Default hyperparameter search space for tuning the estimator.
 
     See Also
     --------
@@ -404,6 +493,23 @@ class WrappedCausalForestDML(BaseEconMLWrapperMixin):
         requires_outcome_model=True,
         requires_regression_model=False,
         supports_inference=True,
+    )
+
+    default_search_space: SearchSpace = (
+        NuisanceModelSpec(name="model_y", model_type="outcome"),
+        NuisanceModelSpec(name="model_t", model_type="treatment"),
+        IntSpec(name="cv", lower=2, upper=5, step=1),
+        CategoricalSpec(name="mc_iters", choices=[None, 2, 3]),
+        CategoricalSpec(name="mc_agg", choices=["mean", "median"]),
+        IntSpec(name="n_estimators", lower=50, upper=300, step=50),
+        CategoricalSpec(name="criterion", choices=["mse", "het"]),
+        CategoricalSpec(name="max_depth", choices=[None, 2, 3, 5, 10, 15, 20]),
+        FloatSpec(name="min_samples_split", lower=5, upper=30, step=5),
+        FloatSpec(name="min_samples_leaf", lower=5, upper=30, step=5),
+        CategoricalSpec(name="min_var_fraction_leaf", choices=[None, 0.01, 0.05, 0.1]),
+        CategoricalSpec(name="max_features", choices=["auto", "sqrt", "log2"]),
+        CategoricalSpec(name="max_samples", choices=[0.3, 0.45, 0.6, 0.8]),
+        CategoricalSpec(name="min_balancedness_tol", choices=[0.1, 0.3, 0.45]),
     )
 
     def __init__(self, **econml_kwargs):
@@ -482,6 +588,8 @@ class WrappedNonParamDML(BaseEconMLWrapperMixin):
     capabilities : EstimatorCapabilities
         Metadata describing the estimator's supported treatment/outcome types,
         estimands, and inference methods.
+    default_search_space : SearchSpace
+        Default hyperparameter search space for tuning the estimator.
 
     See Also
     --------
@@ -553,6 +661,17 @@ class WrappedNonParamDML(BaseEconMLWrapperMixin):
         requires_outcome_model=True,
         requires_regression_model=False,
         supports_inference=True,
+    )
+
+    default_search_space: SearchSpace = (
+        NuisanceModelSpec(name="model_y", model_type="outcome"),
+        NuisanceModelSpec(name="model_t", model_type="treatment"),
+        CategoricalSpec(
+            name="model_final", choices=[None]
+        ),  # TODO: Add standard ML models
+        IntSpec(name="cv", lower=2, upper=5, step=1),
+        CategoricalSpec(name="mc_iters", choices=[None, 2, 3]),
+        CategoricalSpec(name="mc_agg", choices=["mean", "median"]),
     )
 
     def __init__(self, **econml_kwargs):
@@ -702,6 +821,17 @@ class WrappedKernelDML(BaseEconMLWrapperMixin):
         requires_outcome_model=True,
         requires_regression_model=False,
         supports_inference=True,
+    )
+
+    default_search_space: SearchSpace = (
+        NuisanceModelSpec(name="model_y", model_type="outcome"),
+        NuisanceModelSpec(name="model_t", model_type="treatment"),
+        IntSpec(name="dim", lower=10, upper=100, step=10),
+        CategoricalSpec(name="bw", choices=[0.1, 0.5, 1.0, 2.0, 5.0, 10.0]),
+        BoolSpec(name="fit_cate_intercept"),
+        IntSpec(name="cv", lower=2, upper=5, step=1),
+        CategoricalSpec(name="mc_iters", choices=[None, 2, 3]),
+        CategoricalSpec(name="mc_agg", choices=["mean", "median"]),
     )
 
     def __init__(self, **econml_kwargs):

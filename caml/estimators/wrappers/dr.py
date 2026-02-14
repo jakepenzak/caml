@@ -7,7 +7,18 @@ to implement CaML's `AutoCateEstimator` and `InferenceProvider` protocols.
 from __future__ import annotations
 
 from econml.dr import DRLearner, ForestDRLearner, LinearDRLearner, SparseLinearDRLearner
+from sklearn.pipeline import Pipeline
+from sklearn.preprocessing import PolynomialFeatures, RobustScaler
 
+from caml.automl import (
+    BoolSpec,
+    CategoricalSpec,
+    ConstantSpec,
+    FloatSpec,
+    IntSpec,
+    NuisanceModelSpec,
+    SearchSpace,
+)
 from caml.data import CausalDataset, Estimand, OutcomeType, TreatmentType
 from caml.inference import InferenceType
 from caml.registry import auto_register
@@ -38,11 +49,12 @@ class WrappedDRLearner(BaseEconMLWrapperMixin):
     capabilities : EstimatorCapabilities
         Metadata describing the estimator's supported treatment/outcome types,
         estimands, and inference methods.
+    default_search_space : SearchSpace
+        Default hyperparameter search space for AutoML tuning of this estimator.
 
     See Also
     --------
     [EconML DRLearner](https://www.pywhy.org/EconML/_autosummary/econml.dr.DRLearner.html) : Official documentation for EconML's DRLearner.
-
 
     Examples
     --------
@@ -110,6 +122,18 @@ class WrappedDRLearner(BaseEconMLWrapperMixin):
         requires_outcome_model=False,
         requires_regression_model=True,
         supports_inference=True,
+    )
+
+    default_search_space: SearchSpace = (
+        NuisanceModelSpec(name="model_propensity", model_type="treatment"),
+        NuisanceModelSpec(name="model_regression", model_type="regression"),
+        CategoricalSpec(
+            name="model_final", choices=[None]
+        ),  # TODO: Add standard ML models
+        FloatSpec(name="min_propensity", lower=1e-6, upper=0.01, log=True),
+        IntSpec(name="cv", lower=2, upper=5, step=1),
+        CategoricalSpec(name="mc_iters", choices=[None, 2, 3]),
+        CategoricalSpec(name="mc_agg", choices=["mean", "median"]),
     )
 
     def __init__(self, **econml_kwargs):
@@ -186,6 +210,8 @@ class WrappedLinearDRLearner(BaseEconMLWrapperMixin):
     capabilities : EstimatorCapabilities
         Metadata describing the estimator's supported treatment/outcome types,
         estimands, and inference methods.
+    default_search_space : SearchSpace
+        Default hyperparameter search space for AutoML tuning of this estimator.
 
     See Also
     --------
@@ -259,6 +285,40 @@ class WrappedLinearDRLearner(BaseEconMLWrapperMixin):
         requires_outcome_model=False,
         requires_regression_model=True,
         supports_inference=True,
+    )
+
+    default_search_space: SearchSpace = (
+        NuisanceModelSpec(name="model_propensity", model_type="treatment"),
+        NuisanceModelSpec(name="model_regression", model_type="regression"),
+        CategoricalSpec(
+            name="featurizer",
+            choices=[
+                None,
+                RobustScaler(),  # Just scaling (no polynomials)
+                Pipeline(
+                    [
+                        ("scaler", RobustScaler()),
+                        ("poly", PolynomialFeatures(degree=2, include_bias=False)),
+                    ]
+                ),
+                Pipeline(
+                    [
+                        ("scaler", RobustScaler()),
+                        (
+                            "poly",
+                            PolynomialFeatures(
+                                degree=2, interaction_only=True, include_bias=False
+                            ),
+                        ),
+                    ]
+                ),
+            ],
+        ),
+        BoolSpec(name="fit_cate_intercept"),
+        FloatSpec(name="min_propensity", lower=1e-6, upper=0.01, log=True),
+        IntSpec(name="cv", lower=2, upper=5, step=1),
+        CategoricalSpec(name="mc_iters", choices=[None, 2, 3]),
+        CategoricalSpec(name="mc_agg", choices=["mean", "median"]),
     )
 
     def __init__(self, **econml_kwargs):
@@ -335,7 +395,8 @@ class WrappedSparseLinearDRLearner(BaseEconMLWrapperMixin):
     capabilities : EstimatorCapabilities
         Metadata describing the estimator's supported treatment/outcome types,
         estimands, and inference methods.
-
+    default_search_space : SearchSpace
+        Default hyperparameter search space for AutoML tuning of this estimator.
 
     See Also
     --------
@@ -412,6 +473,46 @@ class WrappedSparseLinearDRLearner(BaseEconMLWrapperMixin):
         supports_inference=True,
     )
 
+    default_search_space: SearchSpace = (
+        NuisanceModelSpec(name="model_propensity", model_type="treatment"),
+        NuisanceModelSpec(name="model_regression", model_type="regression"),
+        CategoricalSpec(
+            name="featurizer",
+            choices=[
+                None,
+                RobustScaler(),  # Just scaling (no polynomials)
+                Pipeline(
+                    [
+                        ("scaler", RobustScaler()),
+                        ("poly", PolynomialFeatures(degree=2, include_bias=False)),
+                    ]
+                ),
+                Pipeline(
+                    [
+                        ("scaler", RobustScaler()),
+                        (
+                            "poly",
+                            PolynomialFeatures(
+                                degree=2, interaction_only=True, include_bias=False
+                            ),
+                        ),
+                    ]
+                ),
+            ],
+        ),
+        CategoricalSpec(name="alpha", choices=["auto", 0.01, 0.05, 0.1, 0.5, 1.0]),
+        IntSpec(name="n_alphas", lower=50, upper=150, step=50),
+        CategoricalSpec(name="alpha_cov", choices=["auto", 0.01, 0.1, 1.0]),
+        IntSpec(name="n_alphas_cov", lower=5, upper=15, step=5),
+        BoolSpec(name="fit_cate_intercept"),
+        IntSpec(name="cv", lower=2, upper=5, step=1),
+        CategoricalSpec(name="mc_iters", choices=[None, 2, 3]),
+        CategoricalSpec(name="mc_agg", choices=["mean", "median"]),
+        ConstantSpec(name="max_iter", value=1000),
+        ConstantSpec(name="tol", value=1e-4),
+        FloatSpec(name="min_propensity", lower=1e-6, upper=0.01, log=True),
+    )
+
     def __init__(self, **econml_kwargs):
         self._econml_kwargs = econml_kwargs
         self._estimator = SparseLinearDRLearner(**self._econml_kwargs)
@@ -485,6 +586,8 @@ class WrappedForestDRLearner(BaseEconMLWrapperMixin):
     capabilities : EstimatorCapabilities
         Metadata describing the estimator's supported treatment/outcome types,
         estimands, and inference methods.
+    default_search_space : SearchSpace
+        Default hyperparameter search space for AutoML tuning of this estimator.
 
     See Also
     --------
@@ -559,6 +662,23 @@ class WrappedForestDRLearner(BaseEconMLWrapperMixin):
         requires_outcome_model=False,
         requires_regression_model=True,
         supports_inference=True,
+    )
+
+    default_search_space: SearchSpace = (
+        NuisanceModelSpec(name="model_propensity", model_type="treatment"),
+        NuisanceModelSpec(name="model_regression", model_type="regression"),
+        IntSpec(name="cv", lower=2, upper=5, step=1),
+        CategoricalSpec(name="mc_iters", choices=[None, 2, 3]),
+        CategoricalSpec(name="mc_agg", choices=["mean", "median"]),
+        IntSpec(name="n_estimators", lower=50, upper=300, step=50),
+        CategoricalSpec(name="criterion", choices=["mse", "het"]),
+        CategoricalSpec(name="max_depth", choices=[None, 2, 3, 5, 10, 15, 20]),
+        FloatSpec(name="min_samples_split", lower=5, upper=30, step=5),
+        FloatSpec(name="min_samples_leaf", lower=5, upper=30, step=5),
+        CategoricalSpec(name="min_var_fraction_leaf", choices=[None, 0.01, 0.05, 0.1]),
+        CategoricalSpec(name="max_features", choices=["auto", "sqrt", "log2"]),
+        CategoricalSpec(name="max_samples", choices=[0.3, 0.45, 0.6, 0.8]),
+        CategoricalSpec(name="min_balancedness_tol", choices=[0.1, 0.3, 0.45]),
     )
 
     def __init__(self, **econml_kwargs):

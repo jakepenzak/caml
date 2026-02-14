@@ -16,6 +16,7 @@ import numpy as np
 import pandas as pd
 from sklearn.base import BaseEstimator
 
+from caml.automl.search_space import SearchSpace
 from caml.data import CausalDataset, Estimand, OutcomeType, TreatmentType
 from caml.inference import InferenceResult, InferenceType
 
@@ -148,16 +149,20 @@ class AutoCateEstimator(Protocol):
     will satisfy this interface. For a base implementation with validation, parameter
     handling, and helper utilities, see ``BaseAutoCateEstimatorMixin``.
 
-    The ``capabilities`` attribute must be a class attribute, not an instance attribute.
+    The ``capabilities`` and ``default_search_space`` attributes must be class attributes, not instance attributes.
 
     See Also
     --------
     [`BaseAutoCateEstimatorMixin`](base_estimator.qmd#caml.estimators.base_estimator.BaseAutoCateEstimatorMixin) : ABC base class with concrete implementations.
 
     [`EstimatorCapabilities`](base_estimator.qmd#caml.estimators.base_estimator.EstimatorCapabilities) : Metadata for estimator features.
+
+    [`SearchSpace`](search_space.qmd#caml.automl.search_space.SearchSpace) : Hyperparameter search space for AutoML tuning.
     """
 
     capabilities: EstimatorCapabilities
+
+    default_search_space: SearchSpace
 
     @classmethod
     def is_compatible_with(cls, data: CausalDataset) -> bool:
@@ -179,10 +184,6 @@ class AutoCateEstimator(Protocol):
     def set_params(self, **params):
         """Set estimator parameters (scikit-learn compatible)."""
         ...
-
-    # def search_space(self) -> SearchSpace:
-    #     """Return hyperparameter search space for AutoML tuning."""
-    #     ...
 
 
 @runtime_checkable
@@ -223,7 +224,7 @@ class BaseAutoCateEstimatorMixin(ABC, BaseEstimator):
     and fitting validation, with utilities inhereted from scikit-learn's `BaseEstimator`
     (e.g., `get_params` and `set_params`).
 
-    Subclasses must implement ``fit()`` and ``effect()``.
+    Subclasses must implement ``fit()`` and ``effect()`` and define the class attributes ``capabilities`` and ``default_search_space``.
 
     This class serves as the recommended base for all CATE estimators in CaML,
     providing a consistent interface and common utilities.
@@ -243,8 +244,9 @@ class BaseAutoCateEstimatorMixin(ABC, BaseEstimator):
     **Required Class Attributes:**
 
     - ``capabilities`` - ``EstimatorCapabilities`` instance defining supported features
+    - ``default_search_space`` - ``SearchSpace`` instance for AutoML tuning
 
-    Subclasses must define ``capabilities`` as a class attribute. Failure to do so
+    Subclasses must define ``capabilities`` and ``default_search_space`` as class attributes. Failure to do so
     will raise a ``TypeError`` on class definition (enforced by ``__init_subclass__``).
 
     See Also
@@ -253,12 +255,15 @@ class BaseAutoCateEstimatorMixin(ABC, BaseEstimator):
 
     [`EstimatorCapabilities`](base_estimator.qmd#caml.estimators.base_estimator.EstimatorCapabilities) : Metadata for estimator features.
 
+    [`SearchSpace`](search_space.qmd#caml.automl.search_space.SearchSpace) : Hyperparameter search space for AutoML tuning.
+
     Examples
     --------
     ```{python}
     import numpy as np
     from caml.data import CausalDataset, TreatmentType, OutcomeType, Estimand
     from caml.estimators import EstimatorCapabilities, BaseAutoCateEstimatorMixin
+    from caml.automl import IntSpec
 
     class SimpleEstimator(BaseAutoCateEstimatorMixin):
         # Required class attribute
@@ -273,6 +278,10 @@ class BaseAutoCateEstimatorMixin(ABC, BaseEstimator):
             requires_outcome_model=False,
             requires_regression_model=False,
             supports_inference=False
+        )
+
+        default_search_space = (
+            IntSpec(name="some_param", low=1, high=100, default=42)
         )
 
         def __init__(self, some_param: int = 42):
@@ -331,6 +340,7 @@ class BaseAutoCateEstimatorMixin(ABC, BaseEstimator):
 
     # Class attribute that must be overridden by subclasses
     capabilities: EstimatorCapabilities
+    default_search_space: SearchSpace
 
     @abstractmethod
     def fit(self, data: CausalDataset, **kwargs) -> AutoCateEstimator:
@@ -553,3 +563,16 @@ class BaseAutoCateEstimatorMixin(ABC, BaseEstimator):
                 f"{cls.__name__} must define 'capabilities' as a class attribute. "
                 f"See EstimatorCapabilities for details."
             )
+        if "default_search_space" not in cls.__dict__ and not inspect.isabstract(cls):
+            raise TypeError(
+                f"{cls.__name__} must define 'default_search_space' as a class attribute. "
+                f"See SearchSpace for details."
+            )
+
+    def _validate_search_space(self):
+        for attr in self.default_search_space:
+            if attr.name not in self.get_params(deep=False):
+                raise TypeError(
+                    f"{self} must have an __init__ parameter for "
+                    f"'{attr.name}' defined in default_search_space."
+                )
