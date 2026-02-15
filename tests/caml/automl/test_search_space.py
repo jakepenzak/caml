@@ -10,6 +10,7 @@ from caml.automl.search_space import (
     IntSpec,
     NuisanceModelSpec,
     SearchSpace,
+    StandardMLSpec,
 )
 
 pytestmark = [pytest.mark.automl]
@@ -344,15 +345,17 @@ class TestSearchSpace:
             BoolSpec(name="fit_intercept"),
             ConstantSpec(name="random_state", value=42),
             NuisanceModelSpec(name="model_y", model_type="outcome"),
+            StandardMLSpec(name="model_final", models=["lightgbm"]),
         )
 
-        assert len(search_space) == 6
+        assert len(search_space) == 7
         assert isinstance(search_space[0], IntSpec)
         assert isinstance(search_space[1], FloatSpec)
         assert isinstance(search_space[2], CategoricalSpec)
         assert isinstance(search_space[3], BoolSpec)
         assert isinstance(search_space[4], ConstantSpec)
         assert isinstance(search_space[5], NuisanceModelSpec)
+        assert isinstance(search_space[6], StandardMLSpec)
 
     def test_all_specs_have_name_attribute(self):
         """Test that all specs have name attribute."""
@@ -363,6 +366,7 @@ class TestSearchSpace:
             BoolSpec(name="bool_param"),
             ConstantSpec(name="const_param", value=42),
             NuisanceModelSpec(name="model_param", model_type="outcome"),
+            StandardMLSpec(name="ml_param", models=["lightgbm"]),
         )
 
         expected_names = [
@@ -372,6 +376,7 @@ class TestSearchSpace:
             "bool_param",
             "const_param",
             "model_param",
+            "ml_param",
         ]
         actual_names = [spec.name for spec in search_space]
         assert actual_names == expected_names
@@ -388,3 +393,60 @@ class TestSearchSpace:
 
         for spec in search_space:
             spec.validate()  # Should not raise
+
+
+# ==============================================================================
+# STANDARD ML SPEC TESTS
+# ==============================================================================
+
+
+class TestStandardMLSpec:
+    """Test StandardMLSpec functionality."""
+
+    def test_valid_with_explicit_models(self):
+        """Test standard ML spec with explicitly provided models."""
+        spec = StandardMLSpec(name="model_final", models=["lightgbm", "xgboost"])
+        assert spec.name == "model_final"
+        assert spec.models == ["lightgbm", "xgboost"]
+
+    def test_valid_with_all_models(self):
+        """Test standard ML spec defaults to all available models."""
+        spec = StandardMLSpec(name="model_final")
+        assert spec.models is not None
+        assert len(spec.models) > 0
+        # Should include all registered standard ML models
+        assert "lightgbm" in spec.models
+        assert "xgboost" in spec.models
+        assert "random_forest" in spec.models
+
+    def test_valid_with_single_model(self):
+        """Test standard ML spec with single model."""
+        spec = StandardMLSpec(name="model_final", models=["lightgbm"])
+        assert spec.models == ["lightgbm"]
+
+    def test_invalid_model_type_raises_error(self):
+        """Test that invalid model type raises ValueError."""
+        with pytest.raises(ValueError, match="Invalid model_types"):
+            StandardMLSpec(name="bad", models=["invalid_model"])
+
+    def test_invalid_mixed_models_raises_error(self):
+        """Test that mixed valid/invalid models raise ValueError."""
+        with pytest.raises(ValueError, match="Invalid model_types"):
+            StandardMLSpec(name="bad", models=["lightgbm", "invalid_model"])
+
+    def test_to_optuna_raises_not_implemented(self):
+        """Test that to_optuna raises NotImplementedError."""
+        spec = StandardMLSpec(name="model_final", models=["lightgbm"])
+
+        class MockTrial:
+            pass
+
+        with pytest.raises(NotImplementedError, match="handled separately"):
+            spec.to_optuna(MockTrial())
+
+    def test_valid_keys_populated_correctly(self):
+        """Test that _VALID_KEYS is populated from registry."""
+        spec = StandardMLSpec(name="model_final", models=["lightgbm"])
+        assert hasattr(spec, "_VALID_KEYS")
+        assert len(spec._VALID_KEYS) > 0
+        assert "lightgbm" in spec._VALID_KEYS

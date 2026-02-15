@@ -8,10 +8,14 @@ from caml.estimators import EstimatorCapabilities
 from caml.extensions.synthetic_data import SyntheticDataGenerator
 from caml.registry import (
     AVAILABLE_CATE_ESTIMATORS,
+    AVAILABLE_CATE_SCORERS,
     EstimatorFamily,
+    ScorerFamily,
     auto_register,
     get_compatible_estimators,
+    get_compatible_scorers,
     register_estimator,
+    register_scorer,
 )
 
 pytestmark = pytest.mark.registry
@@ -373,3 +377,208 @@ class TestAutoRegister:
 
         # Cleanup
         del AVAILABLE_CATE_ESTIMATORS["StringFamilyTest"]
+
+
+# ==============================================================================
+# SCORER REGISTRY TESTS
+# ==============================================================================
+
+
+class TestRegisterScorer:
+    """Tests for register_scorer function."""
+
+    def test_register_new_scorer(self):
+        """Test registering a new scorer."""
+        from caml.scorers import BaseCateScorerMixin, ScorerCapabilities
+
+        class TestScorer(BaseCateScorerMixin):
+            capabilities = ScorerCapabilities(
+                treatment_types={TreatmentType.BINARY},
+                outcome_types={OutcomeType.CONTINUOUS},
+                supports_weights=False,
+                requires_treatment_model=False,
+                requires_outcome_model=False,
+                requires_regression_model=False,
+                requires_oracle_cates=False,
+            )
+
+            def __call__(self, estimator, data):
+                return 0.0
+
+        initial_count = len(AVAILABLE_CATE_SCORERS)
+        register_scorer(
+            name="TestScorer", scorer=TestScorer, family=ScorerFamily.CUSTOM
+        )
+
+        assert len(AVAILABLE_CATE_SCORERS) == initial_count + 1
+        assert "TestScorer" in AVAILABLE_CATE_SCORERS
+        assert AVAILABLE_CATE_SCORERS["TestScorer"]["family"] == ScorerFamily.CUSTOM
+        assert AVAILABLE_CATE_SCORERS["TestScorer"]["scorer"] == TestScorer
+
+        # Cleanup
+        del AVAILABLE_CATE_SCORERS["TestScorer"]
+
+    def test_register_scorer_with_string_family(self):
+        """Test registering scorer with string family value."""
+        from caml.scorers import BaseCateScorerMixin, ScorerCapabilities
+
+        class TestScorer(BaseCateScorerMixin):
+            capabilities = ScorerCapabilities(
+                treatment_types={TreatmentType.BINARY},
+                outcome_types={OutcomeType.CONTINUOUS},
+                supports_weights=False,
+                requires_treatment_model=False,
+                requires_outcome_model=False,
+                requires_regression_model=False,
+                requires_oracle_cates=False,
+            )
+
+            def __call__(self, estimator, data):
+                return 0.0
+
+        register_scorer(name="TestStringScorer", scorer=TestScorer, family="custom")
+        assert (
+            AVAILABLE_CATE_SCORERS["TestStringScorer"]["family"] == ScorerFamily.CUSTOM
+        )
+
+        # Cleanup
+        del AVAILABLE_CATE_SCORERS["TestStringScorer"]
+
+
+class TestGetCompatibleScorers:
+    """Tests for get_compatible_scorers function."""
+
+    def test_returns_dict(self, binary_continuous_dataset):
+        """Test that get_compatible_scorers returns a dict."""
+        result = get_compatible_scorers(binary_continuous_dataset)
+        assert isinstance(result, dict)
+
+    def test_filter_by_family(self, binary_continuous_dataset):
+        """Test filtering scorers by family."""
+        # Register a test scorer
+        from caml.scorers import BaseCateScorerMixin, ScorerCapabilities
+
+        class TestScorer(BaseCateScorerMixin):
+            capabilities = ScorerCapabilities(
+                treatment_types={TreatmentType.BINARY},
+                outcome_types={OutcomeType.CONTINUOUS},
+                supports_weights=False,
+                requires_treatment_model=False,
+                requires_outcome_model=False,
+                requires_regression_model=False,
+                requires_oracle_cates=False,
+            )
+
+            def __call__(self, estimator, data):
+                return 0.0
+
+        register_scorer(
+            name="TestFamilyScorer", scorer=TestScorer, family=ScorerFamily.CUSTOM
+        )
+
+        result = get_compatible_scorers(
+            binary_continuous_dataset, families=[ScorerFamily.CUSTOM]
+        )
+        # Should at least include our test scorer if compatible
+        assert isinstance(result, dict)
+
+        # Cleanup
+        del AVAILABLE_CATE_SCORERS["TestFamilyScorer"]
+
+    def test_families_accepts_strings(self, binary_continuous_dataset):
+        """Test that families parameter accepts string values."""
+        result = get_compatible_scorers(
+            binary_continuous_dataset, families=["pseudo_outcome"]
+        )
+        assert isinstance(result, dict)
+
+
+class TestAutoRegisterScorer:
+    """Tests for auto_register decorator with scorers."""
+
+    def test_auto_register_scorer(self):
+        """Test auto_register for scorers with is_estimator=False."""
+        from caml.scorers import BaseCateScorerMixin, ScorerCapabilities
+
+        @auto_register(
+            name="AutoRegisteredScorer", family=ScorerFamily.CUSTOM, is_estimator=False
+        )
+        class TestAutoScorer(BaseCateScorerMixin):
+            capabilities = ScorerCapabilities(
+                treatment_types={TreatmentType.BINARY},
+                outcome_types={OutcomeType.CONTINUOUS},
+                supports_weights=False,
+                requires_treatment_model=False,
+                requires_outcome_model=False,
+                requires_regression_model=False,
+                requires_oracle_cates=False,
+            )
+
+            def __call__(self, estimator, data):
+                return 0.0
+
+        assert "AutoRegisteredScorer" in AVAILABLE_CATE_SCORERS
+        assert (
+            AVAILABLE_CATE_SCORERS["AutoRegisteredScorer"]["scorer"] == TestAutoScorer
+        )
+        assert (
+            AVAILABLE_CATE_SCORERS["AutoRegisteredScorer"]["family"]
+            == ScorerFamily.CUSTOM
+        )
+
+        # Cleanup
+        del AVAILABLE_CATE_SCORERS["AutoRegisteredScorer"]
+
+    def test_auto_register_scorer_with_string_family(self):
+        """Test auto_register for scorers with string family."""
+        from caml.scorers import BaseCateScorerMixin, ScorerCapabilities
+
+        @auto_register(name="StringFamilyScorer", family="custom", is_estimator=False)
+        class TestStringScorer(BaseCateScorerMixin):
+            capabilities = ScorerCapabilities(
+                treatment_types={TreatmentType.BINARY},
+                outcome_types={OutcomeType.CONTINUOUS},
+                supports_weights=False,
+                requires_treatment_model=False,
+                requires_outcome_model=False,
+                requires_regression_model=False,
+                requires_oracle_cates=False,
+            )
+
+            def __call__(self, estimator, data):
+                return 0.0
+
+        assert (
+            AVAILABLE_CATE_SCORERS["StringFamilyScorer"]["family"]
+            == ScorerFamily.CUSTOM
+        )
+
+        # Cleanup
+        del AVAILABLE_CATE_SCORERS["StringFamilyScorer"]
+
+
+# ==============================================================================
+# ERROR HANDLING TESTS
+# ==============================================================================
+
+
+class TestAutoRegisterErrorHandling:
+    """Test error handling in auto_register decorator."""
+
+    def test_estimator_with_invalid_family_type_raises(self):
+        """Test that invalid family type for estimator raises error."""
+        with pytest.raises(ValueError, match="Estimator family must be"):
+
+            @auto_register(name="BadEstimator", family=ScorerFamily.CUSTOM)
+            class BadEstimator:
+                pass
+
+    def test_scorer_with_invalid_family_type_raises(self):
+        """Test that invalid family type for scorer raises error."""
+        with pytest.raises(ValueError, match="Scorer family must be"):
+
+            @auto_register(
+                name="BadScorer", family=EstimatorFamily.DML, is_estimator=False
+            )
+            class BadScorer:
+                pass
