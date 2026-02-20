@@ -58,13 +58,15 @@ class SearchSpaceSpec(ABC):
     #     ...
 
     @abstractmethod
-    def to_optuna(self, trial) -> Any:
+    def to_optuna(self, trial, prefix: str = "") -> Any:
         """Sample value using Optuna trial.
 
         Parameters
         ----------
-        trial : optuna.Trial
+        trial
             Optuna trial object for sampling.
+        prefix
+            Optional prefix for parameter name (useful for nested search spaces), by default ""
 
         Returns
         -------
@@ -89,6 +91,7 @@ class SearchSpaceSpec(ABC):
 class NumericSpec(SearchSpaceSpec, ABC):
     """Base class for numeric (int/float) search spaces."""
 
+    name: str
     lower: float
     upper: float
     log: bool = False
@@ -141,14 +144,16 @@ class IntSpec(NumericSpec):
     ```
     """
 
+    name: str
     lower: int
     upper: int
-    step: int | None = None
+    log: bool = False
+    step: int = 1
 
-    def to_optuna(self, trial) -> int:
+    def to_optuna(self, trial, prefix: str = "") -> int:
         """Sample integer using Optuna."""
         return trial.suggest_int(
-            self.name,
+            f"{prefix}{self.name}",
             self.lower,
             self.upper,
             log=self.log,
@@ -186,16 +191,20 @@ class FloatSpec(NumericSpec):
     ```
     """
 
+    name: str
+    lower: float
+    upper: float
+    log: bool = False
     step: float | None = None
 
-    def to_optuna(self, trial) -> float:
+    def to_optuna(self, trial, prefix: str = "") -> float:
         """Sample float using Optuna."""
         return trial.suggest_float(
-            self.name,
+            f"{prefix}{self.name}",
             self.lower,
             self.upper,
             log=self.log,
-            step=self.step,
+            step=self.step if not self.log else None,
         )
 
 
@@ -221,6 +230,7 @@ class CategoricalSpec(SearchSpaceSpec):
     ```
     """
 
+    name: str
     choices: list[Any]
 
     def __post_init__(self):
@@ -234,9 +244,9 @@ class CategoricalSpec(SearchSpaceSpec):
         if len(self.choices) != len(set(str(c) for c in self.choices)):
             raise ValueError(f"Duplicate choices in '{self.name}'")
 
-    def to_optuna(self, trial) -> Any:
+    def to_optuna(self, trial, prefix: str = "") -> Any:
         """Sample categorical using Optuna."""
-        return trial.suggest_categorical(self.name, self.choices)
+        return trial.suggest_categorical(f"{prefix}{self.name}", self.choices)
 
 
 @dataclass
@@ -257,9 +267,11 @@ class BoolSpec(SearchSpaceSpec):
     ```
     """
 
-    def to_optuna(self, trial) -> bool:
+    name: str
+
+    def to_optuna(self, trial, prefix: str = "") -> bool:
         """Sample boolean using Optuna."""
-        return trial.suggest_categorical(self.name, [True, False])
+        return trial.suggest_categorical(f"{prefix}{self.name}", [True, False])
 
     def validate(self) -> None:
         """No validation needed for boolean spec."""
@@ -290,9 +302,10 @@ class ConstantSpec(SearchSpaceSpec):
     ```
     """
 
+    name: str
     value: Any
 
-    def to_optuna(self, trial) -> Any:
+    def to_optuna(self, trial, prefix: str = "") -> Any:
         """Return constant value (no sampling)."""
         return self.value
 
@@ -326,6 +339,7 @@ class NuisanceModelSpec(SearchSpaceSpec):
     ```
     """
 
+    name: str
     model_type: Literal["treatment", "outcome", "regression"]
 
     def __post_init__(self):
@@ -370,6 +384,7 @@ class StandardMLSpec(SearchSpaceSpec):
     ```
     """
 
+    name: str
     models: Sequence[str] | None = None
 
     def __post_init__(self):
@@ -395,9 +410,22 @@ class StandardMLSpec(SearchSpaceSpec):
                 f"Invalid model_types: {self.models}. Must be subset of {self._VALID_KEYS}."
             )
 
-    def to_optuna(self, trial) -> Any:
+    def to_optuna(self, trial, prefix: str = "") -> Any:
         """Not applicable for traditional ML models."""
-        raise NotImplementedError("StandardMLSpec is handled separately, not by Optuna")
+        from caml.estimators.standard_ml import AVAILABLE_STANDARD_ML_ESTIMATORS
+
+        estimator_name = trial.suggest_categorical(self.name, self.models)
+        standard_ml_estimator = AVAILABLE_STANDARD_ML_ESTIMATORS[estimator_name]
+        estimator = standard_ml_estimator._regressor_class()
+        for param in standard_ml_estimator.default_search_space:
+            estimator.set_params(
+                **{
+                    param.name: param.to_optuna(
+                        trial, prefix=f"{prefix}{estimator_name}__"
+                    )
+                }
+            )
+        return estimator
 
 
 SearchSpace = Sequence[SearchSpaceSpec]

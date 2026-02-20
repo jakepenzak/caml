@@ -10,6 +10,7 @@ dependencies = [
     "numba>=0.59,<0.62; python_version < '3.12'",
     "numba>=0.60,<0.63; python_version == '3.12'",
     "numba>=0.62; python_version >= '3.13'",
+    "optuna>=4.7.0",
 ]
 description = "AutoML framework for causal machine learning and heterogeneous treatment effect estimation."
 

@@ -203,7 +203,7 @@ AVAILABLE_STANDARD_ML_ESTIMATORS: dict = {
     "xgboost_limitdepth": XGBoostLimitDepthModel,
     "random_forest": RandomForestModel,
     "extra_tress": ExtraTreesModel,
-    "logistic": LogisticRegressionModel,
-    "elastic_net": ElasticNetModel,
+    # "logistic": LogisticRegressionModel,
+    # "elastic_net": ElasticNetModel,
 }
 """Dictionary of available traditional ML models for meta-learners and final stage models."""

@@ -507,6 +507,7 @@ dependencies = [
     { name = "numba", version = "0.61.2", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.12'" },
     { name = "numba", version = "0.62.1", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version == '3.12.*'" },
     { name = "numba", version = "0.63.1", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.13'" },
+    { name = "optuna" },
     { name = "patsy" },
     { name = "rich" },
 ]
@@ -547,6 +548,7 @@ requires-dist = [
     { name = "numba", marker = "python_full_version < '3.12'", specifier = ">=0.59,<0.62" },
     { name = "numba", marker = "python_full_version == '3.12.*'", specifier = ">=0.60,<0.63" },
     { name = "numba", marker = "python_full_version >= '3.13'", specifier = ">=0.62" },
+    { name = "optuna", specifier = ">=4.7.0" },
     { name = "patsy", specifier = ">=1.0.1" },
     { name = "rich", specifier = ">=13.9.4" },
 ]

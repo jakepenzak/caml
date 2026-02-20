@@ -6,14 +6,6 @@ app = marimo.App(width="medium")
 
 @app.cell
 def _():
-    from caml.registry import available_estimators
-
-    available_estimators
-    return
-
-
-@app.cell
-def _():
     import numpy as np
 
     from caml.data import CausalDataset, OutcomeType, TreatmentType
@@ -57,6 +49,33 @@ def _(data):
     print(f"\n{tuner.outcome_model_}")
     print(f"\n{tuner.regression_model_}")
     return (tuner,)
+
+
+@app.cell
+def _(RLoss, data, tuner):
+    r_losss = RLoss(
+        treatment_model=tuner.treatment_model_,
+        outcome_model=tuner.outcome_model_,
+        normalized=False,
+    )
+
+
+    from caml.automl.backends.optuna import OptunaBackend
+    from caml.registry import get_compatible_estimators
+    optuna_backend = OptunaBackend()
+
+    candidate_estimators = get_compatible_estimators(data, families=["dml"])
+
+    objective = optuna_backend.create_objective(r_losss, candidate_estimators, data, tuner.outcome_model_, tuner.treatment_model_, tuner.regression_model_)
+
+    study = optuna_backend.optimize(objective, n_trials=100, n_jobs=-1)
+    return (study,)
+
+
+@app.cell
+def _(study):
+    dir(study)
+    return
 
 
 @app.cell
@@ -183,7 +202,7 @@ def _(data, mod, tuner):
     )
 
     r_loss(estimator=mod, data=data)
-    return
+    return (RLoss,)
 
 
 @app.cell
