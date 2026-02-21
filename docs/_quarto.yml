@@ -70,6 +70,7 @@ website:
         - 02_Concepts/motivation.qmd
         - 02_Concepts/estimators.qmd
         - 02_Concepts/scorers.qmd
+        - 02_Concepts/autocate.qmd
         - 02_Concepts/references.qmd
     # - id: Examples
     #   title: "Examples"
