@@ -95,6 +95,7 @@ class LGBMModel(BaseStandardMLEstimator):
         IntSpec(name="max_bin", lower=63, upper=255),
         FloatSpec(name="reg_alpha", lower=1e-3, upper=10.0, log=True),
         FloatSpec(name="reg_lambda", lower=1e-3, upper=10.0, log=True),
+        ConstantSpec(name="verbosity", value=-1),
     )
     _regressor_class = LGBMRegressor
     _classifier_class = LGBMClassifier

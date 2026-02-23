@@ -1,9 +1,21 @@
 """Optuna backend implementation."""
 
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
+import numpy as np
 import optuna
+from sklearn.base import BaseEstimator
+
+from caml.data import CausalDataset
+from caml.samplers import create_splitter
 
 from ..search_space import NuisanceModelSpec
 from .base import BaseTunerBackend
+
+if TYPE_CHECKING:
+    from caml.scorers import CateScorer
 
 
 class OptunaBackend(BaseTunerBackend):
@@ -26,20 +38,22 @@ class OptunaBackend(BaseTunerBackend):
 
     def create_objective(
         self,
-        scorer,
-        candidate_estimators,
-        data,
-        outcome_model,
-        treatment_model,
-        regression_model,
+        data: CausalDataset,
+        scorer: CateScorer,
+        candidate_cate_estimators: list[str],
+        cv: int,
+        outcome_model: BaseEstimator,
+        treatment_model: BaseEstimator,
+        regression_model: BaseEstimator,
     ):
         """Create Optuna objective function."""
+        from caml.registry.registry import AVAILABLE_CATE_ESTIMATORS
 
         def objective(trial):
             estimator_name = trial.suggest_categorical(
-                "estimator", candidate_estimators.keys()
+                "estimator", candidate_cate_estimators
             )
-            estimator = candidate_estimators[estimator_name]["estimator"]()
+            estimator = AVAILABLE_CATE_ESTIMATORS[estimator_name]["estimator"]()
             for param in estimator.default_search_space:
                 if isinstance(param, NuisanceModelSpec):
                     if param.model_type == "regression":
@@ -56,7 +70,16 @@ class OptunaBackend(BaseTunerBackend):
                             )
                         }
                     )
-            estimator.fit(data)
-            return scorer(estimator, data)
+
+            cv_splitter = create_splitter(
+                cv=cv,
+                random_state=trial.number,
+                stratified=data.treatment_type.is_discrete(),
+            )
+            scores = []
+            for train_idx, test_idx in cv_splitter.split(data.X, data.T.ravel()):
+                estimator.fit(data.sample(train_idx))
+                scores.append(scorer(estimator, data.sample(test_idx)))
+            return np.mean(scores)
 
         return objective

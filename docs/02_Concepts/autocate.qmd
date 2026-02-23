@@ -43,7 +43,7 @@ flowchart TD
             P1T["📋 Training Set"]
             CAND1["🤖 Candidate ML Models"]
         end
-        P1nt("🔁 Cross-Validation<br>via NuisanceTuner")
+        P1nt("🔁 AutoML Nuisance Selection")
         H["🔵 Selected<br>Nuisance Models"]
     end
 
@@ -57,9 +57,13 @@ flowchart TD
             P2C["🤖 Candidate CATE Models"]
             P2S["📐 CATE Scorer"]
         end
-        CV2("🔁 Cross-Validation")
-        XFIT1("⚡ Within-CATE model<br>Nuisance Cross-Fitting<br>CV Training Fold")
-        XFIT2("⚡ Within-CATE Scorer<br>Nuisance Cross-Fitting<br>CV Validation Fold")
+        CV2("🔁 Cross-Validation Loop")
+        subgraph CVFold ["Per CV Fold"]
+            direction TB
+            XFIT1("⚡  Nuisance Cross-Fitting<br>(Train Fold)")
+            TR0("🏋️ Train CATE Models<br>(Train Fold)")
+            XFIT2("📐 Score CATE Candidates<br>(Val Fold)")
+        end
         M["🟠 Selected<br>CATE Model"]
     end
 
@@ -72,14 +76,18 @@ flowchart TD
             P3CM["🟠 Selected<br>CATE Model"]
             P3TEST["🧪 Testing Set"]
         end
-        TR1("🏋️ Train CATE model<br>on Training Set")
-        SCORE("📏 Score<br>on Testing Set")
-        REPORT["📊 Test Scoring<br>Report"]
+        subgraph TR1Block ["Train w/ Internal Cross-Fitting"]
+            direction TB
+            XFIT_P3("⚡ Nuisance Cross-Fitting")
+            TR1("🏋️ Train CATE Model")
+        end
+        SCORE("📏 Evaluate on Test Set")
+        REPORT["📊 Evaluation Report"]
     end
 
 
     %% ── Heuristic Gate ────────────────────────────────────────────────
-    HEURISTIC["💡 Heuristic Step"]
+    HEURISTIC["💡 Deployment Gate"]
 
     %% ── Phase 4 node declarations ────────────────────────────────────
     subgraph Phase4 ["Final Training"]
@@ -90,8 +98,12 @@ flowchart TD
             P4CM["🟠 Selected<br>CATE Model"]
             P4TEST["🧪 Testing Set"]
         end
-        TR2("🏋️ Retrain CATE model<br>on Full Data")
-        FINAL["🏆 Final Production<br>CATE Model"]
+        subgraph TR2Block ["Train w/ Internal Cross-Fitting"]
+            direction TB
+            XFIT_P4("⚡ Nuisance Cross-Fitting")
+            TR2("🏋️ Retrain on Full Dataset")
+        end
+        FINAL["🏆 Production CATE Model"]
     end
 
     %% ── All edges ────────────────────────────────────────────────────
@@ -105,13 +117,14 @@ flowchart TD
     P2C --> CV2
     P2S --> CV2
     CV2 --> XFIT1
-    CV2 --> XFIT2
-    XFIT1 --> M
+    XFIT1 --> TR0
+    TR0 --> XFIT2
     XFIT2 --> M
 
     M -.-> P3CM
-    P3T --> TR1
-    P3CM --> TR1
+    P3T --> XFIT_P3
+    P3CM --> XFIT_P3
+    XFIT_P3 --> TR1
     P3TEST --> SCORE
     TR1 --> SCORE
 
@@ -119,21 +132,25 @@ flowchart TD
     HEURISTIC -.->|"🚀 retrain"| TR2
 
     M -.-> P4CM
-    P4T --> TR2
-    P4CM --> TR2
-    P4TEST --> TR2
+    P4T --> XFIT_P4
+    P4CM --> XFIT_P4
+    P4TEST --> XFIT_P4
+    XFIT_P4 --> TR2
     TR2 --> FINAL
     SCORE --> REPORT
 
     %% ── Subgraph styling ─────────────────────────────────────────────
-    style Phase1  fill:#eff6ff,stroke:#1971c2,stroke-width:2px,stroke-dasharray:6
-    style Phase2  fill:#fff8ed,stroke:#e67700,stroke-width:2px,stroke-dasharray:6
-    style Phase3  fill:#f5f0ff,stroke:#7048e8,stroke-width:2px,stroke-dasharray:6
-    style Phase4  fill:#e6fcf5,stroke:#0ca678,stroke-width:2px,stroke-dasharray:6
-    style P1in    fill:#dbe4ff,stroke:#1971c2,stroke-width:1px,stroke-dasharray:3
-    style P2in    fill:#ffe8cc,stroke:#e67700,stroke-width:1px,stroke-dasharray:3
-    style P3in    fill:#e5dbff,stroke:#7048e8,stroke-width:1px,stroke-dasharray:3
-    style P4in    fill:#c3fae8,stroke:#0ca678,stroke-width:1px,stroke-dasharray:3
+    style Phase1   fill:#eff6ff,stroke:#1971c2,stroke-width:2px,stroke-dasharray:6
+    style Phase2   fill:#fff8ed,stroke:#e67700,stroke-width:2px,stroke-dasharray:6
+    style Phase3   fill:#f5f0ff,stroke:#7048e8,stroke-width:2px,stroke-dasharray:6
+    style Phase4   fill:#e6fcf5,stroke:#0ca678,stroke-width:2px,stroke-dasharray:6
+    style P1in     fill:#dbe4ff,stroke:#1971c2,stroke-width:1px,stroke-dasharray:3
+    style P2in     fill:#ffe8cc,stroke:#e67700,stroke-width:1px,stroke-dasharray:3
+    style P3in     fill:#e5dbff,stroke:#7048e8,stroke-width:1px,stroke-dasharray:3
+    style P4in     fill:#c3fae8,stroke:#0ca678,stroke-width:1px,stroke-dasharray:3
+    style CVFold   fill:#ffd8a8,stroke:#d9480f,stroke-width:1px,stroke-dasharray:3
+    style TR1Block fill:#d0bfff,stroke:#5f3dc4,stroke-width:1px,stroke-dasharray:3
+    style TR2Block fill:#96f2d7,stroke:#087f5b,stroke-width:1px,stroke-dasharray:3
 
     %% ── Node styling ─────────────────────────────────────────────────
     %% Top-level data nodes — larger font + thicker border
@@ -170,5 +187,5 @@ flowchart TD
     class REPORT evalOut
     class HEURISTIC noteNode
 
-    class P1nt,CV2,XFIT1,XFIT2,TR1,SCORE,TR2 actionNode
+    class P1nt,CV2,XFIT1,XFIT2,XFIT_P3,TR0,TR1,XFIT_P4,TR2,SCORE actionNode
 ```

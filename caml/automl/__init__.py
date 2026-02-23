@@ -1,3 +1,6 @@
+from .auto_cate import AutoCATE
+from .backends.base import BaseTunerBackend, TunerBackend
+from .backends.optuna import OptunaBackend
 from .search_space import (
     BoolSpec,
     CategoricalSpec,
@@ -11,6 +14,7 @@ from .search_space import (
 )
 
 __all__ = [
+    "AutoCATE",
     "SearchSpace",
     "SearchSpaceSpec",
     "IntSpec",
@@ -19,4 +23,8 @@ __all__ = [
     "BoolSpec",
     "ConstantSpec",
     "NuisanceModelSpec",
+    "StandardMLSpec",
+    "BaseTunerBackend",
+    "TunerBackend",
+    "OptunaBackend",
 ]

@@ -263,6 +263,64 @@ class CausalDataset:
             **kwargs,
         )
 
+    def sample(self, indices: np.ndarray) -> CausalDataset:
+        """Create a new CausalDataset containing only the specified indices.
+
+        Parameters
+        ----------
+        indices
+            Indices of the samples to include in the new dataset.
+
+        Returns
+        -------
+        CausalDataset
+            A new CausalDataset containing only the specified indices.
+
+        Examples
+        --------
+        ```{python}
+        import numpy as np
+        from caml.data import CausalDataset, TreatmentType, OutcomeType
+
+        np.random.seed(42)
+        n = 1000
+        X = np.random.randn(n, 3)
+        T = np.random.binomial(1, 0.5, n)
+        Y = X[:, 0] + 0.5 * T + np.random.randn(n)
+        data = CausalDataset(
+            X=X, T=T, Y=Y,
+            treatment_type=TreatmentType.BINARY,
+            outcome_type=OutcomeType.CONTINUOUS
+        )
+
+        # Sample 900 random indices as "training set"
+        train_indices = np.random.choice(n, 900, replace=False)
+        train_data = data.sample(sample_indices)
+        print(f"Sampled dataset: {len(train_data.Y)} observations")
+
+        # Remaining indices as "test set"
+        test_indices = np.setdiff1d(np.arange(n), train_indices)
+        test_data = data.sample(test_indices)
+        print(f"Remaining dataset: {len(test_data.Y)} observations")
+        ```
+        """
+        return type(self)(
+            X=self.X[indices],
+            T=self.T[indices],
+            Y=self.Y[indices],
+            W=self.W[indices] if self.W is not None else None,
+            weights=self.weights[indices] if self.weights is not None else None,
+            treatment_type=self.treatment_type,
+            outcome_type=self.outcome_type,
+            X_names=self.X_names,
+            W_names=self.W_names,
+            T_name=self.T_name,
+            Y_name=self.Y_name,
+            true_cates=self.true_cates[indices]
+            if self.true_cates is not None
+            else None,
+        )
+
     def __post_init__(self):
         """Run validations after dataclass initialization.
 

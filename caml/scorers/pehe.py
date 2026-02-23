@@ -49,7 +49,7 @@ class Pehe(BaseCateScorerMixin):
         requires_outcome_model=False,
         requires_regression_model=False,
         requires_oracle_cates=True,
-        higher_is_better=False,
+        greater_is_better=False,
         supports_weights=False,
     )
 

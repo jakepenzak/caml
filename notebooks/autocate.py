@@ -11,7 +11,14 @@ def _():
     from caml.data import CausalDataset, OutcomeType, TreatmentType
     from caml.extensions.synthetic_data import SyntheticDataGenerator
 
-    gen = SyntheticDataGenerator(n_cont_modifiers=3, n_cont_confounders=4)
+    gen = SyntheticDataGenerator(n_obs=10_000,
+                                 n_cont_modifiers=8,
+                                 n_binary_modifiers=3,
+                                 n_cont_confounders=4,
+                                 n_binary_confounders=2,
+                                 n_confounding_modifiers=2,
+                                 causal_model_functional_form="nonlinear",
+                                 seed=10)
 
     data = CausalDataset.from_dataframe(
         gen.df,
@@ -29,8 +36,27 @@ def _():
         SyntheticDataGenerator,
         TreatmentType,
         data,
+        gen,
         np,
     )
+
+
+@app.cell
+def _(gen):
+    gen.cates
+    return
+
+
+@app.cell
+def _(gen):
+    gen.dgp
+    return
+
+
+@app.cell
+def _(gen):
+    gen.df
+    return
 
 
 @app.cell
@@ -41,7 +67,7 @@ def _(data):
         fit_treatment_model=True, fit_outcome_model=True, fit_regression_model=True
     )
 
-    tuner = NuisanceTuner(time_budget=5, verbose=0)
+    tuner = NuisanceTuner(time_budget=60, verbose=0)
 
     tuner.fit(data, spec)
 
@@ -52,21 +78,28 @@ def _(data):
 
 
 @app.cell
-def _(RLoss, data, tuner):
+def _(Pehe, RLoss, data, tuner):
     r_losss = RLoss(
         treatment_model=tuner.treatment_model_,
         outcome_model=tuner.outcome_model_,
         normalized=False,
     )
 
+    pehee = Pehe()
 
     from caml.automl.backends.optuna import OptunaBackend
     from caml.registry import get_compatible_estimators
     optuna_backend = OptunaBackend()
 
-    candidate_estimators = get_compatible_estimators(data, families=["dml"])
+    candidate_estimators = get_compatible_estimators(data, families=["dr","meta","orf"])
 
-    objective = optuna_backend.create_objective(r_losss, candidate_estimators, data, tuner.outcome_model_, tuner.treatment_model_, tuner.regression_model_)
+    objective = optuna_backend.create_objective(scorer=pehee,
+                                                candidate_estimators=candidate_estimators,
+                                                cv=3,
+                                                data=data,
+                                                outcome_model=tuner.outcome_model_,
+                                                treatment_model=tuner.treatment_model_,
+                                                regression_model=tuner.regression_model_)
 
     study = optuna_backend.optimize(objective, n_trials=100, n_jobs=-1)
     return (study,)
@@ -74,20 +107,47 @@ def _(RLoss, data, tuner):
 
 @app.cell
 def _(study):
-    dir(study)
+    study.best_value
     return
 
 
 @app.cell
-def _(data, tuner):
-    from caml.samplers.cross_fit import CrossFitter
+def _(study):
+    study.best_params
+    return
+
+
+@app.cell
+def _(Pehe, WrappedLinearDML, data, gen, np, tuner):
+    estimator_test = WrappedLinearDML(
+        model_y=tuner.outcome_model_, model_t=tuner.treatment_model_, cv=5,mc_iters=3,mc_agg="mean",fit_cate_intercept=True
+    )
+
+    train_indices = np.random.choice(gen.df.index, size=800, replace=False)
+    test_indices = np.setdiff1d(gen.df.index, train_indices)
+
+    estimator_test.fit(data.sample(indices=train_indices))
+
+    scorer_test = Pehe()
+    print(f"PEHE: {scorer_test(estimator_test, data.sample(test_indices))}")
+
+    nrm_scorer_test = Pehe(normalized=True)
+    print(f"Normalized PEHE: {nrm_scorer_test(estimator_test, data.sample(test_indices)):.2f}")
+    return (estimator_test,)
+
+
+app._unparsable_cell(
+    r"""
+    Lfrom caml.samplers.cross_fit import CrossFitter
 
     cross_fitter = CrossFitter(cv=5)
 
     mhat, ehat = cross_fitter.fit_predict_nuisances_dml(
         data, outcome_model=tuner.outcome_model_, treatment_model=tuner.treatment_model_
     )
-    return
+    """,
+    name="_"
+)
 
 
 @app.cell
@@ -127,38 +187,7 @@ def _(
 
     nrm_scorer = Pehe(normalized=True)
     print(f"Normalized PEHE: {nrm_scorer(estimator, dataa):.2f}")
-    return dataa, estimator, true_cates
-
-
-@app.cell
-def _(true_cates):
-    true_cates.shape
-    return
-
-
-@app.cell
-def _(dataa, estimator):
-    x = estimator.effect(dataa.X)
-    y = dataa.true_cates
-    return x, y
-
-
-@app.cell
-def _(np, x, y):
-    np.mean((y - x) ** 2)
-    return
-
-
-@app.cell
-def _(np, x):
-    np.mean(x)
-    return
-
-
-@app.cell
-def _(y):
-    y
-    return
+    return WrappedLinearDML, dataa, estimator
 
 
 @app.cell
@@ -230,14 +259,14 @@ def _(data, mod, tuner):
 
 
 @app.cell
-def _(data, mod):
+def _(data, estimator_test):
     from caml.extensions.plots import (
         cate_histogram_plot,
         cate_line_plot,
         cate_true_vs_estimated_plot,
     )
 
-    estimated = mod.effect(data.X)
+    estimated = estimator_test.effect(data.X)
 
     cate_histogram_plot(estimated, true_cates=data.true_cates)
     return (

@@ -61,7 +61,7 @@ class DRLoss(BaseCateScorerMixin):
         requires_outcome_model=False,
         requires_regression_model=True,
         requires_oracle_cates=False,
-        higher_is_better=False,
+        greater_is_better=False,
         supports_weights=False,
     )
 

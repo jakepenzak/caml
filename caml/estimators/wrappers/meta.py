@@ -7,6 +7,7 @@ Wraps `SLearner`, `TLearner`, and `XLearner` to implement CaML's
 from __future__ import annotations
 
 from econml.metalearners import SLearner, TLearner, XLearner
+from sklearn.linear_model import LinearRegression
 
 from caml.automl import (
     NuisanceModelSpec,
@@ -111,14 +112,16 @@ class WrappedSLearner(BaseEconMLWrapperMixin):
         supports_weights=False,
         requires_treatment_model=False,
         requires_outcome_model=False,
-        requires_regression_model=True,
+        requires_regression_model=False,
         supports_inference=True,
     )
 
-    default_search_space: SearchSpace = (StandardMLSpec(name="model_final"),)
+    default_search_space: SearchSpace = (StandardMLSpec(name="overall_model"),)
 
     def __init__(self, **econml_kwargs):
         self._econml_kwargs = econml_kwargs
+        if "overall_model" not in self._econml_kwargs:
+            self._econml_kwargs["overall_model"] = LinearRegression()
         self._estimator = SLearner(**self._econml_kwargs)
         self._is_fitted = False
 
@@ -250,9 +253,9 @@ class WrappedTLearner(BaseEconMLWrapperMixin):
         },
         supports_controls_in_first_stage_only=False,
         supports_weights=False,
-        requires_treatment_model=False,
+        requires_treatment_model=True,
         requires_outcome_model=False,
-        requires_regression_model=True,
+        requires_regression_model=False,
         supports_inference=True,
     )
 
@@ -260,6 +263,8 @@ class WrappedTLearner(BaseEconMLWrapperMixin):
 
     def __init__(self, **econml_kwargs):
         self._econml_kwargs = econml_kwargs
+        if "models" not in self._econml_kwargs:
+            self._econml_kwargs["models"] = LinearRegression()
         self._estimator = TLearner(**self._econml_kwargs)
         self._is_fitted = False
 
@@ -408,6 +413,8 @@ class WrappedXLearner(BaseEconMLWrapperMixin):
 
     def __init__(self, **econml_kwargs):
         self._econml_kwargs = econml_kwargs
+        if "models" not in self._econml_kwargs:
+            self._econml_kwargs["models"] = LinearRegression()
         self._estimator = XLearner(**self._econml_kwargs)
         self._is_fitted = False
 

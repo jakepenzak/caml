@@ -674,9 +674,12 @@ class WrappedNonParamDML(BaseEconMLWrapperMixin):
 
     def __init__(self, **econml_kwargs):
         self._econml_kwargs = econml_kwargs
-        self._econml_kwargs["model_y"] = LinearRegression()
-        self._econml_kwargs["model_t"] = LinearRegression()
-        self._econml_kwargs["model_final"] = LinearRegression()
+        if "model_y" not in self._econml_kwargs:
+            self._econml_kwargs["model_y"] = LinearRegression()
+        if "model_t" not in self._econml_kwargs:
+            self._econml_kwargs["model_t"] = LinearRegression()
+        if "model_final" not in self._econml_kwargs:
+            self._econml_kwargs["model_final"] = LinearRegression()
         self._estimator = NonParamDML(**self._econml_kwargs)
         self._is_fitted = False
 

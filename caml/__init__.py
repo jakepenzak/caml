@@ -6,6 +6,7 @@ import matplotlib.pyplot as plt
 from sklearn.utils.validation import DataConversionWarning
 
 from caml._version import __version__
+from caml.automl import AutoCATE
 
 # Filtering some benign warnings
 warnings.filterwarnings(
@@ -16,7 +17,12 @@ warnings.filterwarnings(
     category=UserWarning,
     message="X does not have valid feature names, but LGBM",
 )
-
+warnings.filterwarnings("ignore", module="lightgbm")
+warnings.filterwarnings(
+    "ignore",
+    message=".*force_all_finite.*",
+    category=FutureWarning,
+)
 plt.style.use("ggplot")
 
-__all__ = ["__version__"]
+__all__ = ["__version__", "AutoCATE"]

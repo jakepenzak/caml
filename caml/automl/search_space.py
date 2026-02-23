@@ -354,7 +354,7 @@ class NuisanceModelSpec(SearchSpaceSpec):
                 f"Must be 'treatment', 'outcome', or 'regression'."
             )
 
-    def to_optuna(self, trial) -> Any:
+    def to_optuna(self, trial, prefix: str = "") -> Any:
         """Not applicable for nuisance models."""
         raise NotImplementedError(
             "NuisanceModelSpec is handled separately, not by Optuna"
@@ -411,19 +411,19 @@ class StandardMLSpec(SearchSpaceSpec):
             )
 
     def to_optuna(self, trial, prefix: str = "") -> Any:
-        """Not applicable for traditional ML models."""
+        """Return a fitted traditional ML model based on the trial's choice.
+
+        All nested hyperparameters for the chosen model are also sampled and set on the estimator.
+        """
         from caml.estimators.standard_ml import AVAILABLE_STANDARD_ML_ESTIMATORS
 
-        estimator_name = trial.suggest_categorical(self.name, self.models)
+        estimator_name = trial.suggest_categorical(f"{prefix}{self.name}", self.models)
         standard_ml_estimator = AVAILABLE_STANDARD_ML_ESTIMATORS[estimator_name]
+        # TODO: Add logic to handle regressor/classifier distinction (eg, for metalearners).
         estimator = standard_ml_estimator._regressor_class()
         for param in standard_ml_estimator.default_search_space:
             estimator.set_params(
-                **{
-                    param.name: param.to_optuna(
-                        trial, prefix=f"{prefix}{estimator_name}__"
-                    )
-                }
+                **{param.name: param.to_optuna(trial, prefix=f"{prefix}{self.name}__")}
             )
         return estimator
 

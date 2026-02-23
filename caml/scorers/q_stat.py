@@ -17,7 +17,7 @@ from .base_scorer import BaseCateScorerMixin, ScorerCapabilities
 
 
 @auto_register(
-    name="Q-Statistic", family=ScorerFamily.RANKING_RELATIVE_PROXY, is_estimator=False
+    name="QStat", family=ScorerFamily.RANKING_RELATIVE_PROXY, is_estimator=False
 )
 class QStat(BaseCateScorerMixin):
     r"""Q-statistic for CATE model selection via IPW pseudo-outcomes.
@@ -60,7 +60,7 @@ class QStat(BaseCateScorerMixin):
         requires_outcome_model=False,
         requires_regression_model=False,
         requires_oracle_cates=False,
-        higher_is_better=False,
+        greater_is_better=False,
         supports_weights=False,
     )
 

@@ -39,7 +39,7 @@ class ScorerCapabilities:
         If True, scorer needs a regression model - $\mathbb{E}[Y \mid T,X,W]$.
     requires_oracle_cates
         If True, scorer requires oracle CATEs to be available (for simulation studies).
-    higher_is_better
+    greater_is_better
         If True, higher scores indicate better performance (e.g., R^2). If False, lower scores are better (e.g., MSE).
     supports_weights
         If True, scorer handles sample weights (not yet supported in CaML).
@@ -57,7 +57,7 @@ class ScorerCapabilities:
         requires_outcome_model=True,
         requires_regression_model=False,
         requires_oracle_cates=False,
-        higher_is_better=False,
+        greater_is_better=False,
         supports_weights=False
     )
     ```
@@ -69,7 +69,7 @@ class ScorerCapabilities:
     requires_outcome_model: bool
     requires_regression_model: bool
     requires_oracle_cates: bool = False
-    higher_is_better: bool = False
+    greater_is_better: bool = False
     supports_weights: bool = False
 
     def is_compatible(self, data: CausalDataset) -> bool:
@@ -99,7 +99,7 @@ class ScorerCapabilities:
             requires_outcome_model=True,
             requires_regression_model=False,
             requires_oracle_cates=False,
-            higher_is_better=False,
+            greater_is_better=False,
         )
 
         np.random.seed(42)
@@ -207,7 +207,7 @@ class BaseCateScorerMixin(ABC):
             requires_outcome_model=False,
             requires_regression_model=False,
             requires_oracle_cates=True,
-            higher_is_better=False,
+            greater_is_better=False,
         )
 
         def __call__(self, estimator, data):
@@ -292,7 +292,7 @@ class BaseCateScorerMixin(ABC):
                 requires_outcome_model=False,
                 requires_regression_model=False,
                 requires_oracle_cates=True,
-                higher_is_better=False,
+                greater_is_better=False,
             )
 
             def __call__(self, estimator, data):
@@ -319,7 +319,7 @@ class BaseCateScorerMixin(ABC):
                 requires_outcome_model=True,
                 requires_regression_model=False,
                 requires_oracle_cates=False,
-                higher_is_better=False,
+                greater_is_better=False,
             )
 
             def __call__(self, estimator, data):

@@ -7,8 +7,6 @@ to implement CaML's `AutoCateEstimator` and `InferenceProvider` protocols.
 from __future__ import annotations
 
 from econml.dr import DRLearner, ForestDRLearner, LinearDRLearner, SparseLinearDRLearner
-from sklearn.pipeline import Pipeline
-from sklearn.preprocessing import PolynomialFeatures, RobustScaler
 
 from caml.automl import (
     BoolSpec,
@@ -289,30 +287,30 @@ class WrappedLinearDRLearner(BaseEconMLWrapperMixin):
     default_search_space: SearchSpace = (
         NuisanceModelSpec(name="model_propensity", model_type="treatment"),
         NuisanceModelSpec(name="model_regression", model_type="regression"),
-        CategoricalSpec(
-            name="featurizer",
-            choices=[
-                None,
-                RobustScaler(),  # Just scaling (no polynomials)
-                Pipeline(
-                    [
-                        ("scaler", RobustScaler()),
-                        ("poly", PolynomialFeatures(degree=2, include_bias=False)),
-                    ]
-                ),
-                Pipeline(
-                    [
-                        ("scaler", RobustScaler()),
-                        (
-                            "poly",
-                            PolynomialFeatures(
-                                degree=2, interaction_only=True, include_bias=False
-                            ),
-                        ),
-                    ]
-                ),
-            ],
-        ),
+        # CategoricalSpec(
+        #     name="featurizer",
+        #     choices=[
+        #         None,
+        #         RobustScaler(),  # Just scaling (no polynomials)
+        #         Pipeline(
+        #             [
+        #                 ("scaler", RobustScaler()),
+        #                 ("poly", PolynomialFeatures(degree=2, include_bias=False)),
+        #             ]
+        #         ),
+        #         Pipeline(
+        #             [
+        #                 ("scaler", RobustScaler()),
+        #                 (
+        #                     "poly",
+        #                     PolynomialFeatures(
+        #                         degree=2, interaction_only=True, include_bias=False
+        #                     ),
+        #                 ),
+        #             ]
+        #         ),
+        #     ],
+        # ),
         BoolSpec(name="fit_cate_intercept"),
         FloatSpec(name="min_propensity", lower=1e-6, upper=0.01, log=True),
         IntSpec(name="cv", lower=2, upper=5, step=1),
@@ -475,30 +473,30 @@ class WrappedSparseLinearDRLearner(BaseEconMLWrapperMixin):
     default_search_space: SearchSpace = (
         NuisanceModelSpec(name="model_propensity", model_type="treatment"),
         NuisanceModelSpec(name="model_regression", model_type="regression"),
-        CategoricalSpec(
-            name="featurizer",
-            choices=[
-                None,
-                RobustScaler(),  # Just scaling (no polynomials)
-                Pipeline(
-                    [
-                        ("scaler", RobustScaler()),
-                        ("poly", PolynomialFeatures(degree=2, include_bias=False)),
-                    ]
-                ),
-                Pipeline(
-                    [
-                        ("scaler", RobustScaler()),
-                        (
-                            "poly",
-                            PolynomialFeatures(
-                                degree=2, interaction_only=True, include_bias=False
-                            ),
-                        ),
-                    ]
-                ),
-            ],
-        ),
+        # CategoricalSpec(
+        #     name="featurizer",
+        #     choices=[
+        #         None,
+        #         RobustScaler(),  # Just scaling (no polynomials)
+        #         Pipeline(
+        #             [
+        #                 ("scaler", RobustScaler()),
+        #                 ("poly", PolynomialFeatures(degree=2, include_bias=False)),
+        #             ]
+        #         ),
+        #         Pipeline(
+        #             [
+        #                 ("scaler", RobustScaler()),
+        #                 (
+        #                     "poly",
+        #                     PolynomialFeatures(
+        #                         degree=2, interaction_only=True, include_bias=False
+        #                     ),
+        #                 ),
+        #             ]
+        #         ),
+        #     ],
+        # ),
         CategoricalSpec(name="alpha", choices=["auto", 0.01, 0.05, 0.1, 0.5, 1.0]),
         IntSpec(name="n_alphas", lower=50, upper=150, step=50),
         CategoricalSpec(name="alpha_cov", choices=["auto", 0.01, 0.1, 1.0]),
@@ -669,14 +667,12 @@ class WrappedForestDRLearner(BaseEconMLWrapperMixin):
         IntSpec(name="cv", lower=2, upper=5, step=1),
         CategoricalSpec(name="mc_iters", choices=[None, 2, 3]),
         CategoricalSpec(name="mc_agg", choices=["mean", "median"]),
-        IntSpec(name="n_estimators", lower=50, upper=500, step=50),
-        CategoricalSpec(name="criterion", choices=["mse", "het"]),
+        IntSpec(name="n_estimators", lower=40, upper=520, step=40),
         CategoricalSpec(name="max_depth", choices=[None, 2, 3, 5, 10, 15, 20]),
         FloatSpec(name="min_samples_split", lower=1e-5, upper=0.1, log=True),
         FloatSpec(name="min_samples_leaf", lower=1e-5, upper=0.1, log=True),
-        CategoricalSpec(name="min_var_fraction_leaf", choices=[None, 0.01, 0.05, 0.1]),
         CategoricalSpec(name="max_features", choices=["auto", "sqrt", "log2"]),
-        CategoricalSpec(name="max_samples", choices=[0.3, 0.45, 0.6, 0.8]),
+        CategoricalSpec(name="max_samples", choices=[0.1, 0.2, 0.3, 0.45, 0.5]),
         CategoricalSpec(name="min_balancedness_tol", choices=[0.1, 0.3, 0.45]),
     )
 
