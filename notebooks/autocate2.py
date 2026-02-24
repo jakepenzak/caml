@@ -7,14 +7,16 @@ app = marimo.App(width="medium")
 @app.cell
 def _():
     import numpy as np
-
     from caml.data import CausalDataset, OutcomeType, TreatmentType
     from caml.extensions.synthetic_data import SyntheticDataGenerator
+    # from caml import configure_logging
 
-    gen = SyntheticDataGenerator(n_obs=10_000,
-                                 n_cont_modifiers=8,
-                                 n_binary_modifiers=3,
-                                 n_cont_confounders=4,
+    # configure_logging(verbose=0)
+
+    gen = SyntheticDataGenerator(n_obs=1_000,
+                                 n_cont_modifiers=3,
+                                 n_binary_modifiers=2,
+                                 n_cont_confounders=2,
                                  n_binary_confounders=2,
                                  n_confounding_modifiers=2,
                                  causal_model_functional_form="nonlinear",
@@ -44,8 +46,17 @@ def _(data):
 @app.cell
 def _(data):
     from caml import AutoCATE
+    from caml.automl import OptunaBackend
 
-    mod = AutoCATE(nuisance_time_budget_s=30,n_jobs=-1,n_trials=100)
+    optuna = OptunaBackend(direction="minimize",
+                           study_name="caml-autocate_optimization-study",
+                           storage="sqlite:///caml-autocate_optimization-study.db",
+                           load_if_exists=True)
+
+    mod = AutoCATE(nuisance_time_budget_s=5,
+                   n_jobs=1,
+                   n_trials=10,
+                  optimization_backend=optuna)
 
     mod.fit(data)
     return (mod,)
@@ -53,7 +64,7 @@ def _(data):
 
 @app.cell
 def _(data, mod):
-    mod.best_estimator_.fit(data)
+    mod.best_estimator_.fit(data.sample(mod.train_indices))
     return
 
 
@@ -65,31 +76,32 @@ def _(data, mod):
         cate_true_vs_estimated_plot,
     )
 
-    estimated = mod.best_estimator_.effect(data.X)
+    estimated = mod.best_estimator_.effect(data.sample(mod.test_indices).X)
+    true_cates = data.sample(mod.test_indices).true_cates
 
-    cate_histogram_plot(estimated, true_cates=data.true_cates)
-    return cate_line_plot, cate_true_vs_estimated_plot, estimated
+    cate_histogram_plot(estimated, true_cates=true_cates)
+    return cate_line_plot, cate_true_vs_estimated_plot, estimated, true_cates
 
 
 @app.cell
-def _(cate_line_plot, data, estimated):
-    cate_line_plot(estimated.ravel(), true_cates=data.true_cates.ravel())
+def _(cate_line_plot, estimated, true_cates):
+    cate_line_plot(estimated.ravel(), true_cates=true_cates.ravel())
     return
 
 
 @app.cell
-def _(cate_true_vs_estimated_plot, data, estimated):
-    cate_true_vs_estimated_plot(estimated.ravel(), data.true_cates.ravel())
+def _(cate_true_vs_estimated_plot, estimated, true_cates):
+    cate_true_vs_estimated_plot(estimated.ravel(), true_cates.ravel())
     return
 
 
 @app.cell
 def _(data, mod):
-    from caml.scorers import RLoss
+    from caml.scorers import Pehe
 
-    pehe = RLoss(normalized=True, treatment_model=mod.treatment_model_, outcome_model=mod.outcome_model_)
+    pehe = Pehe(normalized=True)
 
-    pehe(estimator=mod.best_estimator_, data=data)
+    pehe(estimator=mod.best_estimator_, data=data.sample(mod.test_indices))
     return
 
 

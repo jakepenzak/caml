@@ -1,3 +1,4 @@
+import logging
 from typing import Any, NoReturn, Sequence
 
 import numpy as np
@@ -10,7 +11,8 @@ from caml._base.abstract import BaseCamlEstimator
 from caml._base.mixins import OLSMixin
 from caml._generics.decorators import experimental, timer
 from caml._generics.interfaces import FittedAttr, PandasConvertibleDataFrame
-from caml._generics.logging import DEBUG, INFO
+
+logger = logging.getLogger(__name__)
 
 
 @experimental
@@ -119,7 +121,7 @@ class InteractiveLinearRegression(BaseCamlEstimator, OLSMixin):
         xformula: str | None = None,
         discrete_treatment: bool = True,
     ):
-        DEBUG(
+        logger.debug(
             f"Initializing {self.__class__.__name__} with parameters: Y={Y}, T={T}, G={G}, X={X}, W={W}, discrete_treatment={discrete_treatment}"
         )
         self.Y = list(Y)
@@ -133,7 +135,7 @@ class InteractiveLinearRegression(BaseCamlEstimator, OLSMixin):
             self.Y, self.T, self.G, self.X, self.W, self._discrete_treatment, xformula
         )
         self._formula = self.formula
-        DEBUG(f"Created formula: {self.formula}")
+        logger.debug(f"Created formula: {self.formula}")
         self._fitted = False
         self._treatment_effects: dict = {}
 
@@ -346,7 +348,7 @@ class InteractiveLinearRegression(BaseCamlEstimator, OLSMixin):
         return_results_dict: bool,
         _diff_matrix: np.ndarray | None = None,
     ) -> np.ndarray | dict:
-        INFO("Estimating Average Treatment Effect (ATE)...")
+        logger.info("Estimating Average Treatment Effect (ATE)...")
 
         return self._estimate_effect_common(
             df,
@@ -364,7 +366,7 @@ class InteractiveLinearRegression(BaseCamlEstimator, OLSMixin):
         return_results_dict: bool,
         _diff_matrix: np.ndarray | None = None,
     ) -> np.ndarray | dict:
-        INFO("Estimating Group Average Treatment Effect (GATE)...")
+        logger.info("Estimating Group Average Treatment Effect (GATE)...")
 
         df_filtered = df.query(query)
 
@@ -383,7 +385,7 @@ class InteractiveLinearRegression(BaseCamlEstimator, OLSMixin):
         return_results_dict: bool,
         _diff_matrix: np.ndarray | None = None,
     ) -> np.ndarray | dict:
-        INFO("Estimating Average Treatment Effect on the Treated (ATT)...")
+        logger.info("Estimating Average Treatment Effect on the Treated (ATT)...")
 
         if self._discrete_treatment:
             df_filtered = df.query(f"{self.T} == 1")
@@ -407,7 +409,7 @@ class InteractiveLinearRegression(BaseCamlEstimator, OLSMixin):
         return_results_dict: bool,
         _diff_matrix: np.ndarray | None = None,
     ) -> np.ndarray | dict:
-        INFO("Estimating Average Treatment Effect on the Control (ATC)...")
+        logger.info("Estimating Average Treatment Effect on the Control (ATC)...")
 
         if self._discrete_treatment:
             df_filtered = df.query(f"{self.T} == 0")
@@ -431,7 +433,7 @@ class InteractiveLinearRegression(BaseCamlEstimator, OLSMixin):
         return_results_dict: bool,
         _diff_matrix: np.ndarray | None = None,
     ) -> np.ndarray | dict:
-        INFO("Estimating Conditional Average Treatment Effects (CATEs)...")
+        logger.info("Estimating Conditional Average Treatment Effects (CATEs)...")
         return self._estimate_effect_common(
             df,
             return_results_dict=return_results_dict,
@@ -476,7 +478,7 @@ class InteractiveLinearRegression(BaseCamlEstimator, OLSMixin):
     @timer("Difference Matrix Creation")
     def _create_difference_matrix(self, df: pd.DataFrame) -> np.ndarray | NoReturn:
         try:
-            DEBUG("Creating treatment difference matrix...")
+            logger.debug("Creating treatment difference matrix...")
             original_t = df[self.T].copy()
             if self._X_design_info is None:
                 _, _, self._X_design_info = self._create_design_matrix(
@@ -561,10 +563,10 @@ class InteractiveLinearRegression(BaseCamlEstimator, OLSMixin):
         _diff_matrix: np.ndarray,
     ):
         if self.G is None:
-            DEBUG("No groups specified for GATE estimation. Skipping.")
+            logger.debug("No groups specified for GATE estimation. Skipping.")
             return
 
-        INFO("Estimating Group Average Treatment Effects (GATEs)...")
+        logger.info("Estimating Group Average Treatment Effects (GATEs)...")
 
         groups = {group: df[group].unique() for group in self.G}
 
@@ -592,7 +594,7 @@ class InteractiveLinearRegression(BaseCamlEstimator, OLSMixin):
             )
             return group_key, effects
 
-        DEBUG(f"Starting parallel processing with {n_jobs} jobs")
+        logger.debug(f"Starting parallel processing with {n_jobs} jobs")
         results: Any = Parallel(n_jobs=n_jobs, prefer="threads")(
             delayed(process_group)(group_key, mask, treated_mask)
             for group_key, mask, treated_mask in group_info

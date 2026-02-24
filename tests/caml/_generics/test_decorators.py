@@ -28,8 +28,8 @@ class TestExperimentalDecorator:
         # Warning should not be shown yet
         assert not dummy_function._experimental_warning_shown
 
-        # Call function with logging at WARNING level
-        with caplog.at_level(logging.WARNING, logger="caml"):
+        # Call function with logging at warning level
+        with caplog.at_level(logging.warning, logger="caml"):
             result = dummy_function()
 
         # Should return correct result
@@ -124,7 +124,7 @@ class TestNarrateDecorator:
         def dummy_function():
             return 42
 
-        with caplog.at_level(logging.INFO, logger="caml"):
+        with caplog.at_level(logging.info, logger="caml"):
             result = dummy_function()
 
         assert result == 42
@@ -139,7 +139,7 @@ class TestNarrateDecorator:
         def dummy_function():
             return 42
 
-        with caplog.at_level(logging.INFO, logger="caml"):
+        with caplog.at_level(logging.info, logger="caml"):
             result = dummy_function()
 
         assert result == 42
@@ -153,7 +153,7 @@ class TestNarrateDecorator:
         def dummy_function():
             return 42
 
-        with caplog.at_level(logging.INFO, logger="caml"):
+        with caplog.at_level(logging.info, logger="caml"):
             result = dummy_function()
 
         assert result == 42
@@ -167,7 +167,7 @@ class TestNarrateDecorator:
         def dummy_function():
             return 42
 
-        with caplog.at_level(logging.INFO, logger="caml"):
+        with caplog.at_level(logging.info, logger="caml"):
             result = dummy_function()
 
         assert result == 42
@@ -203,7 +203,7 @@ class TestNarrateDecorator:
             raise ValueError("Test error")
 
         # Preamble should be logged
-        with caplog.at_level(logging.INFO, logger="caml"):
+        with caplog.at_level(logging.info, logger="caml"):
             with pytest.raises(ValueError):
                 failing_function()
 
@@ -229,7 +229,7 @@ class TestTimerDecorator:
             time.sleep(0.01)
             return 42
 
-        with caplog.at_level(logging.DEBUG, logger="caml"):
+        with caplog.at_level(logging.debug, logger="caml"):
             result = dummy_function()
 
         assert result == 42
@@ -248,7 +248,7 @@ class TestTimerDecorator:
             time.sleep(0.01)
             return 42
 
-        with caplog.at_level(logging.DEBUG, logger="caml"):
+        with caplog.at_level(logging.debug, logger="caml"):
             result = my_function()
 
         assert result == 42
@@ -273,7 +273,7 @@ class TestTimerDecorator:
         def sleep_function():
             time.sleep(0.05)
 
-        with caplog.at_level(logging.DEBUG, logger="caml"):
+        with caplog.at_level(logging.debug, logger="caml"):
             sleep_function()
 
         # Check that a time was logged
@@ -324,7 +324,7 @@ class TestDecoratorIntegration:
             time.sleep(0.01)
             return 42
 
-        with caplog.at_level(logging.DEBUG, logger="caml"):
+        with caplog.at_level(logging.debug, logger="caml"):
             result = dummy_function()
 
         assert result == 42
@@ -341,7 +341,7 @@ class TestDecoratorIntegration:
             time.sleep(0.01)
             return 42
 
-        with caplog.at_level(logging.DEBUG, logger="caml"):
+        with caplog.at_level(logging.debug, logger="caml"):
             result = dummy_function()
 
         assert result == 42
@@ -360,7 +360,7 @@ class TestDecoratorIntegration:
             time.sleep(0.01)
             return 42
 
-        with caplog.at_level(logging.DEBUG, logger="caml"):
+        with caplog.at_level(logging.debug, logger="caml"):
             result = dummy_function()
 
         assert result == 42

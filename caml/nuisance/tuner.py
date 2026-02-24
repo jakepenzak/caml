@@ -77,7 +77,7 @@ class NuisanceTuner:
         use_ray: bool = False,
         use_spark: bool = False,
         seed: int | None = None,
-        verbose: int = 0,
+        verbose: int = 3,
     ):
         self.time_budget = time_budget
         self.use_ray = use_ray

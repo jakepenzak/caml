@@ -24,17 +24,17 @@ class OptunaBackend(BaseTunerBackend):
     def __init__(self, direction="minimize", sampler=None, **kwargs):
         self.direction = direction
         self.sampler = sampler or optuna.samplers.TPESampler()
-        self.kwargs = kwargs
-
-    def optimize(self, objective, n_trials: int, n_jobs=1):
-        """Run Optuna optimization."""
-        study = optuna.create_study(
-            direction=self.direction, sampler=self.sampler, **self.kwargs
+        self.study = optuna.create_study(
+            direction=self.direction, sampler=self.sampler, **kwargs
         )
 
-        study.optimize(objective, n_trials=n_trials, n_jobs=n_jobs)
+    def optimize(self, objective, n_trials: int, n_jobs=1, timeout=None, **kwargs):
+        """Run Optuna optimization."""
+        self.study.optimize(
+            objective, n_trials=n_trials, n_jobs=n_jobs, timeout=timeout, **kwargs
+        )
 
-        return study
+        return self.study
 
     def create_objective(
         self,

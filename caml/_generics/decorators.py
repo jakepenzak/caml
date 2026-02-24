@@ -3,11 +3,12 @@
 This module provides decorators for various functionalities in CaML.
 """
 
+import logging
 import timeit
 from functools import wraps
 from typing import Callable
 
-from caml._generics.logging import DEBUG, INFO, WARNING
+logger = logging.getLogger(__name__)
 
 
 def experimental(obj: Callable) -> Callable:
@@ -44,7 +45,7 @@ def experimental(obj: Callable) -> Callable:
 
             # Show warning after __init__ completes (only once per class)
             if not obj._experimental_warning_shown:
-                WARNING(warning_msg)
+                logger.warning(warning_msg)
                 obj._experimental_warning_shown = True
 
             return result
@@ -56,7 +57,7 @@ def experimental(obj: Callable) -> Callable:
         @wraps(obj)
         def wrapper(*args, **kwargs):
             if not obj._experimental_warning_shown:
-                WARNING(warning_msg)
+                logger.warning(warning_msg)
                 obj._experimental_warning_shown = True
             return obj(*args, **kwargs)
 
@@ -90,12 +91,12 @@ def narrate(
             if preamble is None:
                 pass
             else:
-                INFO(preamble)
+                logger.info(preamble)
             result = func(*args, **kwargs)
             if epilogue is None:
                 pass
             else:
-                INFO(epilogue)
+                logger.info(epilogue)
             return result
 
         return wrapper
@@ -105,7 +106,7 @@ def narrate(
 
 def timer(operation_name: str | None = None) -> Callable:
     """
-    Decorator to measure the execution time of a function or method, logged at DEBUG level.
+    Decorator to measure the execution time of a function or method, logged at debug level.
 
     Parameters
     ----------
@@ -125,7 +126,7 @@ def timer(operation_name: str | None = None) -> Callable:
             start = timeit.default_timer()
             result = func(*args, **kwargs)
             end = timeit.default_timer()
-            DEBUG(f"{name} completed in {end - start:.2f} seconds")
+            logger.debug(f"{name} completed in {end - start:.2f} seconds")
             return result
 
         return wrapper

@@ -1,50 +1,58 @@
 import inspect
-import warnings
+import logging
 
 import numpy as np
 
-from caml._generics import logging as clg
-from caml._generics.decorators import narrate
-
-# from caml._generics.logging import DEBUG, INFO, WARNING
+from caml._generics.decorators import experimental, narrate
 from caml.data.dataset import CausalDataset
+from caml.logging import LOGO, configure_logging
 from caml.nuisance import NuisanceTuner, NuisanceTunerSpec
 
 from .backends.base import BaseTunerBackend, TunerBackend
 from .backends.optuna import OptunaBackend
 from .search_space import ConstantSpec, NuisanceModelSpec, StandardMLSpec
 
-warnings.filterwarnings("ignore")
+logger = logging.getLogger(__name__)
 
 
+@experimental
 class AutoCATE:
     def __init__(
         self,
         *,
         nuisance_time_budget_s: int = 300,
-        nuisance_tuner_spec: NuisanceTunerSpec = NuisanceTunerSpec(),
+        nuisance_tuner_spec: NuisanceTunerSpec | None = None,
         n_trials: int = 100,
         n_jobs: int = 1,
         candidate_cate_estimators: list[str] | str = "auto",
         cate_scorer: str = "RLoss",
-        optimization_backend: TunerBackend = OptunaBackend(),
+        optimization_backend: TunerBackend | None = None,
         cv: int = 3,
         test_set_fraction: float = 0.2,
         random_state: int | None = None,
-        verbose: int = 2,
+        verbose: int | None = 1,
     ):
         """AutoCATE is a high-level interface for automated CATE model selection and tuning."""
         from caml.registry import AVAILABLE_CATE_ESTIMATORS, AVAILABLE_CATE_SCORERS
 
-        self.verbose = verbose
-        clg.configure_logging(level=verbose * 10)
+        if verbose is not None:
+            configure_logging(verbose=verbose)
+
         self.nuisance_time_budget_s = nuisance_time_budget_s
-        self.nuisance_tuner_spec = nuisance_tuner_spec
+        self.nuisance_tuner_spec = (
+            nuisance_tuner_spec
+            if nuisance_tuner_spec is not None
+            else NuisanceTunerSpec()
+        )
         self.n_trials = n_trials
         self.n_jobs = n_jobs
         self.candidate_cate_estimators = candidate_cate_estimators
         self.cate_scorer = cate_scorer
-        self.optimization_backend = optimization_backend
+        self.optimization_backend = (
+            optimization_backend
+            if optimization_backend is not None
+            else OptunaBackend()
+        )
         self.cv = cv
         self.test_set_fraction = test_set_fraction
         self.random_state = random_state
@@ -53,44 +61,46 @@ class AutoCATE:
         self.regression_model_ = None
         self._fitted = False
 
-        if not isinstance(nuisance_tuner_spec, NuisanceTunerSpec):
+        if not isinstance(self.nuisance_tuner_spec, NuisanceTunerSpec):
             raise ValueError(
-                f"nuisance_tuner_sptreatment_modelec must be a NuisanceTunerSpec instance, got {type(nuisance_tuner_spec)}"
+                f"nuisance_tuner_spec must be a NuisanceTunerSpec instance, got {type(self.nuisance_tuner_spec)}"
             )
-        if not isinstance(optimization_backend, BaseTunerBackend):
+        if not isinstance(self.optimization_backend, BaseTunerBackend):
             raise ValueError(
-                f"optimization_backend must be a BaseTunerBackend instance, got {type(optimization_backend)}"
+                f"optimization_backend must be a BaseTunerBackend instance, got {type(self.optimization_backend)}"
             )
-        if not isinstance(cv, int) or cv < 2:
-            raise ValueError(f"cv must be an integer >= 2, got {cv}")
-        if not isinstance(test_set_fraction, float) or not (0 < test_set_fraction < 1):
+        if not isinstance(self.cv, int) or self.cv < 2:
+            raise ValueError(f"cv must be an integer >= 2, got {self.cv}")
+        if not isinstance(self.test_set_fraction, float) or not (
+            0 < self.test_set_fraction < 1
+        ):
             raise ValueError(
-                f"test_set_fraction must be a float in (0, 1), got {test_set_fraction}"
+                f"test_set_fraction must be a float in (0, 1), got {self.test_set_fraction}"
             )
-        if random_state is not None and not isinstance(random_state, int):
+        if self.random_state is not None and not isinstance(self.random_state, int):
             raise ValueError(
-                f"random_state must be an integer or None, got {type(random_state)}"
+                f"random_state must be an integer or None, got {type(self.random_state)}"
             )
 
-        if isinstance(candidate_cate_estimators, list):
-            for ce in candidate_cate_estimators:
+        if isinstance(self.candidate_cate_estimators, list):
+            for ce in self.candidate_cate_estimators:
                 if ce not in AVAILABLE_CATE_ESTIMATORS.keys():
                     raise ValueError(
                         f"Invalid candidate estimator: {ce}. Must be one of {AVAILABLE_CATE_ESTIMATORS.keys()}."
                     )
-        elif candidate_cate_estimators == "auto":
+        elif self.candidate_cate_estimators == "auto":
             pass  # Will be determined based on dataset compatibility during fit
         else:
             raise ValueError(
-                f"Invalid candidate_cate_estimators: {candidate_cate_estimators}. Must be a list of estimator names or 'auto'."
+                f"Invalid candidate_cate_estimators: {self.candidate_cate_estimators}. Must be a list of estimator names or 'auto'."
             )
 
-        if cate_scorer not in AVAILABLE_CATE_SCORERS.keys():
+        if self.cate_scorer not in AVAILABLE_CATE_SCORERS.keys():
             raise ValueError(
-                f"Invalid cate_scorer: {cate_scorer}. Must be one of {AVAILABLE_CATE_SCORERS.keys()}."
+                f"Invalid cate_scorer: {self.cate_scorer}. Must be one of {AVAILABLE_CATE_SCORERS.keys()}."
             )
 
-    @narrate(preamble=clg.LOGO, epilogue=None)
+    @narrate(preamble=LOGO, epilogue=None)
     def fit(
         self,
         data: CausalDataset,
@@ -165,7 +175,7 @@ class AutoCATE:
             self.outcome_model_ = tuner.outcome_model_
             self.regression_model_ = tuner.regression_model_
         else:
-            print(
+            logger.info(
                 "All required nuisance models are already fit and cached. Skipping nuisance tuning."
             )
 
@@ -180,6 +190,7 @@ class AutoCATE:
             treatment_model=self.treatment_model_,
             regression_model=self.regression_model_,
         )
+
         self.study = self.optimization_backend.optimize(
             objective=objective, n_trials=self.n_trials, n_jobs=self.n_jobs
         )
@@ -234,7 +245,7 @@ class AutoCATE:
         self.best_estimator_.fit(train_data)
         scorer.normalized = True
         self.test_score_ = scorer(self.best_estimator_, test_data)
-        print(
+        logger.info(
             f"Best estimator: {self.best_estimator_name_} with normalized test score: {self.test_score_:.4f}"
         )
         self._fitted = True
@@ -244,7 +255,7 @@ class AutoCATE:
         if not self._fitted:
             raise ValueError("Must call fit() before refitting final model.")
         self.best_estimator_.fit(data)
-        print("Best estimator refit on full dataset.")
+        logger.info("Best estimator refit on full dataset.")
 
     def _validate(self, data: CausalDataset):
         """Validate inputs to fit method."""

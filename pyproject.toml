@@ -54,6 +54,9 @@ Documentation = "https://caml-docs.com/"
 doubleml = [
     "doubleml>=0.11.2",
 ]
+dashboard = [
+    "optuna-dashboard>=0.20.0",
+]
 
 [dependency-groups]
 test = [
