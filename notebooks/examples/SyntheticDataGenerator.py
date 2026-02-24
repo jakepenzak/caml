@@ -20,7 +20,7 @@ def _(mo):
 
 @app.cell
 def _():
-    from caml.extensions.synthetic_data import SyntheticDataGenerator
+    from caml.utilities.synthetic_data import SyntheticDataGenerator
     import numpy as np
     return SyntheticDataGenerator, np
 

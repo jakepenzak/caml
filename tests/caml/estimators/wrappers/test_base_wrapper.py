@@ -8,8 +8,8 @@ from sklearn.ensemble import RandomForestRegressor
 from caml.data import CausalDataset, Estimand, OutcomeType, TreatmentType
 from caml.estimators import EstimatorCapabilities
 from caml.estimators.wrappers.base_wrapper import BaseEconMLWrapperMixin
-from caml.extensions.synthetic_data import SyntheticDataGenerator
 from caml.inference import InferenceResult, InferenceType
+from caml.utilities.synthetic_data import SyntheticDataGenerator
 
 pytestmark = pytest.mark.estimators
 

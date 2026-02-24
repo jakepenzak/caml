@@ -59,7 +59,7 @@ class WrappedSLearner(BaseEconMLWrapperMixin):
 
     from caml.estimators.meta import WrappedSLearner
     from caml.data import CausalDataset, TreatmentType, OutcomeType
-    from caml.extensions.synthetic_data import SyntheticDataGenerator
+    from caml.utilities.synthetic_data import SyntheticDataGenerator
     from caml.estimators import AutoCateEstimator
 
     # Generate synthetic data
@@ -99,7 +99,7 @@ class WrappedSLearner(BaseEconMLWrapperMixin):
             TreatmentType.BINARY,
             TreatmentType.MULTI,
         },
-        outcome_types={OutcomeType.CONTINUOUS, OutcomeType.BINARY},
+        outcome_types={OutcomeType.CONTINUOUS},
         inference_types={InferenceType.BOOTSTRAP},
         estimands={
             Estimand.ATE,
@@ -202,7 +202,7 @@ class WrappedTLearner(BaseEconMLWrapperMixin):
 
     from caml.estimators.meta import WrappedTLearner
     from caml.data import CausalDataset, TreatmentType, OutcomeType
-    from caml.extensions.synthetic_data import SyntheticDataGenerator
+    from caml.utilities.synthetic_data import SyntheticDataGenerator
     from caml.estimators import AutoCateEstimator
 
     # Generate synthetic data
@@ -242,7 +242,7 @@ class WrappedTLearner(BaseEconMLWrapperMixin):
             TreatmentType.BINARY,
             TreatmentType.MULTI,
         },
-        outcome_types={OutcomeType.CONTINUOUS, OutcomeType.BINARY},
+        outcome_types={OutcomeType.CONTINUOUS},
         inference_types={InferenceType.BOOTSTRAP},
         estimands={
             Estimand.ATE,
@@ -346,7 +346,7 @@ class WrappedXLearner(BaseEconMLWrapperMixin):
 
     from caml.estimators.meta import WrappedXLearner
     from caml.data import CausalDataset, TreatmentType, OutcomeType
-    from caml.extensions.synthetic_data import SyntheticDataGenerator
+    from caml.utilities.synthetic_data import SyntheticDataGenerator
     from caml.estimators import AutoCateEstimator
 
     # Generate synthetic data
@@ -388,7 +388,7 @@ class WrappedXLearner(BaseEconMLWrapperMixin):
             TreatmentType.BINARY,
             TreatmentType.MULTI,
         },
-        outcome_types={OutcomeType.CONTINUOUS, OutcomeType.BINARY},
+        outcome_types={OutcomeType.CONTINUOUS},
         inference_types={InferenceType.BOOTSTRAP},
         estimands={
             Estimand.ATE,

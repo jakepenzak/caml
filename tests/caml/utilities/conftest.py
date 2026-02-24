@@ -2,7 +2,7 @@
 
 import pytest
 
-from caml.extensions.synthetic_data import SyntheticDataGenerator
+from caml.utilities.synthetic_data import SyntheticDataGenerator
 
 # ============================================================================
 # STANDARD TEST SCENARIOS

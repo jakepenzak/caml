@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 
 from caml._version import __version__
 from caml.automl import AutoCATE
-from caml.logging import configure_logging
+from caml.utilities.logging import configure_logging
 
 plt.style.use("ggplot")
 

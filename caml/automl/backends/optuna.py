@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import uuid
+from pathlib import Path
 from typing import TYPE_CHECKING
 
 import numpy as np
@@ -21,12 +23,38 @@ if TYPE_CHECKING:
 class OptunaBackend(BaseTunerBackend):
     """Optuna backend for CATE model selection."""
 
-    def __init__(self, direction="minimize", sampler=None, **kwargs):
+    def __init__(
+        self,
+        direction="minimize",
+        sampler=None,
+        storage=None,
+        study_name=None,
+        load_if_exists=True,
+        **kwargs,
+    ):
         self.direction = direction
         self.sampler = sampler or optuna.samplers.TPESampler()
+        self.study_name = study_name or f"autocate-{uuid.uuid4().hex[:8]}"
+        self.storage = self._resolve_storage(storage, self.study_name)
+
         self.study = optuna.create_study(
-            direction=self.direction, sampler=self.sampler, **kwargs
+            direction=self.direction,
+            sampler=self.sampler,
+            storage=self.storage,
+            study_name=self.study_name,
+            load_if_exists=load_if_exists if storage is not None else False,
+            **kwargs,
         )
+
+    @staticmethod
+    def _resolve_storage(storage, study_name):
+        if storage is not None:
+            return storage
+
+        base = Path.home() / ".caml" / "studies"
+        base.mkdir(parents=True, exist_ok=True)
+
+        return f"sqlite:///{base / (study_name + '.db')}"
 
     def optimize(self, objective, n_trials: int, n_jobs=1, timeout=None, **kwargs):
         """Run Optuna optimization."""
@@ -42,9 +70,9 @@ class OptunaBackend(BaseTunerBackend):
         scorer: CateScorer,
         candidate_cate_estimators: list[str],
         cv: int,
-        outcome_model: BaseEstimator,
-        treatment_model: BaseEstimator,
-        regression_model: BaseEstimator,
+        outcome_model: BaseEstimator | None,
+        treatment_model: BaseEstimator | None,
+        regression_model: BaseEstimator | None,
     ):
         """Create Optuna objective function."""
         from caml.registry.registry import AVAILABLE_CATE_ESTIMATORS

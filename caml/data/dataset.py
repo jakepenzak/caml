@@ -96,7 +96,7 @@ class CausalDataset:
 
     ```{python}
     from caml.data import CausalDataset, TreatmentType, OutcomeType
-    from caml.extensions.synthetic_data import SyntheticDataGenerator
+    from caml.utilities.synthetic_data import SyntheticDataGenerator
 
     gen = SyntheticDataGenerator(n_cont_modifiers=3, seed=42)
     df = gen.df
@@ -295,7 +295,7 @@ class CausalDataset:
 
         # Sample 900 random indices as "training set"
         train_indices = np.random.choice(n, 900, replace=False)
-        train_data = data.sample(sample_indices)
+        train_data = data.sample(train_indices)
         print(f"Sampled dataset: {len(train_data.Y)} observations")
 
         # Remaining indices as "test set"

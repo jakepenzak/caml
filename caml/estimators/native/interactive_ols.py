@@ -80,7 +80,7 @@ class InteractiveLinearRegression(BaseCamlEstimator, OLSMixin):
     --------
     ```{python}
     from caml.cross_section import InteractiveLinearRegression
-    from caml.extensions.synthetic_data import SyntheticDataGenerator
+    from caml.utilities.synthetic_data import SyntheticDataGenerator
 
     data_generator = SyntheticDataGenerator(n_cont_outcomes=1,
                                                 n_binary_outcomes=1,

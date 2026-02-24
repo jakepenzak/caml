@@ -2,12 +2,16 @@
 
 from __future__ import annotations
 
+import logging
+
 import numpy as np
 from flaml import AutoML
 
 from caml.data import CausalDataset
 
 from .spec import NuisanceTunerSpec
+
+logger = logging.getLogger(__name__)
 
 
 class NuisanceTuner:
@@ -39,7 +43,7 @@ class NuisanceTuner:
     --------
     ```{python}
     from caml.data import CausalDataset, TreatmentType, OutcomeType
-    from caml.extensions.synthetic_data import SyntheticDataGenerator
+    from caml.utilities.synthetic_data import SyntheticDataGenerator
     from caml.nuisance import NuisanceTunerSpec, NuisanceTuner
 
     gen = SyntheticDataGenerator(n_cont_modifiers=3, seed=42)
@@ -104,14 +108,17 @@ class NuisanceTuner:
 
         if spec.fit_treatment_model:
             config = self._build_treatment_model_config(data, base_config, spec)
+            logger.info("Tuning treatment model...")
             self.treatment_model_ = self._run_flaml(config)
 
         if spec.fit_outcome_model:
             config = self._build_outcome_model_config(data, base_config, spec)
+            logger.info("Tuning outcome model...")
             self.outcome_model_ = self._run_flaml(config)
 
         if spec.fit_regression_model:
             config = self._build_regression_model_config(data, base_config, spec)
+            logger.info("Tuning regression model...")
             self.regression_model_ = self._run_flaml(config)
 
     def _build_base_config(self) -> dict:
@@ -222,4 +229,8 @@ class NuisanceTuner:
         """Run AutoML and return best estimator."""
         automl = AutoML()
         automl.fit(**config)
+        logger.info(
+            f"Best estimator: {automl.best_estimator} with loss {automl.best_loss}"
+            f" found on iteration {automl.best_iteration} in {automl.time_to_find_best_model} seconds.\n"
+        )
         return automl.model.estimator  # pyright: ignore[reportOptionalMemberAccess]

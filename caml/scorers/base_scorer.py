@@ -171,6 +171,7 @@ class BaseCateScorerMixin(ABC):
     -----
     **Abstract Methods (must be implemented by subclasses):**
 
+    - ``__init__()`` - Initialize scorer with any required nuisance models or parameters.
     - ``__call__()`` - Compute score for estimator on dataset
 
     **Concrete Methods (provided by this base class):**
@@ -210,10 +211,18 @@ class BaseCateScorerMixin(ABC):
             greater_is_better=False,
         )
 
+        def __init__(self, true_cates: np.ndarray | None = None):
+            self.true_cates = true_cates
+
         def __call__(self, estimator, data):
+
+            if self.true_cates is None:
+                true_cates = data.true_cates
+            else:
+                true_cates = self.true_cates
             # Abstract method implementation
             tau_hat = estimator.effect(data.X)
-            mae = np.mean(np.abs(tau_hat - data.true_cates))
+            mae = np.mean(np.abs(tau_hat - true_cates))
             return mae
 
     # Verify protocol conformance
@@ -225,7 +234,7 @@ class BaseCateScorerMixin(ABC):
 
     ```{python}
     # Use is_compatible_with before instantiation
-    from caml.extensions.synthetic_data import SyntheticDataGenerator
+    from caml.utilities.synthetic_data import SyntheticDataGenerator
     from caml.data import CausalDataset
 
     gen = SyntheticDataGenerator(seed=42)
@@ -247,6 +256,45 @@ class BaseCateScorerMixin(ABC):
 
     # Class attribute that must be overridden by subclasses
     capabilities: ScorerCapabilities
+
+    @abstractmethod
+    def __init__(self, *args, **kwargs):
+        """Initialize scorer with any required nuisance models or parameters.
+
+        Subclasses can define their own signature based on their requirements (e.g., if they require a treatment model, outcome model, etc.).
+        The presence of required parameters will be validated in __init_subclass__.
+
+        If a scorer has `requires_treatment_model=True`, then __init__ must have a `treatment_model` parameter. Similar for `outcome_model` and `regression_model`.
+
+        Examples
+        --------
+        ```python
+        from caml.scorers import BaseCateScorerMixin, ScorerCapabilities
+
+
+        class ExampleScorer(BaseCateScorerMixin):
+            capabilities = ScorerCapabilities(
+                treatment_types={TreatmentType.BINARY},
+                outcome_types={OutcomeType.CONTINUOUS},
+                requires_treatment_model=True,
+                requires_outcome_model=False,
+                requires_regression_model=False,
+                requires_oracle_cates=False,
+                greater_is_better=False,
+            )
+
+            def __init__(self, treatment_model):
+                self.treatment_model = treatment_model
+
+            def __call__(self, estimator, data):
+                # Scoring logic here
+                pass
+
+
+        ExampleScorer(treatment_model="some_model")
+        ```
+        """
+        ...
 
     @abstractmethod
     def __call__(self, estimator, data: CausalDataset) -> float:
@@ -295,15 +343,21 @@ class BaseCateScorerMixin(ABC):
                 greater_is_better=False,
             )
 
+            def __init__(self, true_cates: np.ndarray | None = None):
+                self.true_cates = true_cates
+
             def __call__(self, estimator, data):
                 # 1. Get CATE predictions
                 tau_hat = estimator.effect(data.X)
 
                 # 2. Compute score (requires oracle CATEs)
-                rmse = np.sqrt(np.mean((tau_hat - data.true_cates) ** 2))
+                rmse = np.sqrt(np.mean((tau_hat - self.true_cates) ** 2))
 
                 # 3. Return score
                 return rmse
+
+
+        RMSEScorer()
         ```
 
         ```python
@@ -322,19 +376,27 @@ class BaseCateScorerMixin(ABC):
                 greater_is_better=False,
             )
 
+            def __init__(self, treatment_model, outcome_model):
+                self.treatment_model = treatment_model
+                self.outcome_model = outcome_model
+
             def __call__(self, estimator, data):
                 # 1. Get predictions
                 tau_hat = estimator.effect(data.X)
 
                 # 2. Extract nuisance predictions (computed out-of-fold)
-                # Assume data has nuisance_predictions attribute
-                pseudo_outcome = compute_pseudo_outcome(data, nuisance_preds)
+                pseudo_outcome = compute_pseudo_outcome(
+                    data, self.treatment_model, self.outcome_model
+                )
 
                 # 3. Compute score
                 score = np.mean((tau_hat - pseudo_outcome) ** 2)
 
                 # 4. Return score
                 return score
+
+
+        PseudoOutcomeScorer()
         ```
         """
         ...
@@ -361,7 +423,7 @@ class BaseCateScorerMixin(ABC):
         ```{python}
         from caml.scorers import RLoss
         from caml.data import CausalDataset, TreatmentType, OutcomeType
-        from caml.extensions.synthetic_data import SyntheticDataGenerator
+        from caml.utilities.synthetic_data import SyntheticDataGenerator
 
         # Generate test data
         gen = SyntheticDataGenerator(seed=42)
@@ -394,7 +456,7 @@ class BaseCateScorerMixin(ABC):
         return cls.capabilities.is_compatible(data)
 
     def __init_subclass__(cls, **kwargs) -> None:
-        """Enforce that subclasses define required class attributes - (**CONCRETE**).
+        """Enforce that subclasses define required class attributes and follow additional expected patterns - (**CONCRETE**).
 
         Raises
         ------
@@ -407,3 +469,23 @@ class BaseCateScorerMixin(ABC):
                 f"{cls.__name__} must define 'capabilities' as a class attribute. "
                 f"See ScorerCapabilities for details."
             )
+        # If requires_regression_model, requires_treatment_model, or requires_outcome_model, ensure __init__ signature has
+        # regression_model, treatment_model, or outcome_model parameters. Only checked for concrete classes that have
+        # already passed the capabilities check above (abstract classes may not define capabilities yet).
+        if not inspect.isabstract(cls):
+            sig = inspect.signature(cls.__init__)
+            if cls.capabilities.requires_regression_model:
+                if "regression_model" not in sig.parameters:
+                    raise TypeError(
+                        f"{cls.__name__} requires a regression model but __init_() is missing 'regression_model' parameter."
+                    )
+            if cls.capabilities.requires_treatment_model:
+                if "treatment_model" not in sig.parameters:
+                    raise TypeError(
+                        f"{cls.__name__} requires a treatment model but __init__() is missing 'treatment_model' parameter."
+                    )
+            if cls.capabilities.requires_outcome_model:
+                if "outcome_model" not in sig.parameters:
+                    raise TypeError(
+                        f"{cls.__name__} requires an outcome model but __init__() is missing 'outcome_model' parameter."
+                    )

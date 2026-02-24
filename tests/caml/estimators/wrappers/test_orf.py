@@ -2,12 +2,12 @@
 
 import numpy as np
 import pytest
+from caml.estimators.orf import WrappedDMLOrthoForest, WrappedDROrthoForest
 from sklearn.linear_model import LinearRegression, LogisticRegression
 
 from caml.data import CausalDataset, OutcomeType, TreatmentType
 from caml.estimators import AutoCateEstimator
-from caml.estimators.orf import WrappedDMLOrthoForest, WrappedDROrthoForest
-from caml.extensions.synthetic_data import SyntheticDataGenerator
+from caml.utilities.synthetic_data import SyntheticDataGenerator
 
 pytestmark = pytest.mark.estimators
 

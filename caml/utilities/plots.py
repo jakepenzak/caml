@@ -42,7 +42,7 @@ def cate_histogram_plot(
     --------
     ```{python}
     import numpy as np
-    from caml.extensions.plots import cate_histogram_plot
+    from caml.utilities.plots import cate_histogram_plot
 
     np.random.seed(42)
     true_cates = np.random.normal(0, 1, 1000)
@@ -119,7 +119,7 @@ def cate_true_vs_estimated_plot(
     --------
     ```{python}
     import numpy as np
-    from caml.extensions.plots import cate_true_vs_estimated_plot
+    from caml.utilities.plots import cate_true_vs_estimated_plot
 
     np.random.seed(42)
     true_cates = np.random.normal(0, 1, 100)
@@ -201,7 +201,7 @@ def cate_line_plot(
     --------
     ```{python}
     import numpy as np
-    from caml.extensions.plots import cate_line_plot
+    from caml.utilities.plots import cate_line_plot
 
     np.random.seed(42)
     true_cates = np.random.normal(0, 1, 100)

@@ -157,7 +157,7 @@ class IntSpec(NumericSpec):
             self.lower,
             self.upper,
             log=self.log,
-            step=self.step,
+            step=self.step if not self.log else 1,
         )
 
 
@@ -419,7 +419,7 @@ class StandardMLSpec(SearchSpaceSpec):
 
         estimator_name = trial.suggest_categorical(f"{prefix}{self.name}", self.models)
         standard_ml_estimator = AVAILABLE_STANDARD_ML_ESTIMATORS[estimator_name]
-        # TODO: Add logic to handle regressor/classifier distinction (eg, for metalearners).
+        # TODO: Add logic to handle regressor/classifier distinction (eg, when discrete outcome is enabled for metalearners).
         estimator = standard_ml_estimator._regressor_class()
         for param in standard_ml_estimator.default_search_space:
             estimator.set_params(

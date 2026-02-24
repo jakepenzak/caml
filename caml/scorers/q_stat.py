@@ -98,7 +98,7 @@ class QStat(BaseCateScorerMixin):
 
         from caml.estimators.dml import WrappedLinearDML
         from caml.data import CausalDataset, OutcomeType, TreatmentType
-        from caml.extensions.synthetic_data import SyntheticDataGenerator
+        from caml.utilities.synthetic_data import SyntheticDataGenerator
         from caml.scorers import QStat
 
         gen = SyntheticDataGenerator(n_cont_modifiers=3, seed=10)

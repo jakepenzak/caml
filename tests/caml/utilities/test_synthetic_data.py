@@ -5,7 +5,7 @@ import pandas as pd
 import pytest
 from numpy.testing import assert_allclose
 
-from caml.extensions.synthetic_data import (
+from caml.utilities.synthetic_data import (
     SyntheticDataGenerator,
     _truncate_and_renormalize_probabilities,
     make_fully_heterogeneous_dataset,
@@ -13,7 +13,7 @@ from caml.extensions.synthetic_data import (
     make_partially_linear_dataset_simple,
 )
 
-pytestmark = [pytest.mark.extensions]
+pytestmark = [pytest.mark.utilities]
 
 
 # ==============================================================================

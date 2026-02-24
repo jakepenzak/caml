@@ -8,13 +8,20 @@ app = marimo.App(width="medium")
 def _():
     import numpy as np
     from caml.data import CausalDataset, OutcomeType, TreatmentType
-    from caml.extensions.synthetic_data import SyntheticDataGenerator
+    from caml.utilities.synthetic_data import SyntheticDataGenerator
+    from caml import configure_logging
+
+    configure_logging(verbose=2)
 
     gen = SyntheticDataGenerator(n_obs=1_000,
                                  n_cont_modifiers=3,
                                  n_binary_modifiers=2,
                                  n_cont_confounders=2,
                                  n_binary_confounders=2,
+                                 n_binary_outcomes=0,
+                                 n_cont_outcomes=1,
+                                 n_binary_treatments=1,
+                                 n_cont_treatments=0,
                                  n_confounding_modifiers=2,
                                  causal_model_functional_form="nonlinear",
                                  seed=10)
@@ -36,24 +43,23 @@ def _():
 def _(data):
     from caml.registry import get_compatible_estimators
 
-    candidates = list(get_compatible_estimators(data=data, families=["dml"]))
-    return
+    candidates = list(get_compatible_estimators(data=data, families=["dml","dr","meta"]))
+
+    candidates
+    return (get_compatible_estimators,)
 
 
 @app.cell
-def _(data):
+def _(data, get_compatible_estimators):
     from caml import AutoCATE
     from caml.automl import OptunaBackend
 
-    optuna = OptunaBackend(direction="minimize",
-                           study_name="caml-autocate_optimization-study",
-                           storage="sqlite:///caml-autocate_optimization-study2.db",
-                           load_if_exists=True)
 
     mod = AutoCATE(nuisance_time_budget_s=5,
                    n_jobs=1,
                    n_trials=5,
-                  optimization_backend=optuna)
+                  verbose=2,
+                  candidate_cate_estimators=list(get_compatible_estimators(data=data, families=["dml","dr","meta"])))
 
     mod.fit(data)
     return (mod,)
@@ -67,7 +73,7 @@ def _(data, mod):
 
 @app.cell
 def _(data, mod):
-    from caml.extensions.plots import (
+    from caml.utilities.plots import (
         cate_histogram_plot,
         cate_line_plot,
         cate_true_vs_estimated_plot,

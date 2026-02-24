@@ -9,7 +9,7 @@ def _():
     import numpy as np
 
     from caml.data import CausalDataset, OutcomeType, TreatmentType
-    from caml.extensions.synthetic_data import SyntheticDataGenerator
+    from caml.utilities.synthetic_data import SyntheticDataGenerator
 
     gen = SyntheticDataGenerator(n_obs=10_000,
                                  n_cont_modifiers=8,
@@ -260,7 +260,7 @@ def _(data, mod, tuner):
 
 @app.cell
 def _(data, estimator_test):
-    from caml.extensions.plots import (
+    from caml.utilities.plots import (
         cate_histogram_plot,
         cate_line_plot,
         cate_true_vs_estimated_plot,

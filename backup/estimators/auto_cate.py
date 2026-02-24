@@ -6,6 +6,13 @@ from typing import TYPE_CHECKING, Any, Sequence
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
+from caml._base.abstract import BaseCamlEstimator
+from caml._generics.interfaces import FittedAttr, PandasConvertibleDataFrame
+from caml._generics.logging import DEBUG, INFO, WARNING
+from caml._generics.monkey_patch import DRTester
+from caml.estimators.cross_section.cate.modeling.model_bank import (
+    AutoCateEstimator,
+)
 from econml import dml, dr, metalearners
 from econml._ortho_learner import _OrthoLearner
 from econml.dml.dml import NonParamDML
@@ -14,16 +21,9 @@ from econml.inference._bootstrap import BootstrapEstimator
 from econml.score import EnsembleCateEstimator, RScorer
 from joblib import Parallel, delayed
 
-from caml._base.abstract import BaseCamlEstimator
 from caml._generics import logging as clg
 from caml._generics.decorators import experimental, narrate, timer
-from caml._generics.interfaces import FittedAttr, PandasConvertibleDataFrame
-from caml._generics.logging import DEBUG, INFO, WARNING
-from caml._generics.monkey_patch import DRTester
 from caml._generics.utils import is_module_available
-from caml.estimators.cross_section.cate.modeling.model_bank import (
-    AutoCateEstimator,
-)
 
 _HAS_PYSPARK = is_module_available("pyspark")
 _HAS_RAY = is_module_available("ray")
@@ -136,7 +136,7 @@ class AutoCATE(BaseCamlEstimator):
     --------
     ```{python}
     from caml.cross_section import AutoCATE
-    from caml.extensions.synthetic_data import SyntheticDataGenerator
+    from caml.utilities.synthetic_data import SyntheticDataGenerator
 
     data_generator = SyntheticDataGenerator(seed=10, n_cont_modifiers=1, n_cont_confounders=1)
     df = data_generator.df
@@ -229,7 +229,7 @@ class AutoCATE(BaseCamlEstimator):
                 "PySpark is not installed. Please install PySpark optional dependencies via `pip install caml[pyspark]`."
             )
 
-    @narrate(preamble=clg.LOGO, epilogue=None)
+    @narrate(preamble=clg._LOGO, epilogue=None)
     @timer("End-to-end Fitting, Validation, & Testing")
     def fit(
         self,
@@ -348,7 +348,7 @@ class AutoCATE(BaseCamlEstimator):
                 n_bootstrap_samples=n_bootstrap_samples,
             )
 
-    @narrate(preamble=clg.REFIT_FINAL_PREAMBLE)
+    @narrate(preamble=clg._REFIT_FINAL_PREAMBLE)
     @timer("Refitting Final Estimator")
     def refit_final(
         self,

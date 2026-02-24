@@ -3,8 +3,8 @@
 import pytest
 
 from caml.data import CausalDataset, OutcomeType, TreatmentType
-from caml.extensions.synthetic_data import SyntheticDataGenerator
 from caml.nuisance import NuisanceTuner, NuisanceTunerSpec
+from caml.utilities.synthetic_data import SyntheticDataGenerator
 
 pytestmark = pytest.mark.nuisance
 
@@ -85,7 +85,7 @@ class TestNuisanceTunerInitialization:
         assert tuner.use_ray is False
         assert tuner.use_spark is False
         assert tuner.seed is None
-        assert tuner.verbose == 0
+        assert tuner.verbose == 3
         assert tuner.treatment_model_ is None
         assert tuner.outcome_model_ is None
         assert tuner.regression_model_ is None

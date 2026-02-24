@@ -315,7 +315,7 @@ class BaseAutoCateEstimatorMixin(ABC, BaseEstimator):
 
     ```{python}
     # Use is_compatible_with before instantiation
-    from caml.extensions.synthetic_data import SyntheticDataGenerator
+    from caml.utilities.synthetic_data import SyntheticDataGenerator
 
     gen = SyntheticDataGenerator(seed=42)
     data = CausalDataset.from_dataframe(
@@ -491,7 +491,7 @@ class BaseAutoCateEstimatorMixin(ABC, BaseEstimator):
         ```{python}
         from caml.estimators.wrappers.dml import WrappedLinearDML
         from caml.data import CausalDataset, TreatmentType, OutcomeType
-        from caml.extensions.synthetic_data import SyntheticDataGenerator
+        from caml.utilities.synthetic_data import SyntheticDataGenerator
 
         # Generate test data
         gen = SyntheticDataGenerator(seed=42)

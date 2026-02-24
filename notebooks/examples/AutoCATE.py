@@ -38,7 +38,7 @@ def _(mo):
 
 @app.cell
 def _():
-    from caml.extensions.synthetic_data import SyntheticDataGenerator
+    from caml.utilities.synthetic_data import SyntheticDataGenerator
 
     data_generator = SyntheticDataGenerator(
         n_obs=10_000,
@@ -277,7 +277,7 @@ def _(mo):
 
 @app.cell
 def _(cate_predictions, true_cates):
-    from caml.extensions.plots import cate_true_vs_estimated_plot
+    from caml.utilities.plots import cate_true_vs_estimated_plot
 
     cate_true_vs_estimated_plot(
         true_cates=true_cates, estimated_cates=cate_predictions
@@ -287,7 +287,7 @@ def _(cate_predictions, true_cates):
 
 @app.cell
 def _(cate_predictions, true_cates):
-    from caml.extensions.plots import cate_histogram_plot
+    from caml.utilities.plots import cate_histogram_plot
 
     cate_histogram_plot(true_cates=true_cates, estimated_cates=cate_predictions)
     return
@@ -295,7 +295,7 @@ def _(cate_predictions, true_cates):
 
 @app.cell
 def _(cate_predictions, true_cates):
-    from caml.extensions.plots import cate_line_plot
+    from caml.utilities.plots import cate_line_plot
 
     cate_line_plot(
         true_cates=true_cates.flatten(),

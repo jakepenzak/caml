@@ -33,7 +33,7 @@ class CrossFitter:
     from sklearn.linear_model import LinearRegression, LogisticRegression
 
     from caml.data import CausalDataset, TreatmentType, OutcomeType
-    from caml.extensions.synthetic_data import SyntheticDataGenerator
+    from caml.utilities.synthetic_data import SyntheticDataGenerator
     from caml.samplers import CrossFitter
 
     # Generate synthetic data

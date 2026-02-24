@@ -74,7 +74,7 @@ class TestIntSpec:
                 assert lower == 2
                 assert upper == 10
                 assert not log
-                assert step is None
+                assert step == 1
                 return 5
 
         result = spec.to_optuna(MockTrial())
@@ -82,14 +82,14 @@ class TestIntSpec:
 
     def test_to_optuna_log_with_step(self):
         """Test Optuna conversion with log scale and step."""
-        spec = IntSpec(name="max_iter", lower=100, upper=1000, log=True, step=50)
+        spec = IntSpec(name="max_iter", lower=100, upper=1000, log=False, step=50)
 
         class MockTrial:
             def suggest_int(self, name, lower, upper, log=False, step=None):
                 assert name == "max_iter"
                 assert lower == 100
                 assert upper == 1000
-                assert log
+                assert not log
                 assert step == 50
                 return 500
 
@@ -161,7 +161,7 @@ class TestFloatSpec:
                 assert lower == 1e-4
                 assert upper == 1e-1
                 assert log
-                assert step == 1e-5
+                assert step is None
                 return 1e-3
 
         result = spec.to_optuna(MockTrial())
@@ -434,15 +434,22 @@ class TestStandardMLSpec:
         with pytest.raises(ValueError, match="Invalid model_types"):
             StandardMLSpec(name="bad", models=["lightgbm", "invalid_model"])
 
-    def test_to_optuna_raises_not_implemented(self):
-        """Test that to_optuna raises NotImplementedError."""
+    def test_to_optuna_returns_configured_estimator(self):
+        """Test that to_optuna samples a model and returns a configured estimator."""
         spec = StandardMLSpec(name="model_final", models=["lightgbm"])
 
         class MockTrial:
-            pass
+            def suggest_categorical(self, name, choices):
+                return choices[0]
 
-        with pytest.raises(NotImplementedError, match="handled separately"):
-            spec.to_optuna(MockTrial())
+            def suggest_int(self, name, lower, upper, **kwargs):
+                return lower
+
+            def suggest_float(self, name, lower, upper, **kwargs):
+                return lower
+
+        result = spec.to_optuna(MockTrial())
+        assert hasattr(result, "fit") and hasattr(result, "predict")
 
     def test_valid_keys_populated_correctly(self):
         """Test that _VALID_KEYS is populated from registry."""

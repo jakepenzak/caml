@@ -103,7 +103,7 @@ class DRLoss(BaseCateScorerMixin):
 
         from caml.estimators.dml import WrappedLinearDML
         from caml.data import CausalDataset, OutcomeType, TreatmentType
-        from caml.extensions.synthetic_data import SyntheticDataGenerator
+        from caml.utilities.synthetic_data import SyntheticDataGenerator
         from caml.scorers import DRLoss
 
         gen = SyntheticDataGenerator(n_cont_modifiers=3, seed=10)

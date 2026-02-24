@@ -37,7 +37,7 @@ def _truncate_and_renormalize_probabilities(
     --------
     ```{python}
     import numpy as np
-    from caml.extensions.synthetic_data import _truncate_and_renormalize_probabilities
+    from caml.utilities.synthetic_data import _truncate_and_renormalize_probabilities
 
     probs = np.array([0.99,0.95,0.9,0.5,0.1,0.05,0.01])
     _truncate_and_renormalize_probabilities(probs, epsilon=0.05)
@@ -148,7 +148,7 @@ class SyntheticDataGenerator:
     Examples
     --------
     ```{python}
-    from caml.extensions.synthetic_data import SyntheticDataGenerator
+    from caml.utilities.synthetic_data import SyntheticDataGenerator
 
     data_generator = SyntheticDataGenerator(n_cont_outcomes=1,
                                             n_binary_treatments=1,
@@ -1021,7 +1021,7 @@ def make_partially_linear_dataset_simple(
     Examples
     --------
     ```{python}
-    from caml.extensions.synthetic_data import make_partially_linear_dataset_simple
+    from caml.utilities.synthetic_data import make_partially_linear_dataset_simple
     df, true_cates, true_ate = make_partially_linear_dataset_simple(n_obs=1000,
                                                                     n_confounders=5,
                                                                     dim_heterogeneity=2,
@@ -1135,7 +1135,7 @@ def make_partially_linear_dataset_constant(
     Examples
     --------
     ```{python}
-    from caml.extensions.synthetic_data import make_partially_linear_dataset_constant
+    from caml.utilities.synthetic_data import make_partially_linear_dataset_constant
     df, true_cates, true_ate = make_partially_linear_dataset_constant(n_obs=1000,
                                                         ate=4.0,
                                                         n_confounders=10,
@@ -1252,7 +1252,7 @@ def make_fully_heterogeneous_dataset(
     Examples
     --------
     ```{python}
-    from caml.extensions.synthetic_data import make_fully_heterogeneous_dataset
+    from caml.utilities.synthetic_data import make_fully_heterogeneous_dataset
     df, true_cates, true_ate = make_fully_heterogeneous_dataset(n_obs=1000,
                                                                 n_confounders=5,
                                                                 theta=4.0,

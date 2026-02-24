@@ -4,11 +4,11 @@ import logging
 import numpy as np
 
 from caml._generics.decorators import experimental, narrate
+from caml._generics.utils import is_module_available
 from caml.data.dataset import CausalDataset
-from caml.logging import LOGO, configure_logging
 from caml.nuisance import NuisanceTuner, NuisanceTunerSpec
+from caml.utilities import logging as clg
 
-from .backends.base import BaseTunerBackend, TunerBackend
 from .backends.optuna import OptunaBackend
 from .search_space import ConstantSpec, NuisanceModelSpec, StandardMLSpec
 
@@ -26,7 +26,7 @@ class AutoCATE:
         n_jobs: int = 1,
         candidate_cate_estimators: list[str] | str = "auto",
         cate_scorer: str = "RLoss",
-        optimization_backend: TunerBackend | None = None,
+        optimization_backend: OptunaBackend | None = None,
         cv: int = 3,
         test_set_fraction: float = 0.2,
         random_state: int | None = None,
@@ -36,7 +36,7 @@ class AutoCATE:
         from caml.registry import AVAILABLE_CATE_ESTIMATORS, AVAILABLE_CATE_SCORERS
 
         if verbose is not None:
-            configure_logging(verbose=verbose)
+            clg.configure_logging(verbose=verbose)
 
         self.nuisance_time_budget_s = nuisance_time_budget_s
         self.nuisance_tuner_spec = (
@@ -59,15 +59,15 @@ class AutoCATE:
         self.outcome_model_ = None
         self.treatment_model_ = None
         self.regression_model_ = None
-        self._fitted = False
+        self._tuned = False
 
         if not isinstance(self.nuisance_tuner_spec, NuisanceTunerSpec):
             raise ValueError(
                 f"nuisance_tuner_spec must be a NuisanceTunerSpec instance, got {type(self.nuisance_tuner_spec)}"
             )
-        if not isinstance(self.optimization_backend, BaseTunerBackend):
+        if not isinstance(self.optimization_backend, OptunaBackend):
             raise ValueError(
-                f"optimization_backend must be a BaseTunerBackend instance, got {type(self.optimization_backend)}"
+                f"optimization_backend must be a OptunaBackend instance, got {type(self.optimization_backend)}"
             )
         if not isinstance(self.cv, int) or self.cv < 2:
             raise ValueError(f"cv must be an integer >= 2, got {self.cv}")
@@ -100,13 +100,14 @@ class AutoCATE:
                 f"Invalid cate_scorer: {self.cate_scorer}. Must be one of {AVAILABLE_CATE_SCORERS.keys()}."
             )
 
-    @narrate(preamble=LOGO, epilogue=None)
+    @narrate(preamble=clg._LOGO, epilogue=None)
     def fit(
         self,
         data: CausalDataset,
         use_cached_nuisance_models: bool = True,
+        evaluate_on_test_set: bool = True,
+        refit_final: bool = False,
     ):
-        from caml.estimators.standard_ml import AVAILABLE_STANDARD_ML_ESTIMATORS
         from caml.registry import AVAILABLE_CATE_ESTIMATORS, EstimatorFamily
 
         ## Validate inputs
@@ -114,6 +115,7 @@ class AutoCATE:
 
         ## Create candidate estimator list if set to "auto"
         if self.candidate_cate_estimators == "auto":
+            logger.debug("Determining candidate estimators if 'auto'...")
             DEFAULT_FAMILIES = [
                 EstimatorFamily.DR,
                 EstimatorFamily.META,
@@ -125,8 +127,12 @@ class AutoCATE:
                 if AVAILABLE_CATE_ESTIMATORS[ce]["family"] in DEFAULT_FAMILIES
                 and AVAILABLE_CATE_ESTIMATORS[ce]["estimator"].is_compatible_with(data)
             ]
+        logger.info(
+            f"Running AutoML with candidate CATE estimators: {self.candidate_cate_estimators}"
+        )
 
         ## Hold out Test Set
+        logger.debug(f"Holding out test set with fraction {self.test_set_fraction}...")
         rng = np.random.default_rng(self.random_state)
         n = len(data.X)
         self.train_indices = rng.choice(
@@ -137,9 +143,61 @@ class AutoCATE:
         self.test_indices = np.setdiff1d(np.arange(n), self.train_indices)
 
         train_data = data.sample(self.train_indices)
-        test_data = data.sample(self.test_indices)
+        logger.debug(
+            f"Train set size: {len(self.train_indices)}, Test set size: {len(self.test_indices)}"
+        )
 
-        ## Fit Nuisance Models (if needed)
+        ## Auto-tune Nuisance Models
+        self._auto_nuisance_tuning(train_data, use_cached_nuisance_models)
+
+        ## Run CATE Estimator Optimization
+        self._automl_cate_tuning(train_data)
+
+        logger.debug("Fitting best estimator on training data...")
+        self.best_estimator_.fit(train_data)
+
+        self._tuned = True
+
+        if evaluate_on_test_set:
+            self.evaluate_on_test_set(data)
+
+        if refit_final:
+            self.refit_final(data)
+
+    @narrate(preamble=clg._OOS_TESTING_PREAMBLE)
+    def evaluate_on_test_set(self, data: CausalDataset, cate_scorer: str | None = None):
+        """Evaluate the best estimator on the test set with a specified scorer."""
+        from caml.registry import AVAILABLE_CATE_SCORERS
+
+        if not self._tuned:
+            raise ValueError("Must call fit() before evaluating on test set.")
+        if cate_scorer is None:
+            scorer = self.scorer
+        else:
+            if cate_scorer not in AVAILABLE_CATE_SCORERS.keys():
+                raise ValueError(
+                    f"Invalid scorer_name: {cate_scorer}. Must be one of {AVAILABLE_CATE_SCORERS.keys()}."
+                )
+
+            scorer = self._get_scorer(cate_scorer)
+
+        scorer.normalized = True  # REMOVE
+        score = scorer(self.best_estimator_, data.sample(self.test_indices))
+        logger.info(
+            f"Best estimator: {self.best_estimator_name_} with {type(scorer).__name__} score on test set: {score:.4f}"
+        )
+        return score
+
+    @narrate(preamble=clg._REFIT_FINAL_PREAMBLE)
+    def refit_final(self, data: CausalDataset):
+        """Refit the best estimator on the full dataset."""
+        if not self._tuned:
+            raise ValueError("Must call fit() before refitting final model.")
+        self.best_estimator_.fit(data)
+        logger.info("Best estimator refit on full dataset.")
+
+    @narrate(preamble=clg._AUTO_NUISANCE_PREAMBLE)
+    def _auto_nuisance_tuning(self, train_data, use_cached_nuisance_models):
         need_regression_model, need_outcome_model, need_treatment_model = (
             self._determine_nuisance_requirements(
                 self.candidate_cate_estimators, self.cate_scorer
@@ -179,11 +237,24 @@ class AutoCATE:
                 "All required nuisance models are already fit and cached. Skipping nuisance tuning."
             )
 
-        ## Run CATE Estimator Optimization
-        scorer = self._get_scorer(self.cate_scorer)
-        objective = self.optimization_backend.create_objective(
+    @narrate(preamble=clg._AUTO_CATE_PREAMBLE)
+    def _automl_cate_tuning(self, train_data):
+        from caml.estimators.standard_ml import AVAILABLE_STANDARD_ML_ESTIMATORS
+        from caml.registry import AVAILABLE_CATE_ESTIMATORS
+
+        logger.info(
+            "To start dashboard manually, run:\n"
+            f"optuna-dashboard {self.optimization_backend.storage}\n"
+        )
+        if not is_module_available("optuna_dashboard"):
+            logger.warning(
+                "optuna-dashboard is not installed. Install with `pip install optuna-dashboard` or caml extra `optuna-dashboard` to use this feature.\n"
+            )
+
+        self.scorer = self._get_scorer(self.cate_scorer)
+        self.objective = self.optimization_backend.create_objective(
             data=train_data,
-            scorer=scorer,
+            scorer=self.scorer,
             candidate_cate_estimators=self.candidate_cate_estimators,
             cv=self.cv,
             outcome_model=self.outcome_model_,
@@ -192,7 +263,7 @@ class AutoCATE:
         )
 
         self.study = self.optimization_backend.optimize(
-            objective=objective, n_trials=self.n_trials, n_jobs=self.n_jobs
+            objective=self.objective, n_trials=self.n_trials, n_jobs=self.n_jobs
         )
 
         self.best_estimator_name_ = self.study.best_params["estimator"]
@@ -240,27 +311,14 @@ class AutoCATE:
                     }
                 )
 
-        ## Fit best estimator on full training data and evaluate on test set
-        ## Break this out into a seperate method so users can evaluate on test set with different scorers after refitting best model on full dataset if desired
-        self.best_estimator_.fit(train_data)
-        scorer.normalized = True
-        self.test_score_ = scorer(self.best_estimator_, test_data)
-        logger.info(
-            f"Best estimator: {self.best_estimator_name_} with normalized test score: {self.test_score_:.4f}"
-        )
-        self._fitted = True
-
-    def refit_final(self, data: CausalDataset):
-        """Refit the best estimator on the full dataset."""
-        if not self._fitted:
-            raise ValueError("Must call fit() before refitting final model.")
-        self.best_estimator_.fit(data)
-        logger.info("Best estimator refit on full dataset.")
+        logger.info(f"\nBest estimator from tuning: {self.best_estimator_name_}")
+        logger.info(f"\nBest estimator parameters: {self.best_estimator_}")
 
     def _validate(self, data: CausalDataset):
         """Validate inputs to fit method."""
         from caml.registry import AVAILABLE_CATE_ESTIMATORS, AVAILABLE_CATE_SCORERS
 
+        logger.debug("Validating inputs...")
         if not isinstance(data, CausalDataset):
             raise ValueError(f"data must be a CausalDataset instance, got {type(data)}")
         if isinstance(self.candidate_cate_estimators, list):
@@ -294,6 +352,8 @@ class AutoCATE:
             raise ValueError(
                 f"CATE scorer {self.cate_scorer} is a 'greater is better' metric, but the optimization backend is set to minimize. Either change the optimization direction or choose a different scorer."
             )
+
+        logger.debug("Input validation successful.")
 
     @staticmethod
     def _determine_nuisance_requirements(candidate_cate_estimators, cate_scorer):

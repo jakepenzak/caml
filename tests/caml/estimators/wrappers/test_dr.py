@@ -2,18 +2,18 @@
 
 import numpy as np
 import pytest
-from sklearn.ensemble import GradientBoostingClassifier, GradientBoostingRegressor
-from sklearn.linear_model import LinearRegression, LogisticRegression
-
-from caml.data import CausalDataset, OutcomeType, TreatmentType
-from caml.estimators import AutoCateEstimator
 from caml.estimators.dr import (
     WrappedDRLearner,
     WrappedForestDRLearner,
     WrappedLinearDRLearner,
     WrappedSparseLinearDRLearner,
 )
-from caml.extensions.synthetic_data import SyntheticDataGenerator
+from sklearn.ensemble import GradientBoostingClassifier, GradientBoostingRegressor
+from sklearn.linear_model import LinearRegression, LogisticRegression
+
+from caml.data import CausalDataset, OutcomeType, TreatmentType
+from caml.estimators import AutoCateEstimator
+from caml.utilities.synthetic_data import SyntheticDataGenerator
 
 pytestmark = pytest.mark.estimators
 

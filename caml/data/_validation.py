@@ -42,9 +42,9 @@ def check_treatment_type_matches_data(T, declared_type: TreatmentType) -> None:
         if len(values) <= 2:
             raise ValueError("TreatmentType.MULTI expects more than 2 unique values.")
     elif declared_type == TreatmentType.CONTINUOUS:
-        if not _is_numeric(T):
+        if not _is_numeric(T) or len(values) < 3:
             raise ValueError(
-                "TreatmentType.CONTINUOUS expects numeric treatment values."
+                "TreatmentType.CONTINUOUS expects numeric treatment values with more than 2 unique values."
             )
 
 
@@ -54,9 +54,9 @@ def check_outcome_type_matches_data(Y, declared_type: OutcomeType) -> None:
         if len(values) > 2:
             raise ValueError("OutcomeType.BINARY expects at most 2 unique values.")
     elif declared_type == OutcomeType.CONTINUOUS:
-        if not _is_numeric(Y):
+        if not _is_numeric(Y) or len(values) < 3:
             raise ValueError(
-                "TreatmentType.CONTINUOUS expects numeric treatment values."
+                "OutcomeType.CONTINUOUS expects numeric outcome values with more than 2 unique values."
             )
 
 

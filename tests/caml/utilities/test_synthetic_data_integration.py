@@ -6,9 +6,9 @@ import pytest
 from typeguard import suppress_type_checks
 from typing_extensions import Callable
 
-from caml.extensions.synthetic_data import SyntheticDataGenerator
+from caml.utilities.synthetic_data import SyntheticDataGenerator
 
-pytestmark = [pytest.mark.extensions]
+pytestmark = [pytest.mark.utilities]
 
 
 class TestSyntheticDataGeneratorIntegration:

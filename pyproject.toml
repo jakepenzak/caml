@@ -134,7 +134,7 @@ addopts = "--cov=caml/ --cov-branch --cov-report=term-missing --cov-report=html:
 markers = [
     "automl: mark tests for the automl module",
     "data: mark tests for the data module",
-    "extensions: mark tests for the extensions module",
+    "utilities: mark tests for the utilities module",
     "inference: mark tests for the inference module",
     "estimators: mark tests for the estimators module",
     "registry: mark tests for the registry module",

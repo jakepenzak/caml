@@ -44,7 +44,7 @@ def get_compatible_estimators(
     ```{python}
     from caml.registry import get_compatible_estimators, EstimatorFamily
     from caml.data import CausalDataset, TreatmentType, OutcomeType
-    from caml.extensions.synthetic_data import SyntheticDataGenerator
+    from caml.utilities.synthetic_data import SyntheticDataGenerator
 
     gen = SyntheticDataGenerator(seed=42)
     data = CausalDataset.from_dataframe(
@@ -121,7 +121,7 @@ def get_compatible_scorers(
     ```{python}
     from caml.registry import get_compatible_scorers, ScorerFamily
     from caml.data import CausalDataset, TreatmentType, OutcomeType
-    from caml.extensions.synthetic_data import SyntheticDataGenerator
+    from caml.utilities.synthetic_data import SyntheticDataGenerator
 
     gen = SyntheticDataGenerator(seed=42)
     data = CausalDataset.from_dataframe(

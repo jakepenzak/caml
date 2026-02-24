@@ -68,7 +68,7 @@ class WrappedLinearDML(BaseEconMLWrapperMixin):
 
     from caml.estimators.dml import WrappedLinearDML
     from caml.data import CausalDataset, TreatmentType, OutcomeType
-    from caml.extensions.synthetic_data import SyntheticDataGenerator
+    from caml.utilities.synthetic_data import SyntheticDataGenerator
     from caml.estimators import AutoCateEstimator
 
     # Generate synthetic data
@@ -234,7 +234,7 @@ class WrappedSparseLinearDML(BaseEconMLWrapperMixin):
 
     from caml.estimators.dml import WrappedSparseLinearDML
     from caml.data import CausalDataset, TreatmentType, OutcomeType
-    from caml.extensions.synthetic_data import SyntheticDataGenerator
+    from caml.utilities.synthetic_data import SyntheticDataGenerator
     from caml.estimators import AutoCateEstimator
 
     # Generate synthetic data with many features
@@ -432,7 +432,7 @@ class WrappedCausalForestDML(BaseEconMLWrapperMixin):
 
     from caml.estimators.dml import WrappedCausalForestDML
     from caml.data import CausalDataset, TreatmentType, OutcomeType
-    from caml.extensions.synthetic_data import SyntheticDataGenerator
+    from caml.utilities.synthetic_data import SyntheticDataGenerator
     from caml.estimators import AutoCateEstimator
 
     # Generate synthetic data with nonlinear effects
@@ -604,7 +604,7 @@ class WrappedNonParamDML(BaseEconMLWrapperMixin):
 
     from caml.estimators.dml import WrappedNonParamDML
     from caml.data import CausalDataset, TreatmentType, OutcomeType
-    from caml.extensions.synthetic_data import SyntheticDataGenerator
+    from caml.utilities.synthetic_data import SyntheticDataGenerator
     from caml.estimators import AutoCateEstimator
 
     # Generate synthetic data
@@ -769,7 +769,7 @@ class WrappedKernelDML(BaseEconMLWrapperMixin):
 
     from caml.estimators.dml import WrappedKernelDML
     from caml.data import CausalDataset, TreatmentType, OutcomeType
-    from caml.extensions.synthetic_data import SyntheticDataGenerator
+    from caml.utilities.synthetic_data import SyntheticDataGenerator
     from caml.estimators import AutoCateEstimator
 
     # Generate synthetic data

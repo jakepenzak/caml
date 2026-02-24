@@ -8,7 +8,7 @@ from sklearn.ensemble import (
     RandomForestClassifier,
     RandomForestRegressor,
 )
-from sklearn.linear_model import ElasticNet, LogisticRegression
+from sklearn.linear_model import ElasticNet
 from xgboost import XGBClassifier, XGBRegressor
 
 from caml.automl.search_space import SearchSpaceSpec
@@ -18,7 +18,7 @@ from caml.estimators.standard_ml import (
     ElasticNetModel,
     ExtraTreesModel,
     LGBMModel,
-    LogisticRegressionModel,
+    # LogisticRegressionModel, # Removing temporarily since we only use regression classes currently
     RandomForestModel,
     XGBoostLimitDepthModel,
     XGBoostModel,
@@ -47,8 +47,8 @@ class TestAvailableStandardMLEstimators:
             "xgboost",
             "xgboost_limitdepth",
             "random_forest",
-            "extra_tress",
-            "logistic",
+            "extra_trees",
+            # "logistic",
             "elastic_net",
         }
         assert set(AVAILABLE_STANDARD_ML_ESTIMATORS.keys()) == expected_keys
@@ -141,6 +141,7 @@ class TestLGBMModel:
             "max_bin",
             "reg_alpha",
             "reg_lambda",
+            "verbosity",
         }
         assert param_names == expected_params
 
@@ -270,40 +271,40 @@ class TestExtraTreesModel:
 # ==============================================================================
 
 
-class TestLogisticRegressionModel:
-    """Test LogisticRegressionModel wrapper."""
+# class TestLogisticRegressionModel:
+#     """Test LogisticRegressionModel wrapper."""
 
-    def test_has_search_space(self):
-        """Test that LogisticRegressionModel has default_search_space."""
-        assert len(LogisticRegressionModel.default_search_space) > 0
+#     def test_has_search_space(self):
+#         """Test that LogisticRegressionModel has default_search_space."""
+#         assert len(LogisticRegressionModel.default_search_space) > 0
 
-    def test_has_classifier_only(self):
-        """Test that only classifier class is set (no regressor)."""
-        assert LogisticRegressionModel._classifier_class == LogisticRegression
-        assert LogisticRegressionModel._regressor_class is None
+#     def test_has_classifier_only(self):
+#         """Test that only classifier class is set (no regressor)."""
+#         assert LogisticRegressionModel._classifier_class == LogisticRegression
+#         assert LogisticRegressionModel._regressor_class is None
 
-    def test_uses_saga_solver(self):
-        """Test that logistic regression uses saga solver."""
-        from caml.automl.search_space import ConstantSpec
+#     def test_uses_saga_solver(self):
+#         """Test that logistic regression uses saga solver."""
+#         from caml.automl.search_space import ConstantSpec
 
-        param_names = {
-            spec.name for spec in LogisticRegressionModel.default_search_space
-        }
-        assert "solver" in param_names
-        solver_spec = next(
-            spec
-            for spec in LogisticRegressionModel.default_search_space
-            if spec.name == "solver"
-        )
-        assert isinstance(solver_spec, ConstantSpec)
-        assert solver_spec.value == "saga"
+#         param_names = {
+#             spec.name for spec in LogisticRegressionModel.default_search_space
+#         }
+#         assert "solver" in param_names
+#         solver_spec = next(
+#             spec
+#             for spec in LogisticRegressionModel.default_search_space
+#             if spec.name == "solver"
+#         )
+#         assert isinstance(solver_spec, ConstantSpec)
+#         assert solver_spec.value == "saga"
 
-    def test_search_space_has_l1_ratio(self):
-        """Test that search space includes l1_ratio for elastic net penalty."""
-        param_names = {
-            spec.name for spec in LogisticRegressionModel.default_search_space
-        }
-        assert "l1_ratio" in param_names
+#     def test_search_space_has_l1_ratio(self):
+#         """Test that search space includes l1_ratio for elastic net penalty."""
+#         param_names = {
+#             spec.name for spec in LogisticRegressionModel.default_search_space
+#         }
+#         assert "l1_ratio" in param_names
 
 
 # ==============================================================================

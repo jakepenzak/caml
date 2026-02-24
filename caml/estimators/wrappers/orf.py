@@ -62,7 +62,7 @@ class WrappedDMLOrthoForest(BaseEconMLWrapperMixin):
 
     from caml.estimators.orf import WrappedDMLOrthoForest
     from caml.data import CausalDataset, TreatmentType, OutcomeType
-    from caml.extensions.synthetic_data import SyntheticDataGenerator
+    from caml.utilities.synthetic_data import SyntheticDataGenerator
     from caml.estimators import AutoCateEstimator
 
     # Generate synthetic data
@@ -105,7 +105,7 @@ class WrappedDMLOrthoForest(BaseEconMLWrapperMixin):
             TreatmentType.CONTINUOUS,
             TreatmentType.MULTI,
         },
-        outcome_types={OutcomeType.CONTINUOUS, OutcomeType.BINARY},
+        outcome_types={OutcomeType.CONTINUOUS},
         inference_types={InferenceType.BOOTSTRAP},
         estimands={
             Estimand.ATE,
@@ -223,7 +223,7 @@ class WrappedDROrthoForest(BaseEconMLWrapperMixin):
 
     from caml.estimators.orf import WrappedDROrthoForest
     from caml.data import CausalDataset, TreatmentType, OutcomeType
-    from caml.extensions.synthetic_data import SyntheticDataGenerator
+    from caml.utilities.synthetic_data import SyntheticDataGenerator
     from caml.estimators import AutoCateEstimator
 
     # Generate synthetic data
@@ -262,7 +262,7 @@ class WrappedDROrthoForest(BaseEconMLWrapperMixin):
     # Class attributes
     capabilities: EstimatorCapabilities = EstimatorCapabilities(
         treatment_types={TreatmentType.BINARY, TreatmentType.MULTI},
-        outcome_types={OutcomeType.CONTINUOUS, OutcomeType.BINARY},
+        outcome_types={OutcomeType.CONTINUOUS},
         inference_types={InferenceType.BOOTSTRAP},
         estimands={
             Estimand.ATE,

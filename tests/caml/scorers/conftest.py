@@ -2,11 +2,11 @@
 
 import numpy as np
 import pytest
+from caml.estimators.dml import WrappedLinearDML
 from sklearn.linear_model import LinearRegression, LogisticRegression
 
 from caml.data import CausalDataset, OutcomeType, TreatmentType
-from caml.estimators.dml import WrappedLinearDML
-from caml.extensions.synthetic_data import SyntheticDataGenerator
+from caml.utilities.synthetic_data import SyntheticDataGenerator
 
 
 @pytest.fixture(scope="module")

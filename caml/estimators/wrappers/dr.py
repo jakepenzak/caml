@@ -62,7 +62,7 @@ class WrappedDRLearner(BaseEconMLWrapperMixin):
 
     from caml.estimators.dr import WrappedDRLearner
     from caml.data import CausalDataset, TreatmentType, OutcomeType
-    from caml.extensions.synthetic_data import SyntheticDataGenerator
+    from caml.utilities.synthetic_data import SyntheticDataGenerator
     from caml.estimators import AutoCateEstimator
 
     # Generate synthetic data
@@ -221,7 +221,7 @@ class WrappedLinearDRLearner(BaseEconMLWrapperMixin):
 
     from caml.estimators.dr import WrappedLinearDRLearner
     from caml.data import CausalDataset, TreatmentType, OutcomeType
-    from caml.extensions.synthetic_data import SyntheticDataGenerator
+    from caml.utilities.synthetic_data import SyntheticDataGenerator
     from caml.estimators import AutoCateEstimator
 
     # Generate synthetic data
@@ -406,7 +406,7 @@ class WrappedSparseLinearDRLearner(BaseEconMLWrapperMixin):
 
     from caml.estimators.dr import WrappedSparseLinearDRLearner
     from caml.data import CausalDataset, TreatmentType, OutcomeType
-    from caml.extensions.synthetic_data import SyntheticDataGenerator
+    from caml.utilities.synthetic_data import SyntheticDataGenerator
     from caml.estimators import AutoCateEstimator
 
     # Generate synthetic data with many features
@@ -599,7 +599,7 @@ class WrappedForestDRLearner(BaseEconMLWrapperMixin):
 
     from caml.estimators.dr import WrappedForestDRLearner
     from caml.data import CausalDataset, TreatmentType, OutcomeType
-    from caml.extensions.synthetic_data import SyntheticDataGenerator
+    from caml.utilities.synthetic_data import SyntheticDataGenerator
     from caml.estimators import AutoCateEstimator
 
     # Generate synthetic data

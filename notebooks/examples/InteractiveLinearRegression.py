@@ -45,7 +45,7 @@ def _():
 
 @app.cell
 def _():
-    from caml.extensions import SyntheticDataGenerator
+    from caml.utilities import SyntheticDataGenerator
 
     data_generator = SyntheticDataGenerator(
         n_obs=1_000,
@@ -353,7 +353,7 @@ def _(mo):
 @app.cell
 def _():
     from sklearn.metrics import root_mean_squared_error
-    from caml.extensions.plots import (
+    from caml.utilities.plots import (
         cate_true_vs_estimated_plot,
         cate_histogram_plot,
         cate_line_plot,

@@ -4,8 +4,8 @@ import numpy as np
 import pytest
 
 from caml.data import CausalDataset, OutcomeType, TreatmentType
-from caml.extensions.synthetic_data import SyntheticDataGenerator
 from caml.scorers import Pehe
+from caml.utilities.synthetic_data import SyntheticDataGenerator
 
 pytestmark = [pytest.mark.scorers]
 
@@ -152,9 +152,9 @@ class TestPehePerformance:
         true_cate_var = np.var(causal_dataset.true_cates)
 
         # PEHE should be less than the variance of true CATEs (i.e., better than predicting mean)
-        assert (
-            result < true_cate_var
-        ), f"Expected PEHE ({result}) < true CATE variance ({true_cate_var})"
+        assert result < true_cate_var, (
+            f"Expected PEHE ({result}) < true CATE variance ({true_cate_var})"
+        )
 
 
 class TestPeheShapeHandling:

@@ -185,7 +185,7 @@ quartodoc:
             - XGBoostLimitDepthModel
             - RandomForestModel
             - ExtraTreesModel
-            - LogisticRegressionModel
+            # - LogisticRegressionModel
             - ElasticNetModel
 
     - subtitle: Scorers
@@ -258,21 +258,28 @@ quartodoc:
         - name: inference_enums
           member_order: source
 
-    - title: CaML Extensions
-      desc: "`caml.extensions` \n\n Additional utilities and tools for working in CaML."
+    - title: CaML Utilities
+      desc: "`caml.utilities` \n\n Additional utilities and tools for working in CaML."
 
     - subtitle: Synthetic Data Generation
-      desc: "`caml.extensions.synthetic_data` <br> <br> Synthetic data generation utilities for CaML."
-      package: caml.extensions
+      desc: "`caml.utilities.synthetic_data` <br> <br> Synthetic data generation utilities for CaML."
+      package: caml.utilities
       contents:
         - name: synthetic_data
           member_order: source
 
     - subtitle: Plots
-      desc: "`caml.extensions.plots` <br> <br> Plotting utilities for CaML."
-      package: caml.extensions
+      desc: "`caml.utilities.plots` <br> <br> Plotting utilities for CaML."
+      package: caml.utilities
       contents:
         - name: plots
+          member_order: source
+
+    - subtitle: Logging
+      desc: "`caml.utilities.logging` <br> <br> Logging utilities for CaML."
+      package: caml.utilities
+      contents:
+        - name: logging
           member_order: source
 
 metadata-files:

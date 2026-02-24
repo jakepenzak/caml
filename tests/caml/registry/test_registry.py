@@ -5,7 +5,6 @@ import pytest
 
 from caml.data import CausalDataset, Estimand, OutcomeType, TreatmentType
 from caml.estimators import EstimatorCapabilities
-from caml.extensions.synthetic_data import SyntheticDataGenerator
 from caml.registry import (
     AVAILABLE_CATE_ESTIMATORS,
     AVAILABLE_CATE_SCORERS,
@@ -17,6 +16,7 @@ from caml.registry import (
     register_estimator,
     register_scorer,
 )
+from caml.utilities.synthetic_data import SyntheticDataGenerator
 
 pytestmark = pytest.mark.registry
 

@@ -31,7 +31,6 @@ from sklearn.ensemble import (
 )
 from sklearn.linear_model import (
     ElasticNet,
-    LogisticRegression,
 )
 from xgboost import XGBClassifier, XGBRegressor
 
@@ -170,18 +169,18 @@ class ExtraTreesModel(BaseStandardMLEstimator):
     _classifier_class = ExtraTreesClassifier
 
 
-class LogisticRegressionModel(BaseStandardMLEstimator):
-    """Logistic Regression with L1/L2 regularization."""
+# class LogisticRegressionModel(BaseStandardMLEstimator):
+#     """Logistic Regression with L1/L2 regularization."""
 
-    default_search_space: SearchSpace = (
-        FloatSpec(name="C", lower=1e-3, upper=1e2, log=True),
-        ConstantSpec(name="solver", value="saga"),
-        FloatSpec(name="l1_ratio", lower=0.0, upper=1.0),
-        ConstantSpec(name="max_iter", value=1000),
-    )
+#     default_search_space: SearchSpace = (
+#         FloatSpec(name="C", lower=1e-3, upper=1e2, log=True),
+#         ConstantSpec(name="solver", value="saga"),
+#         FloatSpec(name="l1_ratio", lower=0.0, upper=1.0),
+#         ConstantSpec(name="max_iter", value=1000),
+#     )
 
-    _regressor_class = None
-    _classifier_class = LogisticRegression
+#     _regressor_class = None
+#     _classifier_class = LogisticRegression
 
 
 class ElasticNetModel(BaseStandardMLEstimator):
@@ -203,8 +202,8 @@ AVAILABLE_STANDARD_ML_ESTIMATORS: dict = {
     "xgboost": XGBoostModel,
     "xgboost_limitdepth": XGBoostLimitDepthModel,
     "random_forest": RandomForestModel,
-    "extra_tress": ExtraTreesModel,
+    "extra_trees": ExtraTreesModel,
     # "logistic": LogisticRegressionModel,
-    # "elastic_net": ElasticNetModel,
+    "elastic_net": ElasticNetModel,
 }
 """Dictionary of available traditional ML models for meta-learners and final stage models."""
