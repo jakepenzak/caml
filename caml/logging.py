@@ -42,6 +42,10 @@ _WARNING_FILTERS: tuple[tuple[str, type[Warning]], ...] = (
     (r".*too small for a sparse model.*", UserWarning),
     (r".*A column-vector y was passed.*", UserWarning),
     (r".*X does not have valid feature names.*", UserWarning),
+    (
+        r".*Setting a suboptimal alpha can lead to miscalibrated confidence intervals.*",
+        UserWarning,
+    ),
 )
 
 # Custom Rich theme for log levels and message components
@@ -49,7 +53,7 @@ _custom_theme = Theme(
     {
         "logging.level.debug": "cyan",
         "logging.level.info": "green",
-        "logging.level.warning": "yellow",
+        "logging.level.warning": "bold yellow",
         "logging.level.error": "bold red",
         "logging.level.critical": "bold magenta",
         "logging.message": "white",
@@ -97,46 +101,44 @@ def configure_logging(verbose: int = 1) -> None:
     for pattern, category in _WARNING_FILTERS:
         warnings.filterwarnings("ignore", message=pattern, category=category)  # type: ignore[arg-type]
 
-    has_non_null = any(not isinstance(h, logging.NullHandler) for h in logger.handlers)
-    if has_non_null:
-        logger.setLevel(_verbosity_to_level(verbose))
-        for h in logger.handlers:
-            if not isinstance(h, logging.NullHandler):
-                h.setLevel(_verbosity_to_level(verbose))
+    root = logging.getLogger()
 
-        for name in _THIRD_PARTY_LOGGERS:
-            tp = logging.getLogger(name)
-            tp.setLevel(level)
-            tp.propagate = False
-    else:
-        handler = RichHandler(
-            console=Console(theme=_custom_theme),
-            rich_tracebacks=True,
-            markup=True,
-            show_path=False,
-        )
+    handler = RichHandler(
+        console=Console(
+            theme=_custom_theme, force_terminal=True, markup=True, record=True
+        ),
+        rich_tracebacks=True,
+        markup=True,
+        show_path=False,
+    )
+
+    has_real_root_handler = any(
+        not isinstance(h, logging.NullHandler) for h in root.handlers
+    )
+    if not has_real_root_handler:
         handler.setLevel(level)
+        root.addHandler(handler)
 
-        # CaML root logger
-        logger.handlers = [handler]
-        logger.setLevel(level)
-        logger.propagate = False
+    root.setLevel(level)
+    for h in root.handlers:
+        h.setLevel(level)
 
-        # Disable Optuna's own colorlog StreamHandler before we take over
-        try:
-            optuna.logging.disable_default_handler()
-        except AssertionError:
-            pass
-        optuna.logging.set_verbosity(
-            optuna.logging.INFO if level <= logging.INFO else optuna.logging.WARNING
-        )
+    # Configure CaML Logger
+    logger.setLevel(level)
+    logger.propagate = True
 
-        # Third-party loggers — share the same handler for uniform output (overrides optuna's set_verbosity)
-        for name in _THIRD_PARTY_LOGGERS:
-            tp = logging.getLogger(name)
-            tp.handlers = [handler]
-            tp.setLevel(level)
-            tp.propagate = False
+    try:
+        optuna.logging.disable_default_handler()
+    except AssertionError:
+        pass
+
+    # Third-party loggers — share the same handler for uniform output
+    for name in _THIRD_PARTY_LOGGERS:
+        tp = logging.getLogger(name)
+        if not any(isinstance(h, RichHandler) for h in tp.handlers):
+            tp.addHandler(handler)
+        tp.setLevel(level)
+        tp.propagate = False
 
 
 # ---------------------------------------------------------------------------

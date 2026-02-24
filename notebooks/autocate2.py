@@ -9,9 +9,6 @@ def _():
     import numpy as np
     from caml.data import CausalDataset, OutcomeType, TreatmentType
     from caml.extensions.synthetic_data import SyntheticDataGenerator
-    # from caml import configure_logging
-
-    # configure_logging(verbose=0)
 
     gen = SyntheticDataGenerator(n_obs=1_000,
                                  n_cont_modifiers=3,
@@ -50,12 +47,12 @@ def _(data):
 
     optuna = OptunaBackend(direction="minimize",
                            study_name="caml-autocate_optimization-study",
-                           storage="sqlite:///caml-autocate_optimization-study.db",
+                           storage="sqlite:///caml-autocate_optimization-study2.db",
                            load_if_exists=True)
 
     mod = AutoCATE(nuisance_time_budget_s=5,
                    n_jobs=1,
-                   n_trials=10,
+                   n_trials=5,
                   optimization_backend=optuna)
 
     mod.fit(data)

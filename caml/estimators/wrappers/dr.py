@@ -497,7 +497,9 @@ class WrappedSparseLinearDRLearner(BaseEconMLWrapperMixin):
         #         ),
         #     ],
         # ),
-        CategoricalSpec(name="alpha", choices=["auto", 0.01, 0.05, 0.1, 0.5, 1.0]),
+        CategoricalSpec(
+            name="alpha", choices=["auto", 1e-3, 0.01, 0.05, 0.1, 0.5, 1.0, 5.0]
+        ),
         IntSpec(name="n_alphas", lower=50, upper=150, step=50),
         CategoricalSpec(name="alpha_cov", choices=["auto", 0.01, 0.1, 1.0]),
         IntSpec(name="n_alphas_cov", lower=5, upper=15, step=5),
