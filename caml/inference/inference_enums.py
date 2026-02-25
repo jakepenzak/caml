@@ -21,7 +21,7 @@ class InferenceType(Enum):
 
     Notes
     -----
-    - Not all estimators support all inference types (check ``capabilities.inference_types``)
+    - Not all estimators support all inference types (check `capabilities.inference_types`)
     - Bootstrap is more robust but slower; analytic is faster but requires stronger assumptions
     - DML estimators typically use analytic; tree-based methods use bootstrap
 

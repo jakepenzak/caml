@@ -1,7 +1,7 @@
 """Wrappers for EconML's Double Machine Learning estimators under the Partially Linear Model regime.
 
-Wraps `LinearDML`, `SparseLinearDML`, `CausalForestDML`, `NonParamDML`, and `KernelDML`
-to implement CaML's `AutoCateEstimator` and `InferenceProvider` protocols.
+Wraps `~~econml.dml.LinearDML`, `~~econml.dml.SparseLinearDML`, `~~econml.dml.CausalForestDML`, `~~econml.dml.NonParamDML`, and `~~econml.dml.KernelDML`
+to implement CaML's `~~base_estimator.AutoCateEstimator` and `~~base_estimator.InferenceProvider` protocols.
 """
 
 from __future__ import annotations
@@ -15,7 +15,7 @@ from econml.dml import (
 )
 from sklearn.linear_model import LinearRegression
 
-from caml.automl import (
+from caml.automl.search_space import (
     BoolSpec,
     CategoricalSpec,
     ConstantSpec,
@@ -23,11 +23,12 @@ from caml.automl import (
     IntSpec,
     NuisanceModelSpec,
     SearchSpace,
+    StandardMLSpec,
 )
-from caml.automl.search_space import StandardMLSpec
-from caml.data import CausalDataset, Estimand, OutcomeType, TreatmentType
-from caml.inference import InferenceType
-from caml.registry import auto_register
+from caml.data.data_enums import Estimand, OutcomeType, TreatmentType
+from caml.data.dataset import CausalDataset
+from caml.inference.inference_enums import InferenceType
+from caml.registry.registry import auto_register
 
 from ..base_estimator import EstimatorCapabilities
 from .base_wrapper import BaseEconMLWrapperMixin
@@ -47,7 +48,7 @@ class WrappedLinearDML(BaseEconMLWrapperMixin):
     Parameters
     ----------
     **econml_kwargs
-        Keyword arguments passed directly to ``econml.dml.LinearDML``.
+        Keyword arguments passed directly to `econml.dml.LinearDML`.
 
     Attributes
     ----------
@@ -59,7 +60,7 @@ class WrappedLinearDML(BaseEconMLWrapperMixin):
 
     See Also
     --------
-    [EconML LinearDML](https://www.pywhy.org/EconML/_autosummary/econml.dml.LinearDML.html#econml.dml.LinearDML) : Official documentation for EconML's LinearDML.
+    `~~econml.dml.LinearDML` : Official documentation for EconML's LinearDML.
 
     Examples
     --------
@@ -213,7 +214,7 @@ class WrappedSparseLinearDML(BaseEconMLWrapperMixin):
     Parameters
     ----------
     **econml_kwargs
-        Keyword arguments passed directly to ``econml.dml.SparseLinearDML``.
+        Keyword arguments passed directly to `econml.dml.SparseLinearDML`.
 
     Attributes
     ----------
@@ -225,7 +226,7 @@ class WrappedSparseLinearDML(BaseEconMLWrapperMixin):
 
     See Also
     --------
-    [EconML SparseLinearDML](https://www.pywhy.org/EconML/_autosummary/econml.dml.SparseLinearDML.html) : Official documentation for EconML's SparseLinearDML.
+    `~~econml.dml.SparseLinearDML` : Official documentation for EconML's SparseLinearDML.
 
     Examples
     --------
@@ -367,7 +368,7 @@ class WrappedSparseLinearDML(BaseEconMLWrapperMixin):
 
         Notes
         -----
-        This method automatically sets ``discrete_treatment`` and ``discrete_outcome``
+        This method automatically sets `discrete_treatment` and `discrete_outcome`
         flags based on the data's treatment_type and outcome_type.
         """
         if not self.is_compatible_with(data):
@@ -411,7 +412,7 @@ class WrappedCausalForestDML(BaseEconMLWrapperMixin):
     Parameters
     ----------
     **econml_kwargs
-        Keyword arguments passed directly to ``econml.dml.CausalForestDML``.
+        Keyword arguments passed directly to `econml.dml.CausalForestDML`.
 
     Attributes
     ----------
@@ -423,7 +424,7 @@ class WrappedCausalForestDML(BaseEconMLWrapperMixin):
 
     See Also
     --------
-    [EconML CausalForestDML](https://www.pywhy.org/EconML/_autosummary/econml.dml.CausalForestDML.html) : Official documentation for EconML's CausalForestDML.
+    `~~econml.dml.CausalForestDML` : Official documentation for EconML's CausalForestDML.
 
     Examples
     --------
@@ -540,7 +541,7 @@ class WrappedCausalForestDML(BaseEconMLWrapperMixin):
 
         Notes
         -----
-        This method automatically sets ``discrete_treatment`` flag based on the
+        This method automatically sets `discrete_treatment` flag based on the
         data's treatment_type. CausalForestDML only supports continuous outcomes.
         """
         if not self.is_compatible_with(data):
@@ -583,7 +584,7 @@ class WrappedNonParamDML(BaseEconMLWrapperMixin):
     Parameters
     ----------
     **econml_kwargs
-        Keyword arguments passed directly to ``econml.dml.NonParamDML``.
+        Keyword arguments passed directly to `econml.dml.NonParamDML`.
 
     Attributes
     ----------
@@ -595,7 +596,7 @@ class WrappedNonParamDML(BaseEconMLWrapperMixin):
 
     See Also
     --------
-    [EconML NonParamDML](https://www.pywhy.org/EconML/_autosummary/econml.dml.NonParamDML.html) : Official documentation for EconML's NonParamDML.
+    `~~econml.dml.NonParamDML` : Official documentation for EconML's NonParamDML.
 
     Examples
     --------
@@ -706,7 +707,7 @@ class WrappedNonParamDML(BaseEconMLWrapperMixin):
 
         Notes
         -----
-        This method automatically sets ``discrete_treatment`` flag based on the
+        This method automatically sets `discrete_treatment` flag based on the
         data's treatment_type. NonParamDML only supports continuous outcomes.
         """
         if not self.is_compatible_with(data):
@@ -750,7 +751,7 @@ class WrappedKernelDML(BaseEconMLWrapperMixin):
     Parameters
     ----------
     **econml_kwargs
-        Keyword arguments passed directly to ``econml.dml.KernelDML``.
+        Keyword arguments passed directly to `econml.dml.KernelDML`.
 
     Attributes
     ----------
@@ -760,7 +761,7 @@ class WrappedKernelDML(BaseEconMLWrapperMixin):
 
     See Also
     --------
-    [EconML KernelDML](https://www.pywhy.org/EconML/_autosummary/econml.dml.KernelDML.html) : Official documentation for EconML's KernelDML.
+    `~~econml.dml.KernelDML` : Official documentation for EconML's KernelDML.
 
     Examples
     --------
@@ -866,7 +867,7 @@ class WrappedKernelDML(BaseEconMLWrapperMixin):
 
         Notes
         -----
-        This method automatically sets ``discrete_treatment`` flag based on the
+        This method automatically sets `discrete_treatment` flag based on the
         data's treatment_type. KernelDML only supports continuous outcomes.
         """
         if not self.is_compatible_with(data):

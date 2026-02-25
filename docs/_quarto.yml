@@ -33,7 +33,6 @@ website:
   navbar:
     logo: "assets/logo_no_text.svg"
     title: false
-    # background: "white"
     search: true
     border: true
     tools:
@@ -47,8 +46,10 @@ website:
     left:
       - sidebar:Home
       - sidebar:Concepts
-      - sidebar:Examples
-      - sidebar:API_Reference
+      - file: 03_Examples/index.qmd
+        text: Examples
+      - file: 04_Reference/index.qmd
+        text: Reference
 
     right:
       - sidebar:Contributors
@@ -98,11 +99,47 @@ website:
     right: |
       Powered by: [![](/assets/external_logos/quarto.png){width=85px}](https://quarto.org/)
 
+filters:
+  - machow/interlinks
+
+interlinks:
+  sources:
+    numpy:
+      url: https://numpy.org/doc/stable/
+    pandas:
+      url: https://pandas.pydata.org/docs/
+    econml:
+      url: https://www.pywhy.org/EconML/
+    optuna:
+      url: https://optuna.readthedocs.io/en/stable/
+    scikit-learn:
+      url: https://scikit-learn.org/stable/
+    python:
+      url: https://docs.python.org/3/
+  aliases:
+    caml: [null]
+    caml._generics: [null]
+    caml.automl: [null]
+    caml.data: [null]
+    caml.estimators: [null]
+    caml.estimators.native: [null]
+    caml.estimators.wrappers: [null]
+    caml.inference: [null]
+    caml.nuisance: [null]
+    caml.registry: [null]
+    caml.samplers: [null]
+    caml.scorers: [null]
+    caml.utilities: [null]
+    numpy: [np]
+    pandas: [pd]
+  autolink: true
+
 quartodoc:
   package: caml
   dir: 04_Reference
   title: API Reference
   sidebar: 04_Reference/_sidebar.yml
+  render_interlinks: true
   source_dir: ../caml
   renderer:
     style: _extensions.renderer_with_source.py
@@ -116,6 +153,18 @@ quartodoc:
       contents:
         - name: search_space
           member_order: source
+          member_options:
+            include_inherited: true
+            include_private: true
+            member_order: source
+        - name: base_backend
+          member_order: source
+          member_options:
+            member_order: source
+        - name: optuna
+          member_order: source
+          member_options:
+            member_order: source
 
     - subtitle: Data
       desc: "`caml.data` \n\n CaML Data Containers and schemas."

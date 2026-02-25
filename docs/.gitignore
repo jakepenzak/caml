@@ -7,4 +7,7 @@ objects.json
 04_Reference/*
 !04_Reference/support_matrix.qmd
 03_Examples/*
+!03_Examples/index.qmd
 !.gitkeep
+
+_inv/

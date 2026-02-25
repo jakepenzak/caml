@@ -151,3 +151,10 @@ pre {
 .label-orf {
     background: #f59e0b;
 }
+
+/* API Reference — prevent Type column from wrapping */
+.doc-section-parameters table td:nth-child(2),
+.doc-section-attributes table td:nth-child(2),
+.doc-section-returns table td:nth-child(2) {
+    white-space: nowrap;
+}

@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Callable
 
-from caml.data import CausalDataset
+from caml.data.dataset import CausalDataset
 
 from .registry_enums import EstimatorFamily, ScorerFamily
 

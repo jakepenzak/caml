@@ -8,7 +8,7 @@ from sklearn.base import BaseEstimator, clone
 from sklearn.model_selection import cross_val_predict
 
 from caml._generics.utils import arr_at_least_2d
-from caml.data import CausalDataset
+from caml.data.dataset import CausalDataset
 
 from .splitters import create_splitter
 

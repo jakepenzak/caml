@@ -8,9 +8,11 @@ mathematical derivation and interpretation guide.
 
 import numpy as np
 
-from caml.data import CausalDataset, OutcomeType, TreatmentType
-from caml.registry import ScorerFamily, auto_register
-from caml.samplers import CrossFitter
+from caml.data.data_enums import OutcomeType, TreatmentType
+from caml.data.dataset import CausalDataset
+from caml.registry.registry import auto_register
+from caml.registry.registry_enums import ScorerFamily
+from caml.samplers.cross_fit import CrossFitter
 
 from ._validation import _clip, _validate_cate_array
 from .base_scorer import BaseCateScorerMixin, ScorerCapabilities
@@ -81,7 +83,7 @@ class QStat(BaseCateScorerMixin):
         Parameters
         ----------
         estimator
-            Fitted CATE estimator implementing ``effect(X)``.
+            Fitted CATE estimator implementing `effect(X)`.
         data
             Causal dataset.
 

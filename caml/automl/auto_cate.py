@@ -9,7 +9,7 @@ from caml.data.dataset import CausalDataset
 from caml.nuisance import NuisanceTuner, NuisanceTunerSpec
 from caml.utilities import logging as clg
 
-from .backends.optuna import OptunaBackend
+from .optuna import OptunaBackend
 from .search_space import ConstantSpec, NuisanceModelSpec, StandardMLSpec
 
 logger = logging.getLogger(__name__)

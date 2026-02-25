@@ -56,8 +56,8 @@ class OutcomeType(Enum):
 
     Notes
     -----
-    Outcome type affects nuisance model selection (e.g., ``LGBMClassifier`` vs
-    ``LGBMRegressor``) rather than core CATE estimation strategy.
+    Outcome type affects nuisance model selection (e.g., `LGBMClassifier` vs
+    `LGBMRegressor`) rather than core CATE estimation strategy.
 
     Examples
     --------

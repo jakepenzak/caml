@@ -1,6 +1,6 @@
 """Result containers for inference outputs.
 
-Provides ``InferenceResult`` dataclass for packaging CATE estimates with uncertainty
+Provides `InferenceResult` dataclass for packaging CATE estimates with uncertainty
 quantification (standard errors, confidence intervals) and inference metadata.
 """
 
@@ -26,9 +26,9 @@ class InferenceResult:
     effect
         Treatment effect estimate(s). Scalar for ATE/ATT/ATC, array for CATE.
     stderr
-        Standard error(s) matching shape of ``effect``.
+        Standard error(s) matching shape of `effect`.
     method
-        Inference method used (``InferenceType.ANALYTIC`` or ``InferenceType.BOOTSTRAP``).
+        Inference method used (`InferenceType.ANALYTIC` or `InferenceType.BOOTSTRAP`).
 
     Examples
     --------

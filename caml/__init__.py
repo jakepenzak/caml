@@ -2,10 +2,34 @@
 
 import matplotlib.pyplot as plt
 
+from caml import (
+    automl,
+    data,
+    estimators,
+    inference,
+    nuisance,
+    registry,
+    samplers,
+    scorers,
+    utilities,
+)
 from caml._version import __version__
 from caml.automl import AutoCATE
 from caml.utilities.logging import configure_logging
 
 plt.style.use("ggplot")
 
-__all__ = ["__version__", "AutoCATE", "configure_logging"]
+__all__ = [
+    "__version__",
+    "AutoCATE",
+    "configure_logging",
+    "automl",
+    "registry",
+    "data",
+    "samplers",
+    "scorers",
+    "nuisance",
+    "inference",
+    "estimators",
+    "utilities",
+]

@@ -7,7 +7,7 @@ import logging
 import numpy as np
 from flaml import AutoML
 
-from caml.data import CausalDataset
+from caml.data.dataset import CausalDataset
 
 from .spec import NuisanceTunerSpec
 

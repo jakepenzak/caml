@@ -8,7 +8,7 @@ from __future__ import annotations
 
 from econml.dr import DRLearner, ForestDRLearner, LinearDRLearner, SparseLinearDRLearner
 
-from caml.automl import (
+from caml.automl.search_space import (
     BoolSpec,
     CategoricalSpec,
     ConstantSpec,
@@ -18,9 +18,10 @@ from caml.automl import (
     SearchSpace,
     StandardMLSpec,
 )
-from caml.data import CausalDataset, Estimand, OutcomeType, TreatmentType
-from caml.inference import InferenceType
-from caml.registry import auto_register
+from caml.data.data_enums import Estimand, OutcomeType, TreatmentType
+from caml.data.dataset import CausalDataset
+from caml.inference.inference_enums import InferenceType
+from caml.registry.registry import auto_register
 
 from ..base_estimator import EstimatorCapabilities
 from .base_wrapper import BaseEconMLWrapperMixin
@@ -41,7 +42,7 @@ class WrappedDRLearner(BaseEconMLWrapperMixin):
     Parameters
     ----------
     **econml_kwargs
-        Keyword arguments passed directly to ``econml.dr.DRLearner``.
+        Keyword arguments passed directly to `econml.dr.DRLearner`.
 
     Attributes
     ----------
@@ -200,7 +201,7 @@ class WrappedLinearDRLearner(BaseEconMLWrapperMixin):
     Parameters
     ----------
     **econml_kwargs
-        Keyword arguments passed directly to ``econml.dr.LinearDRLearner``.
+        Keyword arguments passed directly to `econml.dr.LinearDRLearner`.
 
     Attributes
     ----------
@@ -385,7 +386,7 @@ class WrappedSparseLinearDRLearner(BaseEconMLWrapperMixin):
     Parameters
     ----------
     **econml_kwargs
-        Keyword arguments passed directly to ``econml.dr.SparseLinearDRLearner``.
+        Keyword arguments passed directly to `econml.dr.SparseLinearDRLearner`.
 
     Attributes
     ----------
@@ -578,7 +579,7 @@ class WrappedForestDRLearner(BaseEconMLWrapperMixin):
     Parameters
     ----------
     **econml_kwargs
-        Keyword arguments passed directly to ``econml.dr.ForestDRLearner``.
+        Keyword arguments passed directly to `econml.dr.ForestDRLearner`.
 
     Attributes
     ----------

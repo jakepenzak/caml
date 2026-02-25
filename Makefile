@@ -18,11 +18,11 @@ venv:
 
 docs:
 	@echo "Building documentation..."
-	@uv run quartodoc build --config docs/_quarto.yml && uv run quarto preview docs/
+	@cd docs/ && uv run quartodoc build && uv run quartodoc interlinks && uv run quarto preview && cd ..
 
 docs-refresh:
 	@echo "Building documentation..."
-	@uv run quartodoc build --config docs/_quarto.yml && uv run quarto preview docs/ --render all
+	@cd docs/ && uv run quartodoc build && uv run quartodoc interlinks && uv run quarto preview --render all && cd ..
 
 tests:
 	@echo "Running tests with pytest..."

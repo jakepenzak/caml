@@ -16,9 +16,10 @@ from caml.automl import (
     NuisanceModelSpec,
     SearchSpace,
 )
-from caml.data import CausalDataset, Estimand, OutcomeType, TreatmentType
-from caml.inference import InferenceType
-from caml.registry import auto_register
+from caml.data.data_enums import Estimand, OutcomeType, TreatmentType
+from caml.data.dataset import CausalDataset
+from caml.inference.inference_enums import InferenceType
+from caml.registry.registry import auto_register
 
 from ..base_estimator import EstimatorCapabilities
 from .base_wrapper import BaseEconMLWrapperMixin
@@ -39,7 +40,7 @@ class WrappedDMLOrthoForest(BaseEconMLWrapperMixin):
     Parameters
     ----------
     **econml_kwargs
-        Keyword arguments passed directly to ``econml.orf.DMLOrthoForest``.
+        Keyword arguments passed directly to `econml.orf.DMLOrthoForest`.
 
     Attributes
     ----------
@@ -201,7 +202,7 @@ class WrappedDROrthoForest(BaseEconMLWrapperMixin):
     Parameters
     ----------
     **econml_kwargs
-        Keyword arguments passed directly to ``econml.orf.DROrthoForest``.
+        Keyword arguments passed directly to `econml.orf.DROrthoForest`.
 
     Attributes
     ----------

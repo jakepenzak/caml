@@ -10,9 +10,11 @@ import numpy as np
 import statsmodels.api as sm
 from sklearn.base import BaseEstimator
 
-from caml.data import CausalDataset, OutcomeType, TreatmentType
-from caml.registry import ScorerFamily, auto_register
-from caml.samplers import CrossFitter
+from caml.data.data_enums import OutcomeType, TreatmentType
+from caml.data.dataset import CausalDataset
+from caml.registry.registry import auto_register
+from caml.registry.registry_enums import ScorerFamily
+from caml.samplers.cross_fit import CrossFitter
 
 from ._validation import _validate_cate_array
 from .base_scorer import BaseCateScorerMixin, ScorerCapabilities
@@ -33,7 +35,7 @@ class RLoss(BaseCateScorerMixin):
     random_state
         Random state for cross-fitting.
     normalized
-        If ``True``, returns an $R^2$-like score in $(-\infty, 1]$.
+        If `True`, returns an $R^2$-like score in $(-\infty, 1]$.
 
     Notes
     -----
@@ -82,14 +84,14 @@ class RLoss(BaseCateScorerMixin):
         Parameters
         ----------
         estimator
-            Fitted CATE estimator implementing ``effect(X)``.
+            Fitted CATE estimator implementing `effect(X)`.
         data
             Causal dataset.
 
         Returns
         -------
         float
-            R-loss or, if ``normalized=True``, an $R^2$-like score in $(-\infty, 1]$.
+            R-loss or, if `normalized=True`, an $R^2$-like score in $(-\infty, 1]$.
 
         Examples
         --------

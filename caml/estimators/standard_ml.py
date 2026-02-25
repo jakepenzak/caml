@@ -1,7 +1,7 @@
 """Standard ML model wrappers for use in meta-learnder and final-stage models.
 
 Lightweight wrappers around scikit-learn, LightGBM, and XGBoost estimators
-that expose a ``default_search_space``, ``_classification_class``, and ``_regression_class``
+that expose a `default_search_space`, `_classification_class`, and `_regression_class`
 class attribute for integration with CaML's AutoML tuning pipeline.
 
 These are **not** CATE estimators --- they are building blocks used inside CATE estimator wrappers.
@@ -49,12 +49,12 @@ class BaseStandardMLEstimator:
     -----
     Subclasses must set three class-level attributes:
 
-    * ``default_search_space`` -- a ``SearchSpace`` tuple of ``SearchSpaceSpec``
+    * `default_search_space` -- a `SearchSpace` tuple of `SearchSpaceSpec`
       objects describing the hyperparameters to tune.
-    * ``_classifier_class`` -- the sklearn-compatible classifier class, or
-      ``None`` if the model is regression-only.
-    * ``_regressor_class`` -- the sklearn-compatible regressor class, or
-      ``None`` if the model is classification-only.
+    * `_classifier_class` -- the sklearn-compatible classifier class, or
+      `None` if the model is regression-only.
+    * `_regressor_class` -- the sklearn-compatible regressor class, or
+      `None` if the model is classification-only.
     """
 
     # Subclasses override these
@@ -63,7 +63,7 @@ class BaseStandardMLEstimator:
     default_search_space: SearchSpace
 
     def __init_subclass__(cls, **kwargs) -> None:
-        """Enforce ``default_search_space`` on concrete subclasses."""
+        """Enforce `default_search_space` on concrete subclasses."""
         super().__init_subclass__(**kwargs)
         if not inspect.isabstract(cls) and any(
             attr not in cls.__dict__
@@ -101,7 +101,7 @@ class LGBMModel(BaseStandardMLEstimator):
 
 
 class XGBoostModel(BaseStandardMLEstimator):
-    """XGBoost gradient-boosted tree wrapper (unlimited depth / ``lossguide``)."""
+    """XGBoost gradient-boosted tree wrapper (unlimited depth / `lossguide`)."""
 
     default_search_space: SearchSpace = (
         ConstantSpec(name="tree_method", value="hist"),
@@ -121,7 +121,7 @@ class XGBoostModel(BaseStandardMLEstimator):
 
 
 class XGBoostLimitDepthModel(BaseStandardMLEstimator):
-    """XGBoost gradient-boosted tree wrapper with limited ``max_depth``."""
+    """XGBoost gradient-boosted tree wrapper with limited `max_depth`."""
 
     default_search_space: SearchSpace = (
         ConstantSpec(name="tree_method", value="hist"),

@@ -8,8 +8,10 @@ comparison with proxy metrics.
 
 import numpy as np
 
-from caml.data import CausalDataset, OutcomeType, TreatmentType
-from caml.registry import ScorerFamily, auto_register
+from caml.data.data_enums import OutcomeType, TreatmentType
+from caml.data.dataset import CausalDataset
+from caml.registry.registry import auto_register
+from caml.registry.registry_enums import ScorerFamily
 
 from ._validation import _validate_scorer_inputs
 from .base_scorer import BaseCateScorerMixin, ScorerCapabilities
@@ -22,9 +24,9 @@ class Pehe(BaseCateScorerMixin):
     Parameters
     ----------
     true_cates
-        True CATEs for scoring. If ``None``, uses ``data.true_cates``.
+        True CATEs for scoring. If `None`, uses `data.true_cates`.
     normalized
-        If ``True``, returns an $R^2$-like score in $(-\infty, 1]$.
+        If `True`, returns an $R^2$-like score in $(-\infty, 1]$.
 
     Notes
     -----
@@ -63,14 +65,14 @@ class Pehe(BaseCateScorerMixin):
         Parameters
         ----------
         estimator
-            Fitted CATE estimator implementing ``effect(X)``.
+            Fitted CATE estimator implementing `effect(X)`.
         data
-            Causal dataset, with true CATEs available via ``data.true_cates`` if not instantiated with `true_cates` parameter.
+            Causal dataset, with true CATEs available via `data.true_cates` if not instantiated with `true_cates` parameter.
 
         Returns
         -------
         float
-            PEHE or, if ``normalized=True``, an $R^2$-like score in $(-\infty, 1]$.
+            PEHE or, if `normalized=True`, an $R^2$-like score in $(-\infty, 1]$.
 
         Raises
         ------

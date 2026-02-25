@@ -9,8 +9,9 @@ import numpy as np
 import pandas as pd
 from econml._cate_estimator import BaseCateEstimator
 
-from caml.data import CausalDataset
-from caml.inference import InferenceResult, InferenceType
+from caml.data.dataset import CausalDataset
+from caml.inference.inference_enums import InferenceType
+from caml.inference.results import InferenceResult
 
 from ..base_estimator import AutoCateEstimator, BaseAutoCateEstimatorMixin
 
@@ -52,7 +53,7 @@ class BaseEconMLWrapperMixin(BaseAutoCateEstimatorMixin):
     ) -> InferenceResult:
         """Get complete inference results for CATE estimates.
 
-        Returns results in a single ``InferenceResult`` object, which can be used for hypothesis testing and confidence interval generation.
+        Returns results in a single `InferenceResult` object, which can be used for hypothesis testing and confidence interval generation.
 
         **TODO: Implement Bootstrapper & cache functionality**
 
@@ -61,11 +62,11 @@ class BaseEconMLWrapperMixin(BaseAutoCateEstimatorMixin):
         X
             Feature matrix for inference.
         inference_type
-            Inference method to use (``InferenceType.ANALYTIC``, ``InferenceType.BOOTSTRAP``, or ``None`` for auto-selection).
+            Inference method to use (`InferenceType.ANALYTIC`, `InferenceType.BOOTSTRAP`, or `None` for auto-selection).
         bootstrapper
-            Bootstrap sampler to use if ``inference_type`` is ``InferenceType.BOOTSTRAP``. If ``None``, uses default bootstrapper.
+            Bootstrap sampler to use if `inference_type` is `InferenceType.BOOTSTRAP`. If `None`, uses default bootstrapper.
         **effect_inference_kwargs
-            Additional arguments (e.g., ``n_bootstrap``, ``random_state``).
+            Additional arguments (e.g., `n_bootstrap`, `random_state`).
 
         Returns
         -------

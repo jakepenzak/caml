@@ -33,7 +33,7 @@ def _validate_cate_array(
 
     Ensures CATE predictions have the correct number of samples and converts
     to 1D array for consistent downstream computation. Handles common shape
-    variations from different estimators (e.g., ``(n,)``, ``(n, 1)``).
+    variations from different estimators (e.g., `(n,)`, `(n, 1)`).
 
     Parameters
     ----------
@@ -47,7 +47,7 @@ def _validate_cate_array(
     Returns
     -------
     np.ndarray
-        1D array of shape ``(n_samples,)``.
+        1D array of shape `(n_samples,)`.
 
     Raises
     ------
@@ -107,7 +107,7 @@ def _validate_scorer_inputs(
 
     Ensures both arrays have the same number of samples and converts to 1D
     for consistent computation. This is the primary validation function for
-    scorer ``__call__`` methods.
+    scorer `__call__` methods.
 
     Parameters
     ----------

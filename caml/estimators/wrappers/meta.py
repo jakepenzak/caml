@@ -14,9 +14,10 @@ from caml.automl import (
     SearchSpace,
     StandardMLSpec,
 )
-from caml.data import CausalDataset, Estimand, OutcomeType, TreatmentType
-from caml.inference import InferenceType
-from caml.registry import auto_register
+from caml.data.data_enums import Estimand, OutcomeType, TreatmentType
+from caml.data.dataset import CausalDataset
+from caml.inference.inference_enums import InferenceType
+from caml.registry.registry import auto_register
 
 from ..base_estimator import EstimatorCapabilities
 from .base_wrapper import BaseEconMLWrapperMixin
@@ -38,7 +39,7 @@ class WrappedSLearner(BaseEconMLWrapperMixin):
     Parameters
     ----------
     **econml_kwargs
-        Keyword arguments passed directly to ``econml.metalearners.SLearner``.
+        Keyword arguments passed directly to `econml.metalearners.SLearner`.
 
     Attributes
     ----------
@@ -181,7 +182,7 @@ class WrappedTLearner(BaseEconMLWrapperMixin):
     Parameters
     ----------
     **econml_kwargs
-        Keyword arguments passed directly to ``econml.metalearners.TLearner``.
+        Keyword arguments passed directly to `econml.metalearners.TLearner`.
 
     Attributes
     ----------
@@ -324,7 +325,7 @@ class WrappedXLearner(BaseEconMLWrapperMixin):
     Parameters
     ----------
     **econml_kwargs
-        Keyword arguments passed directly to ``econml.metalearners.XLearner``.
+        Keyword arguments passed directly to `econml.metalearners.XLearner`.
 
     Attributes
     ----------

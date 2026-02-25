@@ -12,6 +12,7 @@ from caml.automl import (
     BoolSpec,
     ConstantSpec,
     NuisanceModelSpec,
+    StandardMLSpec,
     SearchSpaceSpec,
     SearchSpace
 )
@@ -23,6 +24,7 @@ search_space: SearchSpace = (
     BoolSpec(name="fit_intercept"),
     ConstantSpec(name="random_state", value=42),
     NuisanceModelSpec(name="model_y", model_type="outcome"),
+    StandardMLSpec(name="model_final", models=["lightgbm", "xgboost", "random_forest"])
 )
 
 assert all(isinstance(spec, SearchSpaceSpec) for spec in search_space)
@@ -41,7 +43,7 @@ class SearchSpaceSpec(ABC):
     """Base class for hyperparameter search space specifications.
 
     All search space specs must provide conversion methods to supported
-    AutoML libraries (Optuna).
+    AutoML libraries (e.g., `optuna`).
     """
 
     name: str
@@ -59,7 +61,7 @@ class SearchSpaceSpec(ABC):
 
     @abstractmethod
     def to_optuna(self, trial, prefix: str = "") -> Any:
-        """Sample value using Optuna trial.
+        """Sample value using `optuna` trial.
 
         Parameters
         ----------
@@ -319,7 +321,7 @@ class NuisanceModelSpec(SearchSpaceSpec):
     """Reference to a tuned nuisance model.
 
     Special spec type that indicates a hyperparameter should be set
-    to a fitted nuisance model from NuisanceTuner.
+    to a fitted nuisance model from `~~tuner.NuisanceTuner`.
 
     Parameters
     ----------
@@ -368,7 +370,7 @@ class StandardMLSpec(SearchSpaceSpec):
     Parameters
     ----------
     name
-        Parameter name (e.g., "model_final", etc.).
+        Parameter name (e.g., `"model_final"`, etc.).
     models
         Type of nuisance model to use.
 
@@ -391,7 +393,8 @@ class StandardMLSpec(SearchSpaceSpec):
         """Validate model type.
 
         If `models` is not provided, default to the full set of currently
-        registered standard ML estimators (resolved lazily).
+        registered standard ML estimators via `~~standard_ml.AVAILABLE_STANDARD_ML_ESTIMATORS`
+        (resolved lazily).
         """
         from caml.estimators.standard_ml import AVAILABLE_STANDARD_ML_ESTIMATORS
 

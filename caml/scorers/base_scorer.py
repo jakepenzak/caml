@@ -1,13 +1,13 @@
 """Shared base functionality, protocols, and interfaces for CATE scorers.
 
-CaML scorers evaluate fitted CATE estimators (minimum requirement is estimators implement ``effect(X)``)
-on a ``CausalDataset``. They are primarily intended for model selection (e.g., Optuna),
+CaML scorers evaluate fitted CATE estimators (minimum requirement is estimators implement `effect(X)`)
+on a `CausalDataset`. They are primarily intended for model selection (e.g., Optuna),
 where scores are compared across candidate estimators. These scores can also be used
 for general evaluation outside of CaML's tuning framework.
 
 Most causal scores depend on nuisance quantities (e.g., propensity scores,
 outcome regressions). In CaML these are computed out-of-fold using
-``CrossFitter``.
+`CrossFitter`.
 """
 
 import inspect
@@ -15,7 +15,8 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from typing import Protocol, runtime_checkable
 
-from caml.data import CausalDataset, OutcomeType, TreatmentType
+from caml.data.data_enums import OutcomeType, TreatmentType
+from caml.data.dataset import CausalDataset
 
 
 @dataclass(frozen=True)
@@ -28,9 +29,9 @@ class ScorerCapabilities:
     Parameters
     ----------
     treatment_types
-        Treatment variable types the scorer supports (e.g., ``{TreatmentType.BINARY}``).
+        Treatment variable types the scorer supports (e.g., `{TreatmentType.BINARY}`).
     outcome_types
-        Outcome variable types the scorer supports (e.g., ``{OutcomeType.CONTINUOUS}``).
+        Outcome variable types the scorer supports (e.g., `{OutcomeType.CONTINUOUS}`).
     requires_treatment_model
         If True, scorer needs a treatment model - $\mathbb{E}[T \mid X,W]$.
     requires_outcome_model
@@ -126,15 +127,15 @@ class CateScorer(Protocol):
 
     Specifies the minimal interface all CATE scorers must implement. Scorers evaluate
     fitted CATE estimators on a dataset and return a score. Runtime-checkable via
-    ``isinstance(obj, CateScorer)``.
+    `isinstance(obj, CateScorer)`.
 
     Notes
     -----
     This is a Protocol using structural typing - any class implementing these methods
     will satisfy this interface. For a base implementation with compatibility checking
-    and validation utilities, see ``BaseCateScorerMixin``.
+    and validation utilities, see `BaseCateScorerMixin`.
 
-    The ``capabilities`` attribute must be a class attribute, not an instance attribute.
+    The `capabilities` attribute must be a class attribute, not an instance attribute.
 
     Scorers are callable objects that take a fitted estimator and dataset, returning
     a score.
@@ -159,10 +160,10 @@ class CateScorer(Protocol):
 
 
 class BaseCateScorerMixin(ABC):
-    """Abstract base class for ``CateScorer`` with validation and utilities.
+    """Abstract base class for `CateScorer` with validation and utilities.
 
     Provides concrete implementation of compatibility checking. Subclasses must
-    implement ``__call__()`` to define the scoring logic.
+    implement `__call__()` to define the scoring logic.
 
     This class serves as the recommended base for all CATE scorers in CaML,
     providing a consistent interface and common utilities.
@@ -171,19 +172,19 @@ class BaseCateScorerMixin(ABC):
     -----
     **Abstract Methods (must be implemented by subclasses):**
 
-    - ``__init__()`` - Initialize scorer with any required nuisance models or parameters.
-    - ``__call__()`` - Compute score for estimator on dataset
+    - `__init__()` - Initialize scorer with any required nuisance models or parameters.
+    - `__call__()` - Compute score for estimator on dataset
 
     **Concrete Methods (provided by this base class):**
 
-    - ``is_compatible_with()`` - Class method for compatibility checking
+    - `is_compatible_with()` - Class method for compatibility checking
 
     **Required Class Attributes:**
 
-    - ``capabilities`` - ``ScorerCapabilities`` instance defining supported features
+    - `capabilities` - `ScorerCapabilities` instance defining supported features
 
-    Subclasses must define ``capabilities`` as a class attribute. Failure to do so
-    will raise a ``TypeError`` on class definition (enforced by ``__init_subclass__``).
+    Subclasses must define `capabilities` as a class attribute. Failure to do so
+    will raise a `TypeError` on class definition (enforced by `__init_subclass__`).
 
     See Also
     --------
@@ -307,14 +308,14 @@ class BaseCateScorerMixin(ABC):
 
         Implementations should:
 
-        1. Extract CATE predictions via ``estimator.effect(data.X)``
+        1. Extract CATE predictions via `estimator.effect(data.X)`
         2. Compute the score using the predictions and any necessary nuisance quantities (e.g., true CATEs, pseudo-outcomes)
         3. Return a scalar score
 
         Parameters
         ----------
         estimator
-            Fitted CATE estimator implementing ``effect(X)`` method.
+            Fitted CATE estimator implementing `effect(X)` method.
         data
             Causal dataset to score on.
 
@@ -461,7 +462,7 @@ class BaseCateScorerMixin(ABC):
         Raises
         ------
         TypeError
-            If non-abstract subclass doesn't define ``capabilities``.
+            If non-abstract subclass doesn't define `capabilities`.
         """
         super().__init_subclass__(**kwargs)
         if "capabilities" not in cls.__dict__ and not inspect.isabstract(cls):

@@ -1,6 +1,6 @@
 """CaML logging utilities.
 
-By default CaML is silent — it attaches only a ``NullHandler`` to the ``"caml"``
+By default CaML is silent — it attaches only a `NullHandler` to the `"caml"`
 logger and lets the host application decide how to route and display logs.
 
 Call `configure_logging` once at the start of your script or notebook:
@@ -82,14 +82,14 @@ def configure_logging(verbose: int = 1) -> None:
 
     Verbosity levels:
 
-    * ``0`` — warnings/errors only; third-party warnings suppressed.
-    * ``1`` — INFO. *Default.*
-    * ``2`` — DEBUG.
+    * `0` — warnings/errors only; third-party warnings suppressed.
+    * `1` — INFO. *Default.*
+    * `2` — DEBUG.
 
     Parameters
     ----------
     verbose
-        Verbosity level. Higher values yield more detailed logs. Options: ``0``, ``1``, ``2``.
+        Verbosity level. Higher values yield more detailed logs. Options: `0`, `1`, `2`.
 
     Examples
     --------
