@@ -110,6 +110,8 @@ interlinks:
       url: https://pandas.pydata.org/docs/
     econml:
       url: https://www.pywhy.org/EconML/
+    doubleml:
+      url: https://docs.doubleml.org/stable/
     optuna:
       url: https://optuna.readthedocs.io/en/stable/
     scikit-learn:

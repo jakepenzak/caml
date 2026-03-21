@@ -10,6 +10,9 @@ from enum import Enum
 class InferenceType(Enum):
     """Categories of statistical inference methods for CATE uncertainty quantification.
 
+    Used by `~~results.InferenceResult` and estimator classes implementing
+    `~~base_estimator.InferenceProvider`.
+
     Attributes
     ----------
     ANALYTIC : str
@@ -21,9 +24,7 @@ class InferenceType(Enum):
 
     Notes
     -----
-    - Not all estimators support all inference types (check `capabilities.inference_types`)
-    - Bootstrap is more robust but slower; analytic is faster but requires stronger assumptions
-    - DML estimators typically use analytic; tree-based methods use bootstrap
+    - Not all estimators support all inference types (check `~~base_estimator.EstimatorCapabilities.inference_types`)
 
     Examples
     --------

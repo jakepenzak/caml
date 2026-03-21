@@ -33,11 +33,14 @@ class NuisanceTuner:
     Attributes
     ----------
     treatment_model_
-        Fitted treatment model (propensity score model) after calling `fit()`, if applicable.
+        Fitted treatment model (propensity score model) after calling
+        `~~tuner.NuisanceTuner.fit()`, if applicable.
     outcome_model_
-        Fitted outcome model after calling `fit()`, if applicable.
+        Fitted outcome model after calling `~~tuner.NuisanceTuner.fit()`, if
+        applicable.
     regression_model_
-        Fitted regression model after calling `fit()`, if applicable.
+        Fitted regression model after calling `~~tuner.NuisanceTuner.fit()`, if
+        applicable.
 
     Examples
     --------
@@ -100,9 +103,10 @@ class NuisanceTuner:
         Parameters
         ----------
         data
-            CausalDataset containing the data for fitting.
+            `~~dataset.CausalDataset` containing the data for fitting.
         spec
-            NuisanceTunerSpec specifying which models to fit and any configuration overrides.
+            `~~spec.NuisanceTunerSpec` specifying which models to fit and any
+            configuration overrides.
         """
         base_config = self._build_base_config()
 

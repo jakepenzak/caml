@@ -7,23 +7,30 @@ from dataclasses import dataclass
 class NuisanceTunerSpec:
     r"""Specification for nuisance, or first-stage model, tuning.
 
-    Note, sensible defaults will be chosen in `AutoCATE` class and many will be inferred directly based on `CausalDataset` specs
+    Note, sensible defaults will be chosen in `~~auto_cate.AutoCATE` and many
+    will be inferred directly from `~~dataset.CausalDataset` specifications
     (e.g., target variable type and objective).
 
     Parameters
     ----------
     fit_treatment_model
-        Whether to fit the treatment model - $\mathbb{E}[T|X,W]$. If None, the decision will be made based off the available estimators capabilites.
+        Whether to fit the treatment model - $\mathbb{E}[T|X,W]$. If None, the
+        decision is made from available estimator
+        `~~base_estimator.EstimatorCapabilities`.
     fit_outcome_model
-        Whether to fit the outcome model - $\mathbb{E}[Y|X,W]$. If None, the decision will be made based off the available estimators capabilites.
+        Whether to fit the outcome model - $\mathbb{E}[Y|X,W]$. If None, the
+        decision is made from available estimator
+        `~~base_estimator.EstimatorCapabilities`.
     fit_regression_model
-        Whether to fit the regression model - $\mathbb{E}[Y|T,X,W]$. If None, the decision will be made based off the available estimators capabilites.
+        Whether to fit the regression model - $\mathbb{E}[Y|T,X,W]$. If None,
+        the decision is made from available estimator
+        `~~base_estimator.EstimatorCapabilities`.
     treatment_model_config
-        Configuration dictionary of [FLAML](https://microsoft.github.io/FLAML/docs/reference/automl/automl) kwarg overrides for the treatment model.
+        Configuration dictionary of [FLAML AutoML](https://microsoft.github.io/FLAML/docs/reference/automl/automl) kwarg overrides for the treatment model.
     outcome_model_config
-        Configuration dictionary of [FLAML](https://microsoft.github.io/FLAML/docs/reference/automl/automl) kwarg overrides for the outcome model.
+        Configuration dictionary of [FLAML AutoML](https://microsoft.github.io/FLAML/docs/reference/automl/automl) kwarg overrides for the outcome model.
     regression_model_config
-        Configuration dictionary of [FLAML](https://microsoft.github.io/FLAML/docs/reference/automl/automl) kwarg overrides for the regression model.
+        Configuration dictionary of [FLAML AutoML](https://microsoft.github.io/FLAML/docs/reference/automl/automl) kwarg overrides for the regression model.
 
     See Also
     --------

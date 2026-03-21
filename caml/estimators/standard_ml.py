@@ -1,4 +1,4 @@
-"""Standard ML model wrappers for use in meta-learnder and final-stage models.
+"""Standard ML model wrappers for use in meta-learners and final-stage models.
 
 Lightweight wrappers around scikit-learn, LightGBM, and XGBoost estimators
 that expose a `default_search_space`, `_classification_class`, and `_regression_class`
@@ -15,7 +15,7 @@ list(AVAILABLE_STANDARD_ML_ESTIMATORS.keys())
 
 See Also
 --------
-[`StandardMLSpec`](search_space.qmd#caml.automl.search_space.StandardMLSpec) : Search space spec referencing these models.
+`~~search_space.StandardMLSpec` : Search space spec referencing these models.
 """
 
 from __future__ import annotations
@@ -49,18 +49,22 @@ class BaseStandardMLEstimator:
     -----
     Subclasses must set three class-level attributes:
 
-    * `default_search_space` -- a `SearchSpace` tuple of `SearchSpaceSpec`
+    - `default_search_space` -- a `~~search_space.SearchSpace` tuple of `~~search_space.SearchSpaceSpec`
       objects describing the hyperparameters to tune.
-    * `_classifier_class` -- the sklearn-compatible classifier class, or
+    - `_classifier_class` -- the sklearn-compatible classifier class, or
       `None` if the model is regression-only.
-    * `_regressor_class` -- the sklearn-compatible regressor class, or
+    - `_regressor_class` -- the sklearn-compatible regressor class, or
       `None` if the model is classification-only.
     """
 
-    # Subclasses override these
-    _classifier_class: type | None = None
-    _regressor_class: type | None = None
     default_search_space: SearchSpace
+    """Search space for tuning this model, as a tuple of `~~search_space.SearchSpaceSpec` objects."""
+
+    _classifier_class: type | None = None
+    """The sklearn-compatible classifier class to use for classification tasks, or `None` if not applicable."""
+
+    _regressor_class: type | None = None
+    """The sklearn-compatible regressor class to use for regression tasks, or `None` if not applicable."""
 
     def __init_subclass__(cls, **kwargs) -> None:
         """Enforce `default_search_space` on concrete subclasses."""

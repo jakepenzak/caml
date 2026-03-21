@@ -1,9 +1,9 @@
 """CaML logging utilities.
 
-By default CaML is silent — it attaches only a `NullHandler` to the `"caml"`
+By default CaML is silent — it attaches only a `~~logging.NullHandler` to the `"caml"`
 logger and lets the host application decide how to route and display logs.
 
-Call `configure_logging` once at the start of your script or notebook:
+Call `~~logging.configure_logging` once at the start of your script or notebook:
 
 ```{python}
 from caml import configure_logging
@@ -76,7 +76,9 @@ def configure_logging(verbose: int = 1) -> None:
     If Non-Null handlers are already attached to the root logger, this function will not add a new handler to avoid duplicate logs.
     However, it will still set the logging level for CaML and the specified verbosity.
 
-    If no handlers are attached, it adds a RichHandler to the root logger, ensuring that all logs (including those from third-party libraries) are formatted uniformly.
+    If no handlers are attached, it adds a `~~rich.logging.RichHandler` to the
+    root logger, ensuring that all logs (including those from third-party
+    libraries) are formatted uniformly.
 
     This function also suppresses known-benign warnings from third-party libraries to reduce noise in the logs.
 

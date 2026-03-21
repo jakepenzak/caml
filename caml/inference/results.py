@@ -1,7 +1,8 @@
 """Result containers for inference outputs.
 
-Provides `InferenceResult` dataclass for packaging CATE estimates with uncertainty
-quantification (standard errors, confidence intervals) and inference metadata.
+Provides `~~results.InferenceResult` for packaging CATE estimates with
+uncertainty quantification (standard errors, confidence intervals) and
+inference metadata.
 """
 
 from dataclasses import dataclass
@@ -28,7 +29,7 @@ class InferenceResult:
     stderr
         Standard error(s) matching shape of `effect`.
     method
-        Inference method used (`InferenceType.ANALYTIC` or `InferenceType.BOOTSTRAP`).
+        Inference method used from `~~inference_enums.InferenceType`.
 
     Examples
     --------

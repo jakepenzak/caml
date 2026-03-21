@@ -69,7 +69,7 @@ test = [
 ]
 dev = [
     "jupyter>=1.1.0",
-    "marimo>0.14",
+    "marimo>=0.21",
     "openai>=2.7.1",
     "pre-commit>=3.5.0",
     "pydantic-ai>=1.50.0",

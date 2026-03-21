@@ -1,6 +1,8 @@
 """Cross-fitting engine for orthogonal scores and nuisance model estimation.
 
-Provides the core functionality for generating out-of-fold predictions to be leveraged in scoring.
+Provides `~~cross_fit.CrossFitter` for generating out-of-fold predictions used
+by scorers such as `~~r_loss.RLoss`, `~~dr_loss.DRLoss`, and
+`~~q_stat.QStat`.
 """
 
 import numpy as np
@@ -16,9 +18,10 @@ from .splitters import create_splitter
 class CrossFitter:
     """Cross-fitting engine for orthogonal scores.
 
-    This class provides methods to fit and predict nuisance models using cross-fitting, and is leveraged in
-    orthogonal scoring functions such as RLoss, DRLoss, etc. This class can be used for general cross-fitting
-    of outcome and treatment models as well.
+    This class provides methods to fit and predict nuisance models using
+    cross-fitting, and is leveraged in orthogonal scoring functions such as
+    `~~r_loss.RLoss` and `~~dr_loss.DRLoss`. It can also be used for general
+    cross-fitting of outcome and treatment models.
 
     Parameters
     ----------
@@ -87,9 +90,11 @@ class CrossFitter:
         Parameters
         ----------
         data
-            Causal dataset containing features, treatment, outcome, and covariates.
+            `~~dataset.CausalDataset` containing features, treatment, outcome,
+            and covariates.
         outcome_model
-            A scikit-learn compatible estimator for the outcome model.
+            A `~~sklearn.base.BaseEstimator` compatible estimator for the
+            outcome model.
 
         Returns
         -------
@@ -129,9 +134,11 @@ class CrossFitter:
         Parameters
         ----------
         data
-            Causal dataset containing features, treatment, outcome, and covariates.
+            `~~dataset.CausalDataset` containing features, treatment, outcome,
+            and covariates.
         treatment_model
-            A scikit-learn compatible estimator for the treatment model.
+            A `~~sklearn.base.BaseEstimator` compatible estimator for the
+            treatment model.
 
         Returns
         -------
@@ -174,9 +181,11 @@ class CrossFitter:
         Parameters
         ----------
         data
-            Causal dataset containing features, treatment, outcome, and covariates.
+            `~~dataset.CausalDataset` containing features, treatment, outcome,
+            and covariates.
         regression_model
-            A scikit-learn compatible estimator for the regression model.
+            A `~~sklearn.base.BaseEstimator` compatible estimator for the
+            regression model.
 
         Returns
         -------
@@ -239,16 +248,21 @@ class CrossFitter:
     ) -> tuple[np.ndarray, np.ndarray]:
         r"""Cross-fit nuisance models for partially linear model (PLM) formulations of DML.
 
-        This method fits the outcome model $\mathbb{E}[Y \mid X,W]$ and treatment model $\mathbb{E}[T \mid X,W]$ using cross-fitting.
+        This method fits the outcome model $\mathbb{E}[Y \mid X,W]$ and
+        treatment model $\mathbb{E}[T \mid X,W]$ using cross-fitting. The
+        resulting predictions are typically consumed by `~~r_loss.RLoss`.
 
         Parameters
         ----------
         data
-            Causal dataset containing features, treatment, outcome, and covariates.
+            `~~dataset.CausalDataset` containing features, treatment, outcome,
+            and covariates.
         outcome_model
-            A scikit-learn compatible estimator for the outcome model.
+            A `~~sklearn.base.BaseEstimator` compatible estimator for the
+            outcome model.
         treatment_model
-            A scikit-learn compatible estimator for the treatment model.
+            A `~~sklearn.base.BaseEstimator` compatible estimator for the
+            treatment model.
 
         Returns
         -------
@@ -271,16 +285,22 @@ class CrossFitter:
         r"""Fit nuisance models for interactive regression model (IRM) formulation of DML (Doubly Robust).
 
         This method fits the regression models for treatment and control groups separately,
-        $\mathbb{E}[Y \mid X,W,T=1]$ and $\mathbb{E}[Y \mid X,W,T=0]$, as well as the treatment model $\mathbb{E}[T \mid X,W]$ using cross-fitting.
+        $\mathbb{E}[Y \mid X,W,T=1]$ and $\mathbb{E}[Y \mid X,W,T=0]$, as
+        well as the treatment model $\mathbb{E}[T \mid X,W]$ using
+        cross-fitting. The resulting predictions are typically consumed by
+        `~~dr_loss.DRLoss`.
 
         Parameters
         ----------
         data
-            Causal dataset containing features, treatment, outcome, and covariates.
+            `~~dataset.CausalDataset` containing features, treatment, outcome,
+            and covariates.
         regression_model
-            A scikit-learn compatible estimator for the regression model.
+            A `~~sklearn.base.BaseEstimator` compatible estimator for the
+            regression model.
         treatment_model
-            A scikit-learn compatible estimator for the treatment model.
+            A `~~sklearn.base.BaseEstimator` compatible estimator for the
+            treatment model.
 
         Returns
         -------

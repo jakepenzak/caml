@@ -1,4 +1,4 @@
-"""Shared base functionality (mixin) for wrapped AutoCATE estimators."""
+"""Shared base class and functionality (mixin) for wrapped AutoCATE estimators."""
 
 from __future__ import annotations
 
@@ -53,7 +53,7 @@ class BaseEconMLWrapperMixin(BaseAutoCateEstimatorMixin):
     ) -> InferenceResult:
         """Get complete inference results for CATE estimates.
 
-        Returns results in a single `InferenceResult` object, which can be used for hypothesis testing and confidence interval generation.
+        Returns results in a single `~~results.InferenceResult` object, which can be used for hypothesis testing and confidence interval generation.
 
         **TODO: Implement Bootstrapper & cache functionality**
 
@@ -62,9 +62,12 @@ class BaseEconMLWrapperMixin(BaseAutoCateEstimatorMixin):
         X
             Feature matrix for inference.
         inference_type
-            Inference method to use (`InferenceType.ANALYTIC`, `InferenceType.BOOTSTRAP`, or `None` for auto-selection).
+            Inference method to use from `~~inference_enums.InferenceType`
+            (`ANALYTIC`, `BOOTSTRAP`, or `None` for auto-selection).
         bootstrapper
-            Bootstrap sampler to use if `inference_type` is `InferenceType.BOOTSTRAP`. If `None`, uses default bootstrapper.
+            Bootstrap sampler to use when `inference_type` requests
+            `BOOTSTRAP` from `~~inference_enums.InferenceType`. If `None`,
+            uses the default bootstrapper.
         **effect_inference_kwargs
             Additional arguments (e.g., `n_bootstrap`, `random_state`).
 

@@ -1,7 +1,8 @@
 """Wrappers for EconML's Orthogonal Random Forest estimators.
 
-Wraps `DMLOrthoForest` and `DROrthoForest` to implement CaML's
-`AutoCateEstimator` and `InferenceProvider` protocols.
+Wraps `~~econml.orf.DMLOrthoForest` and `~~econml.orf.DROrthoForest` to
+implement CaML's `~~base_estimator.AutoCateEstimator` and
+`~~base_estimator.InferenceProvider` protocols.
 """
 
 from __future__ import annotations
@@ -40,7 +41,7 @@ class WrappedDMLOrthoForest(BaseEconMLWrapperMixin):
     Parameters
     ----------
     **econml_kwargs
-        Keyword arguments passed directly to `econml.orf.DMLOrthoForest`.
+        Keyword arguments passed directly to `~~econml.orf.DMLOrthoForest`.
 
     Attributes
     ----------
@@ -52,7 +53,7 @@ class WrappedDMLOrthoForest(BaseEconMLWrapperMixin):
 
     See Also
     --------
-    [EconML DMLOrthoForest](https://www.pywhy.org/econml/_autosummary/econml.orf.DMLOrthoForest.html) : Official documentation for EconML's DMLOrthoForest.
+    `~~econml.orf.DMLOrthoForest` : Official documentation for EconML's DMLOrthoForest.
 
     Examples
     --------
@@ -153,7 +154,8 @@ class WrappedDMLOrthoForest(BaseEconMLWrapperMixin):
         data
             Causal dataset containing X, T, Y, and optionally W.
         **fit_kwargs
-            Additional keyword arguments passed to EconML's fit method.
+            Additional keyword arguments passed to
+            `~~econml.orf.DMLOrthoForest.fit()` method.
 
         Returns
         -------
@@ -202,7 +204,7 @@ class WrappedDROrthoForest(BaseEconMLWrapperMixin):
     Parameters
     ----------
     **econml_kwargs
-        Keyword arguments passed directly to `econml.orf.DROrthoForest`.
+        Keyword arguments passed directly to `~~econml.orf.DROrthoForest`.
 
     Attributes
     ----------
@@ -214,7 +216,7 @@ class WrappedDROrthoForest(BaseEconMLWrapperMixin):
 
     See Also
     --------
-    [EconML DROrthoForest](https://www.pywhy.org/econml/_autosummary/econml.orf.DROrthoForest.html) : Official documentation for EconML's DROrthoForest.
+    `~~econml.orf.DROrthoForest` : Official documentation for EconML's DROrthoForest.
 
     Examples
     --------
@@ -307,7 +309,8 @@ class WrappedDROrthoForest(BaseEconMLWrapperMixin):
         data
             Causal dataset containing X, T, Y, and optionally W.
         **fit_kwargs
-            Additional keyword arguments passed to EconML's fit method.
+            Additional keyword arguments passed to
+            `~~econml.orf.DROrthoForest.fit()` method.
 
         Returns
         -------

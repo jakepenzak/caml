@@ -1,7 +1,9 @@
 """Wrappers for EconML's Meta-learners (S-Learner, T-Learner, X-Learner).
 
-Wraps `SLearner`, `TLearner`, and `XLearner` to implement CaML's
-`AutoCateEstimator` and `InferenceProvider` protocols.
+Wraps `~~econml.metalearners.SLearner`, `~~econml.metalearners.TLearner`, and
+`~~econml.metalearners.XLearner` to implement CaML's
+`~~base_estimator.AutoCateEstimator` and
+`~~base_estimator.InferenceProvider` protocols.
 """
 
 from __future__ import annotations
@@ -39,7 +41,7 @@ class WrappedSLearner(BaseEconMLWrapperMixin):
     Parameters
     ----------
     **econml_kwargs
-        Keyword arguments passed directly to `econml.metalearners.SLearner`.
+        Keyword arguments passed directly to `~~econml.metalearners.SLearner`.
 
     Attributes
     ----------
@@ -51,7 +53,7 @@ class WrappedSLearner(BaseEconMLWrapperMixin):
 
     See Also
     --------
-    [EconML SLearner](https://www.pywhy.org/econml/_autosummary/econml.metalearners.SLearner.html) : Official documentation for EconML's SLearner.
+    `~~econml.metalearners.SLearner` : Official documentation for EconML's SLearner.
 
     Examples
     --------
@@ -138,7 +140,8 @@ class WrappedSLearner(BaseEconMLWrapperMixin):
         data
             Causal dataset containing X, T, Y.
         **fit_kwargs
-            Additional keyword arguments passed to EconML's fit method.
+            Additional keyword arguments passed to
+            `~~econml.metalearners.SLearner.fit()` method.
 
         Returns
         -------
@@ -182,7 +185,7 @@ class WrappedTLearner(BaseEconMLWrapperMixin):
     Parameters
     ----------
     **econml_kwargs
-        Keyword arguments passed directly to `econml.metalearners.TLearner`.
+        Keyword arguments passed directly to `~~econml.metalearners.TLearner`.
 
     Attributes
     ----------
@@ -194,7 +197,7 @@ class WrappedTLearner(BaseEconMLWrapperMixin):
 
     See Also
     --------
-    [EconML TLearner](https://www.pywhy.org/econml/_autosummary/econml.metalearners.TLearner.html) : Official documentation for EconML's TLearner.
+    `~~econml.metalearners.TLearner` : Official documentation for EconML's TLearner.
 
     Examples
     --------
@@ -281,7 +284,8 @@ class WrappedTLearner(BaseEconMLWrapperMixin):
         data
             Causal dataset containing X, T, Y.
         **fit_kwargs
-            Additional keyword arguments passed to EconML's fit method.
+            Additional keyword arguments passed to
+            `~~econml.metalearners.TLearner.fit()` method.
 
         Returns
         -------
@@ -325,7 +329,7 @@ class WrappedXLearner(BaseEconMLWrapperMixin):
     Parameters
     ----------
     **econml_kwargs
-        Keyword arguments passed directly to `econml.metalearners.XLearner`.
+        Keyword arguments passed directly to `~~econml.metalearners.XLearner`.
 
     Attributes
     ----------
@@ -337,7 +341,7 @@ class WrappedXLearner(BaseEconMLWrapperMixin):
 
     See Also
     --------
-    [EconML XLearner](https://www.pywhy.org/econml/_autosummary/econml.metalearners.XLearner.html) : Official documentation for EconML's XLearner.
+    `~~econml.metalearners.XLearner` : Official documentation for EconML's XLearner.
 
     Examples
     --------
@@ -431,7 +435,8 @@ class WrappedXLearner(BaseEconMLWrapperMixin):
         data
             Causal dataset containing X, T, Y.
         **fit_kwargs
-            Additional keyword arguments passed to EconML's fit method.
+            Additional keyword arguments passed to
+            `~~econml.metalearners.XLearner.fit()` method.
 
         Returns
         -------

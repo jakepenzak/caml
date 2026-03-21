@@ -24,7 +24,8 @@ class Pehe(BaseCateScorerMixin):
     Parameters
     ----------
     true_cates
-        True CATEs for scoring. If `None`, uses `data.true_cates`.
+        True CATEs for scoring. If `None`, uses ``data.true_cates`` from
+        `~~dataset.CausalDataset`.
     normalized
         If `True`, returns an $R^2$-like score in $(-\infty, 1]$.
 
@@ -37,8 +38,8 @@ class Pehe(BaseCateScorerMixin):
     $$
 
     PEHE is only computable when both potential outcomes are observed (e.g., in
-    simulations). For real-world data, use proxy metrics like Q-statistic, R-loss,
-    or DR-loss.
+    simulations). For real-world data, use proxy metrics like `~~q_stat.QStat`,
+    `~~r_loss.RLoss`, or `~~dr_loss.DRLoss`.
 
     See [Scorer Details](../02_Concepts/scorers.qmd#sec-pehe) for relationship to
     proxy metrics and interpretation guide.
@@ -65,9 +66,11 @@ class Pehe(BaseCateScorerMixin):
         Parameters
         ----------
         estimator
-            Fitted CATE estimator implementing `effect(X)`.
+            Fitted CATE estimator implementing
+            `~~base_estimator.AutoCateEstimator.effect()`.
         data
-            Causal dataset, with true CATEs available via `data.true_cates` if not instantiated with `true_cates` parameter.
+            `~~dataset.CausalDataset`, with true CATEs available via
+            ``data.true_cates`` if not instantiated with ``true_cates``.
 
         Returns
         -------

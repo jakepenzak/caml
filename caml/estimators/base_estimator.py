@@ -33,14 +33,18 @@ class EstimatorCapabilities:
     Parameters
     ----------
     treatment_types
-        Treatment variable types the estimator supports (e.g., `{TreatmentType.BINARY}`).
+        Supported treatment variable types from `~~data_enums.TreatmentType`
+        (e.g., `{TreatmentType.BINARY}`).
     outcome_types
-        Outcome variable types the estimator supports (e.g., `{OutcomeType.CONTINUOUS}`).
+        Supported outcome variable types from `~~data_enums.OutcomeType`
+        (e.g., `{OutcomeType.CONTINUOUS}`).
     inference_types
-        Inference methods the estimator provides (e.g., `{InferenceType.ANALYTIC}`).
-        Empty set if estimator doesn't implement `InferenceProvider`.
+        Supported inference methods from `~~inference_enums.InferenceType`
+        (e.g., `{InferenceType.ANALYTIC}`).
+        Empty set if estimator doesn't implement `~~base_estimator.InferenceProvider`.
     estimands
-        Target causal quantities the estimator estimates (typically `{Estimand.CATE}`).
+        Target causal quantities from `~~data_enums.Estimand` that the estimator
+        estimates (typically `{Estimand.CATE}`).
     supports_controls_in_first_stage_only
         If True, confounders (W) can be used only in nuisance models, not final CATE model.
     supports_weights
@@ -52,7 +56,7 @@ class EstimatorCapabilities:
     requires_regression_model
         If True, estimator needs a regression model - $\mathbb{E}[Y \mid T,X,W]$.
     supports_inference
-        If True, estimator implements `InferenceProvider` protocol.
+        If True, estimator implements `~~base_estimator.InferenceProvider` protocol.
 
     Examples
     --------
@@ -149,17 +153,18 @@ class AutoCateEstimator(Protocol):
     -----
     This is a Protocol using structural typing - any class implementing these methods
     will satisfy this interface. For a base implementation with validation, parameter
-    handling, and helper utilities, see `BaseAutoCateEstimatorMixin`.
+    handling, and helper utilities, see `~~base_estimator.BaseAutoCateEstimatorMixin`.
 
-    The `capabilities` and `default_search_space` attributes must be class attributes, not instance attributes.
+    The `~~base_estimator.AutoCateEstimator.capabilities` and `~~base_estimator.AutoCateEstimator.default_search_space`
+    attributes must be class attributes, not instance attributes.
 
     See Also
     --------
-    [`BaseAutoCateEstimatorMixin`](base_estimator.qmd#caml.estimators.base_estimator.BaseAutoCateEstimatorMixin) : ABC base class with concrete implementations.
+    `~~base_estimator.BaseAutoCateEstimatorMixin` : ABC with concrete implementations.
 
-    [`EstimatorCapabilities`](base_estimator.qmd#caml.estimators.base_estimator.EstimatorCapabilities) : Metadata for estimator features.
+    `~~base_estimator.EstimatorCapabilities` : Metadata for estimator features.
 
-    [`SearchSpace`](search_space.qmd#caml.automl.search_space.SearchSpace) : Hyperparameter search space for AutoML tuning.
+    `~~search_space.SearchSpace` : Hyperparameter search space for AutoML tuning.
     """
 
     capabilities: EstimatorCapabilities
@@ -193,16 +198,14 @@ class InferenceProvider(Protocol):
     """Protocol for estimators providing statistical inference for CATE estimates.
 
     Defines interface for uncertainty quantification via confidence intervals and
-    standard errors. Separate from `AutoCateEstimator` to enable flexible composition.
+    standard errors. Separate from `~~base_estimator.AutoCateEstimator` to enable
+    flexible composition.
 
     Notes
     -----
     This is a structural typing Protocol. Estimators can implement both
-    `AutoCateEstimator` and `InferenceProvider` to provide complete
-    CATE estimation with uncertainty quantification.
-
-    For estimators without native inference, use `BootstrapInferenceWrapper`
-    from the samplers module.
+    `~~base_estimator.AutoCateEstimator` and `~~base_estimator.InferenceProvider`
+    to provide complete CATE estimation with uncertainty quantification.
 
     The `inference_type` parameter with value `None` or `'auto'` should
     delegate to the estimator's preferred inference method.
@@ -220,13 +223,14 @@ class InferenceProvider(Protocol):
 
 
 class BaseAutoCateEstimatorMixin(ABC, BaseEstimator):
-    """Abstract base class for `AutoCateEstimator` with validation and utilities.
+    """Abstract base class for `~~base_estimator.AutoCateEstimator` with validation and utilities.
 
     Provides concrete implementations of compatibility checking, parameter methods,
-    and fitting validation, with utilities inhereted from scikit-learn's `BaseEstimator`
-    (e.g., `get_params` and `set_params`).
+    and fitting validation, with utilities inhereted from scikit-learn's `~~sklearn.base.BaseEstimator`
+    (e.g., `~~sklearn.base.BaseEstimator.get_params` and `~~sklearn.base.BaseEstimator.set_params`).
 
-    Subclasses must implement `fit()` and `effect()` and define the class attributes `capabilities` and `default_search_space`.
+    Subclasses must implement `~~base_estimator.BaseAutoCateEstimatorMixin.fit()` and `~~base_estimator.BaseAutoCateEstimatorMixin.effect()`
+    and define the class attributes `~~base_estimator.BaseAutoCateEstimatorMixin.capabilities` and `~~base_estimator.BaseAutoCateEstimatorMixin.default_search_space`.
 
     This class serves as the recommended base for all CATE estimators in CaML,
     providing a consistent interface and common utilities.
@@ -235,29 +239,28 @@ class BaseAutoCateEstimatorMixin(ABC, BaseEstimator):
     -----
     **Abstract Methods (must be implemented by subclasses):**
 
-    - `fit()` - Fit the estimator on causal data
-    - `effect()` - Predict CATE for features
+    - `~~base_estimator.BaseAutoCateEstimatorMixin.fit()` - Fit the estimator on causal data
+    - `~~base_estimator.BaseAutoCateEstimatorMixin.effect()` - Predict CATE for features
 
     **Concrete Methods (provided by this base class):**
 
-    - `is_compatible_with()` - Class method for compatibility checking
-    - `check_fitted()` - Internal validation utility
+    - `~~base_estimator.BaseAutoCateEstimatorMixin.is_compatible_with()` - Class method for compatibility checking
+    - `~~base_estimator.BaseAutoCateEstimatorMixin.check_fitted()` - Internal validation utility
 
     **Required Class Attributes:**
 
-    - `capabilities` - `EstimatorCapabilities` instance defining supported features
-    - `default_search_space` - `SearchSpace` instance for AutoML tuning
+    - `~~base_estimator.BaseAutoCateEstimatorMixin.capabilities` - `~~base_estimator.EstimatorCapabilities` instance defining supported features
+    - `~~base_estimator.BaseAutoCateEstimatorMixin.default_search_space` - `~~search_space.SearchSpace` instance for AutoML tuning
 
-    Subclasses must define `capabilities` and `default_search_space` as class attributes. Failure to do so
-    will raise a `TypeError` on class definition (enforced by `__init_subclass__`).
+    Failure to define above class attributes will raise a `TypeError` on class definition (enforced by `__init_subclass__`).
 
     See Also
     --------
-    [`AutoCateEstimator`](base_estimator.qmd#caml.estimators.base_estimator.AutoCateEstimator) : Protocol defining the interface.
+    `~~base_estimator.AutoCateEstimator` : Protocol defining the core estimator interface.
 
-    [`EstimatorCapabilities`](base_estimator.qmd#caml.estimators.base_estimator.EstimatorCapabilities) : Metadata for estimator features.
+    `~~base_estimator.EstimatorCapabilities` : Metadata for estimator features.
 
-    [`SearchSpace`](search_space.qmd#caml.automl.search_space.SearchSpace) : Hyperparameter search space for AutoML tuning.
+    `~~search_space.SearchSpace` : Hyperparameter search space for AutoML tuning.
 
     Examples
     --------
@@ -340,9 +343,11 @@ class BaseAutoCateEstimatorMixin(ABC, BaseEstimator):
 
     _is_fitted: bool = False
 
-    # Class attribute that must be overridden by subclasses
     capabilities: EstimatorCapabilities
+    """Metadata describing the estimator's supported features and requirements. Must be defined as a class attribute in subclasses."""
+
     default_search_space: SearchSpace
+    """Hyperparameter search space for AutoML tuning. Must be defined as a class attribute in subclasses."""
 
     @abstractmethod
     def fit(self, data: CausalDataset, **kwargs) -> AutoCateEstimator:
@@ -355,7 +360,7 @@ class BaseAutoCateEstimatorMixin(ABC, BaseEstimator):
 
         Implementations should:
 
-        1. Validate data compatibility (optional - can use `is_compatible_with`)
+        1. Validate data compatibility (can use `~~base_estimator.BaseAutoCateEstimatorMixin.is_compatible_with`)
         2. Fit any nuisance models required (treatment, outcome, regression)
         3. Fit the final CATE model
         4. Set `self._is_fitted = True`
@@ -541,7 +546,7 @@ class BaseAutoCateEstimatorMixin(ABC, BaseEstimator):
         Notes
         -----
         This is an internal utility method. Subclasses should call this at the
-        start of `effect()` and other post-fit methods to ensure the estimator
+        start of `~~base_estimator.BaseAutoCateEstimatorMixin.effect()` and other post-fit methods to ensure the estimator
         has been properly fitted.
         """
         if not hasattr(self, "_is_fitted") or not self._is_fitted:

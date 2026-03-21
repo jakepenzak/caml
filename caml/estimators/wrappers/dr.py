@@ -1,7 +1,9 @@
 """Wrappers for EconML's Doubly Robust (DR) learners (e.g., DML under the Interactive Regression Model regime).
 
-Wraps `DRLearner`, `LinearDRLearner`, `SparseLinearDRLearner`, and `ForestDRLearner`
-to implement CaML's `AutoCateEstimator` and `InferenceProvider` protocols.
+Wraps `~~econml.dr.DRLearner`, `~~econml.dr.LinearDRLearner`, `~~econml.dr.SparseLinearDRLearner`, and `~~econml.dr.ForestDRLearner`
+to implement CaML's
+`~~base_estimator.AutoCateEstimator` and
+`~~base_estimator.InferenceProvider` protocols.
 """
 
 from __future__ import annotations
@@ -42,7 +44,7 @@ class WrappedDRLearner(BaseEconMLWrapperMixin):
     Parameters
     ----------
     **econml_kwargs
-        Keyword arguments passed directly to `econml.dr.DRLearner`.
+        Keyword arguments passed directly to `~~econml.dr.DRLearner`.
 
     Attributes
     ----------
@@ -54,7 +56,7 @@ class WrappedDRLearner(BaseEconMLWrapperMixin):
 
     See Also
     --------
-    [EconML DRLearner](https://www.pywhy.org/EconML/_autosummary/econml.dr.DRLearner.html) : Official documentation for EconML's DRLearner.
+    `~~econml.dr.DRLearner` : Official documentation for EconML's DRLearner.
 
     Examples
     --------
@@ -151,7 +153,8 @@ class WrappedDRLearner(BaseEconMLWrapperMixin):
         data
             Causal dataset containing X, T, Y, and optionally W.
         **fit_kwargs
-            Additional keyword arguments passed to EconML's fit method.
+            Additional keyword arguments passed to `~~econml.dr.DRLearner.fit()`
+            method.
 
         Returns
         -------
@@ -201,7 +204,7 @@ class WrappedLinearDRLearner(BaseEconMLWrapperMixin):
     Parameters
     ----------
     **econml_kwargs
-        Keyword arguments passed directly to `econml.dr.LinearDRLearner`.
+        Keyword arguments passed directly to `~~econml.dr.LinearDRLearner`.
 
     Attributes
     ----------
@@ -213,7 +216,7 @@ class WrappedLinearDRLearner(BaseEconMLWrapperMixin):
 
     See Also
     --------
-    [EconML LinearDRLearner](https://www.pywhy.org/econml/_autosummary/econml.dr.LinearDRLearner.html) : Official documentation for EconML's LinearDRLearner.
+    `~~econml.dr.LinearDRLearner` : Official documentation for EconML's LinearDRLearner.
 
     Examples
     --------
@@ -336,7 +339,8 @@ class WrappedLinearDRLearner(BaseEconMLWrapperMixin):
         data
             Causal dataset containing X, T, Y, and optionally W.
         **fit_kwargs
-            Additional keyword arguments passed to EconML's fit method.
+            Additional keyword arguments passed to
+            `~~econml.dr.LinearDRLearner.fit()` method.
 
         Returns
         -------
@@ -386,7 +390,7 @@ class WrappedSparseLinearDRLearner(BaseEconMLWrapperMixin):
     Parameters
     ----------
     **econml_kwargs
-        Keyword arguments passed directly to `econml.dr.SparseLinearDRLearner`.
+        Keyword arguments passed directly to `~~econml.dr.SparseLinearDRLearner`.
 
     Attributes
     ----------
@@ -398,7 +402,7 @@ class WrappedSparseLinearDRLearner(BaseEconMLWrapperMixin):
 
     See Also
     --------
-    [EconML SparseLinearDRLearner](https://www.pywhy.org/econml/_autosummary/econml.dr.SparseLinearDRLearner.html) : Official documentation for EconML's SparseLinearDRLearner.
+    `~~econml.dr.SparseLinearDRLearner` : Official documentation for EconML's SparseLinearDRLearner.
 
     Examples
     --------
@@ -530,7 +534,8 @@ class WrappedSparseLinearDRLearner(BaseEconMLWrapperMixin):
         data
             Causal dataset containing X, T, Y, and optionally W.
         **fit_kwargs
-            Additional keyword arguments passed to EconML's fit method.
+            Additional keyword arguments passed to
+            `~~econml.dr.SparseLinearDRLearner.fit()` method.
 
         Returns
         -------
@@ -579,7 +584,7 @@ class WrappedForestDRLearner(BaseEconMLWrapperMixin):
     Parameters
     ----------
     **econml_kwargs
-        Keyword arguments passed directly to `econml.dr.ForestDRLearner`.
+        Keyword arguments passed directly to `~~econml.dr.ForestDRLearner`.
 
     Attributes
     ----------
@@ -591,7 +596,7 @@ class WrappedForestDRLearner(BaseEconMLWrapperMixin):
 
     See Also
     --------
-    [EconML ForestDRLearner](https://www.pywhy.org/econml/_autosummary/econml.dr.ForestDRLearner.html) : Official documentation for EconML's ForestDRLearner.
+    `~~econml.dr.ForestDRLearner` : Official documentation for EconML's ForestDRLearner.
 
     Examples
     --------
@@ -696,7 +701,8 @@ class WrappedForestDRLearner(BaseEconMLWrapperMixin):
         data
             Causal dataset containing X, T, Y, and optionally W.
         **fit_kwargs
-            Additional keyword arguments passed to EconML's fit method.
+            Additional keyword arguments passed to
+            `~~econml.dr.ForestDRLearner.fit()` method.
 
         Returns
         -------

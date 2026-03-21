@@ -13,11 +13,11 @@ class TreatmentType(Enum):
     Attributes
     ----------
     BINARY : str
-        Binary treatment (0/1). Supported by all estimators.
+        Binary treatment (0/1).
     MULTI : str
-        Multi-valued discrete treatment (3+ categories). Supported by meta-learners.
+        Multi-valued discrete treatment (3+ categories).
     CONTINUOUS : str
-        Continuous treatment (e.g., dosage). Supported by DML and DR learners.
+        Continuous treatment (e.g., dosage).
 
     Examples
     --------
@@ -50,14 +50,9 @@ class OutcomeType(Enum):
     Attributes
     ----------
     BINARY : str
-        Binary outcome (0/1). Modeled with classification algorithms.
+        Binary outcome (0/1).
     CONTINUOUS : str
-        Continuous outcome. Modeled with regression algorithms.
-
-    Notes
-    -----
-    Outcome type affects nuisance model selection (e.g., `LGBMClassifier` vs
-    `LGBMRegressor`) rather than core CATE estimation strategy.
+        Continuous outcome.
 
     Examples
     --------

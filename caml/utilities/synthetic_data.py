@@ -96,41 +96,41 @@ class SyntheticDataGenerator:
 
     Parameters
     ----------
-    n_obs : int
+    n_obs
         Number of observations.
-    n_cont_outcomes : int
+    n_cont_outcomes
         Number of continuous outcomes ($Y$).
-    n_binary_outcomes : int
+    n_binary_outcomes
         Number of binary outcomes ($Y$).
-    n_cont_treatments : int
+    n_cont_treatments
         Number of continuous treatments ($T$).
-    n_binary_treatments : int
+    n_binary_treatments
         Number of binary treatments ($T$).
-    n_discrete_treatments : int
+    n_discrete_treatments
         Number of discrete treatments ($T$).
-    n_cont_confounders : int
+    n_cont_confounders
         Number of continuous confounders ($W$).
-    n_binary_confounders : int
+    n_binary_confounders
         Number of binary confounders ($W$).
-    n_discrete_confounders : int
+    n_discrete_confounders
         Number of discrete confounders ($W$).
-    n_cont_modifiers : int
+    n_cont_modifiers
         Number of continuous treatment effect modifiers ($X$).
-    n_binary_modifiers : int
+    n_binary_modifiers
         Number of binary treatment effect modifiers ($X$).
-    n_discrete_modifiers : int
+    n_discrete_modifiers
         Number of discrete treatment effect modifiers ($X$).
-    n_confounding_modifiers : int
+    n_confounding_modifiers
         Number of confounding treatment effect modifiers ($X_{\mathcal{S}}$).
-    stddev_outcome_noise : float
+    stddev_outcome_noise
         Standard deviation of the outcome noise ($\epsilon$).
-    stddev_treatment_noise : float
+    stddev_treatment_noise
         Standard deviation of the treatment noise ($\eta$).
-    causal_model_functional_form : str
+    causal_model_functional_form
         Functional form of the causal model, can be "linear" or "nonlinear".
-    n_nonlinear_transformations : int | None
+    n_nonlinear_transformations
         Number of nonlinear transformations, only applies if causal_model_functional_form="nonlinear".
-    seed : int | None
+    seed
         Random seed to use for generating the data.
 
     Attributes
@@ -247,9 +247,10 @@ class SyntheticDataGenerator:
     ) -> pd.DataFrame | np.ndarray:
         """Create a design matrix from a formula and data.
 
-        This method can be used to reconstruct the design matrices used to generate the treatment and outcome
-        variables. Furthermore, using `dgp` attribute, using the returned design matrix, one can generate the original
-        outcomes and treatment variables. See below example.
+        This method can be used to reconstruct the design matrices used to
+        generate the treatment and outcome variables. Combined with the stored
+        DGP metadata, the returned design matrix can be used to regenerate the
+        original outcomes and treatment variables. See the example below.
 
         Parameters
         ----------
@@ -296,13 +297,15 @@ class SyntheticDataGenerator:
 
         1. Generates randomly and independently drawn confounders from various distributions.
         2. Generates randomly and independently drawn heterogeneity inducing covariates (modifiers) from various distributions.
-        3. Generates the treatment variables as a function of confounders and a random subset of heterogeneity inducing covariates, specified by `n_confounding_modifiers`. Returns true dgp.
-        4. Generates the outcome variables as a function of confounders and treatment variables, with treatment interactions with heterogeneity inducing covariates (modifiers). Returns true dgp and treatment effects.
-        5. Sets key attributes of the class including:
-            - `df` - The simulated data
-            - `cates` - The true conditional average treatment effects (CATEs)
-            - `ates` - The true average treatment effects (ATEs)
-            - `dgp` - The data generating process specs
+        3. Generates the treatment variables as a function of confounders and a
+           random subset of heterogeneity inducing covariates, specified by
+           `n_confounding_modifiers`. Returns the true DGP.
+        4. Generates the outcome variables as a function of confounders and
+           treatment variables, with treatment interactions with heterogeneity
+           inducing covariates (modifiers). Returns the true DGP and treatment
+           effects.
+        5. Sets key public attributes of the class, including the simulated
+           data, true CATEs, true ATEs, and DGP specifications.
         """
         # Generate confounders
         confounders = self._generate_independent_variables(
@@ -947,7 +950,9 @@ def make_partially_linear_dataset_simple(
 ) -> tuple[pd.DataFrame, np.ndarray, float]:
     r"""Simulate data generating process from a partially linear model with a simple 1 or 2 dimensional CATE function.
 
-    The outcome is continuous and the treatment can be binary or continuous. The dataset is generated using the `make_heterogeneous_data` function from the [`doubleml` package](https://docs.doubleml.org/stable/index.html).
+    The outcome is continuous and the treatment can be binary or continuous.
+    The dataset is generated using `~~doubleml.irm.datasets.make_heterogeneous_data`
+    from `~~doubleml`.
 
     The general form of the data generating process is, in the case of dim_heterogeneity=1:
 
@@ -969,7 +974,8 @@ def make_partially_linear_dataset_simple(
 
     where $y_i$ is the outcome, $d_i$ is the treatment, $\mathbf{X_i}$ are the confounders, $\epsilon_i$ and $\eta_i$ are the error terms, $\\tau$ is the CATE function, $g$ is the outcome function, and $f$ is the treatment function.
 
-    See the `doubleml` documentation for more details on the specific functional forms of the data generating process.
+    See `~~doubleml.irm.datasets.make_heterogeneous_data` for more details on
+    the specific functional forms of the data generating process.
 
     Here the ATE is defined as the average of the CATE function over all observations: $\mathbb{E}[\tau (\cdot)]$
 
@@ -987,19 +993,20 @@ def make_partially_linear_dataset_simple(
     ```
     </div>
 
-    This function requires the `doubleml` package to be installed. You can install it via the doubleml extra: `pip install caml[doubleml]`
+    This function requires `~~doubleml` to be installed. You can install it via
+    the doubleml extra: `pip install caml[doubleml]`
 
     Parameters
     ----------
-    n_obs : int
+    n_obs
         The number of observations to generate.
-    n_confounders : int
+    n_confounders
         The number of confounders $X$.
-    dim_heterogeneity : int
+    dim_heterogeneity
         The dimension of the heterogeneity $x_0$ or $(x_0,x_1)$. Can only be 1 or 2.
-    binary_treatment : bool
+    binary_treatment
         Whether the treatment $d$ is binary or continuous.
-    seed : int | None
+    seed
         The seed to use for the random number generator.
 
     Returns
@@ -1014,7 +1021,7 @@ def make_partially_linear_dataset_simple(
     Raises
     ------
     ModuleNotFoundError
-        If the `doubleml` package is not installed.
+        If `~~doubleml` is not installed.
     ValueError
         If `dim_heterogeneity` is not 1 or 2.
 
@@ -1071,7 +1078,9 @@ def make_partially_linear_dataset_constant(
 ) -> tuple[pd.DataFrame, np.ndarray, float]:
     r"""Simulate a data generating process from a partially linear model with a constant treatment effect (ATE only).
 
-    The outcome and treatment are both continuous.The dataset is generated using the `make_plr_CCDDHNR2018` or `make_plr_turrell2018` function from the [`doubleml` package](https://docs.doubleml.org/stable/index.html).
+    The outcome and treatment are both continuous. The dataset is generated
+    using `~~doubleml.plm.datasets.make_plr_CCDDHNR2018` or
+    `~~doubleml.plm.datasets.make_plr_turrell2018` from `~~doubleml`.
 
     The general form of the data generating process is:
 
@@ -1084,7 +1093,9 @@ def make_partially_linear_dataset_constant(
 
     where $y_i$ is the outcome, $d_i$ is the treatment, $\mathbf{W_i}$ are the confounders, $\epsilon_i$ and $\eta_i$ are the error terms, $\tau_0$ is the ATE parameter, $g$ is the outcome function, and $f$ is the treatment function.
 
-    See the `doubleml` documentation for more details on the specific functional forms of the data generating process.
+    See `~~doubleml.plm.datasets.make_plr_CCDDHNR2018` and
+    `~~doubleml.plm.datasets.make_plr_turrell2018` for more details on the
+    specific functional forms of the data generating process.
 
     As a DAG, the data generating process can be roughly represented as:
 
@@ -1099,19 +1110,20 @@ def make_partially_linear_dataset_constant(
     ```
     </div>
 
-    This function requires the `doubleml` package to be installed. You can install it via the doubleml extra: `pip install caml[doubleml]`.
+    This function requires `~~doubleml` to be installed. You can install it via
+    the doubleml extra: `pip install caml[doubleml]`.
 
     Parameters
     ----------
-    n_obs : int
+    n_obs
         The number of observations to generate.
-    ate : float
+    ate
         The average treatment effect $\tau_0$.
-    n_confounders : int
+    n_confounders
         The number of confounders $\mathbf{W_i}$ to generate.
-    dgp : str
+    dgp
         The data generating process to use. Can be "make_plr_CCDDHNR20" or "make_plr_turrell2018".
-    seed : int | None
+    seed
         The seed to use for the random number generator.
     **doubleml_kwargs
         Additional keyword arguments to pass to the data generating process.
@@ -1128,7 +1140,7 @@ def make_partially_linear_dataset_constant(
     Raises
     ------
     ModuleNotFoundError
-        If the `doubleml` package is not installed.
+        If `~~doubleml` is not installed.
     ValueError
         If `dgp` is not "make_plr_CCDDHNR2018" or "make_plr_turrell2018".
 
@@ -1195,7 +1207,9 @@ def make_fully_heterogeneous_dataset(
 ) -> tuple[pd.DataFrame, np.ndarray, float]:
     r"""Simulate data generating process from an interactive regression model with fully heterogenous treatment effects.
 
-    The outcome is continuous and the treatment is binary. The dataset is generated using a modified version of `make_irm_data` function from the [`doubleml` package](https://docs.doubleml.org/stable/index.html).
+    The outcome is continuous and the treatment is binary. The dataset is
+    generated using a modified version of
+    `~~doubleml.irm.datasets.make_irm_data` from `~~doubleml`.
 
     The general form of the data generating process is:
 
@@ -1208,7 +1222,8 @@ def make_fully_heterogeneous_dataset(
 
     where $y_i$ is the outcome, $d_i$ is the treatment, $\mathbf{X_i}$ are the confounders utilized for full effect heterogeneity, $\epsilon_i$ and $\eta_i$ are the error terms, $g$ is the outcome function, and $f$ is the treatment function.
 
-    See the `doubleml` documentation for more details on the specific functional forms of the data generating process.
+    See `~~doubleml.irm.datasets.make_irm_data` for more details on the
+    specific functional forms of the data generating process.
 
     Note that the treatment effect is fully heterogenous, thus the CATE is defined as: $\tau = \mathbb{E}[g(1,\mathbf{X}) - g(0,\mathbf{X})|\mathbf{X}]$ for any $\mathbf{X}$.
 
@@ -1229,13 +1244,13 @@ def make_fully_heterogeneous_dataset(
 
     Parameters
     ----------
-    n_obs : int
+    n_obs
         The number of observations to generate.
-    n_confounders : int
+    n_confounders
         The number of confounders $\mathbf{X_i}$ to generate (these are utilized fully for heterogeneity).
-    theta : float
+    theta
         The base parameter for the treatment effect. Note this can differ slightly from the true ATE.
-    seed : int | None
+    seed
         The seed to use for the random number generator.
     **doubleml_kwargs
         Additional keyword arguments to pass to the data generating process.

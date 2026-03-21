@@ -24,14 +24,16 @@ def get_compatible_estimators(
 ) -> dict:
     """Get estimators compatible with dataset.
 
-    For custom estimators, ensure they are registered using `register_estimator`.
+    For custom estimators, ensure they are registered using
+    `~~registry.register_estimator`.
 
     Parameters
     ----------
     data
         Dataset to check compatibility.
     families
-        Estimator families to include: ["dml", "dr", "meta", "orf", "custom"].
+        Estimator families to include, expressed as
+        `~~registry_enums.EstimatorFamily` values or their string forms.
         Defaults to None, which includes all available estimators.
 
     Returns
@@ -100,16 +102,17 @@ def get_compatible_scorers(
 ) -> dict:
     """Get scorers compatible with dataset.
 
-    For custom scorers, ensure they are registered using `register_scorer`.
+    For custom scorers, ensure they are registered using
+    `~~registry.register_scorer`.
 
     Parameters
     ----------
     data
         Dataset to check compatibility.
     families
-        Scorer families to include: ["oracle", "plug_in", "pseudo_outcome", "ranking_relative_proxy",
-        "ranking_curve", "policy", "custom"]. Defaults to None,
-        which includes all available scorers.
+        Scorer families to include, expressed as
+        `~~registry_enums.ScorerFamily` values or their string forms.
+        Defaults to None, which includes all available scorers.
 
     Returns
     -------
@@ -185,9 +188,11 @@ def register_estimator(
     name
         Name of the estimator to register.
     estimator
-        Estimator class to register.
+        Estimator class to register implementing
+        `~~base_estimator.AutoCateEstimator`.
     family
-        Family for the estimator
+        Family for the estimator as `~~registry_enums.EstimatorFamily` or a
+        matching string.
 
     Examples
     --------
@@ -257,9 +262,11 @@ def register_scorer(
     name
         Name of the scorer to register.
     scorer
-        Scorer function to register.
+        Scorer callable to register, often a
+        `~~base_scorer.BaseCateScorerMixin` subclass.
     family
-        Family for the scorer.
+        Family for the scorer as `~~registry_enums.ScorerFamily` or a matching
+        string.
 
     Examples
     --------
@@ -311,7 +318,9 @@ def auto_register(
     name
         The name to register the object under.
     family
-        The family of the estimator or scorer.
+        The family of the estimator or scorer as
+        `~~registry_enums.EstimatorFamily`, `~~registry_enums.ScorerFamily`, or
+        a matching string.
     is_estimator
         If True, registers as an estimator; if False, registers as a scorer.
 

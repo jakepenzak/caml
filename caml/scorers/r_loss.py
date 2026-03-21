@@ -84,9 +84,10 @@ class RLoss(BaseCateScorerMixin):
         Parameters
         ----------
         estimator
-            Fitted CATE estimator implementing `effect(X)`.
+            Fitted CATE estimator implementing
+            `~~base_estimator.AutoCateEstimator.effect()`.
         data
-            Causal dataset.
+            `~~dataset.CausalDataset`.
 
         Returns
         -------

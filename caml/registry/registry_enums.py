@@ -4,7 +4,10 @@ from enum import Enum
 
 
 class EstimatorFamily(Enum):
-    """Enum for estimator families. Used for global registry categorization.
+    """Enum for estimator families.
+
+    Used for global registry categorization by
+    `~~registry.get_compatible_estimators` and `~~registry.register_estimator`.
 
     Attributes
     ----------
@@ -37,7 +40,10 @@ class EstimatorFamily(Enum):
 
 
 class ScorerFamily(Enum):
-    """Enum for scorer families. Used for global registry categorization.
+    """Enum for scorer families.
+
+    Used for global registry categorization by `~~registry.get_compatible_scorers`
+    and `~~registry.register_scorer`.
 
     Provides high-level taxonomy for CATE model scoring metrics.
 

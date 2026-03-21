@@ -1,4 +1,10 @@
-"""Plotting utilities."""
+"""Plotting utilities for treatment-effect diagnostics.
+
+These helpers are useful for visualizing estimates from
+`~~base_estimator.AutoCateEstimator.effect()` against oracle effects from
+`~~synthetic_data.SyntheticDataGenerator` or uncertainty summaries from
+`~~results.InferenceResult`.
+"""
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -16,8 +22,7 @@ def cate_histogram_plot(
     figure_kwargs: dict = {},
     hist_kwargs: dict = {},
 ) -> Figure:
-    """
-    Plots a histogram the estimated CATEs.
+    """Plot a histogram of estimated CATE values.
 
     Parameters
     ----------
@@ -25,7 +30,8 @@ def cate_histogram_plot(
         The estimated CATEs.
 
     true_cates : ArrayLike | None
-        The true CATEs.
+        True or oracle CATEs, for example from
+        `~~synthetic_data.SyntheticDataGenerator`.
 
     figure_kwargs : dict
         Matplotlib figure arguments.
@@ -96,13 +102,16 @@ def cate_true_vs_estimated_plot(
     figure_kwargs: dict = {},
     scatter_kwargs: dict = {},
 ) -> Figure:
-    """
-    Plots a scatter plot of the estimated CATEs against the true CATEs.
+    """Plot estimated CATEs against oracle CATEs.
 
     Parameters
     ----------
     estimated_cates : ArrayLike
         The estimated CATEs.
+
+    true_cates : ArrayLike
+        True or oracle CATEs, for example from
+        `~~synthetic_data.SyntheticDataGenerator`.
 
     figure_kwargs : dict
         Matplotlib figure arguments.
@@ -166,8 +175,7 @@ def cate_line_plot(
     figure_kwargs: dict = {},
     line_kwargs: dict = {},
 ) -> Figure:
-    """
-    Plots a line plot of the ordered estimated CATEs as a rolling mean with optional confidence intervals.
+    """Plot ordered CATEs as a rolling mean with optional confidence bands.
 
     Parameters
     ----------
@@ -175,10 +183,12 @@ def cate_line_plot(
         The estimated CATEs.
 
     true_cates : np.ndarray | None
-        The true CATEs.
+        True or oracle CATEs, for example from
+        `~~synthetic_data.SyntheticDataGenerator`.
 
     standard_errors : np.ndarray | None
-        The standard errors of the estimated CATEs.
+        Standard errors of the estimated CATEs, for example from
+        `~~results.InferenceResult.stderr`.
 
     alpha : float
         The alpha level for the confidence intervals. The default is 0.05, which corresponds to 95% confidence intervals.

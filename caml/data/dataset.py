@@ -1,6 +1,6 @@
 """Unified causal data container for CATE estimation.
 
-Provides `CausalDataset`, the core data structure for causal inference workflows in CaML.
+Provides `~~dataset.CausalDataset`, the core data structure for causal inference workflows in CaML.
 Encapsulates treatment variables, outcomes, effect modifiers, and confounders with automatic
 validation and metadata tracking.
 """
@@ -45,17 +45,21 @@ class CausalDataset:
     weights
         Sample weights for weighted estimation.
     treatment_type
-        Treatment type (`TreatmentType.BINARY`, `MULTI`, or `CONTINUOUS`).
+        Treatment type from `~~data_enums.TreatmentType` (`BINARY`, `MULTI`,
+        or `CONTINUOUS`).
     outcome_type
-        Outcome type (`OutcomeType.BINARY` or `CONTINUOUS`).
+        Outcome type from `~~data_enums.OutcomeType` (`BINARY` or
+        `CONTINUOUS`).
     X_names
-        Effect modifier names (auto-set by `from_dataframe()`).
+        Effect modifier names (auto-set by
+        `~~dataset.CausalDataset.from_dataframe()`).
     W_names
-        Confounder names (auto-set by `from_dataframe()`).
+        Confounder names (auto-set by
+        `~~dataset.CausalDataset.from_dataframe()`).
     T_name
-        Treatment name (auto-set by `from_dataframe()`).
+        Treatment name (auto-set by `~~dataset.CausalDataset.from_dataframe()`).
     Y_name
-        Outcome name (auto-set by `from_dataframe()`).
+        Outcome name (auto-set by `~~dataset.CausalDataset.from_dataframe()`).
     true_cates
         True CATEs (for synthetic data and simulations; can be used in PEHE score, not used in estimation).
 
@@ -185,9 +189,9 @@ class CausalDataset:
         outcome_type: OutcomeType = OutcomeType.CONTINUOUS,
         **kwargs,
     ) -> CausalDataset:
-        """Construct `CausalDataset` from a pandas DataFrame.
+        """Construct `~~dataset.CausalDataset` from a pandas DataFrame.
 
-        Recommended way to create a `CausalDataset`. Automatically extracts and tracks
+        Recommended way to create a `~~dataset.CausalDataset`. Automatically extracts and tracks
         column names for interpretability.
 
         Parameters

@@ -1,6 +1,6 @@
 """Optuna-based backend for CATE model selection.
 
-Wraps `optuna` to perform Bayesian hyperparameter optimization (`~~optuna.samplers.TPESampler` by default)
+Wraps `~~optuna` to perform Bayesian hyperparameter optimization (`~~optuna.samplers.TPESampler` by default)
 over candidate CATE estimators. Study state is persisted to a local SQLite database
 under `~/.caml/studies/`, by default, enabling [`optuna-dashboard`](https://optuna-dashboard.readthedocs.io/en/latest/#) integration.
 """
@@ -43,7 +43,7 @@ class OptunaBackend(BaseTunerBackend):
         If `True` and `study_name` is provided, resumes an existing study
         with the same name instead of creating a new one.
     **kwargs
-        Additional kwargs forwarded to `optuna.create_study()`.
+        Additional kwargs forwarded to `~~optuna.create_study()`.
 
     Notes
     -----
@@ -147,7 +147,7 @@ class OptunaBackend(BaseTunerBackend):
         timeout
             Time limit in seconds. `None` means no limit.
         **kwargs
-            Additional kwargs forwarded to `optuna.study.Study.optimize()`.
+            Additional kwargs forwarded to `~~optuna.study.Study.optimize()`.
 
         Returns
         -------
@@ -196,14 +196,15 @@ class OptunaBackend(BaseTunerBackend):
         Returns
         -------
         callable
-            Objective function with signature `(optuna.Trial) -> float`.
+            Objective function accepting an `~~optuna.trial.Trial` and
+            returning a float score.
 
         Notes
         -----
         Inside each trial the objective:
 
-        1. Samples a candidate estimator via `trial.suggest_categorical()`.
-        2. Samples estimator-specific hyperparameters from its `default_search_space`.
+        1. Samples a candidate estimator via `~~optuna.trial.Trial.suggest_categorical()`.
+        2. Samples estimator-specific hyperparameters from its `~~base_estimator.AutoCateEstimator.default_search_space`.
         3. Injects pre-tuned nuisance models where required.
         4. Scores via `cv`-fold cross-validation, returning the mean score.
         """

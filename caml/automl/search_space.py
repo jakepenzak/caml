@@ -1,6 +1,6 @@
 """Search space specifications for AutoML hyperparameter tuning.
 
-Provides dataclass-based specifications that can be converted to Optuna,
+Provides dataclass-based specifications that can be converted to `~~optuna`,
 or other AutoML library formats.
 
 ```{python}
@@ -43,7 +43,7 @@ class SearchSpaceSpec(ABC):
     """Base class for hyperparameter search space specifications.
 
     All search space specs must provide conversion methods to supported
-    AutoML libraries (e.g., `optuna`).
+    AutoML libraries (e.g., `~~optuna`).
     """
 
     name: str
@@ -61,12 +61,12 @@ class SearchSpaceSpec(ABC):
 
     @abstractmethod
     def to_optuna(self, trial, prefix: str = "") -> Any:
-        """Sample value using `optuna` trial.
+        """Sample value using a `~~optuna.trial.Trial`.
 
         Parameters
         ----------
         trial
-            Optuna trial object for sampling.
+            `~~optuna.trial.Trial` object for sampling.
         prefix
             Optional prefix for parameter name (useful for nested search spaces), by default ""
 

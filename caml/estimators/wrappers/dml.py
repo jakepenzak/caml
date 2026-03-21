@@ -1,7 +1,9 @@
 """Wrappers for EconML's Double Machine Learning estimators under the Partially Linear Model regime.
 
 Wraps `~~econml.dml.LinearDML`, `~~econml.dml.SparseLinearDML`, `~~econml.dml.CausalForestDML`, `~~econml.dml.NonParamDML`, and `~~econml.dml.KernelDML`
-to implement CaML's `~~base_estimator.AutoCateEstimator` and `~~base_estimator.InferenceProvider` protocols.
+to implement CaML's
+`~~base_estimator.AutoCateEstimator` and
+`~~base_estimator.InferenceProvider` protocols.
 """
 
 from __future__ import annotations
@@ -39,7 +41,7 @@ class WrappedLinearDML(BaseEconMLWrapperMixin):
     """Wrapper for EconML's LinearDML estimator.
 
     LinearDML estimates CATE using Double Machine Learning with a linear final model.
-    Supports binary, multi-valued, and continuous treatments with continuous outcomes.
+    Supports binary, multi-valued, and continuous treatments with continuous or binary outcomes.
     Provides analytic confidence intervals via debiased moment conditions.
 
     *Note: All attributes and methods on the underlying EconML estimator are accessible
@@ -48,7 +50,7 @@ class WrappedLinearDML(BaseEconMLWrapperMixin):
     Parameters
     ----------
     **econml_kwargs
-        Keyword arguments passed directly to `econml.dml.LinearDML`.
+        Keyword arguments passed directly to `~~econml.dml.LinearDML`.
 
     Attributes
     ----------
@@ -206,7 +208,7 @@ class WrappedSparseLinearDML(BaseEconMLWrapperMixin):
 
     SparseLinearDML estimates CATE using Double Machine Learning with a sparse linear (Lasso)
     final model for feature selection. Supports binary, multi-valued, and continuous treatments
-    with continuous outcomes. Provides analytic confidence intervals via debiased Lasso.
+    with continuous or binary outcomes. Provides analytic confidence intervals via debiased Lasso.
 
     *Note: All attributes and methods on the underlying EconML estimator are accessible
     via this wrapper through delegation, if not explicitly overridden.*
@@ -214,7 +216,7 @@ class WrappedSparseLinearDML(BaseEconMLWrapperMixin):
     Parameters
     ----------
     **econml_kwargs
-        Keyword arguments passed directly to `econml.dml.SparseLinearDML`.
+        Keyword arguments passed directly to `~~econml.dml.SparseLinearDML`.
 
     Attributes
     ----------
@@ -359,7 +361,8 @@ class WrappedSparseLinearDML(BaseEconMLWrapperMixin):
         data
             Causal dataset containing X, T, Y, and optionally W.
         **fit_kwargs
-            Additional keyword arguments passed to EconML's fit method.
+            Additional keyword arguments passed to
+            `~~econml.dml.SparseLinearDML.fit()`.
 
         Returns
         -------
@@ -412,7 +415,7 @@ class WrappedCausalForestDML(BaseEconMLWrapperMixin):
     Parameters
     ----------
     **econml_kwargs
-        Keyword arguments passed directly to `econml.dml.CausalForestDML`.
+        Keyword arguments passed directly to `~~econml.dml.CausalForestDML`.
 
     Attributes
     ----------
@@ -532,7 +535,8 @@ class WrappedCausalForestDML(BaseEconMLWrapperMixin):
         data
             Causal dataset containing X, T, Y, and optionally W.
         **fit_kwargs
-            Additional keyword arguments passed to EconML's fit method.
+            Additional keyword arguments passed to
+            `~~econml.dml.CausalForestDML.fit()`.
 
         Returns
         -------
@@ -542,7 +546,7 @@ class WrappedCausalForestDML(BaseEconMLWrapperMixin):
         Notes
         -----
         This method automatically sets `discrete_treatment` flag based on the
-        data's treatment_type. CausalForestDML only supports continuous outcomes.
+        data's treatment_type.
         """
         if not self.is_compatible_with(data):
             raise ValueError(
@@ -584,7 +588,7 @@ class WrappedNonParamDML(BaseEconMLWrapperMixin):
     Parameters
     ----------
     **econml_kwargs
-        Keyword arguments passed directly to `econml.dml.NonParamDML`.
+        Keyword arguments passed directly to `~~econml.dml.NonParamDML`.
 
     Attributes
     ----------
@@ -698,7 +702,8 @@ class WrappedNonParamDML(BaseEconMLWrapperMixin):
         data
             Causal dataset containing X, T, Y, and optionally W.
         **fit_kwargs
-            Additional keyword arguments passed to EconML's fit method.
+            Additional keyword arguments passed to
+            `~~econml.dml.NonParamDML.fit()`.
 
         Returns
         -------
@@ -751,7 +756,7 @@ class WrappedKernelDML(BaseEconMLWrapperMixin):
     Parameters
     ----------
     **econml_kwargs
-        Keyword arguments passed directly to `econml.dml.KernelDML`.
+        Keyword arguments passed directly to `~~econml.dml.KernelDML`.
 
     Attributes
     ----------
@@ -858,7 +863,7 @@ class WrappedKernelDML(BaseEconMLWrapperMixin):
         data
             Causal dataset containing X, T, Y, and optionally W.
         **fit_kwargs
-            Additional keyword arguments passed to EconML's fit method.
+            Additional keyword arguments passed to `~~econml.dml.KernelDML.fit()` method.
 
         Returns
         -------
